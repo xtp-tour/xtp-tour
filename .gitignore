@@ -1,0 +1,54 @@
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Go workspace files
+.idea/
+.vscode/
+*.iml
+
+# Go build
+/bin/
+/pkg/
+
+# React/Node.js
+node_modules/
+/build
+/dist
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Cache
+.cache/
+.eslintcache
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
