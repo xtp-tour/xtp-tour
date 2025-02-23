@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/gin-contrib/cors"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/rest"
 	"github.com/stretchr/testify/assert"
+	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 )
 
 func init() {

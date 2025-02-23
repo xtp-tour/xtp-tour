@@ -1,8 +1,8 @@
 package pkg
 
 import (
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/metrics"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/rest"
+	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
+	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 )
 
 type Config struct {

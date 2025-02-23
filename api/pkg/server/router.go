@@ -7,10 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/cmd/version"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/metrics"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/rest"
+	"github.com/xtp-tour/xtp-tour/api/cmd/version"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 
 	"github.com/wI2L/fizz"
 )
@@ -37,27 +36,37 @@ func NewRouter(config *rest.HttpConfig, debugMode bool) *Router {
 		port:        config.Port,
 		testStorage: map[string]string{},
 	}
-	r.init()
+	r.init(config.AuthConfig)
 	return r
 }
 
-func (r *Router) init() {
+func (r *Router) init(authConf rest.AuthConfig) {
+
+	// DEBUG STUFF
+	r.testStorage["challenge 1"] = "test challenge 1"
+	r.testStorage["challenge 2"] = "test challenge 2"
+	r.testStorage["challenge 3"] = "test challenge 3"
 
 	// Define routes here
-	thingsGroup := r.fizz.Group("/things", "Things list", "Things operations")
+	challenges := r.fizz.Group("/challenges", "Challenges", "Challenges operations", rest.AuthMiddleware(authConf))
 
-	thingsGroup.PUT("/:name",
+	challenges.PUT("/:name",
 		[]fizz.OperationOption{fizz.Summary("Put a thing")},
 		tonic.Handler(r.thingPutHandler, http.StatusCreated))
 
-	thingsGroup.GET("/:name", []fizz.OperationOption{fizz.Summary("Get a thing")}, tonic.Handler(r.thingGetHandler, http.StatusOK))
+	challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
 }
 
-func (r *Router) thingGetHandler(c *gin.Context, req *ThingGetRequest) (*ThingGetResponse, error) {
-	// Record custom metric
-	metrics.RecordSuccessfulRequestMetric()
-	if val, ok := r.testStorage[req.Name]; ok {
-		return &ThingGetResponse{
+func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesReponse, error) {
+	return ListChallengesReponse{
+		Challenges: r.testStorage,
+	}, nil
+}
+
+func (r *Router) getChallengeHandler(c *gin.Context, req *GetChallengesRequest) (*GetChallengesResponse, error) {
+
+	if val, ok := r.testStorage[req.Id]; ok {
+		return &GetChallengesResponse{
 			Result: val,
 		}, nil
 	} else {

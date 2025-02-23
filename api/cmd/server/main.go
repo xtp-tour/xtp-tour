@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/num30/config"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/metrics"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
 
-	"github.com/DenisPalnitsky/korty-wroclawia/api/cmd/version"
+	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 
-	ccmd "github.com/DenisPalnitsky/korty-wroclawia/api/pkg/cmd"
-	"github.com/DenisPalnitsky/korty-wroclawia/api/pkg/server"
+	ccmd "github.com/xtp-tour/xtp-tour/api/pkg/cmd"
+	"github.com/xtp-tour/xtp-tour/api/pkg/server"
 )
 
 var serviceConfig = &pkg.Config{}

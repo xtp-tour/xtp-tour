@@ -1,10 +1,14 @@
 package server
 
-type ThingGetRequest struct {
-	Name string `path:"name" validate:"required"`
+type GetChallengesRequest struct {
+	Id string `path:"id" validate:"required"`
 }
 
-type ThingGetResponse struct {
+type ListChallengesReponse struct {
+	Challenges map[string]string
+}
+
+type GetChallengesResponse struct {
 	Result string
 }
 

@@ -52,3 +52,4 @@ yarn.lock
 .Trashes
 ehthumbs.db
 Thumbs.db
+api/bin
