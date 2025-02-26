@@ -114,7 +114,7 @@ func renderHook(c *gin.Context, statusCode int, payload interface{}) {
 	var status int
 
 	// This is a tricky part.
-	// We need to be able to set the status in toni.Handeler for cases when it's not default
+	// We need to be able to set the status in tonic.Handeler for cases when it's not default
 	// Here is how it done in default gin renderHook https://github.com/loopfz/gadgeto/blob/c4f8b2f64586099b9b281cbe99aa2f8b05e7d8b0/tonic/tonic.go#L111
 	// but this does not work because here c.Writer.Written() is always false
 	// We have to realy on default status from Gin taht is always 200 for no reason

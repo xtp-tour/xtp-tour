@@ -29,6 +29,8 @@ func (r *Router) Run() {
 }
 
 func NewRouter(config *rest.HttpConfig, debugMode bool) *Router {
+	slog.Info("Cors Config", "cors", config.Cors)
+
 	f := rest.NewFizzRouter(config, pkg.ServiceName, version.Version, debugMode)
 
 	r := &Router{
@@ -46,9 +48,10 @@ func (r *Router) init(authConf rest.AuthConfig) {
 	r.testStorage["challenge 1"] = "test challenge 1"
 	r.testStorage["challenge 2"] = "test challenge 2"
 	r.testStorage["challenge 3"] = "test challenge 3"
+	api := r.fizz.Group("/api", "API", "API operations")
 
 	// Define routes here
-	challenges := r.fizz.Group("/challenges", "Challenges", "Challenges operations", rest.AuthMiddleware(authConf))
+	challenges := api.Group("/challenges", "Challenges", "Challenges operations", rest.AuthMiddleware(authConf))
 
 	challenges.PUT("/:name",
 		[]fizz.OperationOption{fizz.Summary("Put a thing")},
@@ -57,8 +60,8 @@ func (r *Router) init(authConf rest.AuthConfig) {
 	challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
 }
 
-func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesReponse, error) {
-	return ListChallengesReponse{
+func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesResponse, error) {
+	return ListChallengesResponse{
 		Challenges: r.testStorage,
 	}, nil
 }

@@ -4,8 +4,8 @@ type GetChallengesRequest struct {
 	Id string `path:"id" validate:"required"`
 }
 
-type ListChallengesReponse struct {
-	Challenges map[string]string
+type ListChallengesResponse struct {
+	Challenges map[string]string `json:"challenges"`
 }
 
 type GetChallengesResponse struct {

@@ -12,5 +12,5 @@ type HttpConfig struct {
 
 type AuthConfig struct {
 	Type   string `default:"clerk" envvar:"AUTH_TYPE"`
-	Config string `evnvar:"AUTH_CONFIG"`
+	Config string `envvar:"AUTH_CONFIG"`
 }
