@@ -27,3 +27,5 @@ servicetest.run:
 
 servicetest.build:
 	env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
+
+	 

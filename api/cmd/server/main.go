@@ -6,6 +6,7 @@ import (
 
 	"github.com/num30/config"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
 
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
@@ -20,6 +21,11 @@ func main() {
 	ccmd.ProcessVersionArgument(pkg.ServiceName, os.Args, version.Version)
 
 	loadConfig()
+
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		db.RunMigrations(&serviceConfig.Db)
+		return
+	}
 
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
 	r := server.NewRouter(&serviceConfig.Service, serviceConfig.IsDebugMode)
