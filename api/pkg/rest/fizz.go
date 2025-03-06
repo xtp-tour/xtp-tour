@@ -14,6 +14,7 @@ import (
 	"github.com/penglongli/gin-metrics/ginmetrics"
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
 
 type PingResponse struct {
@@ -30,7 +31,7 @@ func (g HttpError) Error() string {
 	return g.Message
 }
 
-func NewFizzRouter(httpConfig *HttpConfig, srvName string, srvVersion string, isDebug bool) *fizz.Fizz {
+func NewFizzRouter(httpConfig *pkg.HttpConfig, srvName string, srvVersion string, isDebug bool) *fizz.Fizz {
 
 	gin.SetMode(gin.ReleaseMode)
 	if isDebug {

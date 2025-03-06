@@ -10,6 +10,7 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gin-gonic/gin"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
 
 type JWKStore interface {
@@ -32,7 +33,7 @@ func NewJWKStore() JWKStore {
 	return &jwkStore{}
 }
 
-func AuthMiddleware(authConfig AuthConfig) gin.HandlerFunc {
+func AuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 
 	if authConfig.Type != "clerk" {
 		panic("Authentication type is not supported ")

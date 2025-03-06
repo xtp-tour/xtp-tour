@@ -28,7 +28,7 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *rest.HttpConfig, debugMode bool) *Router {
+func NewRouter(config *pkg.HttpConfig, debugMode bool) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
 
 	f := rest.NewFizzRouter(config, pkg.ServiceName, version.Version, debugMode)
@@ -42,7 +42,7 @@ func NewRouter(config *rest.HttpConfig, debugMode bool) *Router {
 	return r
 }
 
-func (r *Router) init(authConf rest.AuthConfig) {
+func (r *Router) init(authConf pkg.AuthConfig) {
 
 	// DEBUG STUFF
 	r.testStorage["challenge 1"] = "test challenge 1"
