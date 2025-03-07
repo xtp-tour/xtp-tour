@@ -4,6 +4,12 @@
 
 # Local development
 
+
+You will need:
+- Golang
+- [sqlc](https://docs.sqlc.dev/en/stable/overview/install.html)
+- [Go migrate cli](https://github.com/golang-migrate/migrate#cli-usage)
+
 ## Migrations
 
 - Create new migration `migrate create -ext sql -dir db/migrations -seq <migration-name>`
@@ -11,6 +17,7 @@
 
 
 # :computer: Useful commands
+
 
 - run unit tests `go test ./... -v`
 - run server `go run cmd/server/main.go` 
