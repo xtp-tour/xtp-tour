@@ -11,12 +11,18 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.23.0
         version: 5.23.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      bootstrap-icons:
+        specifier: ^1.11.3
+        version: 1.11.3
       react:
         specifier: ^19.0.0
         version: 19.0.0
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      use-bootstrap-select:
+        specifier: ^2.2.1
+        version: 2.2.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.19.0
@@ -591,6 +597,9 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  bootstrap-icons@1.11.3:
+    resolution: {integrity: sha512-+3lpHrCw/it2/7lBL15VR0HEumaBss0+f/Lb6ZvHISn1mlK83jjFpooTLsMWbIjJMDjDjOExMsTxnXSIT4k4ww==}
+
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
 
@@ -1051,6 +1060,9 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  use-bootstrap-select@2.2.1:
+    resolution: {integrity: sha512-yOa+YrCzBon1qP7QUX6dutHPV74YJsMr01RqaDLmel0ztZqQQ/EGeGjq4HiGwN6KQB/3t3E5fHjRhJZHtSR+sQ==}
 
   use-sync-external-store@1.4.0:
     resolution: {integrity: sha512-9WXSPC5fMv61vaupRkCKCxsPxBocVnwakBEkMIHHpkTTg6icbJtg6jzgtLDm4bl3cSHAca52rYWih0k4K3PfHw==}
@@ -1612,6 +1624,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  bootstrap-icons@1.11.3: {}
+
   brace-expansion@1.1.11:
     dependencies:
       balanced-match: 1.0.2
@@ -2063,6 +2077,8 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  use-bootstrap-select@2.2.1: {}
 
   use-sync-external-store@1.4.0(react@19.0.0):
     dependencies:

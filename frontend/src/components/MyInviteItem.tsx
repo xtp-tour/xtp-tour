@@ -40,10 +40,7 @@ const MyInviteItem: React.FC<MyInviteItemProps> = ({ request }) => {
 
   return (
     <div className="game-request-card my-game-request">
-      <div className="game-request-header">
-        <h3>Your Request</h3>
-        <span className="status-badge">Active</span>
-      </div>
+   
 
       <div className="dates-list">
         {request.dates.map((dateItem, index) => (

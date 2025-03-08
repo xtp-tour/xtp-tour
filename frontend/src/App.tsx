@@ -1,13 +1,12 @@
 import React from 'react';
-import GameRequestList from './components/InvitesList';
-import CreateGameRequest from './components/CreateInvite';
-import './App.css';
+import GameRequestList from './components/GameRequestList';
+import CreateGameRequest from './components/CreateGameRequest';
 
 function App() {
   return (
-    <div className="container">
-      <header className="header">
-        <h1>Tennis Hitting Partner Finder</h1>
+    <div className="container py-4">
+      <header className="pb-3 mb-4 border-bottom">
+        <h1 className="h2 text-primary">Tennis Hitting Partner Finder</h1>
       </header>
       
       <main>
