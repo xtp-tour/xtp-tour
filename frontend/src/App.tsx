@@ -1,31 +1,21 @@
-
-import './App.css'
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/clerk-react";
-import { ChallengesList } from './components/ChallengesList';
+import React from 'react';
+import GameRequestList from './components/InvitesList';
+import CreateGameRequest from './components/CreateInvite';
+import './App.css';
 
 function App() {
-  const { user } = useUser();
-
   return (
-    <>
-     <header>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-        {user?.phoneNumbers?.[0]?.phoneNumber && (
-          <div>Phone: {user.phoneNumbers[0].phoneNumber}</div>
-        )}
-      </SignedIn>
-    </header>
-
-      <SignedIn>
-        <ChallengesList />
-      </SignedIn>
-
-    </>
-  )
+    <div className="container">
+      <header className="header">
+        <h1>Tennis Hitting Partner Finder</h1>
+      </header>
+      
+      <main>
+        <CreateGameRequest />
+        <GameRequestList />
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

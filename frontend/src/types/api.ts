@@ -1,7 +1,7 @@
-export interface ListChallengesResponse {
+export interface ListInvitesResponse {
     challenges: Record<string, string>;
 }
 
-export interface GetChallengeResponse {
+export interface GetInviteResponse {
     result: string;
 }

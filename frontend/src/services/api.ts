@@ -1,9 +1,9 @@
-import { ListChallengesResponse } from '../types/api';
+import { ListInvitesResponse } from '../types/api';
 
 // Simplified API functions
 export const API = {
   challenges: {
-    list: async (token: string | null): Promise<ListChallengesResponse> => {
+    list: async (token: string | null): Promise<ListInvitesResponse> => {
       const response = await fetch('/api/challenges', {
         headers: {
             Authorization: `Bearer ${token}`,

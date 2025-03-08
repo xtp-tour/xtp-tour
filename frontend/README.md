@@ -1,6 +1,11 @@
-# React + TypeScript + Vite
+# XTP tour frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Xtp tour frontend is a applications for tennis player to find and one time or regular hitting partner.
+
+
+
+
+
 
 Currently, two official plugins are available:
 
