@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -23,7 +24,12 @@ func main() {
 	loadConfig()
 
 	if len(os.Args) > 1 && os.Args[1] == "migrate" {
-		db.RunMigrations(&serviceConfig.Db)
+		db.RunMigrations(&serviceConfig.Db, os.Args[2:]...)
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "help" {
+		fmt.Println("migrate [up|down] - run migrations")
+		fmt.Println("migrate drop - drop database")
 		return
 	}
 

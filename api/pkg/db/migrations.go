@@ -21,7 +21,11 @@ import (
 //go:embed sql/migrations/*.sql
 var content embed.FS
 
-func RunMigrations(dbConfig *pkg.DbConfig) {
+func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
+	if len(args) > 0 && args[0] == "drop" {
+		dropDbIfExist(dbConfig)
+		return
+	}
 
 	iofsSource, err := iofs.New(content, "sql/migrations")
 	if err != nil {
@@ -36,6 +40,14 @@ func RunMigrations(dbConfig *pkg.DbConfig) {
 		os.Exit(1)
 	}
 
+	if len(args) > 0 && args[0] == "down" {
+		err = m.Down()
+		if err != nil && err != migrate.ErrNoChange {
+			slog.Error("Failed to run migrations", "error", err)
+			os.Exit(1)
+		}
+		return
+	}
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		slog.Error("Failed to run migrations", "error", err)
@@ -75,6 +87,20 @@ func createDbIfNotExist(dbConfig *pkg.DbConfig) {
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbConfig.Database))
 	if err != nil {
 		slog.Error("Failed to create database", "error", err)
+		os.Exit(1)
+	}
+}
+
+func dropDbIfExist(dbConfig *pkg.DbConfig) {
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&multiStatements=true", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, ""))
+	if err != nil {
+		slog.Error("Failed to open connection", "error", err)
+		os.Exit(1)
+	}
+
+	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbConfig.Database))
+	if err != nil {
+		slog.Error("Failed to drop database", "error", err)
 		os.Exit(1)
 	}
 }

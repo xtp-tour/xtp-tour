@@ -13,8 +13,9 @@ CREATE TABLE user_pref (
     country VARCHAR(3) NOT NULL,
     city VARCHAR(255),
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
-)
+);
 
+-- Tennis facilities
 
 CREATE TABLE facilities (
     id VARCHAR(36) PRIMARY KEY,
@@ -47,7 +48,7 @@ CREATE TABLE court_groups (
     id INT AUTO_INCREMENT PRIMARY KEY,
     facility_id VARCHAR(36) NOT NULL,
     surface ENUM('hard', 'clay', 'artificial-grass', 'carpet', 'grass') NOT NULL,
-    type ENUM('indoor', 'outdoor', 'tent', 'balloon') NOT NULL,
+    type ENUM('indoor', 'outdoor', 'tent', 'balloon', 'baloon') NOT NULL,
     light BOOLEAN DEFAULT FALSE,
     heating BOOLEAN DEFAULT FALSE,
     reservation_link VARCHAR(512),
