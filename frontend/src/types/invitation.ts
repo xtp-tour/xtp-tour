@@ -29,23 +29,27 @@ export interface DateTimeSlot {
   timeTo: string;
 }
 
-export interface Location {
-  id: string;
-  name: string;
-  area: string;
+export interface TimeSpan {
+  from: number;  // time in HHMM format (e.g., 1430 for 14:30)
+  to: number;    // time in HHMM format (e.g., 1600 for 16:00)
+}
+
+export interface InvitationDate {
+  date: Date;
+  timespan: TimeSpan;
 }
 
 export interface Invitation {
   id: string;
-  playerName: string;
-  dates: {
-    date: Date;
-    timespan: {
-      from: number;
-      to: number;
-    };
-  }[];
-  location: string;
-  skillLevel: string;
+  playerId: string;  // Clerk user ID
+  locations: string[];  // Array of location IDs
+  skillLevel: SkillLevel;
+  invitationType: InvitationType;
+  requestType: RequestType;
+  matchDuration: number;  // in hours
+  dates: InvitationDate[];
+  description?: string;
   isOwner: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
 } 
