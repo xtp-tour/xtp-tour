@@ -11,6 +11,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.23.0
         version: 5.23.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      bootstrap:
+        specifier: ^5.3.3
+        version: 5.3.3(@popperjs/core@2.11.8)
       bootstrap-icons:
         specifier: ^1.11.3
         version: 1.11.3
@@ -27,6 +30,9 @@ importers:
       '@eslint/js':
         specifier: ^9.19.0
         version: 9.21.0
+      '@types/bootstrap':
+        specifier: ^5.2.10
+        version: 5.2.10
       '@types/react':
         specifier: ^19.0.8
         version: 19.0.10
@@ -400,6 +406,9 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
+  '@popperjs/core@2.11.8':
+    resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
+
   '@rollup/rollup-android-arm-eabi@4.34.8':
     resolution: {integrity: sha512-q217OSE8DTp8AFHuNHXo0Y86e1wtlfVrXiAlwkIvGRQv9zbc6mE3sjIVfwI8sYUyNxwOg0j/Vm1RKM04JcWLJw==}
     cpu: [arm]
@@ -507,6 +516,9 @@ packages:
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
 
+  '@types/bootstrap@5.2.10':
+    resolution: {integrity: sha512-F2X+cd6551tep0MvVZ6nM8v7XgGN/twpdNDjqS1TUM7YFNEtQYWk+dKAnH+T1gr6QgCoGMPl487xw/9hXooa2g==}
+
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
@@ -599,6 +611,11 @@ packages:
 
   bootstrap-icons@1.11.3:
     resolution: {integrity: sha512-+3lpHrCw/it2/7lBL15VR0HEumaBss0+f/Lb6ZvHISn1mlK83jjFpooTLsMWbIjJMDjDjOExMsTxnXSIT4k4ww==}
+
+  bootstrap@5.3.3:
+    resolution: {integrity: sha512-8HLCdWgyoMguSO9o+aH+iuZ+aht+mzW0u3HIMzVu7Srrpv7EBBxTnrFlSCskwdY1+EOFQSm7uMJhNQHkdPcmjg==}
+    peerDependencies:
+      '@popperjs/core': ^2.11.8
 
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -1425,6 +1442,8 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.0
 
+  '@popperjs/core@2.11.8': {}
+
   '@rollup/rollup-android-arm-eabi@4.34.8':
     optional: true
 
@@ -1502,6 +1521,10 @@ snapshots:
   '@types/babel__traverse@7.20.6':
     dependencies:
       '@babel/types': 7.26.9
+
+  '@types/bootstrap@5.2.10':
+    dependencies:
+      '@popperjs/core': 2.11.8
 
   '@types/estree@1.0.6': {}
 
@@ -1625,6 +1648,10 @@ snapshots:
   balanced-match@1.0.2: {}
 
   bootstrap-icons@1.11.3: {}
+
+  bootstrap@5.3.3(@popperjs/core@2.11.8):
+    dependencies:
+      '@popperjs/core': 2.11.8
 
   brace-expansion@1.1.11:
     dependencies:

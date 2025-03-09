@@ -1,10 +1,22 @@
 export enum SkillLevel {
+  Any = 'ANY',
   Beginner = 'BEGINNER',
   Intermediate = 'INTERMEDIATE',
   Advanced = 'ADVANCED',
 }
 
+export enum GameType {
+  Match = 'MATCH',
+  Training = 'TRAINING',
+}
+
+export enum RequestType {
+  Single = 'SINGLE',
+  Doubles = 'DOUBLES',
+}
+
 export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
+  [SkillLevel.Any]: 'Any skill level',
   [SkillLevel.Beginner]: 'Beginner (NTRP < 3.5)',
   [SkillLevel.Intermediate]: 'Intermediate (NTRP 3.5–5.0)',
   [SkillLevel.Advanced]: 'Advanced (NTRP > 5.0)',

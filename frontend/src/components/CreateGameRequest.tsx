@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS } from '../types/game';
+import { Tooltip, Toast } from 'bootstrap';
+import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS, GameType, RequestType } from '../types/game';
 
 const MATCH_DURATION_OPTIONS = [
   { value: '1', label: '1 hour' },
@@ -54,6 +55,17 @@ const mockFetchLocations = async (): Promise<Location[]> => {
   return MOCK_LOCATIONS;
 };
 
+const calculateEndTime = (startTime: string, duration: string): string => {
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const durationHours = parseFloat(duration);
+  
+  const totalMinutes = hours * 60 + minutes + durationHours * 60;
+  const endHours = Math.floor(totalMinutes / 60);
+  const endMinutes = totalMinutes % 60;
+  
+  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+};
+
 const CreateGameRequest: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -61,16 +73,20 @@ const CreateGameRequest: React.FC = () => {
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [matchDuration, setMatchDuration] = useState('2'); // Default to 2 hours
-  const [skillLevel, setSkillLevel] = useState<SkillLevel | ''>('');
+  const [skillLevel, setSkillLevel] = useState<SkillLevel>(SkillLevel.Any);
   const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
     { 
       id: 1, 
       date: getTomorrowDate(),
       timeFrom: '09:00',
-      timeTo: '10:00'
+      timeTo: calculateEndTime('09:00', '2') // Default to 2 hours from 9:00
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
+  const [gameType, setGameType] = useState<GameType>(GameType.Match);
+  const [description, setDescription] = useState('');
+  const toastRef = useRef<HTMLDivElement>(null);
+  const [requestType, setRequestType] = useState<RequestType>(RequestType.Single);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -84,6 +100,12 @@ const CreateGameRequest: React.FC = () => {
         if (selectRef.current) {
           UseBootstrapSelect.getOrCreateInstance(selectRef.current);
         }
+
+        // Initialize tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+          new Tooltip(tooltip);
+        });
       } catch (error) {
         setLocationError('Failed to load locations. Please try again later.');
         console.error('Error fetching locations:', error);
@@ -96,6 +118,14 @@ const CreateGameRequest: React.FC = () => {
 
     return () => {
       UseBootstrapSelect.clearAll();
+      // Clean up tooltips
+      const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+      tooltips.forEach(tooltip => {
+        const bsTooltip = Tooltip.getInstance(tooltip);
+        if (bsTooltip) {
+          bsTooltip.dispose();
+        }
+      });
     };
   }, []);
 
@@ -106,29 +136,20 @@ const CreateGameRequest: React.FC = () => {
     return tomorrow.toISOString().split('T')[0];
   }
 
-  // Format time to ensure only full and half hours
-  function formatTime(timeString: string): string {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const roundedMinutes = Math.round(minutes / 30) * 30;
-    const adjustedHours = hours + Math.floor(roundedMinutes / 60);
-    const finalMinutes = roundedMinutes % 60;
-    
-    return `${String(adjustedHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
-  }
-
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = Array.from(e.target.selectedOptions, option => option.value);
     setSelectedLocations(selected);
   };
 
   const handleAddDate = () => {
+    const defaultStartTime = '09:00';
     setDateSlots(prev => [
       ...prev,
       {
         id: Math.max(0, ...prev.map(slot => slot.id)) + 1,
         date: getTomorrowDate(),
-        timeFrom: '09:00',
-        timeTo: '10:00'
+        timeFrom: defaultStartTime,
+        timeTo: calculateEndTime(defaultStartTime, matchDuration) // Use current match duration
       }
     ]);
   };
@@ -139,26 +160,35 @@ const CreateGameRequest: React.FC = () => {
     }
   };
 
-  const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string) => {
-    if (field === 'timeFrom' || field === 'timeTo') {
-      value = formatTime(value);
-    }
-    
-    setDateSlots(prev =>
-      prev.map(slot =>
-        slot.id === id ? { ...slot, [field]: value } : slot
-      )
-    );
-  };
-
   // Generate time options for select (from 6:00 to 22:00)
-  const getTimeOptions = () => {
+  const getTimeOptions = (startTime?: string) => {
     const options = [];
     for (let hour = 6; hour <= 22; hour++) {
-      options.push(`${String(hour).padStart(2, '0')}:00`);
-      options.push(`${String(hour).padStart(2, '0')}:30`);
+      for (const minutes of ['00', '30']) {
+        const time = `${String(hour).padStart(2, '0')}:${minutes}`;
+        if (!startTime || time > startTime) {
+          options.push(time);
+        }
+      }
     }
     return options;
+  };
+
+  const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string) => {
+    if (field === 'timeFrom') {
+      const endTime = calculateEndTime(value, matchDuration);
+      setDateSlots(prev =>
+        prev.map(slot =>
+          slot.id === id ? { ...slot, timeFrom: value, timeTo: endTime } : slot
+        )
+      );
+    } else {
+      setDateSlots(prev =>
+        prev.map(slot =>
+          slot.id === id ? { ...slot, [field]: value } : slot
+        )
+      );
+    }
   };
 
   const timeOptions = getTimeOptions();
@@ -226,6 +256,8 @@ const CreateGameRequest: React.FC = () => {
         data-max-height="300px"
         data-position="down"
       >
+        <option value="">Select locations...</option>
+
         {Object.entries(groupedLocations).map(([area, areaLocations]) => (
           <optgroup key={area} label={`${area} Area`}>
             {areaLocations.map(location => (
@@ -250,6 +282,9 @@ const CreateGameRequest: React.FC = () => {
       locations: selectedLocations,
       skillLevel,
       matchDuration: parseFloat(matchDuration),
+      gameType,
+      requestType,
+      description,
       dates: dateSlots.map(slot => ({
         date: slot.date,
         timespan: {
@@ -281,10 +316,18 @@ const CreateGameRequest: React.FC = () => {
         id: 1, 
         date: getTomorrowDate(),
         timeFrom: '09:00',
-        timeTo: '10:00'
+        timeTo: calculateEndTime('09:00', '2') // Reset to default 2 hours from 9:00
       }]); // Reset form
     } catch (error) {
       console.error('Error creating game request:', error);
+    }
+  };
+
+  const handleGameTypeChange = (type: GameType) => {
+    setGameType(type);
+    if (type === GameType.Training && toastRef.current) {
+      const toast = new Toast(toastRef.current);
+      toast.show();
     }
   };
 
@@ -313,6 +356,29 @@ const CreateGameRequest: React.FC = () => {
         className={`collapse mt-3 ${isExpanded ? 'show' : ''}`} 
         id="createGameForm"
       >
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
+          <div 
+            ref={toastRef}
+            className="toast align-items-center text-white bg-info border-0" 
+            role="alert" 
+            aria-live="assertive" 
+            aria-atomic="true"
+          >
+            <div className="d-flex">
+              <div className="toast-body">
+                <i className="bi bi-info-circle me-2"></i>
+                Consider adding training plan or goals to description
+              </div>
+              <button 
+                type="button" 
+                className="btn-close btn-close-white me-2 m-auto" 
+                data-bs-dismiss="toast" 
+                aria-label="Close"
+              ></button>
+            </div>
+          </div>
+        </div>
+
         <div className="card shadow">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -335,7 +401,41 @@ const CreateGameRequest: React.FC = () => {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="skillLevel" className="form-label">Skill Level</label>
+                <label className="form-label">Request Type</label>
+                <div className="d-flex gap-4">
+                  <div className="form-check d-flex align-items-center">
+                    <input
+                      type="radio"
+                      id="requestTypeSingle"
+                      name="requestType"
+                      className="form-check-input"
+                      checked={requestType === RequestType.Single}
+                      onChange={() => setRequestType(RequestType.Single)}
+                      required
+                    />
+                    <label className="form-check-label ms-2" htmlFor="requestTypeSingle">
+                      Single
+                    </label>
+                  </div>
+                  <div className="form-check d-flex align-items-center opacity-50">
+                    <input
+                      type="radio"
+                      id="requestTypeDoubles"
+                      name="requestType"
+                      className="form-check-input"
+                      checked={requestType === RequestType.Doubles}
+                      disabled
+                    />
+                    <label className="form-check-label ms-2" htmlFor="requestTypeDoubles">
+                      Doubles
+                      <span className="badge bg-secondary ms-2">Coming soon</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="skillLevel" className="form-label">Opponent Skill Level</label>
                 <select 
                   className="form-select" 
                   id="skillLevel" 
@@ -344,7 +444,6 @@ const CreateGameRequest: React.FC = () => {
                   onChange={(e) => setSkillLevel(e.target.value as SkillLevel)}
                   required
                 >
-                  <option value="">Select your skill level</option>
                   {Object.entries(SKILL_LEVEL_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -369,6 +468,55 @@ const CreateGameRequest: React.FC = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Game Type</label>
+                <div className="d-flex gap-4">
+                  <div className="form-check d-flex align-items-center">
+                    <input
+                      type="radio"
+                      id="gameTypeMatch"
+                      name="gameType"
+                      className="form-check-input"
+                      checked={gameType === GameType.Match}
+                      onChange={() => handleGameTypeChange(GameType.Match)}
+                      required
+                    />
+                    <label className="form-check-label ms-2" htmlFor="gameTypeMatch">
+                      Game on points
+                    </label>
+                    <span 
+                      className="ms-2"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Looking for a person to play a regular tennis match"
+                    >
+                      <i className="bi bi-info-circle text-muted"></i>
+                    </span>
+                  </div>
+                  <div className="form-check d-flex align-items-center">
+                    <input
+                      type="radio"
+                      id="gameTypeTraining"
+                      name="gameType"
+                      className="form-check-input"
+                      checked={gameType === GameType.Training}
+                      onChange={() => handleGameTypeChange(GameType.Training)}
+                    />
+                    <label className="form-check-label ms-2" htmlFor="gameTypeTraining">
+                      Training
+                    </label>
+                    <span 
+                      className="ms-2"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Main goal is to improve game skills by playing rallies"
+                    >
+                      <i className="bi bi-info-circle text-muted"></i>
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="mb-3">
@@ -422,7 +570,7 @@ const CreateGameRequest: React.FC = () => {
                             onChange={(e) => handleDateChange(slot.id, 'timeTo', e.target.value)}
                             required
                           >
-                            {timeOptions.map(option => (
+                            {getTimeOptions(slot.timeFrom).map(option => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
@@ -449,6 +597,21 @@ const CreateGameRequest: React.FC = () => {
                 >
                   + Add Another Date
                 </button>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="description" className="form-label d-flex align-items-center">
+                  Description
+                  
+                </label>
+                <textarea
+                  id="description"
+                  className="form-control"
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={gameType === GameType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                />
               </div>
 
               <button type="submit" className="btn btn-primary w-100">
