@@ -3,7 +3,7 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS, GameType, RequestType } from '../types/game';
+import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS, InvitationType, RequestType } from '../types/invitation';
 
 const MATCH_DURATION_OPTIONS = [
   { value: '1', label: '1 hour' },
@@ -66,13 +66,13 @@ const calculateEndTime = (startTime: string, duration: string): string => {
   return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
 };
 
-const CreateGameRequest: React.FC = () => {
+const CreateInvitation: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [matchDuration, setMatchDuration] = useState('2'); // Default to 2 hours
+  const [sessionDuration, setMatchDuration] = useState('2'); // Default to 2 hours
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(SkillLevel.Any);
   const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
     { 
@@ -83,7 +83,7 @@ const CreateGameRequest: React.FC = () => {
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [gameType, setGameType] = useState<GameType>(GameType.Match);
+  const [invitationType, setInvitationType] = useState<InvitationType>(InvitationType.Match);
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
   const [requestType, setRequestType] = useState<RequestType>(RequestType.Single);
@@ -149,7 +149,7 @@ const CreateGameRequest: React.FC = () => {
         id: Math.max(0, ...prev.map(slot => slot.id)) + 1,
         date: getTomorrowDate(),
         timeFrom: defaultStartTime,
-        timeTo: calculateEndTime(defaultStartTime, matchDuration) // Use current match duration
+        timeTo: calculateEndTime(defaultStartTime, sessionDuration) // Use current match duration
       }
     ]);
   };
@@ -176,7 +176,7 @@ const CreateGameRequest: React.FC = () => {
 
   const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string) => {
     if (field === 'timeFrom') {
-      const endTime = calculateEndTime(value, matchDuration);
+      const endTime = calculateEndTime(value, sessionDuration);
       setDateSlots(prev =>
         prev.map(slot =>
           slot.id === id ? { ...slot, timeFrom: value, timeTo: endTime } : slot
@@ -275,14 +275,14 @@ const CreateGameRequest: React.FC = () => {
     );
   };
 
-  const handleCreateRequest = async (e: React.FormEvent) => {
+  const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const requestData = {
       locations: selectedLocations,
       skillLevel,
-      matchDuration: parseFloat(matchDuration),
-      gameType,
+      sessionDuration: parseFloat(sessionDuration),
+      invitationType,
       requestType,
       description,
       dates: dateSlots.map(slot => ({
@@ -296,7 +296,7 @@ const CreateGameRequest: React.FC = () => {
 
     try {
       // Mock API call - replace with actual API endpoint when ready
-      const response = await fetch('/api/games', {
+      const response = await fetch('/api/invitations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -305,11 +305,11 @@ const CreateGameRequest: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create game request');
+        throw new Error('Failed to create invitation');
       }
 
       // Handle successful creation
-      console.log('Game request created successfully', requestData);
+      console.log('Invitation created successfully', requestData);
       setIsExpanded(false); // Collapse the form after successful submission
       setSelectedLocations([]); // Reset locations
       setDateSlots([{ 
@@ -319,13 +319,13 @@ const CreateGameRequest: React.FC = () => {
         timeTo: calculateEndTime('09:00', '2') // Reset to default 2 hours from 9:00
       }]); // Reset form
     } catch (error) {
-      console.error('Error creating game request:', error);
+      console.error('Error creating invitation:', error);
     }
   };
 
-  const handleGameTypeChange = (type: GameType) => {
-    setGameType(type);
-    if (type === GameType.Training && toastRef.current) {
+  const handleInvitationTypeChange = (type: InvitationType) => {
+    setInvitationType(type);
+    if (type === InvitationType.Training && toastRef.current) {
       const toast = new Toast(toastRef.current);
       toast.show();
     }
@@ -337,7 +337,7 @@ const CreateGameRequest: React.FC = () => {
         className={`btn ${isExpanded ? 'btn-outline-secondary' : 'btn-primary'} w-100`}
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
-        aria-controls="createGameForm"
+        aria-controls="createInvitationForm"
       >
         {isExpanded ? (
           <>
@@ -347,14 +347,14 @@ const CreateGameRequest: React.FC = () => {
         ) : (
           <>
             <i className="bi bi-plus-lg me-1"></i>
-            Create Game Request
+            Create Invitation
           </>
         )}
       </button>
 
       <div 
         className={`collapse mt-3 ${isExpanded ? 'show' : ''}`} 
-        id="createGameForm"
+        id="createInvitationForm"
       >
         <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
           <div 
@@ -382,7 +382,7 @@ const CreateGameRequest: React.FC = () => {
         <div className="card shadow">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h3 className="card-title h5 mb-0">New Game Request</h3>
+              <h3 className="card-title h5 mb-0">New Invitation</h3>
               <button 
                 type="button"
                 className="btn btn-link text-secondary p-0"
@@ -392,7 +392,7 @@ const CreateGameRequest: React.FC = () => {
                 <i className="bi bi-x-lg"></i>
               </button>
             </div>
-            <form onSubmit={handleCreateRequest}>
+            <form onSubmit={handleCreateInvitation}>
               <div className="mb-4">
                 <label className="form-label d-block">
                   Preferred Locations                  
@@ -453,12 +453,12 @@ const CreateGameRequest: React.FC = () => {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="matchDuration" className="form-label">Match Duration</label>
+                <label htmlFor="sessionDuration" className="form-label">Session Duration</label>
                 <select 
                   className="form-select" 
-                  id="matchDuration" 
-                  name="matchDuration"
-                  value={matchDuration}
+                  id="sessionDuration" 
+                  name="sessionDuration"
+                  value={sessionDuration}
                   onChange={(e) => setMatchDuration(e.target.value)}
                   required
                 >
@@ -471,19 +471,19 @@ const CreateGameRequest: React.FC = () => {
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Game Type</label>
+                <label className="form-label">Invitation Type</label>
                 <div className="d-flex gap-4">
                   <div className="form-check d-flex align-items-center">
                     <input
                       type="radio"
-                      id="gameTypeMatch"
-                      name="gameType"
+                      id="invitationTypeMatch"
+                      name="invitationType"
                       className="form-check-input"
-                      checked={gameType === GameType.Match}
-                      onChange={() => handleGameTypeChange(GameType.Match)}
+                      checked={invitationType === InvitationType.Match}
+                      onChange={() => handleInvitationTypeChange(InvitationType.Match)}
                       required
                     />
-                    <label className="form-check-label ms-2" htmlFor="gameTypeMatch">
+                    <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
                       Game on points
                     </label>
                     <span 
@@ -498,13 +498,13 @@ const CreateGameRequest: React.FC = () => {
                   <div className="form-check d-flex align-items-center">
                     <input
                       type="radio"
-                      id="gameTypeTraining"
-                      name="gameType"
+                      id="invitationTypeTraining"
+                      name="invitationType"
                       className="form-check-input"
-                      checked={gameType === GameType.Training}
-                      onChange={() => handleGameTypeChange(GameType.Training)}
+                      checked={invitationType === InvitationType.Training}
+                      onChange={() => handleInvitationTypeChange(InvitationType.Training)}
                     />
-                    <label className="form-check-label ms-2" htmlFor="gameTypeTraining">
+                    <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
                     </label>
                     <span 
@@ -610,12 +610,12 @@ const CreateGameRequest: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={gameType === GameType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                  placeholder={invitationType === InvitationType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
                 />
               </div>
 
               <button type="submit" className="btn btn-primary w-100">
-                Create Game Request
+                Create Invitation
               </button>
             </form>
           </div>
@@ -625,4 +625,4 @@ const CreateGameRequest: React.FC = () => {
   );
 };
 
-export default CreateGameRequest;
+export default CreateInvitation;

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { GameRequest } from '../types/GameRequest';
-import MyGameRequestItem from './MyGameRequestItem';
-import AvailableGameRequestItem from './AvailableGameRequestItem';
+import { Invitation } from '../types/invitation';
+import MyInvitationItem from './MyInvitationItem';
+import AvailableInvitationItem from './AvailableInvitationItem';
 
 // Mock data - this would normally come from an API
-const mockGameRequests: GameRequest[] = [
+const mockInvitations: Invitation[] = [
   {
     id: '1',
     playerName: 'John Doe',
@@ -67,42 +67,42 @@ const mockGameRequests: GameRequest[] = [
   }
 ];
 
-const GameRequestList: React.FC = () => {
-  const [gameRequests, setGameRequests] = useState<GameRequest[]>([]);
+const InvitationList: React.FC = () => {
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
 
   useEffect(() => {
     // Mock API call
-    const fetchGameRequests = async () => {
+    const fetchInvitations = async () => {
       // In real implementation, this would be an API call
-      setGameRequests(mockGameRequests);
+      setInvitations(mockInvitations);
     };
 
-    fetchGameRequests();
+    fetchInvitations();
   }, []);
 
-  const myRequests = gameRequests.filter(request => request.isOwner);
-  const availableRequests = gameRequests.filter(request => !request.isOwner);
+  const myInvitations = invitations.filter(invitation => invitation.isOwner);
+  const availableInvitations = invitations.filter(invitation => !invitation.isOwner);
 
   return (
     <div className="mt-4">
       <section className="mb-5">
-        <h2 className="h4 mb-4 pb-2 border-bottom text-primary">Your Game Requests</h2>
-        {myRequests.length === 0 ? (
-          <p className="text-muted">You haven't created any game requests yet.</p>
+        <h2 className="h4 mb-4 pb-2 border-bottom text-primary">Your Invitations</h2>
+        {myInvitations.length === 0 ? (
+          <p className="text-muted">You haven't created any invitations yet.</p>
         ) : (
-          myRequests.map(request => (
-            <MyGameRequestItem key={request.id} request={request} />
+          myInvitations.map(invitation => (
+            <MyInvitationItem key={invitation.id} invitation={invitation} />
           ))
         )}
       </section>
 
       <section className="mb-5">
-        <h2 className="h4 mb-4 pb-2 border-bottom text-primary">Available Games to Join</h2>
-        {availableRequests.length === 0 ? (
-          <p className="text-muted">No available game requests at the moment.</p>
+        <h2 className="h4 mb-4 pb-2 border-bottom text-primary">Available Invitations to Join</h2>
+        {availableInvitations.length === 0 ? (
+          <p className="text-muted">No available invitations at the moment.</p>
         ) : (
-          availableRequests.map(request => (
-            <AvailableGameRequestItem key={request.id} request={request} />
+          availableInvitations.map(invitation => (
+            <AvailableInvitationItem key={invitation.id} invitation={invitation} />
           ))
         )}
       </section>
@@ -110,4 +110,4 @@ const GameRequestList: React.FC = () => {
   );
 };
 
-export default GameRequestList; 
+export default InvitationList; 

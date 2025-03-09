@@ -5,7 +5,7 @@ export enum SkillLevel {
   Advanced = 'ADVANCED',
 }
 
-export enum GameType {
+export enum InvitationType {
   Match = 'MATCH',
   Training = 'TRAINING',
 }
@@ -33,4 +33,19 @@ export interface Location {
   id: string;
   name: string;
   area: string;
+}
+
+export interface Invitation {
+  id: string;
+  playerName: string;
+  dates: {
+    date: Date;
+    timespan: {
+      from: number;
+      to: number;
+    };
+  }[];
+  location: string;
+  skillLevel: string;
+  isOwner: boolean;
 } 

@@ -1,6 +1,6 @@
 import React from 'react';
-import GameRequestList from './components/GameRequestList';
-import CreateGameRequest from './components/CreateGameRequest';
+import InvitationList from "./components/InvitationList";
+import CreateInvitation from "./components/CreateInvitation";
 
 function App() {
   return (
@@ -10,8 +10,8 @@ function App() {
       </header>
       
       <main>
-        <CreateGameRequest />
-        <GameRequestList />
+        <CreateInvitation />
+        <InvitationList />
       </main>
     </div>
   );
