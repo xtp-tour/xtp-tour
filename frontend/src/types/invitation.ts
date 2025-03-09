@@ -15,6 +15,13 @@ export enum RequestType {
   Doubles = 'DOUBLES',
 }
 
+export enum InvitationStatus {
+  Pending = 'PENDING',
+  Accepted = 'ACCEPTED',
+  Confirmed = 'CONFIRMED',
+  Rejected = 'REJECTED',
+}
+
 export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
   [SkillLevel.Any]: 'Any skill level',
   [SkillLevel.Beginner]: 'Beginner (NTRP < 3.5)',
@@ -50,6 +57,7 @@ export interface Invitation {
   dates: InvitationDate[];
   description?: string;
   isOwner: boolean;
+  status: InvitationStatus;
   createdAt: Date;
   updatedAt?: Date;
 } 

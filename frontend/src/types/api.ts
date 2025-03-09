@@ -40,6 +40,11 @@ export interface APIInvitation extends Omit<Invitation, 'dates' | 'createdAt' | 
   }[];
   createdAt: string;
   updatedAt?: string;
+  selectedLocations?: string[];
+  selectedTimeSlots?: {
+    date: string;
+    startTime: number;
+  }[];
 }
 
 export interface InvitationResponse {

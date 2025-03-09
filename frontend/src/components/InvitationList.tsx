@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import MyInvitationItem from './MyInvitationItem';
 import AvailableInvitationItem from './AvailableInvitationItem';
+import AcceptedInvitationItem from './AcceptedInvitationItem';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Invitation, InvitationDate } from '../types/invitation';
+import { Invitation, InvitationDate, InvitationStatus } from '../types/invitation';
 
 const transformInvitation = (invitation: APIInvitation): Invitation => ({
   ...invitation,
@@ -43,8 +44,17 @@ const InvitationList: React.FC = () => {
     fetchInvitations();
   }, [api, page]);
 
-  const myInvitations = invitationData.invitations.filter(invitation => invitation.isOwner);
-  const availableInvitations = invitationData.invitations.filter(invitation => !invitation.isOwner);
+  const myInvitations = invitationData.invitations.filter(invitation => 
+    invitation.isOwner && invitation.status !== InvitationStatus.Accepted
+  );
+  
+  const acceptedInvitations = invitationData.invitations.filter(invitation => 
+    !invitation.isOwner && invitation.status === InvitationStatus.Accepted
+  );
+  
+  const availableInvitations = invitationData.invitations.filter(invitation => 
+    !invitation.isOwner && invitation.status === InvitationStatus.Pending
+  );
 
   const handleLoadMore = () => {
     if (invitationData.invitations.length < invitationData.total) {
@@ -79,18 +89,35 @@ const InvitationList: React.FC = () => {
         ) : (
           <div>
             {myInvitations.map(invitation => (
-              <MyInvitationItem key={invitation.id} invitation={invitation} onDelete={async (id) => {
-                try {
-                  await api.deleteInvitation(id);
-                  setInvitationData(prev => ({
-                    ...prev,
-                    invitations: prev.invitations.filter(inv => inv.id !== id),
-                    total: prev.total - 1
-                  }));
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to delete invitation');
-                }
-              }} />
+              <MyInvitationItem 
+                key={invitation.id} 
+                invitation={invitation} 
+                onDelete={async (id) => {
+                  try {
+                    await api.deleteInvitation(id);
+                    setInvitationData(prev => ({
+                      ...prev,
+                      invitations: prev.invitations.filter(inv => inv.id !== id),
+                      total: prev.total - 1
+                    }));
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Failed to delete invitation');
+                  }
+                }} 
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-5">
+        <h2 className="h4 mb-4 pb-2 border-bottom text-primary">Accepted Invitations</h2>
+        {acceptedInvitations.length === 0 ? (
+          <p className="text-muted">You haven't accepted any invitations yet.</p>
+        ) : (
+          <div>
+            {acceptedInvitations.map(invitation => (
+              <AcceptedInvitationItem key={invitation.id} invitation={invitation} />
             ))}
           </div>
         )}
@@ -103,18 +130,7 @@ const InvitationList: React.FC = () => {
         ) : (
           <div>
             {availableInvitations.map(invitation => (
-              <AvailableInvitationItem key={invitation.id} invitation={invitation} onAccept={async (id) => {
-                try {
-                  await api.acceptInvitation(id);
-                  setInvitationData(prev => ({
-                    ...prev,
-                    invitations: prev.invitations.filter(inv => inv.id !== id),
-                    total: prev.total - 1
-                  }));
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to accept invitation');
-                }
-              }} />
+              <AvailableInvitationItem key={invitation.id} invitation={invitation} />
             ))}
           </div>
         )}
