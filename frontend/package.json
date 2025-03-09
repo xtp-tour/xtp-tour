@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.23.0",
+    "@types/react-bootstrap": "^0.32.37",
     "axios": "^1.8.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "use-bootstrap-select": "^2.2.1"
   },

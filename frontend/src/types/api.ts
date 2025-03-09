@@ -1,12 +1,12 @@
 import { Location, LocationResponse } from './locations';
-import { Invitation } from './invitation';
+import { Invitation, InvitationType, RequestType, SkillLevel } from './invitation';
 
 export interface CreateInvitationRequest {
   locations: string[];
-  skillLevel: string;
+  skillLevel: SkillLevel;
   matchDuration: number;
-  invitationType: string;
-  requestType: string;
+  invitationType: InvitationType;
+  requestType: RequestType;
   description?: string;
   dates: {
     date: string;
@@ -21,9 +21,41 @@ export interface UpdateInvitationRequest extends Partial<CreateInvitationRequest
   id: string;
 }
 
+export interface AcceptInvitationRequest {
+  id: string;
+  selectedLocations: string[];
+  selectedTimeSlots: {
+    date: string;
+    startTime: number; // in HHMM format
+  }[];
+}
+
+export interface APIInvitation extends Omit<Invitation, 'dates' | 'createdAt' | 'updatedAt'> {
+  dates: {
+    date: string;
+    timespan: {
+      from: number;
+      to: number;
+    };
+  }[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface InvitationResponse {
-  invitations: Invitation[];
+  invitations: APIInvitation[];
   total: number;
+}
+
+export interface TimeSlotOption {
+  date: string;
+  time: number;
+  isAvailable: boolean;
+}
+
+export interface AcceptanceOptions {
+  locations: string[];
+  timeSlots: TimeSlotOption[];
 }
 
 export interface APIError {
@@ -48,7 +80,8 @@ export interface APIClient {
     limit?: number;
     ownOnly?: boolean;
   }): Promise<InvitationResponse>;
-  acceptInvitation(id: string): Promise<void>;
+  getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
+  acceptInvitation(request: AcceptInvitationRequest): Promise<void>;
   
   // Location endpoints
   getLocation(id: string): Promise<Location>;

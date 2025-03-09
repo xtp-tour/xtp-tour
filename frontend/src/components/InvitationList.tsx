@@ -1,87 +1,74 @@
 import React, { useEffect, useState } from 'react';
-import { Invitation } from '../types/invitation';
 import MyInvitationItem from './MyInvitationItem';
 import AvailableInvitationItem from './AvailableInvitationItem';
+import { useAPI } from '../services/apiProvider';
+import { APIInvitation } from '../types/api';
+import { Invitation, InvitationDate } from '../types/invitation';
 
-// Mock data - this would normally come from an API
-const mockInvitations: Invitation[] = [
-  {
-    id: '1',
-    playerName: 'John Doe',
-    dates: [
-      {
-        date: new Date('2024-03-20'),
-        timespan: { from: 1000, to: 1200 }
-      },
-      {
-        date: new Date('2024-03-22'),
-        timespan: { from: 1400, to: 1600 }
-      }
-    ],
-    location: 'Central Tennis Club',
-    skillLevel: 'Intermediate',
-    isOwner: true
-  },
-  {
-    id: '2',
-    playerName: 'Jane Smith',
-    dates: [
-      {
-        date: new Date('2024-03-21'),
-        timespan: { from: 900, to: 1100 }
-      }
-    ],
-    location: 'West Park Courts',
-    skillLevel: 'Advanced',
-    isOwner: false
-  },
-  {
-    id: '3',
-    playerName: 'Mike Johnson',
-    dates: [
-      {
-        date: new Date('2024-03-22'),
-        timespan: { from: 1600, to: 1800 }
-      },
-      {
-        date: new Date('2024-03-23'),
-        timespan: { from: 1000, to: 1200 }
-      }
-    ],
-    location: 'East Tennis Center',
-    skillLevel: 'Beginner',
-    isOwner: false
-  },
-  {
-    id: '4',
-    playerName: 'Current User',
-    dates: [
-      {
-        date: new Date('2024-03-23'),
-        timespan: { from: 1400, to: 1600 }
-      }
-    ],
-    location: 'South Park Courts',
-    skillLevel: 'Intermediate',
-    isOwner: true
-  }
-];
+const transformInvitation = (invitation: APIInvitation): Invitation => ({
+  ...invitation,
+  dates: invitation.dates.map((date): InvitationDate => ({
+    ...date,
+    date: new Date(date.date)
+  })),
+  createdAt: new Date(invitation.createdAt),
+  updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined
+});
 
 const InvitationList: React.FC = () => {
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const api = useAPI();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [invitationData, setInvitationData] = useState<{ invitations: Invitation[]; total: number }>({ invitations: [], total: 0 });
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   useEffect(() => {
-    // Mock API call
     const fetchInvitations = async () => {
-      // In real implementation, this would be an API call
-      setInvitations(mockInvitations);
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.listInvitations({ page, limit });
+        setInvitationData({
+          total: response.total,
+          invitations: response.invitations.map(transformInvitation)
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load invitations');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchInvitations();
-  }, []);
+  }, [api, page]);
 
-  const myInvitations = invitations.filter(invitation => invitation.isOwner);
-  const availableInvitations = invitations.filter(invitation => !invitation.isOwner);
+  const myInvitations = invitationData.invitations.filter(invitation => invitation.isOwner);
+  const availableInvitations = invitationData.invitations.filter(invitation => !invitation.isOwner);
+
+  const handleLoadMore = () => {
+    if (invitationData.invitations.length < invitationData.total) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  if (loading && page === 1) {
+    return (
+      <div className="mt-4 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-4 alert alert-danger" role="alert">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4">
@@ -90,9 +77,22 @@ const InvitationList: React.FC = () => {
         {myInvitations.length === 0 ? (
           <p className="text-muted">You haven't created any invitations yet.</p>
         ) : (
-          myInvitations.map(invitation => (
-            <MyInvitationItem key={invitation.id} invitation={invitation} />
-          ))
+          <div>
+            {myInvitations.map(invitation => (
+              <MyInvitationItem key={invitation.id} invitation={invitation} onDelete={async (id) => {
+                try {
+                  await api.deleteInvitation(id);
+                  setInvitationData(prev => ({
+                    ...prev,
+                    invitations: prev.invitations.filter(inv => inv.id !== id),
+                    total: prev.total - 1
+                  }));
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to delete invitation');
+                }
+              }} />
+            ))}
+          </div>
         )}
       </section>
 
@@ -101,11 +101,40 @@ const InvitationList: React.FC = () => {
         {availableInvitations.length === 0 ? (
           <p className="text-muted">No available invitations at the moment.</p>
         ) : (
-          availableInvitations.map(invitation => (
-            <AvailableInvitationItem key={invitation.id} invitation={invitation} />
-          ))
+          <div>
+            {availableInvitations.map(invitation => (
+              <AvailableInvitationItem key={invitation.id} invitation={invitation} onAccept={async (id) => {
+                try {
+                  await api.acceptInvitation(id);
+                  setInvitationData(prev => ({
+                    ...prev,
+                    invitations: prev.invitations.filter(inv => inv.id !== id),
+                    total: prev.total - 1
+                  }));
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to accept invitation');
+                }
+              }} />
+            ))}
+          </div>
         )}
       </section>
+
+      {loading && page > 1 && (
+        <div className="text-center mb-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading more...</span>
+          </div>
+        </div>
+      )}
+
+      {invitationData.invitations.length < invitationData.total && !loading && (
+        <div className="text-center mb-4">
+          <button className="btn btn-outline-primary" onClick={handleLoadMore}>
+            Load More
+          </button>
+        </div>
+      )}
     </div>
   );
 };
