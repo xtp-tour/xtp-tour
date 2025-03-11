@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Invitation, InvitationType, RequestType } from '../types/invitation';
-import { Button, Modal } from 'react-bootstrap';
+import { Invitation } from '../types/invitation';
+import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
-import TimeSlotLabels from './TimeSlotLabels';
+import BaseInvitationItem from './BaseInvitationItem';
 
 interface Props {
   invitation: Invitation;
@@ -25,28 +25,6 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
       // TODO: Implement error handling with toast notifications or error messages
     } finally {
       setCancelling(false);
-    }
-  };
-
-  const getInvitationTypeLabel = (type: InvitationType) => {
-    switch (type) {
-      case InvitationType.Match:
-        return 'Match';
-      case InvitationType.Training:
-        return 'Training';
-      default:
-        return type;
-    }
-  };
-
-  const getRequestTypeLabel = (type: RequestType) => {
-    switch (type) {
-      case RequestType.Single:
-        return 'Single';
-      case RequestType.Doubles:
-        return 'Doubles';
-      default:
-        return type;
     }
   };
 
@@ -73,85 +51,22 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
 
   return (
     <>
-      <div className="card mb-3">
-        <div className="card-header bg-white d-flex align-items-center justify-content-between py-2">
-          <div className="d-flex align-items-center">
-            <div className="me-2">
-              <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-                <i className="bi bi-person-circle text-success fs-4"></i>
-              </div>
-            </div>
-            <div>
-              <h6 className="mb-0">{invitation.playerId}</h6>
-              <small className="text-success">Host</small>
-            </div>
-          </div>
-          <div className="d-flex align-items-center gap-3">
-            <small className="text-muted">
-              <i className="bi bi-clock-history me-1"></i>
-              Accepted {invitation.updatedAt?.toLocaleDateString()}
-            </small>
-            <Button
-              variant="outline-danger"
-              onClick={() => setShowConfirmModal(true)}
-              style={{ minWidth: '100px' }}
-            >
-              <i className="bi bi-x-circle me-1"></i>
-              Cancel
-            </Button>
-          </div>
-        </div>
-
-        <div className="card-body">
-          <div className="d-flex gap-2 mb-4">            
-            <span className="badge bg-primary">{getInvitationTypeLabel(invitation.invitationType)}</span>
-            <span className="badge bg-secondary">{getRequestTypeLabel(invitation.requestType)}</span>
-            <span className="badge bg-info d-inline-flex align-items-center gap-1">
-              <span>{invitation.skillLevel}</span>
-              <span className="badge bg-light text-info" style={{ fontSize: '0.75em' }}>
-                {invitation.skillLevel === 'ANY' ? 'Any NTRP' :
-                 invitation.skillLevel === 'BEGINNER' ? 'NTRP < 3.5' :
-                 invitation.skillLevel === 'INTERMEDIATE' ? 'NTRP 3.5–5.0' :
-                 'NTRP > 5.0'}
-              </span>
-            </span>
-            <span className="badge bg-dark">
-              <i className="bi bi-stopwatch me-1"></i>
-              {invitation.matchDuration * 60} min
-            </span>
-          </div>
-
-          <div className="mb-4">
-            <h6 className="text-muted mb-3">Selected Locations</h6>
-            <div className="d-flex flex-wrap gap-2">
-              {(invitation.selectedLocations || invitation.locations).map((loc: string) => (
-                <div key={loc} className="badge bg-light text-dark border border-success border-opacity-25 p-2">
-                  <i className="bi bi-geo-alt me-1 text-success"></i>
-                  {loc}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <h6 className="text-muted mb-3">Start Times</h6>
-            <TimeSlotLabels timeSlots={timeSlots} />
-          </div>
-
-          {invitation.description && (
-            <div className="mb-4">
-              <h6 className="text-muted mb-3">Description</h6>
-              <div className="card bg-light border-0">
-                <div className="card-body">
-                  <p className="card-text mb-0 ps-4">
-                    {invitation.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <BaseInvitationItem
+        invitation={invitation}
+        headerTitle={invitation.playerId}
+        headerSubtitle="Host"
+        avatarColorClass="text-success"
+        locationBorderColorClass="border-success"
+        timeSlots={timeSlots}
+        timestamp={invitation.updatedAt || invitation.createdAt}
+        actionButton={{
+          variant: 'outline-danger',
+          icon: 'bi-x-circle',
+          label: 'Cancel',
+          onClick: () => setShowConfirmModal(true),
+          disabled: cancelling
+        }}
+      />
 
       <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
         <Modal.Header closeButton className="border-0 pb-0">
@@ -168,16 +83,15 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
           </p>
         </Modal.Body>
         <Modal.Footer className="border-0">
-          <Button
-            variant="link"
+          <button
+            className="btn btn-link text-decoration-none"
             onClick={() => setShowConfirmModal(false)}
-            className="text-decoration-none"
             disabled={cancelling}
           >
             Keep Session
-          </Button>
-          <Button
-            variant="danger"
+          </button>
+          <button
+            className="btn btn-danger"
             onClick={handleCancel}
             disabled={cancelling}
           >
@@ -192,7 +106,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
                 Yes, Cancel Session
               </>
             )}
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
     </>
