@@ -96,7 +96,15 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
           <div className="d-flex gap-2 mb-4">
             <span className="badge bg-primary">{getInvitationTypeLabel(invitation.invitationType)}</span>
             <span className="badge bg-secondary">{getRequestTypeLabel(invitation.requestType)}</span>
-            <span className="badge bg-info">{invitation.skillLevel}</span>
+            <span className="badge bg-info d-inline-flex align-items-center gap-1">
+              <span>{invitation.skillLevel}</span>
+              <span className="badge bg-light text-info" style={{ fontSize: '0.75em' }}>
+                {invitation.skillLevel === 'ANY' ? 'Any NTRP' :
+                 invitation.skillLevel === 'BEGINNER' ? 'NTRP < 3.5' :
+                 invitation.skillLevel === 'INTERMEDIATE' ? 'NTRP 3.5–5.0' :
+                 'NTRP > 5.0'}
+              </span>
+            </span>
             <span className="badge bg-dark">
               <i className="bi bi-stopwatch me-1"></i>
               {invitation.matchDuration * 60} min
