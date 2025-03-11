@@ -103,8 +103,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
         </div>
 
         <div className="card-body">
-          <div className="d-flex gap-2 mb-4">
-            <span className="badge bg-success">Accepted</span>
+          <div className="d-flex gap-2 mb-4">            
             <span className="badge bg-primary">{getInvitationTypeLabel(invitation.invitationType)}</span>
             <span className="badge bg-secondary">{getRequestTypeLabel(invitation.requestType)}</span>
             <span className="badge bg-info">{invitation.skillLevel}</span>
