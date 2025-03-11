@@ -1,10 +1,12 @@
 import React from 'react';
-import { Invitation, InvitationType, RequestType } from '../types/invitation';
+import { Invitation, InvitationType, RequestType, InvitationDate } from '../types/invitation';
 import { formatTime } from '../utils/dateUtils';
 
 interface Props {
   invitation: Invitation;
 }
+
+type TimeSlotType = InvitationDate | { date: string; startTime: number; };
 
 const AcceptedInvitationItem: React.FC<Props> = ({ invitation }) => {
   const getInvitationTypeLabel = (type: InvitationType) => {
@@ -57,12 +59,16 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation }) => {
           <span className="badge bg-primary">{getInvitationTypeLabel(invitation.invitationType)}</span>
           <span className="badge bg-secondary">{getRequestTypeLabel(invitation.requestType)}</span>
           <span className="badge bg-info">{invitation.skillLevel}</span>
+          <span className="badge bg-dark">
+            <i className="bi bi-stopwatch me-1"></i>
+            {invitation.matchDuration * 60} min
+          </span>
         </div>
 
         <div className="mb-4">
           <h6 className="text-muted mb-3">Selected Locations</h6>
           <div className="d-flex flex-wrap gap-2">
-            {invitation.locations.map(loc => (
+            {(invitation.selectedLocations || invitation.locations).map((loc: string) => (
               <div key={loc} className="badge bg-light text-dark border border-success border-opacity-25 p-2">
                 <i className="bi bi-geo-alt me-1 text-success"></i>
                 {loc}
@@ -74,20 +80,29 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation }) => {
         <div className="mb-4">
           <h6 className="text-muted mb-3">Selected Times</h6>
           <div className="d-flex flex-column gap-1">
-            {invitation.dates.map((date, index) => (
-              <div key={index} className="d-flex align-items-center gap-2">
-                <i className="bi bi-calendar-event text-success"></i>
-                <span className="fw-medium text-nowrap">{date.date.toLocaleDateString(undefined, {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric'
-                })}</span>
-                <i className="bi bi-clock text-muted"></i>
-                <span className="text-muted text-nowrap">
-                  {formatTime(date.timespan.from)} - {formatTime(date.timespan.to)}
-                </span>
-              </div>
-            ))}
+            {(invitation.selectedTimeSlots || invitation.dates).map((timeSlot: TimeSlotType, index: number) => {
+              // Handle both APIInvitation selectedTimeSlots and regular dates format
+              const date = 'startTime' in timeSlot ? timeSlot.date : timeSlot.date.toISOString().split('T')[0];
+              const time = 'startTime' in timeSlot ? timeSlot.startTime : timeSlot.timespan.from;
+              const endTime = 'startTime' in timeSlot 
+                ? time + Math.floor(invitation.matchDuration) * 100 + (invitation.matchDuration % 1) * 60 // Handle fractional hours
+                : timeSlot.timespan.to;
+
+              return (
+                <div key={index} className="d-flex align-items-center gap-2">
+                  <i className="bi bi-calendar-event text-success"></i>
+                  <span className="fw-medium text-nowrap">{new Date(date).toLocaleDateString(undefined, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                  })}</span>
+                  <i className="bi bi-clock text-muted"></i>
+                  <span className="text-muted text-nowrap">
+                    {formatTime(time)} - {formatTime(endTime)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

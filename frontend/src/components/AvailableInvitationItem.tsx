@@ -66,6 +66,10 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
             <span className="badge bg-primary">{getInvitationTypeLabel(invitation.invitationType)}</span>
             <span className="badge bg-secondary">{getRequestTypeLabel(invitation.requestType)}</span>
             <span className="badge bg-info">{invitation.skillLevel}</span>
+            <span className="badge bg-dark">
+              <i className="bi bi-stopwatch me-1"></i>
+              {invitation.matchDuration * 60} min
+            </span>
           </div>
 
           <div className="mb-4">

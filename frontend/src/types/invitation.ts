@@ -60,4 +60,10 @@ export interface Invitation {
   status: InvitationStatus;
   createdAt: Date;
   updatedAt?: Date;
+  // Selected options for accepted invitations
+  selectedLocations?: string[];
+  selectedTimeSlots?: {
+    date: string;
+    startTime: number;  // in HHMM format
+  }[];
 } 

@@ -170,7 +170,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-clock me-2 text-primary"></i>
-                  When are you available?
+                  When would you like to start?
                 </h6>
                 {Array.from(groupTimeSlotsByDate(options.timeSlots)).map(([date, slots]) => (
                   <div key={date} className="mb-4 ps-4">

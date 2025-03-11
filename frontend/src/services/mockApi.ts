@@ -122,11 +122,11 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
     dates: [
       {
         date: nextWeekDates[1],
-        timespan: { from: 1800, to: 1900 }
+        timespan: { from: 1800, to: 2300 }
       },
       {
         date: nextWeekDates[3],
-        timespan: { from: 1800, to: 1900 }
+        timespan: { from: 1800, to: 2200 }
       }
     ],
     description: 'New to tennis, looking for someone to practice basic strokes with',
@@ -145,7 +145,7 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
     dates: [
       {
         date: nextWeekDates[2],
-        timespan: { from: 1600, to: 1730 }
+        timespan: { from: 1600, to: 2230 }
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
@@ -390,12 +390,37 @@ export class MockAPIClient implements APIClient {
     const step = 30; // 30-minute intervals
     let currentTime = from;
 
-    while (currentTime + duration * 100 <= to) { // duration * 100 converts hours to HHMM format
-      slots.push(currentTime);
-      currentTime += step;
-      if (currentTime % 100 === 60) { // Handle hour rollover
-        currentTime += 40; // Move to next hour
+    // Convert duration to minutes (e.g., 1.5 hours = 90 minutes)
+    const durationMinutes = duration * 60;
+    
+    // Helper function to convert HHMM format to minutes
+    const toMinutes = (time: number) => {
+      const hours = Math.floor(time / 100);
+      const minutes = time % 100;
+      return hours * 60 + minutes;
+    };
+
+    // Helper function to convert minutes to HHMM format
+    const toHHMM = (minutes: number) => {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return hours * 100 + mins;
+    };
+
+    while (true) {
+      // Convert current time and end time to minutes for easier comparison
+      const currentMinutes = toMinutes(currentTime);
+      const endMinutes = toMinutes(to);
+      
+      // Check if there's enough time for a session
+      if (currentMinutes + durationMinutes <= endMinutes) {
+        slots.push(currentTime);
+      } else {
+        break;
       }
+
+      // Increment by 30 minutes
+      currentTime = toHHMM(currentMinutes + step);
     }
 
     return slots;
