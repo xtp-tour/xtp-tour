@@ -22,7 +22,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
       onCancelled?.();
     } catch (error) {
       console.error('Failed to cancel invitation:', error);
-      // In a real app, show an error message to the user
+      // TODO: Implement error handling with toast notifications or error messages
     } finally {
       setCancelling(false);
     }
@@ -77,8 +77,8 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
         <div className="card-header bg-white d-flex align-items-center justify-content-between py-2">
           <div className="d-flex align-items-center">
             <div className="me-2">
-              <div className="rounded-circle bg-success bg-opacity-10 p-2">
-                <i className="bi bi-person-circle text-success"></i>
+              <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+                <i className="bi bi-person-circle text-success fs-4"></i>
               </div>
             </div>
             <div>

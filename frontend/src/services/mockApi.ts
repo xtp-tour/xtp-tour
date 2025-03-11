@@ -267,18 +267,6 @@ export class MockAPIClient implements APIClient {
     }
   }
 
-  private toAPIInvitation(invitation: Omit<Invitation, 'id'>): Omit<APIInvitation, 'id'> {
-    return {
-      ...invitation,
-      dates: invitation.dates.map(d => ({
-        ...d,
-        date: d.date.toISOString().split('T')[0]
-      })),
-      createdAt: invitation.createdAt.toISOString(),
-      updatedAt: invitation.updatedAt?.toISOString()
-    };
-  }
-
   private toDomainInvitation(invitation: APIInvitation): Invitation {
     return {
       ...invitation,
@@ -451,7 +439,8 @@ export class MockAPIClient implements APIClient {
       return slots.map(time => ({
         date: dateSlot.date,
         time,
-        isAvailable: true // In a real implementation, this would check against existing matches
+        // TODO: Implement availability check against existing matches and user preferences
+        isAvailable: true
       }));
     });
 

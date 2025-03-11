@@ -308,8 +308,7 @@ const CreateInvitation: React.FC = () => {
         throw new Error('Failed to create invitation');
       }
 
-      // Handle successful creation
-      console.log('Invitation created successfully', requestData);
+      // TODO: Add success notification and redirect to invitation details
       setIsExpanded(false); // Collapse the form after successful submission
       setSelectedLocations([]); // Reset locations
       setDateSlots([{ 

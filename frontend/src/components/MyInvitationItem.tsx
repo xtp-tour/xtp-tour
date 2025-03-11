@@ -42,8 +42,8 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
       <div className="card-header bg-white d-flex align-items-center justify-content-between py-2">
         <div className="d-flex align-items-center">
           <div className="me-2">
-            <div className="rounded-circle bg-primary bg-opacity-10 p-2">
-              <i className="bi bi-person-circle text-primary"></i>
+            <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <i className="bi bi-person-circle text-primary fs-4"></i>
             </div>
           </div>
           <div>
