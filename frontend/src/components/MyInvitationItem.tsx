@@ -1,6 +1,7 @@
 import React from 'react';
 import { Invitation, InvitationType, RequestType } from '../types/invitation';
 import { formatTime } from '../utils/dateUtils';
+import { Button } from 'react-bootstrap';
 
 interface Props {
   invitation: Invitation;
@@ -56,13 +57,14 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
               ? `${Math.round((new Date().getTime() - invitation.createdAt.getTime()) / (60 * 60 * 1000))}h ago`
               : invitation.createdAt.toLocaleDateString()}
           </small>
-          <button 
-            className="btn btn-outline-danger btn-sm" 
+          <Button 
+            variant="outline-danger"
             onClick={handleDelete}
-            title="Delete invitation"
+            style={{ minWidth: '100px' }}
           >
-            <i className="bi bi-trash"></i>
-          </button>
+            <i className="bi bi-x-circle me-1"></i>
+            Cancel
+          </Button>
         </div>
       </div>
 
@@ -90,7 +92,7 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
         </div>
 
         <div className="mb-4">
-          <h6 className="text-muted mb-3">Available Times</h6>
+          <h6 className="text-muted mb-3">Available Start Times</h6>
           <div className="d-flex flex-column gap-1">
             {invitation.dates.map((date, index) => (
               <div key={index} className="d-flex align-items-center gap-2">

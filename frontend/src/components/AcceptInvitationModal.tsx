@@ -1,8 +1,8 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { AcceptanceOptions, AcceptInvitationRequest, TimeSlotOption } from '../types/api';
+import { AcceptanceOptions, AcceptInvitationRequest } from '../types/api';
 import { useAPI } from '../services/apiProvider';
-import { formatTime } from '../utils/dateUtils';
+import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
 
 interface Props {
@@ -61,11 +61,16 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     );
   };
 
-  const handleTimeSlotChange = (slot: TimeSlotOption, checked: boolean) => {
+  const handleTimeSlotChange = (slot: { date: Date | string; time: number }) => {
+    const dateStr = slot.date instanceof Date ? slot.date.toISOString().split('T')[0] : slot.date;
+    const isSelected = selectedTimeSlots.some(
+      s => s.date === dateStr && s.startTime === slot.time
+    );
+
     setSelectedTimeSlots(prev =>
-      checked
-        ? [...prev, { date: slot.date, startTime: slot.time }]
-        : prev.filter(s => !(s.date === slot.date && s.startTime === slot.time))
+      isSelected
+        ? prev.filter(s => !(s.date === dateStr && s.startTime === slot.time))
+        : [...prev, { date: dateStr, startTime: slot.time }]
     );
   };
 
@@ -96,15 +101,6 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const groupTimeSlotsByDate = (slots: TimeSlotOption[]) => {
-    const grouped = new Map<string, TimeSlotOption[]>();
-    slots.forEach(slot => {
-      const existing = grouped.get(slot.date) || [];
-      grouped.set(slot.date, [...existing, slot]);
-    });
-    return grouped;
   };
 
   return (
@@ -144,24 +140,34 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                   <i className="bi bi-geo-alt me-2 text-primary"></i>
                   Where would you like to play?
                 </h6>
-                <div className="ps-4">
-                  {options.locations.map(locationId => (
-                    <Form.Check
-                      key={locationId}
-                      type="checkbox"
-                      id={`location-${locationId}`}
-                      className="mb-2"
-                      label={
-                        <span className="ms-2">
-                          {locationId} {/* In real app, show location name */}
-                        </span>
-                      }
-                      checked={selectedLocations.includes(locationId)}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => 
-                        handleLocationChange(locationId, e.target.checked)
-                      }
-                    />
-                  ))}
+                <div className="ps-2">
+                  <div className="d-flex flex-wrap gap-2">
+                    {options.locations.map(locationId => (
+                      <div
+                        key={locationId}
+                        className={`badge p-2 ${
+                          selectedLocations.includes(locationId)
+                            ? 'bg-success text-white'
+                            : 'bg-light text-dark border border-primary border-opacity-25'
+                        }`}
+                        onClick={() => handleLocationChange(
+                          locationId,
+                          !selectedLocations.includes(locationId)
+                        )}
+                        role="button"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <i className={`bi bi-geo-alt me-1 ${
+                          selectedLocations.includes(locationId) ? 'text-white' : 'text-primary'
+                        }`}></i>
+                        {locationId}
+                      </div>
+                    ))}
+                  </div>
+                  <small className="text-muted d-block mt-2 ps-2">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Select all locations where you can play.
+                  </small>
                 </div>
               </div>
             </div>
@@ -172,44 +178,24 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                   <i className="bi bi-clock me-2 text-primary"></i>
                   When would you like to start?
                 </h6>
-                {Array.from(groupTimeSlotsByDate(options.timeSlots)).map(([date, slots]) => (
-                  <div key={date} className="mb-4 ps-4">
-                    <h6 className="d-flex align-items-center text-primary mb-3">
-                      <i className="bi bi-calendar-event me-2"></i>
-                      {new Date(date).toLocaleDateString(undefined, {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </h6>
-                    <div className="d-flex flex-wrap gap-2 ps-4">
-                      {slots.map(slot => (
-                        <Form.Check
-                          key={`${slot.date}-${slot.time}`}
-                          type="checkbox"
-                          inline
-                          id={`slot-${slot.date}-${slot.time}`}
-                          label={
-                            <span className={!slot.isAvailable ? 'text-muted' : ''}>
-                              {formatTime(slot.time)}
-                            </span>
-                          }
-                          disabled={!slot.isAvailable}
-                          checked={selectedTimeSlots.some(
-                            s => s.date === slot.date && s.startTime === slot.time
-                          )}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => 
-                            handleTimeSlotChange(slot, e.target.checked)
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <small className="text-muted d-block mt-2">
-                  <i className="bi bi-info-circle me-1"></i>
-                  Select all time slots that work for you. {hostName} will choose the final time based on your availability.
-                </small>
+                <div className="ps-2">
+                  <TimeSlotLabels
+                    timeSlots={options.timeSlots.map(slot => ({
+                      date: new Date(slot.date),
+                      time: slot.time,
+                      isSelected: selectedTimeSlots.some(
+                        s => s.date === slot.date && s.startTime === slot.time
+                      ),
+                      isAvailable: slot.isAvailable
+                    }))}
+                    onSelect={handleTimeSlotChange}
+                    className="mb-2"
+                  />
+                  <small className="text-muted d-block mt-2 ps-2">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Select all time slots that work for you. {hostName} will choose the final time based on your availability.
+                  </small>
+                </div>
               </div>
             </div>
           </Form>

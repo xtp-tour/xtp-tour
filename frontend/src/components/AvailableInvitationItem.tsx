@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Invitation, InvitationType, RequestType } from '../types/invitation';
-import { formatTime } from '../utils/dateUtils';
 import { AcceptInvitationModal } from './AcceptInvitationModal';
+import TimeSlotLabels from './TimeSlotLabels';
+import { Button } from 'react-bootstrap';
 
 interface Props {
   invitation: Invitation;
+  onAccept: (invitation: Invitation) => void;
 }
 
 const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
@@ -37,6 +39,25 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
     console.log('Navigate to location:', locationId);
   };
 
+  // Convert dates to time slots format
+  const timeSlots = invitation.dates.flatMap(date => {
+    // Generate all possible 30-minute slots
+    const slots = [];
+    let currentTime = date.timespan.from;
+    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
+      slots.push({
+        date: date.date,
+        time: currentTime,
+        isAvailable: true
+      });
+      currentTime += 30;
+      if (currentTime % 100 === 60) {
+        currentTime += 40;
+      }
+    }
+    return slots;
+  });
+
   return (
     <>
       <div className="card mb-3">
@@ -49,15 +70,24 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
             </div>
             <div>
               <h6 className="mb-0">{invitation.playerId}</h6>
+              <small className="text-primary">Looking for players</small>
             </div>
           </div>
-          <div>
+          <div className="d-flex align-items-center gap-3">
             <small className="text-muted">
               <i className="bi bi-clock-history me-1"></i>
               {new Date().getTime() - invitation.createdAt.getTime() < 24 * 60 * 60 * 1000 
                 ? `${Math.round((new Date().getTime() - invitation.createdAt.getTime()) / (60 * 60 * 1000))}h ago`
                 : invitation.createdAt.toLocaleDateString()}
             </small>
+            <Button
+              variant="primary"
+              onClick={() => setShowAcceptModal(true)}
+              style={{ minWidth: '100px' }}
+            >
+              <i className="bi bi-check2-circle me-1"></i>
+              Join
+            </Button>
           </div>
         </div>
 
@@ -97,22 +127,7 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
 
           <div className="mb-4">
             <h6 className="text-muted mb-3">Available Times</h6>
-            <div className="d-flex flex-column gap-1">
-              {invitation.dates.map((date, index) => (
-                <div key={index} className="d-flex align-items-center gap-2">
-                  <i className="bi bi-calendar-event text-primary"></i>
-                  <span className="fw-medium text-nowrap">{date.date.toLocaleDateString(undefined, {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
-                  })}</span>
-                  <i className="bi bi-clock text-muted"></i>
-                  <span className="text-muted text-nowrap">
-                    {formatTime(date.timespan.from)} - {formatTime(date.timespan.to)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <TimeSlotLabels timeSlots={timeSlots} />
           </div>
 
           {invitation.description && (
@@ -127,14 +142,6 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
               </div>
             </div>
           )}
-
-          <button 
-            className="btn btn-primary w-100" 
-            onClick={() => setShowAcceptModal(true)}
-          >
-            <i className="bi bi-check2-circle me-2"></i>
-            Join Game Session
-          </button>
         </div>
       </div>
 
