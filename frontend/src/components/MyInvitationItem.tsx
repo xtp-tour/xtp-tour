@@ -1,6 +1,6 @@
 import React from 'react';
 import { Invitation } from '../types/invitation';
-import BaseInvitationItem from './BaseInvitationItem';
+import BaseInvitationItem from './invitation/BaseInvitationItem';
 
 interface Props {
   invitation: Invitation;
@@ -37,8 +37,8 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
     <BaseInvitationItem
       invitation={invitation}
       headerTitle="Your Invitation"
-      avatarColorClass="text-primary"
-      locationBorderColorClass="border-primary"
+      colorClass="text-primary"
+      borderColorClass="border-primary"
       timeSlots={timeSlots}
       timestamp={invitation.createdAt}
       actionButton={{

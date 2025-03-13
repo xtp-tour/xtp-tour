@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Invitation } from '../types/invitation';
 import { AcceptInvitationModal } from './AcceptInvitationModal';
-import BaseInvitationItem from './BaseInvitationItem';
+import BaseInvitationItem from './invitation/BaseInvitationItem';
 
 interface Props {
   invitation: Invitation;
@@ -36,14 +36,14 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
         invitation={invitation}
         headerTitle={invitation.playerId}
         headerSubtitle="Looking for players"
-        avatarColorClass="text-primary"
-        locationBorderColorClass="border-primary"
+        colorClass="text-primary"
+        borderColorClass="border-primary"
         timeSlots={timeSlots}
         timestamp={invitation.createdAt}
         actionButton={{
-          variant: 'primary',
-          icon: 'bi-check2-circle',
-          label: 'Join',
+          variant: 'outline-primary',
+          icon: 'bi-check-circle',
+          label: 'Accept',
           onClick: () => setShowAcceptModal(true)
         }}
       />

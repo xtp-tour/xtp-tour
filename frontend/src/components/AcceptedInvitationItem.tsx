@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Invitation } from '../types/invitation';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
-import BaseInvitationItem from './BaseInvitationItem';
+import BaseInvitationItem from './invitation/BaseInvitationItem';
 
 interface Props {
   invitation: Invitation;
@@ -55,8 +55,8 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
         invitation={invitation}
         headerTitle={invitation.playerId}
         headerSubtitle="Host"
-        avatarColorClass="text-success"
-        locationBorderColorClass="border-success"
+        colorClass="text-primary"
+        borderColorClass="border-primary"
         timeSlots={timeSlots}
         timestamp={invitation.updatedAt || invitation.createdAt}
         actionButton={{
