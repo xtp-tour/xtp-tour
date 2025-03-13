@@ -44,12 +44,12 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
         invitationType={invitation.invitationType}
         requestType={invitation.requestType}
         skillLevel={invitation.skillLevel}
-        matchDuration={invitation.matchDuration}
+        sessionDuration={invitation.sessionDuration}
       />
 
       <InvitationLocations
         locations={invitation.locations}
-        selectedLocations={invitation.selectedLocations}
+        selectedLocations={invitation.reservation?.location ? [invitation.reservation.location] : undefined}
         colorClass={colorClass}
         borderColorClass={borderColorClass}
         onLocationClick={onLocationClick}
@@ -57,7 +57,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
 
       <InvitationTimeSlots
         timeSlots={timeSlots}
-        hasSelectedTimeSlots={!!invitation.selectedTimeSlots}
+        hasSelectedTimeSlots={!!invitation.reservation}
         onTimeSlotClick={onTimeSlotClick}
       />
 

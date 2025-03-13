@@ -3,6 +3,7 @@ import { Invitation } from '../types/invitation';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
+import { TimeSlot } from './invitation/types';
 
 interface Props {
   invitation: Invitation;
@@ -28,37 +29,25 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
     }
   };
 
-  // Convert dates to time slots format
-  const timeSlots = invitation.dates.flatMap(date => {
-    // Generate all possible 30-minute slots
-    const slots = [];
-    let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
-      slots.push({
-        date: date.date,
-        time: currentTime,
-        isSelected: invitation.selectedTimeSlots?.some(
-          slot => slot.date === date.date.toISOString().split('T')[0] && slot.startTime === currentTime
-        )
-      });
-      currentTime += 30;
-      if (currentTime % 100 === 60) {
-        currentTime += 40;
-      }
-    }
-    return slots;
-  });
+  // Convert invitation time slots to the format expected by BaseInvitationItem
+  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
+    date: slot.date,
+    time: slot.time,
+    isAvailable: true,
+    isSelected: invitation.reservation?.date.getTime() === slot.date.getTime() && 
+                invitation.reservation?.time === slot.time
+  }));
 
   return (
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.playerId}
+        headerTitle={invitation.ownerId}
         headerSubtitle="Host"
         colorClass="text-primary"
         borderColorClass="border-primary"
         timeSlots={timeSlots}
-        timestamp={invitation.updatedAt || invitation.createdAt}
+        timestamp={invitation.createdAt}
         actionButton={{
           variant: 'outline-danger',
           icon: 'bi-x-circle',

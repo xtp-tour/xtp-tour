@@ -3,7 +3,20 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS, InvitationType, RequestType } from '../types/invitation';
+import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot } from '../types/invitation';
+
+interface Location {
+  id: string;
+  name: string;
+  area: string;
+}
+
+interface DateTimeSlot {
+  id: number;
+  date: string;
+  timeFrom: string;
+  timeTo: string;
+}
 
 const MATCH_DURATION_OPTIONS = [
   { value: '1', label: '1 hour' },
@@ -14,6 +27,13 @@ const MATCH_DURATION_OPTIONS = [
   { value: '3.5', label: '3½ hours' },
   { value: '4', label: '4 hours' },
 ];
+
+const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
+  [SkillLevel.Any]: 'Any NTRP',
+  [SkillLevel.Beginner]: 'NTRP < 3.5',
+  [SkillLevel.Intermediate]: 'NTRP 3.5–5.0',
+  [SkillLevel.Advanced]: 'NTRP > 5.0'
+};
 
 // Mock locations data
 const MOCK_LOCATIONS: Location[] = [
@@ -72,7 +92,7 @@ const CreateInvitation: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [sessionDuration, setMatchDuration] = useState('2'); // Default to 2 hours
+  const [sessionDuration, setSessionDuration] = useState('2'); // Default to 2 hours
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(SkillLevel.Any);
   const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
     { 
@@ -83,10 +103,10 @@ const CreateInvitation: React.FC = () => {
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [invitationType, setInvitationType] = useState<InvitationType>(InvitationType.Match);
+  const [invitationType, setInvitationType] = useState<ActivityType>(ActivityType.Match);
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
-  const [requestType, setRequestType] = useState<RequestType>(RequestType.Single);
+  const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -149,7 +169,7 @@ const CreateInvitation: React.FC = () => {
         id: Math.max(0, ...prev.map(slot => slot.id)) + 1,
         date: getTomorrowDate(),
         timeFrom: defaultStartTime,
-        timeTo: calculateEndTime(defaultStartTime, sessionDuration) // Use current match duration
+        timeTo: calculateEndTime(defaultStartTime, sessionDuration) // Use current session duration
       }
     ]);
   };
@@ -229,13 +249,13 @@ const CreateInvitation: React.FC = () => {
     }
 
     // Group locations by area
-    const groupedLocations = locations.reduce((acc, location) => {
+    const groupedLocations = locations.reduce<Record<string, Location[]>>((acc, location) => {
       if (!acc[location.area]) {
         acc[location.area] = [];
       }
       acc[location.area].push(location);
       return acc;
-    }, {} as Record<string, Location[]>);
+    }, {});
 
     return (
       <select
@@ -278,6 +298,12 @@ const CreateInvitation: React.FC = () => {
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Convert date slots to SessionTimeSlot format
+    const timeSlots: SessionTimeSlot[] = dateSlots.map(slot => ({
+      date: new Date(slot.date),
+      time: parseInt(slot.timeFrom.replace(':', ''))
+    }));
+
     const requestData = {
       locations: selectedLocations,
       skillLevel,
@@ -285,13 +311,7 @@ const CreateInvitation: React.FC = () => {
       invitationType,
       requestType,
       description,
-      dates: dateSlots.map(slot => ({
-        date: slot.date,
-        timespan: {
-          from: parseInt(slot.timeFrom.replace(':', '')),
-          to: parseInt(slot.timeTo.replace(':', ''))
-        }
-      }))
+      timeSlots
     };
 
     try {
@@ -322,9 +342,9 @@ const CreateInvitation: React.FC = () => {
     }
   };
 
-  const handleInvitationTypeChange = (type: InvitationType) => {
+  const handleInvitationTypeChange = (type: ActivityType) => {
     setInvitationType(type);
-    if (type === InvitationType.Training && toastRef.current) {
+    if (type === ActivityType.Training && toastRef.current) {
       const toast = new Toast(toastRef.current);
       toast.show();
     }
@@ -408,8 +428,8 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeSingle"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === RequestType.Single}
-                      onChange={() => setRequestType(RequestType.Single)}
+                      checked={requestType === SingleDoubleType.Single}
+                      onChange={() => setRequestType(SingleDoubleType.Single)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeSingle">
@@ -422,7 +442,7 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeDoubles"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === RequestType.Doubles}
+                      checked={requestType === SingleDoubleType.Doubles}
                       disabled
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeDoubles">
@@ -458,7 +478,7 @@ const CreateInvitation: React.FC = () => {
                   id="sessionDuration" 
                   name="sessionDuration"
                   value={sessionDuration}
-                  onChange={(e) => setMatchDuration(e.target.value)}
+                  onChange={(e) => setSessionDuration(e.target.value)}
                   required
                 >
                   {MATCH_DURATION_OPTIONS.map(option => (
@@ -478,8 +498,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeMatch"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === InvitationType.Match}
-                      onChange={() => handleInvitationTypeChange(InvitationType.Match)}
+                      checked={invitationType === ActivityType.Match}
+                      onChange={() => handleInvitationTypeChange(ActivityType.Match)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
@@ -500,8 +520,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeTraining"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === InvitationType.Training}
-                      onChange={() => handleInvitationTypeChange(InvitationType.Training)}
+                      checked={invitationType === ActivityType.Training}
+                      onChange={() => handleInvitationTypeChange(ActivityType.Training)}
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
@@ -609,7 +629,7 @@ const CreateInvitation: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={invitationType === InvitationType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                  placeholder={invitationType === ActivityType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
                 />
               </div>
 

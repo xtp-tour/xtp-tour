@@ -4,16 +4,15 @@ import AvailableInvitationItem from './AvailableInvitationItem';
 import AcceptedInvitationItem from './AcceptedInvitationItem';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Invitation, InvitationDate, InvitationStatus } from '../types/invitation';
+import { Invitation, InvitationStatus } from '../types/invitation';
 
 const transformInvitation = (invitation: APIInvitation): Invitation => ({
   ...invitation,
-  dates: invitation.dates.map((date): InvitationDate => ({
-    ...date,
-    date: new Date(date.date)
+  timeSlots: invitation.timeSlots.map(ts => ({
+    date: new Date(ts.date),
+    time: ts.time
   })),
-  createdAt: new Date(invitation.createdAt),
-  updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined
+  createdAt: new Date(invitation.createdAt)
 });
 
 interface SectionHeaderProps {
@@ -41,9 +40,8 @@ const InvitationList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [invitationData, setInvitationData] = useState<{ invitations: Invitation[]; total: number }>({ invitations: [], total: 0 });
-  const [page, setPage] = useState(1);
-  const limit = 10;
+  const [myInvitations, setMyInvitations] = useState<Invitation[]>([]);
+  const [otherInvitations, setOtherInvitations] = useState<Invitation[]>([]);
 
   // State for section expansion
   const [expandedSections, setExpandedSections] = useState({
@@ -64,11 +62,15 @@ const InvitationList: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.listInvitations({ page, limit });
-        setInvitationData({
-          total: response.total,
-          invitations: response.invitations.map(transformInvitation)
-        });
+        
+        // Fetch both my invitations and other invitations
+        const [myResponse, otherResponse] = await Promise.all([
+          api.listMyInvitations(),
+          api.listInvitations()
+        ]);
+
+        setMyInvitations(myResponse.invitations.map(transformInvitation));
+        setOtherInvitations(otherResponse.invitations.map(transformInvitation));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load invitations');
       } finally {
@@ -77,27 +79,23 @@ const InvitationList: React.FC = () => {
     };
 
     fetchInvitations();
-  }, [api, page]);
+  }, [api]);
 
-  const myInvitations = invitationData.invitations.filter(invitation => 
-    invitation.isOwner && invitation.status !== InvitationStatus.Accepted
+  // Filter invitations based on their status
+  const pendingMyInvitations = myInvitations.filter(invitation => 
+    invitation.status === InvitationStatus.Pending
   );
   
-  const acceptedInvitations = invitationData.invitations.filter(invitation => 
-    !invitation.isOwner && invitation.status === InvitationStatus.Accepted
+  const acceptedInvitations = otherInvitations.filter(invitation => 
+    invitation.acks.length > 0
   );
   
-  const availableInvitations = invitationData.invitations.filter(invitation => 
-    !invitation.isOwner && invitation.status === InvitationStatus.Pending
+  const availableInvitations = otherInvitations.filter(invitation => 
+    invitation.status === InvitationStatus.Pending &&
+    invitation.acks.length===0
   );
 
-  const handleLoadMore = () => {
-    if (invitationData.invitations.length < invitationData.total) {
-      setPage(prev => prev + 1);
-    }
-  };
-
-  if (loading && page === 1) {
+  if (loading) {
     return (
       <div className="mt-4 text-center">
         <div className="spinner-border text-primary" role="status">
@@ -120,27 +118,23 @@ const InvitationList: React.FC = () => {
       <section className="mb-5">
         <SectionHeader
           title="Your Invitations"
-          count={myInvitations.length}
+          count={pendingMyInvitations.length}
           isExpanded={expandedSections.myInvitations}
           onToggle={() => toggleSection('myInvitations')}
         />
         {expandedSections.myInvitations && (
-          myInvitations.length === 0 ? (
+          pendingMyInvitations.length === 0 ? (
             <p className="text-muted">You haven't created any invitations yet.</p>
           ) : (
             <div>
-              {myInvitations.map(invitation => (
+              {pendingMyInvitations.map(invitation => (
                 <MyInvitationItem 
                   key={invitation.id} 
                   invitation={invitation} 
                   onDelete={async (id) => {
                     try {
                       await api.deleteInvitation(id);
-                      setInvitationData(prev => ({
-                        ...prev,
-                        invitations: prev.invitations.filter(inv => inv.id !== id),
-                        total: prev.total - 1
-                      }));
+                      setMyInvitations(prev => prev.filter(inv => inv.id !== id));
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to delete invitation');
                     }
@@ -197,22 +191,6 @@ const InvitationList: React.FC = () => {
           )
         )}
       </section>
-
-      {loading && page > 1 && (
-        <div className="text-center mb-4">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading more...</span>
-          </div>
-        </div>
-      )}
-
-      {invitationData.invitations.length < invitationData.total && !loading && (
-        <div className="text-center mb-4">
-          <button className="btn btn-outline-primary" onClick={handleLoadMore}>
-            Load More
-          </button>
-        </div>
-      )}
     </div>
   );
 };

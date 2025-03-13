@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { AcceptanceOptions, AcceptInvitationRequest } from '../types/api';
+import { AcceptInvitationRequest } from '../types/api';
 import { useAPI } from '../services/apiProvider';
 import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
@@ -11,6 +11,15 @@ interface Props {
   show: boolean;
   onHide: () => void;
   onAccepted: () => void;
+}
+
+interface AcceptanceOptions {
+  locations: string[];
+  timeSlots: {
+    date: string;
+    time: number;
+    isAvailable: boolean;
+  }[];
 }
 
 export const AcceptInvitationModal: React.FC<Props> = ({

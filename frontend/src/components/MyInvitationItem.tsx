@@ -1,6 +1,7 @@
 import React from 'react';
 import { Invitation } from '../types/invitation';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
+import { TimeSlot } from './invitation/types';
 
 interface Props {
   invitation: Invitation;
@@ -14,24 +15,14 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
     }
   };
 
-  // Convert dates to time slots format
-  const timeSlots = invitation.dates.flatMap(date => {
-    // Generate all possible 30-minute slots
-    const slots = [];
-    let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
-      slots.push({
-        date: date.date,
-        time: currentTime,
-        isAvailable: true
-      });
-      currentTime += 30;
-      if (currentTime % 100 === 60) {
-        currentTime += 40;
-      }
-    }
-    return slots;
-  });
+  // Convert invitation time slots to the format expected by BaseInvitationItem
+  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
+    date: slot.date,
+    time: slot.time,
+    isAvailable: true,
+    isSelected: invitation.reservation?.date.getTime() === slot.date.getTime() && 
+                invitation.reservation?.time === slot.time
+  }));
 
   return (
     <BaseInvitationItem

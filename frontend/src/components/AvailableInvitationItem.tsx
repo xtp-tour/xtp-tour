@@ -2,39 +2,30 @@ import React, { useState } from 'react';
 import { Invitation } from '../types/invitation';
 import { AcceptInvitationModal } from './AcceptInvitationModal';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
+import { TimeSlot } from './invitation/types';
 
 interface Props {
   invitation: Invitation;
   onAccept: (invitation: Invitation) => void;
 }
 
-const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
+const AvailableInvitationItem: React.FC<Props> = ({ invitation, onAccept }) => {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
 
-  // Convert dates to time slots format
-  const timeSlots = invitation.dates.flatMap(date => {
-    // Generate all possible 30-minute slots
-    const slots = [];
-    let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
-      slots.push({
-        date: date.date,
-        time: currentTime,
-        isAvailable: true
-      });
-      currentTime += 30;
-      if (currentTime % 100 === 60) {
-        currentTime += 40;
-      }
-    }
-    return slots;
-  });
+  // Convert invitation time slots to the format expected by BaseInvitationItem
+  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
+    date: slot.date,
+    time: slot.time,
+    isAvailable: true,
+    isSelected: invitation.reservation?.date.getTime() === slot.date.getTime() && 
+                invitation.reservation?.time === slot.time
+  }));
 
   return (
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.playerId}
+        headerTitle={invitation.ownerId}
         headerSubtitle="Looking for players"
         colorClass="text-primary"
         borderColorClass="border-primary"
@@ -50,12 +41,12 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
 
       <AcceptInvitationModal
         invitationId={invitation.id}
-        hostName={invitation.playerId}
+        hostName={invitation.ownerId}
         show={showAcceptModal}
         onHide={() => setShowAcceptModal(false)}
         onAccepted={() => {
-          // Refresh the invitations list
-          window.location.reload();
+          onAccept(invitation);
+          setShowAcceptModal(false);
         }}
       />
     </>

@@ -1,4 +1,4 @@
-import { InvitationType, RequestType } from '../../types/invitation';
+import { ActivityType, SingleDoubleType, SkillLevel } from '../../types/invitation';
 
 export interface TimeSlot {
   date: Date;
@@ -21,10 +21,10 @@ export interface StyleProps {
 }
 
 export const SKILL_LEVEL_DESCRIPTIONS = {
-  ANY: 'Any NTRP',
-  BEGINNER: 'NTRP < 3.5',
-  INTERMEDIATE: 'NTRP 3.5–5.0',
-  ADVANCED: 'NTRP > 5.0'
+  [SkillLevel.Any]: 'Any NTRP',
+  [SkillLevel.Beginner]: 'NTRP < 3.5',
+  [SkillLevel.Intermediate]: 'NTRP 3.5–5.0',
+  [SkillLevel.Advanced]: 'NTRP > 5.0'
 } as const;
 
 export const SECTION_TITLES = {
@@ -39,22 +39,22 @@ export const SECTION_TITLES = {
   description: 'Description'
 } as const;
 
-export const getInvitationTypeLabel = (type: InvitationType): string => {
+export const getInvitationTypeLabel = (type: ActivityType): string => {
   switch (type) {
-    case InvitationType.Match:
+    case ActivityType.Match:
       return 'Match';
-    case InvitationType.Training:
+    case ActivityType.Training:
       return 'Training';
     default:
       return type;
   }
 };
 
-export const getRequestTypeLabel = (type: RequestType): string => {
+export const getRequestTypeLabel = (type: SingleDoubleType): string => {
   switch (type) {
-    case RequestType.Single:
+    case SingleDoubleType.Single:
       return 'Single';
-    case RequestType.Doubles:
+    case SingleDoubleType.Doubles:
       return 'Doubles';
     default:
       return type;
