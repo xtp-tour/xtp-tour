@@ -11,8 +11,8 @@ import {
 } from './types';
 import { 
   Invitation, 
-  InvitationType, 
-  RequestType, 
+  ActivityType, 
+  SingleDoubleType, 
   SkillLevel,
   InvitationStatus 
 } from '../domain/invitation';
@@ -69,12 +69,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   // My invitations
   {
     id: '1',
-    playerId: 'current_user',
+    ownerId: 'current_user',
     locations: ['central_park'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 2,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 2,
     dates: [
       {
         date: nextWeekDates[0],
@@ -92,12 +92,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   },
   {
     id: '2',
-    playerId: 'current_user',
+    ownerId: 'current_user',
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
+    invitationType: ActivityType.Training,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
     dates: [
       {
         date: nextWeekDates[2],
@@ -113,12 +113,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   // Available invitations
   {
     id: '3',
-    playerId: 'john_doe',
+    ownerId: 'john_doe',
     locations: ['east_side'],
     skillLevel: SkillLevel.Beginner,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1,
+    invitationType: ActivityType.Training,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1,
     dates: [
       {
         date: nextWeekDates[1],
@@ -136,12 +136,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   },
   {
     id: '4',
-    playerId: 'sarah_smith',
+    ownerId: 'sarah_smith',
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
     dates: [
       {
         date: nextWeekDates[2],
@@ -155,12 +155,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   },
   {
     id: '5',
-    playerId: 'mike_wilson',
+    ownerId: 'mike_wilson',
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Doubles,
-    matchDuration: 2,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Doubles,
+    sessionDuration: 2,
     dates: [
       {
         date: nextWeekDates[4],
@@ -178,12 +178,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   },
   {
     id: '6',
-    playerId: 'emma_brown',
+    ownerId: 'emma_brown',
     locations: ['east_side'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1,
+    invitationType: ActivityType.Training,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1,
     dates: [
       {
         date: nextWeekDates[0],
@@ -206,12 +206,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   // Example of an accepted invitation
   {
     id: '7',
-    playerId: 'alex_tennis',
+    ownerId: 'alex_tennis',
     locations: ['central_park'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
     dates: [
       {
         date: nextWeekDates[1],
@@ -227,12 +227,12 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
   // Example of a confirmed invitation
   {
     id: '8',
-    playerId: 'current_user',
+    ownerId: 'current_user',
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
     dates: [
       {
         date: nextWeekDates[0],
@@ -296,16 +296,16 @@ export class MockAPIClient implements APIClient {
   private toDomainInvitation(invitation: APIInvitation): Invitation {
     return {
       id: invitation.id,
-      playerId: invitation.playerId,
+      ownerId: invitation.ownerId,
       locations: invitation.locations,
       skillLevel: invitation.skillLevel,
       invitationType: invitation.invitationType,
       requestType: invitation.requestType,
-      matchDuration: invitation.matchDuration,
+      sessionDuration: invitation.sessionDuration,
       description: invitation.description,
       isOwner: invitation.isOwner,
       status: invitation.status,
-      dates: invitation.dates.map(d => ({
+      timeSlots: invitation.dates.map(d => ({
         ...d,
         date: new Date(d.date)
       })),
@@ -322,12 +322,12 @@ export class MockAPIClient implements APIClient {
 
     const invitation: APIInvitation = {
       id: Math.random().toString(36).substr(2, 9),
-      playerId: 'current_user',
+      ownerId: 'current_user',
       locations: request.locations,
       skillLevel: request.skillLevel,
       invitationType: request.invitationType,
       requestType: request.requestType,
-      matchDuration: request.matchDuration,
+      sessionDuration: request.matchDuration,
       dates: request.dates,
       description: request.description,
       isOwner: true,
@@ -470,7 +470,7 @@ export class MockAPIClient implements APIClient {
         dateSlot.date,
         dateSlot.timespan.from,
         dateSlot.timespan.to,
-        invitation.matchDuration
+        invitation.sessionDuration
       );
 
       return slots.map(time => ({

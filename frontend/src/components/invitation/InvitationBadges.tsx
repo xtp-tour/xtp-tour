@@ -1,10 +1,10 @@
 import React from 'react';
-import { InvitationType, RequestType } from '../../services/domain/invitation';
+import { ActivityType, SingleDoubleType } from '../../services/domain/invitation';
 import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
 
 interface InvitationBadgesProps {
-  invitationType: InvitationType;
-  requestType: RequestType;
+  invitationType: ActivityType;
+  requestType: SingleDoubleType;
   skillLevel: string;
   matchDuration: number;
 }

@@ -1,12 +1,12 @@
 import { Location, LocationResponse } from '../domain/locations';
-import { Invitation, InvitationType, RequestType, SkillLevel } from '../domain/invitation';
+import { Invitation, ActivityType, SingleDoubleType, SkillLevel } from '../domain/invitation';
 
 export interface CreateInvitationRequest {
   locations: string[];
   skillLevel: SkillLevel;
   matchDuration: number;
-  invitationType: InvitationType;
-  requestType: RequestType;
+  invitationType: ActivityType;
+  requestType: SingleDoubleType;
   description?: string;
   dates: {
     date: string;

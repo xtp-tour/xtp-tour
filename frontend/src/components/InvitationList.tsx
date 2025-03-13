@@ -8,16 +8,16 @@ import { Invitation, InvitationStatus } from '../services/domain/invitation';
 
 const transformInvitation = (invitation: APIInvitation): Invitation => ({
   id: invitation.id,
-  playerId: invitation.playerId,
+  ownerId: invitation.ownerId,
   locations: invitation.locations,
   skillLevel: invitation.skillLevel,
   invitationType: invitation.invitationType,
   requestType: invitation.requestType,
-  matchDuration: invitation.matchDuration,
+  sessionDuration: invitation.sessionDuration,
   description: invitation.description,
   isOwner: invitation.isOwner,
   status: invitation.status,
-  dates: invitation.dates.map(d => ({
+  timeSlots: invitation.dates.map(d => ({
     ...d,
     date: new Date(d.date)
   })),

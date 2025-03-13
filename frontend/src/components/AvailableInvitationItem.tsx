@@ -12,11 +12,11 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
 
   // Convert dates to time slots format
-  const timeSlots = invitation.dates.flatMap(date => {
+  const timeSlots = invitation.timeSlots.flatMap(date => {
     // Generate all possible 30-minute slots
     const slots = [];
     let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
+    while (currentTime <= date.timespan.to - invitation.sessionDuration * 100) {
       slots.push({
         date: date.date,
         time: currentTime,
@@ -34,7 +34,7 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.playerId}
+        headerTitle={invitation.ownerId}
         headerSubtitle="Looking for players"
         colorClass="text-primary"
         borderColorClass="border-primary"
@@ -50,7 +50,7 @@ const AvailableInvitationItem: React.FC<Props> = ({ invitation }) => {
 
       <AcceptInvitationModal
         invitationId={invitation.id}
-        hostName={invitation.playerId}
+        hostName={invitation.ownerId}
         show={showAcceptModal}
         onHide={() => setShowAcceptModal(false)}
         onAccepted={() => {

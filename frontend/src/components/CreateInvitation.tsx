@@ -3,8 +3,15 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { DateTimeSlot, SkillLevel, SKILL_LEVEL_LABELS, InvitationType, RequestType } from '../services/domain/invitation';
+import { SkillLevel, SKILL_LEVEL_LABELS, ActivityType, SingleDoubleType } from '../services/domain/invitation';
 import { Location, Area } from '../services/domain/locations';
+
+export interface DateTimeSlot {
+  id: number;
+  date: string;
+  timeFrom: string;
+  timeTo: string;
+}
 
 const MATCH_DURATION_OPTIONS = [
   { value: 1, label: '1 hour' },
@@ -133,10 +140,10 @@ const CreateInvitation: React.FC = () => {
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [invitationType, setInvitationType] = useState<InvitationType>(InvitationType.Match);
+  const [invitationType, setInvitationType] = useState<ActivityType>(ActivityType.Match);
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
-  const [requestType, setRequestType] = useState<RequestType>(RequestType.Single);
+  const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -372,9 +379,9 @@ const CreateInvitation: React.FC = () => {
     }
   };
 
-  const handleInvitationTypeChange = (type: InvitationType) => {
+  const handleInvitationTypeChange = (type: ActivityType) => {
     setInvitationType(type);
-    if (type === InvitationType.Training && toastRef.current) {
+    if (type === ActivityType.Training && toastRef.current) {
       const toast = new Toast(toastRef.current);
       toast.show();
     }
@@ -458,8 +465,8 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeSingle"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === RequestType.Single}
-                      onChange={() => setRequestType(RequestType.Single)}
+                      checked={requestType === SingleDoubleType.Single}
+                      onChange={() => setRequestType(SingleDoubleType.Single)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeSingle">
@@ -472,7 +479,7 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeDoubles"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === RequestType.Doubles}
+                      checked={requestType === SingleDoubleType.Doubles}
                       disabled
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeDoubles">
@@ -528,8 +535,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeMatch"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === InvitationType.Match}
-                      onChange={() => handleInvitationTypeChange(InvitationType.Match)}
+                      checked={invitationType === ActivityType.Match}
+                      onChange={() => handleInvitationTypeChange(ActivityType.Match)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
@@ -550,8 +557,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeTraining"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === InvitationType.Training}
-                      onChange={() => handleInvitationTypeChange(InvitationType.Training)}
+                      checked={invitationType === ActivityType.Training}
+                      onChange={() => handleInvitationTypeChange(ActivityType.Training)}
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
@@ -659,7 +666,7 @@ const CreateInvitation: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={invitationType === InvitationType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                  placeholder={invitationType === ActivityType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
                 />
               </div>
 

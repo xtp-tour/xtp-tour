@@ -53,7 +53,7 @@ const ConfirmedInvitationItem: React.FC<Props> = ({ invitation }) => {
   return (
     <BaseInvitationItem
       invitation={enhancedInvitation}
-      headerTitle={invitation.isOwner ? 'Your Session' : invitation.playerId}
+      headerTitle={invitation.isOwner ? 'Your Session' : invitation.ownerId}
       headerSubtitle={invitation.isOwner ? undefined : 'Host'}
       colorClass="text-success"
       borderColorClass="border-success"

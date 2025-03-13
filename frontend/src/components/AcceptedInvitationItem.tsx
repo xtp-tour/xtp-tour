@@ -29,11 +29,11 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   };
 
   // Convert dates to time slots format
-  const timeSlots = invitation.dates.flatMap(date => {
+  const timeSlots = invitation.timeSlots.flatMap(date => {
     // Generate all possible 30-minute slots
     const slots = [];
     let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.matchDuration * 100) {
+    while (currentTime <= date.timespan.to - invitation.sessionDuration * 100) {
       slots.push({
         date: date.date,
         time: currentTime,
@@ -53,7 +53,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.playerId}
+        headerTitle={invitation.ownerId}
         headerSubtitle="Host"
         colorClass="text-primary"
         borderColorClass="border-primary"

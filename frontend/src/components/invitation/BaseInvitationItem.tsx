@@ -44,7 +44,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
         invitationType={invitation.invitationType}
         requestType={invitation.requestType}
         skillLevel={invitation.skillLevel}
-        matchDuration={invitation.matchDuration}
+        matchDuration={invitation.sessionDuration}
       />
 
       <InvitationLocations

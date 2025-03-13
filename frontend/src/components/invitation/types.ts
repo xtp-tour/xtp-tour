@@ -1,4 +1,4 @@
-import { InvitationType, RequestType } from '../../services/domain/invitation';
+import { ActivityType, SingleDoubleType } from '../../services/domain/invitation';
 import { InvitationStatus } from '../../services/domain/invitation';
 
 export interface TimeSlot {
@@ -40,22 +40,22 @@ export const SECTION_TITLES = {
   description: 'Description'
 } as const;
 
-export const getInvitationTypeLabel = (type: InvitationType): string => {
+export const getInvitationTypeLabel = (type: ActivityType): string => {
   switch (type) {
-    case InvitationType.Match:
+    case ActivityType.Match:
       return 'Match';
-    case InvitationType.Training:
+    case ActivityType.Training:
       return 'Training';
     default:
       return type;
   }
 };
 
-export const getRequestTypeLabel = (type: RequestType): string => {
+export const getRequestTypeLabel = (type: SingleDoubleType): string => {
   switch (type) {
-    case RequestType.Single:
+    case SingleDoubleType.Single:
       return 'Single';
-    case RequestType.Doubles:
+    case SingleDoubleType.Doubles:
       return 'Doubles';
     default:
       return type;
