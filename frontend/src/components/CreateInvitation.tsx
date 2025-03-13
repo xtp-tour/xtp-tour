@@ -3,13 +3,9 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot } from '../types/invitation';
-
-interface Location {
-  id: string;
-  name: string;
-  area: string;
-}
+import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot, Invitation, InvitationStatus } from '../types/invitation';
+import { useAPI } from '../services/apiProvider';
+import { Location } from '../types/locations';
 
 interface DateTimeSlot {
   id: number;
@@ -35,46 +31,6 @@ const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
   [SkillLevel.Advanced]: 'NTRP > 5.0'
 };
 
-// Mock locations data
-const MOCK_LOCATIONS: Location[] = [
-  // Central Area
-  { id: 'central_park', name: 'Central Park Tennis Courts', area: 'Central' },
-  { id: 'public_courts', name: 'Public Tennis Courts', area: 'Central' },
-  { id: 'city_sports', name: 'City Sports Complex', area: 'Central' },
-  
-  // West Area
-  { id: 'riverside', name: 'Riverside Tennis Center', area: 'West' },
-  { id: 'sports_center', name: 'Sports Center Courts', area: 'West' },
-  { id: 'west_park', name: 'West Park Tennis Club', area: 'West' },
-  
-  // East Area
-  { id: 'east_side', name: 'East Side Tennis Club', area: 'East' },
-  { id: 'community', name: 'Community Tennis Park', area: 'East' },
-  { id: 'east_academy', name: 'Eastern Tennis Academy', area: 'East' },
-  
-  // North Area
-  { id: 'north_courts', name: 'Northern Tennis Academy', area: 'North' },
-  { id: 'north_park', name: 'North Park Courts', area: 'North' },
-  
-  // South Area
-  { id: 'downtown', name: 'Downtown Tennis Complex', area: 'South' },
-  { id: 'south_center', name: 'South Center Courts', area: 'South' }
-];
-
-// Mock API call function
-const mockFetchLocations = async (): Promise<Location[]> => {
-  // Simulate network delay between 500ms and 1500ms
-  const delay = Math.random() * 1000 + 500;
-  await new Promise(resolve => setTimeout(resolve, delay));
-
-  // Simulate API failure 10% of the time
-  if (Math.random() < 0.1) {
-    throw new Error('Failed to fetch locations');
-  }
-
-  return MOCK_LOCATIONS;
-};
-
 const calculateEndTime = (startTime: string, duration: string): string => {
   const [hours, minutes] = startTime.split(':').map(Number);
   const durationHours = parseFloat(duration);
@@ -87,6 +43,7 @@ const calculateEndTime = (startTime: string, duration: string): string => {
 };
 
 const CreateInvitation: React.FC = () => {
+  const api = useAPI();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -113,8 +70,8 @@ const CreateInvitation: React.FC = () => {
       setIsLoadingLocations(true);
       setLocationError(null);
       try {
-        const data = await mockFetchLocations();
-        setLocations(data);
+        const response = await api.listLocations();
+        setLocations(response.locations);
 
         // Initialize bootstrap-select after locations are loaded
         if (selectRef.current) {
@@ -147,7 +104,7 @@ const CreateInvitation: React.FC = () => {
         }
       });
     };
-  }, []);
+  }, [api]);
 
   // Get tomorrow's date in YYYY-MM-DD format
   function getTomorrowDate(): string {
@@ -284,7 +241,7 @@ const CreateInvitation: React.FC = () => {
               <option 
                 key={location.id} 
                 value={location.id}
-                data-tokens={`${location.name} ${area}`}
+                data-tokens={`${location.name} ${location.area}`}
               >
                 {location.name}
               </option>
@@ -304,41 +261,36 @@ const CreateInvitation: React.FC = () => {
       time: parseInt(slot.timeFrom.replace(':', ''))
     }));
 
-    const requestData = {
+    const requestData: Invitation = {
+      id: '', // Will be assigned by the server
+      ownerId: '', // Will be assigned by the server
       locations: selectedLocations,
       skillLevel,
       sessionDuration: parseFloat(sessionDuration),
       invitationType,
       requestType,
       description,
-      timeSlots
+      timeSlots,
+      status: InvitationStatus.Pending,
+      createdAt: new Date(),
+      acks: []
     };
 
     try {
-      // Mock API call - replace with actual API endpoint when ready
-      const response = await fetch('/api/invitations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
+      await api.createInvitation(requestData);
 
-      if (!response.ok) {
-        throw new Error('Failed to create invitation');
-      }
-
-      // TODO: Add success notification and redirect to invitation details
-      setIsExpanded(false); // Collapse the form after successful submission
-      setSelectedLocations([]); // Reset locations
+      // Reset form after successful submission
+      setIsExpanded(false);
+      setSelectedLocations([]);
       setDateSlots([{ 
         id: 1, 
         date: getTomorrowDate(),
         timeFrom: '09:00',
-        timeTo: calculateEndTime('09:00', '2') // Reset to default 2 hours from 9:00
-      }]); // Reset form
+        timeTo: calculateEndTime('09:00', '2')
+      }]);
     } catch (error) {
       console.error('Error creating invitation:', error);
+      // TODO: Add error handling with toast notifications
     }
   };
 
