@@ -1,25 +1,10 @@
 import { Location, LocationResponse } from './locations';
-import { Invitation, InvitationType, RequestType, SkillLevel } from './invitation';
+import { Invitation, Reservation } from './invitation';
 
 export interface CreateInvitationRequest {
-  locations: string[];
-  skillLevel: SkillLevel;
-  matchDuration: number;
-  invitationType: InvitationType;
-  requestType: RequestType;
-  description?: string;
-  dates: {
-    date: string;
-    timespan: {
-      from: number;
-      to: number;
-    };
-  }[];
+   invitation: Invitation;
 }
 
-export interface UpdateInvitationRequest extends Partial<CreateInvitationRequest> {
-  id: string;
-}
 
 export interface AcceptInvitationRequest {
   id: string;
@@ -30,24 +15,18 @@ export interface AcceptInvitationRequest {
   }[];
 }
 
-export interface APIInvitation extends Omit<Invitation, 'dates' | 'createdAt' | 'updatedAt'> {
-  dates: {
+
+
+export interface APIInvitation extends Omit<Invitation, 'timeSlots' | 'createdAt'> {
+  timeSlots: {
     date: string;
-    timespan: {
-      from: number;
-      to: number;
-    };
+    time: number;
   }[];
   createdAt: string;
   updatedAt?: string;
-  selectedLocations?: string[];
-  selectedTimeSlots?: {
-    date: string;
-    startTime: number;
-  }[];
 }
 
-export interface InvitationResponse {
+export interface InvitationsResponse {
   invitations: APIInvitation[];
   total: number;
 }
@@ -76,16 +55,17 @@ export interface APIConfig {
 
 export interface APIClient {
   // Invitation endpoints
-  createInvitation(request: CreateInvitationRequest): Promise<Invitation>;
-  updateInvitation(request: UpdateInvitationRequest): Promise<Invitation>;
+  createInvitation(request: Invitation): Promise<Invitation>;
   deleteInvitation(id: string): Promise<void>;
   getInvitation(id: string): Promise<Invitation>;
-  listInvitations(params?: {
-    page?: number;
-    limit?: number;
-    ownOnly?: boolean;
-  }): Promise<InvitationResponse>;
+  confirmInvitation(request: Reservation): Promise<Invitation>;
+
+  listMyInvitations() : Promise<InvitationsResponse>
+  listInvitations(): Promise<InvitationsResponse>;  
+
+
   getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
+  
   acceptInvitation(request: AcceptInvitationRequest): Promise<void>;
   
   // Location endpoints

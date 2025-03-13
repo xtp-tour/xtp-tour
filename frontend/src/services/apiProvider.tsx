@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { APIClient, APIConfig } from '../types/api';
 import { MockAPIClient } from './mockApi';
-import { RealAPIClient } from './api';
+import { RealAPIClient } from './realApi';
 
 const APIContext = createContext<APIClient | null>(null);
 

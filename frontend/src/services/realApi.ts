@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { APIClient, APIConfig, CreateInvitationRequest, UpdateInvitationRequest, InvitationResponse, APIError } from '../types/api';
-import { Invitation } from '../types/invitation';
+import { APIClient, APIConfig,  InvitationsResponse, APIError, AcceptInvitationRequest, AcceptanceOptions } from '../types/api';
+import { Invitation, Reservation } from '../types/invitation';
 import { Location, LocationResponse } from '../types/locations';
 
 class HTTPError extends Error {
@@ -51,8 +51,17 @@ export class RealAPIClient implements APIClient {
       }
     );
   }
+  confirmInvitation(request: Reservation): Promise<Invitation> {
+    throw new Error('Method not implemented.');
+  }
+  listMyInvitations(): Promise<InvitationsResponse> {
+    throw new Error('Method not implemented.');
+  }
+  getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
+    throw new Error('Method not implemented.');
+  }
 
-  async createInvitation(request: CreateInvitationRequest): Promise<Invitation> {
+  async createInvitation(request: Invitation): Promise<Invitation> {
     return this.axiosInstance.post('/invitations', request);
   }
 
@@ -68,12 +77,12 @@ export class RealAPIClient implements APIClient {
     return this.axiosInstance.get(`/invitations/${id}`);
   }
 
-  async listInvitations(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<InvitationResponse> {
+  async listInvitations(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<InvitationsResponse> {
     return this.axiosInstance.get('/invitations', { params });
   }
 
-  async acceptInvitation(id: string): Promise<void> {
-    await this.axiosInstance.post(`/invitations/${id}/accept`);
+  async acceptInvitation(request: AcceptInvitationRequest): Promise<void> {
+    return this.axiosInstance.post(`/invitations/${request.id}/ack`, request);
   }
 
   async getLocation(id: string): Promise<Location> {

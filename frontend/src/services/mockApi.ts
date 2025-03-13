@@ -1,9 +1,7 @@
 import { 
   APIClient, 
-  APIConfig, 
-  CreateInvitationRequest, 
-  UpdateInvitationRequest, 
-  InvitationResponse, 
+  APIConfig,  
+  InvitationsResponse, 
   APIInvitation,
   AcceptInvitationRequest,
   AcceptanceOptions,
@@ -11,10 +9,12 @@ import {
 } from '../types/api';
 import { 
   Invitation, 
-  InvitationType, 
-  RequestType, 
+  ActivityType,
+  SingleDoubleType,
   SkillLevel,
-  InvitationStatus 
+  InvitationStatus,
+  Reservation, 
+  AckStatus
 } from '../types/invitation';
 import { Area, Location, LocationResponse } from '../types/locations';
 
@@ -65,196 +65,173 @@ const getNextWeekDates = () => {
 
 const nextWeekDates = getNextWeekDates();
 
-const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
-  // My invitations
+const MOCK_MY_INVITATIONS: Invitation[] = [
   {
     id: '1',
-    playerId: 'current_user',
-    locations: ['central_park'],
+    ownerId: 'current_user',
+    locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 2,
-    dates: [
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 2,
+    timeSlots: [
       {
-        date: nextWeekDates[0],
-        timespan: { from: 1000, to: 1200 }
+        date: new Date(nextWeekDates[0]),
+        time: 1000
       },
       {
-        date: nextWeekDates[1],
-        timespan: { from: 1400, to: 1600 }
+        date: new Date(nextWeekDates[0]),
+        time: 1200
       }
     ],
-    description: 'Looking for a friendly match, prefer baseline rallies',
-    isOwner: true,
+    description: 'Accepted Invitation. Looking for a friendly match, prefer baseline rallies',
     status: InvitationStatus.Pending,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
+    acks: [
+      {
+        userId: 'other_user',
+        locations: ['central_park'],
+        timeSlots: [{
+          date: new Date(nextWeekDates[0]),
+          time: 1000
+        }],
+        status: AckStatus.Pending,
+        createdAt: new Date()
+      },
+      {
+        userId: 'john_doe',
+        locations: ['riverside'],
+        timeSlots: [{
+          date: new Date(nextWeekDates[0]),
+          time: 1000
+        }],
+        status: AckStatus.Pending,
+        createdAt: new Date()
+      },
+    ]
   },
   {
     id: '2',
-    playerId: 'current_user',
+    ownerId: 'current_user',
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
-    dates: [
+    invitationType: ActivityType.Training,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
+    timeSlots: [
       {
-        date: nextWeekDates[2],
-        timespan: { from: 800, to: 930 }
+        date: new Date(nextWeekDates[2]),
+        time: 800
       }
     ],
     description: 'Want to practice serves and returns',
-    isOwner: true,
     status: InvitationStatus.Pending,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    acks: []
   },
+];
 
-  // Available invitations
+const MOCK_OTHER_INVITATIONS: Invitation[] = [
   {
     id: '3',
-    playerId: 'john_doe',
+    ownerId: 'john_doe',
     locations: ['east_side'],
     skillLevel: SkillLevel.Beginner,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1,
-    dates: [
+    invitationType: ActivityType.Training,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1,
+    timeSlots: [
       {
-        date: nextWeekDates[1],
-        timespan: { from: 1800, to: 2300 }
+        date: new Date(nextWeekDates[1]),
+        time: 1800
       },
       {
-        date: nextWeekDates[3],
-        timespan: { from: 1800, to: 2200 }
+        date: new Date(nextWeekDates[3]),
+        time: 1800
       }
     ],
     description: 'New to tennis, looking for someone to practice basic strokes with',
-    isOwner: false,
     status: InvitationStatus.Pending,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    acks: []
   },
   {
     id: '4',
-    playerId: 'sarah_smith',
+    ownerId: 'sarah_smith',
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
-    dates: [
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
+    timeSlots: [
       {
-        date: nextWeekDates[2],
-        timespan: { from: 1600, to: 2230 }
+        date: new Date(nextWeekDates[2]),
+        time: 1600
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
-    isOwner: false,
     status: InvitationStatus.Pending,
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    acks: []
   },
+
+  // invitation that was accepted by the user
   {
     id: '5',
-    playerId: 'mike_wilson',
-    locations: ['riverside'],
-    skillLevel: SkillLevel.Advanced,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Doubles,
-    matchDuration: 2,
-    dates: [
-      {
-        date: nextWeekDates[4],
-        timespan: { from: 900, to: 1100 }
-      },
-      {
-        date: nextWeekDates[5],
-        timespan: { from: 900, to: 1100 }
-      }
-    ],
-    description: 'Looking for doubles partners, NTRP 4.5+',
-    isOwner: false,
-    status: InvitationStatus.Pending,
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-  },
-  {
-    id: '6',
-    playerId: 'emma_brown',
-    locations: ['east_side'],
+    ownerId: 'sonia_parker',
+    locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Training,
-    requestType: RequestType.Single,
-    matchDuration: 1,
-    dates: [
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
+    timeSlots: [
       {
-        date: nextWeekDates[0],
-        timespan: { from: 1900, to: 2000 }
+        date: new Date(nextWeekDates[2]),
+        time: 1600
       },
       {
-        date: nextWeekDates[1],
-        timespan: { from: 1900, to: 2000 }
-      },
-      {
-        date: nextWeekDates[2],
-        timespan: { from: 1900, to: 2000 }
+        date: new Date(nextWeekDates[3]),
+        time: 1800
       }
     ],
-    description: 'Evening practice sessions, focusing on volleys and net play',
-    isOwner: false,
+    description: 'Invitation that I accepted.  Looking for competitive matches, NTRP 4.0',
     status: InvitationStatus.Pending,
-    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-  },
-  // Example of an accepted invitation
-  {
-    id: '7',
-    playerId: 'alex_tennis',
-    locations: ['central_park'],
-    skillLevel: SkillLevel.Intermediate,
-    invitationType: InvitationType.Match,
-    requestType: RequestType.Single,
-    matchDuration: 1.5,
-    dates: [
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    acks: [
       {
-        date: nextWeekDates[1],
-        timespan: { from: 1600, to: 1730 }
+        userId: 'current_user',
+        locations: [ 'riverside'],
+        timeSlots: [{
+          date: new Date(nextWeekDates[2]),
+          time: 1600
+        }],
+        status: AckStatus.Accepted,
+        createdAt: new Date()
       }
-    ],
-    description: 'Casual match with focus on consistent rallies',
-    isOwner: false,
-    status: InvitationStatus.Accepted,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    ]
   }
 ];
 
 export class MockAPIClient implements APIClient {
   private config: APIConfig;
-  private invitations: APIInvitation[];
+  private myInvitations: Invitation[];
+  private otherInvitations: Invitation[];
   private locations: Location[] = [...MOCK_LOCATIONS];
 
   constructor(config: APIConfig) {
     this.config = config;
-    this.invitations = this.loadInvitations();
+    this.myInvitations = MOCK_MY_INVITATIONS;
+    this.otherInvitations = MOCK_OTHER_INVITATIONS;
   }
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private loadInvitations(): APIInvitation[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (error) {
-      console.warn('Failed to load invitations from localStorage:', error);
-    }
-    return [...DEFAULT_MOCK_INVITATIONS];
-  }
 
   private saveInvitations(): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.invitations));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.myInvitations));
     } catch (error) {
       console.warn('Failed to save invitations to localStorage:', error);
     }
@@ -267,158 +244,75 @@ export class MockAPIClient implements APIClient {
     }
   }
 
-  private toDomainInvitation(invitation: APIInvitation): Invitation {
+  private toAPIInvitation(invitation: Invitation): APIInvitation {
     return {
       ...invitation,
-      dates: invitation.dates.map(d => ({
-        ...d,
-        date: new Date(d.date)
+      timeSlots: invitation.timeSlots.map(ts => ({
+        date: ts.date.toISOString().split('T')[0],
+        time: ts.time
       })),
-      createdAt: new Date(invitation.createdAt),
-      updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined
+      createdAt: invitation.createdAt.toISOString()
     };
   }
 
-  async createInvitation(request: CreateInvitationRequest): Promise<Invitation> {
+  async createInvitation(request: Invitation): Promise<Invitation> {   
     await this.checkAuth();
     await this.delay(500);
-
-    const invitation: APIInvitation = {
-      id: Math.random().toString(36).substr(2, 9),
-      playerId: 'current_user',
-      locations: request.locations,
-      skillLevel: request.skillLevel,
-      invitationType: request.invitationType,
-      requestType: request.requestType,
-      matchDuration: request.matchDuration,
-      dates: request.dates,
-      description: request.description,
-      isOwner: true,
-      status: InvitationStatus.Pending,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.invitations.push(invitation);
-    this.saveInvitations();
-    return this.toDomainInvitation(invitation);
+    this.myInvitations.push(request);
+    return request;
   }
 
-  async updateInvitation(request: UpdateInvitationRequest): Promise<Invitation> {
+  async confirmInvitation(request: Reservation): Promise<Invitation> {
     await this.checkAuth();
     await this.delay(500);
 
-    const index = this.invitations.findIndex(inv => inv.id === request.id);
-    if (index === -1) {
-      throw new MockAPIError('NOT_FOUND', 'Invitation not found');
-    }
-
-    const invitation = this.invitations[index];
-    const updated: APIInvitation = {
-      ...invitation,
-      ...request,
-      skillLevel: request.skillLevel || invitation.skillLevel,
-      invitationType: request.invitationType || invitation.invitationType,
-      requestType: request.requestType || invitation.requestType,
-      dates: request.dates || invitation.dates,
-      updatedAt: new Date().toISOString()
-    };
-
-    this.invitations[index] = updated;
-    this.saveInvitations();
-    return this.toDomainInvitation(updated);
-  }
-
-  async deleteInvitation(id: string): Promise<void> {
-    await this.checkAuth();
-    await this.delay(500);
-
-    const index = this.invitations.findIndex(inv => inv.id === id);
-    if (index === -1) {
-      throw new MockAPIError('NOT_FOUND', 'Invitation not found');
-    }
-
-    this.invitations.splice(index, 1);
-    this.saveInvitations();
-  }
-
-  async getInvitation(id: string): Promise<Invitation> {
-    await this.checkAuth();
-    await this.delay(500);
-
-    const invitation = this.invitations.find(inv => inv.id === id);
+    const invitation = this.myInvitations.find(inv => inv.id === request.invitationId);
     if (!invitation) {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    return this.toDomainInvitation(invitation);
+    if (invitation.status !== InvitationStatus.Accepted) {
+      throw new MockAPIError('INVALID_STATE', 'Invitation must be in Accepted state to confirm');
+    }
+
+    const updatedInvitation = {
+      ...invitation,
+      status: InvitationStatus.Confirmed,
+      reservation: request
+    };
+
+    const index = this.myInvitations.findIndex(inv => inv.id === request.invitationId);
+    this.myInvitations[index] = updatedInvitation;
+    this.saveInvitations();
+
+    return updatedInvitation;
   }
 
-  async listInvitations(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<InvitationResponse> {
+  async listMyInvitations(): Promise<InvitationsResponse> {
     await this.checkAuth();
     await this.delay(500);
 
-    let filtered = this.invitations;
-    if (params?.ownOnly) {
-      filtered = filtered.filter(inv => inv.isOwner);
-    }
-
-    const page = params?.page || 1;
-    const limit = params?.limit || 10;
-    const start = (page - 1) * limit;
-    const end = start + limit;
-
     return {
-      invitations: filtered.slice(start, end),
-      total: filtered.length
+      invitations: this.myInvitations.map(inv => this.toAPIInvitation(inv)),
+      total: this.myInvitations.length
     };
   }
 
-  private generateTimeSlots(date: string, from: number, to: number, duration: number): number[] {
-    const slots: number[] = [];
-    const step = 30; // 30-minute intervals
-    let currentTime = from;
+  async listInvitations(): Promise<InvitationsResponse> {
+    await this.checkAuth();
+    await this.delay(500);
 
-    // Convert duration to minutes (e.g., 1.5 hours = 90 minutes)
-    const durationMinutes = duration * 60;
-    
-    // Helper function to convert HHMM format to minutes
-    const toMinutes = (time: number) => {
-      const hours = Math.floor(time / 100);
-      const minutes = time % 100;
-      return hours * 60 + minutes;
+    return {
+      invitations: this.otherInvitations.map(inv => this.toAPIInvitation(inv)),
+      total: this.otherInvitations.length
     };
-
-    // Helper function to convert minutes to HHMM format
-    const toHHMM = (minutes: number) => {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return hours * 100 + mins;
-    };
-
-    while (true) {
-      // Convert current time and end time to minutes for easier comparison
-      const currentMinutes = toMinutes(currentTime);
-      const endMinutes = toMinutes(to);
-      
-      // Check if there's enough time for a session
-      if (currentMinutes + durationMinutes <= endMinutes) {
-        slots.push(currentTime);
-      } else {
-        break;
-      }
-
-      // Increment by 30 minutes
-      currentTime = toHHMM(currentMinutes + step);
-    }
-
-    return slots;
   }
 
   async getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
     await this.checkAuth();
     await this.delay(500);
 
-    const invitation = this.invitations.find(inv => inv.id === id);
+    const invitation = this.otherInvitations.find(inv => inv.id === id);
     if (!invitation) {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
@@ -427,22 +321,11 @@ export class MockAPIClient implements APIClient {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not available for acceptance');
     }
 
-    // Generate all possible time slots based on the invitation's dates and duration
-    const timeSlots: TimeSlotOption[] = invitation.dates.flatMap(dateSlot => {
-      const slots = this.generateTimeSlots(
-        dateSlot.date,
-        dateSlot.timespan.from,
-        dateSlot.timespan.to,
-        invitation.matchDuration
-      );
-
-      return slots.map(time => ({
-        date: dateSlot.date,
-        time,
-        // TODO: Implement availability check against existing matches and user preferences
-        isAvailable: true
-      }));
-    });
+    const timeSlots: TimeSlotOption[] = invitation.timeSlots.map(ts => ({
+      date: ts.date.toISOString().split('T')[0],
+      time: ts.time,
+      isAvailable: true
+    }));
 
     return {
       locations: invitation.locations,
@@ -454,29 +337,51 @@ export class MockAPIClient implements APIClient {
     await this.checkAuth();
     await this.delay(500);
 
-    const index = this.invitations.findIndex(inv => inv.id === request.id);
+    const index = this.otherInvitations.findIndex(inv => inv.id === request.id);
     if (index === -1) {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    const invitation = this.invitations[index];
+    const invitation = this.otherInvitations[index];
 
     if (invitation.status !== InvitationStatus.Pending) {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not in pending state');
     }
 
     // Update the invitation
-    this.invitations[index] = {
+    this.otherInvitations[index] = {
       ...invitation,
-      status: InvitationStatus.Accepted,
-      updatedAt: new Date().toISOString(),
-      // Store selected options
-      selectedLocations: request.selectedLocations,
-      selectedTimeSlots: request.selectedTimeSlots
+      status: InvitationStatus.Accepted
     };
     
     this.saveInvitations();
   }
+
+  async deleteInvitation(id: string): Promise<void> {
+    await this.checkAuth();
+    await this.delay(500);
+
+    const index = this.myInvitations.findIndex(inv => inv.id === id);
+    if (index === -1) {
+      throw new MockAPIError('NOT_FOUND', 'Invitation not found');
+    }
+
+    this.myInvitations.splice(index, 1);
+    this.saveInvitations();
+  }
+
+  async getInvitation(id: string): Promise<Invitation> {
+    await this.checkAuth();
+    await this.delay(500);
+
+    const invitation = this.myInvitations.find(inv => inv.id === id);
+    if (!invitation) {
+      throw new MockAPIError('NOT_FOUND', 'Invitation not found');
+    }
+
+    return invitation;
+  }
+
 
   async getLocation(id: string): Promise<Location> {
     await this.delay(500);
