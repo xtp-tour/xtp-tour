@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
+import { InvitationStep } from './invitation/types';
 import './InvitationFlowDiagram.css';
-
-export enum InvitationStep {
-  Created = 'CREATED',
-  Pending = 'PENDING',
-  Accepted = 'ACCEPTED',
-  Confirmed = 'CONFIRMED',
-  Rejected = 'REJECTED'
-}
 
 interface Props {
   currentStep: InvitationStep;

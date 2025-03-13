@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Invitation } from '../types/invitation';
+import { Invitation } from '../services/domain/invitation';
 import { Modal } from 'react-bootstrap';
-import { useAPI } from '../services/apiProvider';
+import { useAPI } from '../services/api/provider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 
 interface Props {

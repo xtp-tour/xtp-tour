@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { APIClient, APIConfig, CreateInvitationRequest, UpdateInvitationRequest, InvitationResponse, APIError } from '../types/api';
-import { Invitation } from '../types/invitation';
-import { Location, LocationResponse } from '../types/locations';
+import { APIClient, APIConfig, CreateInvitationRequest, InvitationResponse, APIError, AcceptInvitationRequest, AcceptanceOptions } from './types';
+import { Invitation } from '../domain/invitation';
+import { Location, LocationResponse } from '../domain/locations';
 
 class HTTPError extends Error {
   constructor(public code: string, message: string, public details?: Record<string, unknown>) {
@@ -56,10 +56,6 @@ export class RealAPIClient implements APIClient {
     return this.axiosInstance.post('/invitations', request);
   }
 
-  async updateInvitation(request: UpdateInvitationRequest): Promise<Invitation> {
-    return this.axiosInstance.put(`/invitations/${request.id}`, request);
-  }
-
   async deleteInvitation(id: string): Promise<void> {
     await this.axiosInstance.delete(`/invitations/${id}`);
   }
@@ -72,8 +68,12 @@ export class RealAPIClient implements APIClient {
     return this.axiosInstance.get('/invitations', { params });
   }
 
-  async acceptInvitation(id: string): Promise<void> {
-    await this.axiosInstance.post(`/invitations/${id}/accept`);
+  async getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
+    return this.axiosInstance.get(`/invitations/${id}/acceptance-options`);
+  }
+
+  async acceptInvitation(request: AcceptInvitationRequest): Promise<void> {
+    await this.axiosInstance.post(`/invitations/${request.id}/accept`, request);
   }
 
   async getLocation(id: string): Promise<Location> {

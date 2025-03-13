@@ -1,5 +1,5 @@
 import React from 'react';
-import { Invitation } from '../../types/invitation';
+import { Invitation } from '../../services/domain/invitation';
 import InvitationHeader from './InvitationHeader';
 import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';

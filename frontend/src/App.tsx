@@ -2,13 +2,13 @@ import React from 'react';
 import { ClerkProvider } from '@clerk/clerk-react';
 import InvitationList from "./components/InvitationList";
 import CreateInvitation from "./components/CreateInvitation";
-import { APIProvider } from './services/apiProvider';
+import { APIProvider } from './services/api/provider';
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error('Missing Clerk Publishable Key');
 }
 
-function App() {
+const App: React.FC = () => {
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <APIProvider useMock={true}>
@@ -25,6 +25,6 @@ function App() {
       </APIProvider>
     </ClerkProvider>
   );
-}
+};
 
 export default App;

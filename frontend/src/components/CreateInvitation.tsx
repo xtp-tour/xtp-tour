@@ -3,43 +3,93 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { DateTimeSlot, Location, SkillLevel, SKILL_LEVEL_LABELS, InvitationType, RequestType } from '../types/invitation';
+import { DateTimeSlot, SkillLevel, SKILL_LEVEL_LABELS, InvitationType, RequestType } from '../services/domain/invitation';
+import { Location, Area } from '../services/domain/locations';
 
 const MATCH_DURATION_OPTIONS = [
-  { value: '1', label: '1 hour' },
-  { value: '1.5', label: '1½ hours' },
-  { value: '2', label: '2 hours' },
-  { value: '2.5', label: '2½ hours' },
-  { value: '3', label: '3 hours' },
-  { value: '3.5', label: '3½ hours' },
-  { value: '4', label: '4 hours' },
+  { value: 1, label: '1 hour' },
+  { value: 1.5, label: '1.5 hours' },
+  { value: 2, label: '2 hours' },
 ];
 
-// Mock locations data
-const MOCK_LOCATIONS: Location[] = [
-  // Central Area
-  { id: 'central_park', name: 'Central Park Tennis Courts', area: 'Central' },
-  { id: 'public_courts', name: 'Public Tennis Courts', area: 'Central' },
-  { id: 'city_sports', name: 'City Sports Complex', area: 'Central' },
-  
-  // West Area
-  { id: 'riverside', name: 'Riverside Tennis Center', area: 'West' },
-  { id: 'sports_center', name: 'Sports Center Courts', area: 'West' },
-  { id: 'west_park', name: 'West Park Tennis Club', area: 'West' },
-  
-  // East Area
-  { id: 'east_side', name: 'East Side Tennis Club', area: 'East' },
-  { id: 'community', name: 'Community Tennis Park', area: 'East' },
-  { id: 'east_academy', name: 'Eastern Tennis Academy', area: 'East' },
-  
-  // North Area
-  { id: 'north_courts', name: 'Northern Tennis Academy', area: 'North' },
-  { id: 'north_park', name: 'North Park Courts', area: 'North' },
-  
-  // South Area
-  { id: 'downtown', name: 'Downtown Tennis Complex', area: 'South' },
-  { id: 'south_center', name: 'South Center Courts', area: 'South' }
-];
+const LOCATIONS_BY_AREA: Record<Area, Location[]> = {
+  [Area.Central]: [
+    {
+      id: 'central-1',
+      name: 'Central Court 1',
+      area: Area.Central,
+      isActive: true,
+    },
+    {
+      id: 'central-2',
+      name: 'Central Court 2',
+      area: Area.Central,
+      isActive: true,
+    },
+    {
+      id: 'central-3',
+      name: 'Central Court 3',
+      area: Area.Central,
+      isActive: true,
+    },
+  ],
+  [Area.West]: [
+    {
+      id: 'west-1',
+      name: 'West Court 1',
+      area: Area.West,
+      isActive: true,
+    },
+    {
+      id: 'west-2',
+      name: 'West Court 2',
+      area: Area.West,
+      isActive: true,
+    },
+    {
+      id: 'west-3',
+      name: 'West Court 3',
+      area: Area.West,
+      isActive: true,
+    },
+  ],
+  [Area.East]: [
+    {
+      id: 'east-1',
+      name: 'East Court 1',
+      area: Area.East,
+      isActive: true,
+    },
+    {
+      id: 'east-2',
+      name: 'East Court 2',
+      area: Area.East,
+      isActive: true,
+    },
+    {
+      id: 'east-3',
+      name: 'East Court 3',
+      area: Area.East,
+      isActive: true,
+    },
+  ],
+  [Area.North]: [
+    {
+      id: 'north-1',
+      name: 'North Court 1',
+      area: Area.North,
+      isActive: true,
+    },
+  ],
+  [Area.South]: [
+    {
+      id: 'south-1',
+      name: 'South Court 1',
+      area: Area.South,
+      isActive: true,
+    },
+  ],
+};
 
 // Mock API call function
 const mockFetchLocations = async (): Promise<Location[]> => {
@@ -52,7 +102,7 @@ const mockFetchLocations = async (): Promise<Location[]> => {
     throw new Error('Failed to fetch locations');
   }
 
-  return MOCK_LOCATIONS;
+  return LOCATIONS_BY_AREA[Area.Central];
 };
 
 const calculateEndTime = (startTime: string, duration: string): string => {

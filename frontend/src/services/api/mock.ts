@@ -8,15 +8,15 @@ import {
   AcceptInvitationRequest,
   AcceptanceOptions,
   TimeSlotOption
-} from '../types/api';
+} from './types';
 import { 
   Invitation, 
   InvitationType, 
   RequestType, 
   SkillLevel,
   InvitationStatus 
-} from '../types/invitation';
-import { Area, Location, LocationResponse } from '../types/locations';
+} from '../domain/invitation';
+import { Area, Location, LocationResponse } from '../domain/locations';
 
 class MockAPIError extends Error {
   constructor(public code: string, message: string, public details?: Record<string, unknown>) {
@@ -223,6 +223,32 @@ const DEFAULT_MOCK_INVITATIONS: APIInvitation[] = [
     status: InvitationStatus.Accepted,
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+  // Example of a confirmed invitation
+  {
+    id: '8',
+    playerId: 'current_user',
+    locations: ['riverside'],
+    skillLevel: SkillLevel.Advanced,
+    invitationType: InvitationType.Match,
+    requestType: RequestType.Single,
+    matchDuration: 1.5,
+    dates: [
+      {
+        date: nextWeekDates[0],
+        timespan: { from: 1400, to: 1600 }
+      }
+    ],
+    description: 'Competitive match with an experienced player',
+    isOwner: true,
+    status: InvitationStatus.Confirmed,
+    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    selectedLocations: ['riverside'],
+    selectedTimeSlots: [{
+      date: nextWeekDates[0],
+      startTime: 1400
+    }]
   }
 ];
 
@@ -269,13 +295,24 @@ export class MockAPIClient implements APIClient {
 
   private toDomainInvitation(invitation: APIInvitation): Invitation {
     return {
-      ...invitation,
+      id: invitation.id,
+      playerId: invitation.playerId,
+      locations: invitation.locations,
+      skillLevel: invitation.skillLevel,
+      invitationType: invitation.invitationType,
+      requestType: invitation.requestType,
+      matchDuration: invitation.matchDuration,
+      description: invitation.description,
+      isOwner: invitation.isOwner,
+      status: invitation.status,
       dates: invitation.dates.map(d => ({
         ...d,
         date: new Date(d.date)
       })),
       createdAt: new Date(invitation.createdAt),
-      updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined
+      updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined,
+      selectedLocations: invitation.selectedLocations,
+      selectedTimeSlots: invitation.selectedTimeSlots
     };
   }
 
@@ -454,27 +491,43 @@ export class MockAPIClient implements APIClient {
     await this.checkAuth();
     await this.delay(500);
 
-    const index = this.invitations.findIndex(inv => inv.id === request.id);
-    if (index === -1) {
+    const invitation = this.invitations.find(inv => inv.id === request.id);
+    if (!invitation) {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    const invitation = this.invitations[index];
-
     if (invitation.status !== InvitationStatus.Pending) {
-      throw new MockAPIError('INVALID_STATE', 'Invitation is not in pending state');
+      throw new MockAPIError('INVALID_STATUS', 'Invitation cannot be accepted');
     }
 
-    // Update the invitation
-    this.invitations[index] = {
-      ...invitation,
-      status: InvitationStatus.Accepted,
-      updatedAt: new Date().toISOString(),
-      // Store selected options
-      selectedLocations: request.selectedLocations,
-      selectedTimeSlots: request.selectedTimeSlots
-    };
-    
+    invitation.status = InvitationStatus.Accepted;
+    invitation.selectedLocations = request.selectedLocations;
+    invitation.selectedTimeSlots = request.selectedTimeSlots;
+    invitation.updatedAt = new Date().toISOString();
+
+    this.saveInvitations();
+  }
+
+  async confirmInvitation(id: string): Promise<void> {
+    await this.checkAuth();
+    await this.delay(500);
+
+    const invitation = this.invitations.find(inv => inv.id === id);
+    if (!invitation) {
+      throw new MockAPIError('NOT_FOUND', 'Invitation not found');
+    }
+
+    if (invitation.status !== InvitationStatus.Accepted) {
+      throw new MockAPIError('INVALID_STATUS', 'Invitation cannot be confirmed');
+    }
+
+    if (!invitation.isOwner) {
+      throw new MockAPIError('FORBIDDEN', 'Only the invitation owner can confirm the session');
+    }
+
+    invitation.status = InvitationStatus.Confirmed;
+    invitation.updatedAt = new Date().toISOString();
+
     this.saveInvitations();
   }
 

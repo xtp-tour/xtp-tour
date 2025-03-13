@@ -1,5 +1,5 @@
-import { Location, LocationResponse } from './locations';
-import { Invitation, InvitationType, RequestType, SkillLevel } from './invitation';
+import { Location, LocationResponse } from '../domain/locations';
+import { Invitation, InvitationType, RequestType, SkillLevel } from '../domain/invitation';
 
 export interface CreateInvitationRequest {
   locations: string[];
@@ -17,9 +17,6 @@ export interface CreateInvitationRequest {
   }[];
 }
 
-export interface UpdateInvitationRequest extends Partial<CreateInvitationRequest> {
-  id: string;
-}
 
 export interface AcceptInvitationRequest {
   id: string;
@@ -77,7 +74,7 @@ export interface APIConfig {
 export interface APIClient {
   // Invitation endpoints
   createInvitation(request: CreateInvitationRequest): Promise<Invitation>;
-  updateInvitation(request: UpdateInvitationRequest): Promise<Invitation>;
+  
   deleteInvitation(id: string): Promise<void>;
   getInvitation(id: string): Promise<Invitation>;
   listInvitations(params?: {
@@ -87,6 +84,7 @@ export interface APIClient {
   }): Promise<InvitationResponse>;
   getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
   acceptInvitation(request: AcceptInvitationRequest): Promise<void>;
+  confirmInvitation(id: string): Promise<void>;
   
   // Location endpoints
   getLocation(id: string): Promise<Location>;

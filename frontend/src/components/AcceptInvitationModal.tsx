@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { AcceptanceOptions, AcceptInvitationRequest } from '../types/api';
-import { useAPI } from '../services/apiProvider';
+import { AcceptanceOptions, AcceptInvitationRequest } from '../services/api/types';
+import { useAPI } from '../services/api/provider';
 import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
 

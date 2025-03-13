@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Invitation } from '../types/invitation';
+import { Invitation } from '../services/domain/invitation';
 import { AcceptInvitationModal } from './AcceptInvitationModal';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 

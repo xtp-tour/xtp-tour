@@ -1,19 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import MyInvitationItem from './MyInvitationItem';
 import AvailableInvitationItem from './AvailableInvitationItem';
-import AcceptedInvitationItem from './AcceptedInvitationItem';
-import { useAPI } from '../services/apiProvider';
-import { APIInvitation } from '../types/api';
-import { Invitation, InvitationDate, InvitationStatus } from '../types/invitation';
+import ConfirmedInvitationItem from './ConfirmedInvitationItem';
+import { useAPI } from '../services/api/provider';
+import { APIInvitation } from '../services/api/types';
+import { Invitation, InvitationStatus } from '../services/domain/invitation';
 
 const transformInvitation = (invitation: APIInvitation): Invitation => ({
-  ...invitation,
-  dates: invitation.dates.map((date): InvitationDate => ({
-    ...date,
-    date: new Date(date.date)
+  id: invitation.id,
+  playerId: invitation.playerId,
+  locations: invitation.locations,
+  skillLevel: invitation.skillLevel,
+  invitationType: invitation.invitationType,
+  requestType: invitation.requestType,
+  matchDuration: invitation.matchDuration,
+  description: invitation.description,
+  isOwner: invitation.isOwner,
+  status: invitation.status,
+  dates: invitation.dates.map(d => ({
+    ...d,
+    date: new Date(d.date)
   })),
   createdAt: new Date(invitation.createdAt),
-  updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined
+  updatedAt: invitation.updatedAt ? new Date(invitation.updatedAt) : undefined,
+  selectedLocations: invitation.selectedLocations,
+  selectedTimeSlots: invitation.selectedTimeSlots
 });
 
 interface SectionHeaderProps {
@@ -49,7 +60,8 @@ const InvitationList: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState({
     myInvitations: true,
     acceptedInvitations: true,
-    availableInvitations: true
+    availableInvitations: true,
+    confirmedInvitations: true
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -80,15 +92,15 @@ const InvitationList: React.FC = () => {
   }, [api, page]);
 
   const myInvitations = invitationData.invitations.filter(invitation => 
-    invitation.isOwner && invitation.status !== InvitationStatus.Accepted
-  );
-  
-  const acceptedInvitations = invitationData.invitations.filter(invitation => 
-    !invitation.isOwner && invitation.status === InvitationStatus.Accepted
+    invitation.isOwner && invitation.status !== InvitationStatus.Confirmed
   );
   
   const availableInvitations = invitationData.invitations.filter(invitation => 
     !invitation.isOwner && invitation.status === InvitationStatus.Pending
+  );
+
+  const confirmedInvitations = invitationData.invitations.filter(invitation =>
+    invitation.status === InvitationStatus.Confirmed
   );
 
   const handleLoadMore = () => {
@@ -144,7 +156,17 @@ const InvitationList: React.FC = () => {
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to delete invitation');
                     }
-                  }} 
+                  }}
+                  onConfirm={() => {
+                    setInvitationData(prev => ({
+                      ...prev,
+                      invitations: prev.invitations.map(inv =>
+                        inv.id === invitation.id
+                          ? { ...inv, status: InvitationStatus.Confirmed }
+                          : inv
+                      )
+                    }));
+                  }}
                 />
               ))}
             </div>
@@ -154,18 +176,18 @@ const InvitationList: React.FC = () => {
 
       <section className="mb-5">
         <SectionHeader
-          title="Accepted Invitations"
-          count={acceptedInvitations.length}
-          isExpanded={expandedSections.acceptedInvitations}
-          onToggle={() => toggleSection('acceptedInvitations')}
+          title="Confirmed Sessions"
+          count={confirmedInvitations.length}
+          isExpanded={expandedSections.confirmedInvitations}
+          onToggle={() => toggleSection('confirmedInvitations')}
         />
-        {expandedSections.acceptedInvitations && (
-          acceptedInvitations.length === 0 ? (
-            <p className="text-muted">You haven't accepted any invitations yet.</p>
+        {expandedSections.confirmedInvitations && (
+          confirmedInvitations.length === 0 ? (
+            <p className="text-muted">No confirmed sessions yet.</p>
           ) : (
             <div>
-              {acceptedInvitations.map(invitation => (
-                <AcceptedInvitationItem key={invitation.id} invitation={invitation} />
+              {confirmedInvitations.map(invitation => (
+                <ConfirmedInvitationItem key={invitation.id} invitation={invitation} />
               ))}
             </div>
           )

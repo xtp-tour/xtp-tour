@@ -1,4 +1,5 @@
-import { InvitationType, RequestType } from '../../types/invitation';
+import { InvitationType, RequestType } from '../../services/domain/invitation';
+import { InvitationStatus } from '../../services/domain/invitation';
 
 export interface TimeSlot {
   date: Date;
@@ -59,4 +60,12 @@ export const getRequestTypeLabel = (type: RequestType): string => {
     default:
       return type;
   }
-}; 
+};
+
+export enum InvitationStep {
+  Created = 'CREATED',
+  Pending = InvitationStatus.Pending,
+  Accepted = InvitationStatus.Accepted,
+  Confirmed = InvitationStatus.Confirmed,
+  Rejected = InvitationStatus.Rejected
+} 
