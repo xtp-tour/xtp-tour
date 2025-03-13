@@ -1,47 +1,55 @@
 import { Location, LocationResponse } from '../domain/locations';
-import { Invitation, ActivityType, SingleDoubleType, SkillLevel } from '../domain/invitation';
+import { Invitation, ActivityType, SingleDoubleType, SkillLevel, Acks, Reservation } from '../domain/invitation';
 
 export interface CreateInvitationRequest {
   locations: string[];
   skillLevel: SkillLevel;
-  matchDuration: number;
+  sessionDuration: number;
   invitationType: ActivityType;
   requestType: SingleDoubleType;
   description?: string;
-  dates: {
-    date: string;
-    timespan: {
-      from: number;
-      to: number;
-    };
+  timeSlots: {
+    date: Date;
+    time: number;
   }[];
 }
 
-
-export interface AcceptInvitationRequest {
-  id: string;
-  selectedLocations: string[];
-  selectedTimeSlots: {
-    date: string;
-    startTime: number; // in HHMM format
+export interface AckInvitationRequest {
+  invitationId: string;
+  locations: string[];
+  timeSlots: {
+    date: Date;
+    time: number;
   }[];
+  comment?: string;
 }
 
-export interface APIInvitation extends Omit<Invitation, 'dates' | 'createdAt' | 'updatedAt'> {
-  dates: {
+export interface ConfirmInvitationRequest {
+  invitationId: string;
+  location: string;
+  date: Date;
+  time: number;
+  duration: number;
+  playerBId: string;
+}
+
+export interface APIInvitation extends Omit<Invitation, 'timeSlots' | 'createdAt' | 'acks' | 'reservation'> {
+  timeSlots: {
     date: string;
-    timespan: {
-      from: number;
-      to: number;
-    };
+    time: number;
   }[];
   createdAt: string;
-  updatedAt?: string;
-  selectedLocations?: string[];
-  selectedTimeSlots?: {
+  acks: (Omit<Acks, 'createdAt' | 'timeSlots'> & { 
+    createdAt: string;
+    timeSlots: {
+      date: string;
+      time: number;
+    }[];
+  })[];
+  reservation?: Omit<Reservation, 'createdAt' | 'date'> & {
     date: string;
-    startTime: number;
-  }[];
+    createdAt: string;
+  };
 }
 
 export interface InvitationResponse {
@@ -72,9 +80,11 @@ export interface APIConfig {
 }
 
 export interface APIClient {
+  // Auth endpoints
+  getCurrentUserId(): Promise<string>;
+
   // Invitation endpoints
   createInvitation(request: CreateInvitationRequest): Promise<Invitation>;
-  
   deleteInvitation(id: string): Promise<void>;
   getInvitation(id: string): Promise<Invitation>;
   listInvitations(params?: {
@@ -83,8 +93,10 @@ export interface APIClient {
     ownOnly?: boolean;
   }): Promise<InvitationResponse>;
   getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
-  acceptInvitation(request: AcceptInvitationRequest): Promise<void>;
-  confirmInvitation(id: string): Promise<void>;
+  ackInvitation(request: AckInvitationRequest): Promise<void>;
+  confirmInvitation(request: ConfirmInvitationRequest): Promise<void>;
+  cancelInvitation(id: string): Promise<void>;
+  cancelAck(invitationId: string): Promise<void>;
   
   // Location endpoints
   getLocation(id: string): Promise<Location>;

@@ -1,0 +1,9 @@
+---
+description: core logic
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+Core logic is in  [invitation.ts](mdc:src/services/domain/invitation.ts) togeather with the description of the flow that we are implementing. The backend logic will be implemented on the backend.

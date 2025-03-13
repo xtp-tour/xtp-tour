@@ -52,6 +52,11 @@ export class RealAPIClient implements APIClient {
     );
   }
 
+  async getCurrentUserId(): Promise<string> {
+    const response = await this.axiosInstance.get<{ userId: string }>('/auth/me');
+    return response.userId;
+  }
+
   async createInvitation(request: CreateInvitationRequest): Promise<Invitation> {
     return this.axiosInstance.post('/invitations', request);
   }

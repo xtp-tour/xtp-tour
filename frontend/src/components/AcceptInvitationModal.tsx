@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { AcceptanceOptions, AcceptInvitationRequest } from '../services/api/types';
+import { AcceptanceOptions, AckInvitationRequest } from '../services/api/types';
 import { useAPI } from '../services/api/provider';
 import TimeSlotLabels from './TimeSlotLabels';
-import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
+import { InvitationFlowDiagram } from './InvitationFlowDiagram';
+import { InvitationStep } from '/Users/denis.palnitsky/go/src/github.com/xtp-tour/xtp-tour/frontend/src/components/invitation/types';
+import { Invitation } from '../services/domain/invitation';
 
 interface Props {
-  invitationId: string;
-  hostName: string;
+  invitation: Invitation;
   show: boolean;
   onHide: () => void;
-  onAccepted: () => void;
 }
 
 export const AcceptInvitationModal: React.FC<Props> = ({
-  invitationId,
-  hostName,
+  invitation,
   show,
-  onHide,
-  onAccepted
+  onHide
 }) => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
@@ -26,16 +24,17 @@ export const AcceptInvitationModal: React.FC<Props> = ({
   const [options, setOptions] = useState<AcceptanceOptions | null>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<{
-    date: string;
-    startTime: number;
+    date: Date;
+    time: number;
   }[]>([]);
+  const [comment, setComment] = useState('');
 
   useEffect(() => {
     const fetchOptions = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.getAcceptanceOptions(invitationId);
+        const response = await api.getAcceptanceOptions(invitation.id);
         setOptions(response);
         // Pre-select first location by default
         if (response.locations.length > 0) {
@@ -51,7 +50,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     if (show) {
       fetchOptions();
     }
-  }, [api, invitationId, show]);
+  }, [api, invitation.id, show]);
 
   const handleLocationChange = (locationId: string, checked: boolean) => {
     setSelectedLocations(prev => 
@@ -62,15 +61,15 @@ export const AcceptInvitationModal: React.FC<Props> = ({
   };
 
   const handleTimeSlotChange = (slot: { date: Date | string; time: number }) => {
-    const dateStr = slot.date instanceof Date ? slot.date.toISOString().split('T')[0] : slot.date;
+    const date = slot.date instanceof Date ? slot.date : new Date(slot.date);
     const isSelected = selectedTimeSlots.some(
-      s => s.date === dateStr && s.startTime === slot.time
+      s => s.date.getTime() === date.getTime() && s.time === slot.time
     );
 
     setSelectedTimeSlots(prev =>
       isSelected
-        ? prev.filter(s => !(s.date === dateStr && s.startTime === slot.time))
-        : [...prev, { date: dateStr, startTime: slot.time }]
+        ? prev.filter(s => !(s.date.getTime() === date.getTime() && s.time === slot.time))
+        : [...prev, { date, time: slot.time }]
     );
   };
 
@@ -87,17 +86,18 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         throw new Error('Please select at least one time slot');
       }
 
-      const request: AcceptInvitationRequest = {
-        id: invitationId,
-        selectedLocations,
-        selectedTimeSlots
+      const request: AckInvitationRequest = {
+        invitationId: invitation.id,
+        locations: selectedLocations,
+        timeSlots: selectedTimeSlots,
+        comment: comment.trim() || undefined
       };
 
-      await api.acceptInvitation(request);
-      onAccepted();
+      await api.ackInvitation(request);
       onHide();
+      window.location.reload(); // Refresh to show updated state
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept invitation');
+      setError(err instanceof Error ? err.message : 'Failed to acknowledge invitation');
     } finally {
       setLoading(false);
     }
@@ -108,13 +108,13 @@ export const AcceptInvitationModal: React.FC<Props> = ({
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fs-4">
           <i className="bi bi-calendar2-check me-2 text-primary"></i>
-          Join {hostName}'s Game Session
+          Join {invitation.ownerId}'s {invitation.invitationType}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
         <InvitationFlowDiagram
           currentStep={InvitationStep.Pending}
-          hostName={hostName}
+          hostName={invitation.ownerId}
           className="mb-4"
         />
 
@@ -172,7 +172,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="card">
+            <div className="card mb-4">
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-clock me-2 text-primary"></i>
@@ -184,7 +184,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                       date: new Date(slot.date),
                       time: slot.time,
                       isSelected: selectedTimeSlots.some(
-                        s => s.date === slot.date && s.startTime === slot.time
+                        s => s.date.getTime() === new Date(slot.date).getTime() && s.time === slot.time
                       ),
                       isAvailable: slot.isAvailable
                     }))}
@@ -193,9 +193,25 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                   />
                   <small className="text-muted d-block mt-2 ps-2">
                     <i className="bi bi-info-circle me-1"></i>
-                    Select all time slots that work for you. {hostName} will choose the final time based on your availability.
+                    Select all time slots that work for you. {invitation.ownerId} will choose the final time based on your availability.
                   </small>
                 </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-body">
+                <h6 className="card-title d-flex align-items-center mb-3">
+                  <i className="bi bi-chat me-2 text-primary"></i>
+                  Additional Comments (Optional)
+                </h6>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Add any additional information or preferences..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
               </div>
             </div>
           </Form>

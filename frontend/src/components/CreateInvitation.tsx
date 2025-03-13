@@ -3,17 +3,24 @@ import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { SkillLevel, SKILL_LEVEL_LABELS, ActivityType, SingleDoubleType } from '../services/domain/invitation';
+import { SkillLevel, ActivityType, SingleDoubleType } from '../services/domain/invitation';
 import { Location, Area } from '../services/domain/locations';
+import { useAPI } from '../services/api/provider';
 
 export interface DateTimeSlot {
   id: number;
   date: string;
-  timeFrom: string;
-  timeTo: string;
+  time: number;
 }
 
-const MATCH_DURATION_OPTIONS = [
+export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
+  [SkillLevel.Any]: 'Any skill level',
+  [SkillLevel.Beginner]: 'Beginner (NTRP < 3.5)',
+  [SkillLevel.Intermediate]: 'Intermediate (NTRP 3.5–5.0)',
+  [SkillLevel.Advanced]: 'Advanced (NTRP > 5.0)',
+};
+
+const SESSION_DURATION_OPTIONS = [
   { value: 1, label: '1 hour' },
   { value: 1.5, label: '1.5 hours' },
   { value: 2, label: '2 hours' },
@@ -112,31 +119,24 @@ const mockFetchLocations = async (): Promise<Location[]> => {
   return LOCATIONS_BY_AREA[Area.Central];
 };
 
-const calculateEndTime = (startTime: string, duration: string): string => {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const durationHours = parseFloat(duration);
-  
-  const totalMinutes = hours * 60 + minutes + durationHours * 60;
-  const endHours = Math.floor(totalMinutes / 60);
-  const endMinutes = totalMinutes % 60;
-  
-  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+const numberToTime = (time: number): string => {
+  const hours = Math.floor(time / 100);
+  const minutes = time % 100;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
 const CreateInvitation: React.FC = () => {
+  const api = useAPI();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [sessionDuration, setMatchDuration] = useState('2'); // Default to 2 hours
+  const [sessionDuration, setSessionDuration] = useState(2); // Default to 2 hours
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(SkillLevel.Any);
   const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
     { 
       id: 1, 
       date: getTomorrowDate(),
-      timeFrom: '09:00',
-      timeTo: calculateEndTime('09:00', '2') // Default to 2 hours from 9:00
+      time: 900 // 09:00
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -144,11 +144,11 @@ const CreateInvitation: React.FC = () => {
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
   const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLocations = async () => {
-      setIsLoadingLocations(true);
-      setLocationError(null);
       try {
         const data = await mockFetchLocations();
         setLocations(data);
@@ -164,10 +164,7 @@ const CreateInvitation: React.FC = () => {
           new Tooltip(tooltip);
         });
       } catch (error) {
-        setLocationError('Failed to load locations. Please try again later.');
         console.error('Error fetching locations:', error);
-      } finally {
-        setIsLoadingLocations(false);
       }
     };
 
@@ -199,14 +196,12 @@ const CreateInvitation: React.FC = () => {
   };
 
   const handleAddDate = () => {
-    const defaultStartTime = '09:00';
     setDateSlots(prev => [
       ...prev,
       {
         id: Math.max(0, ...prev.map(slot => slot.id)) + 1,
         date: getTomorrowDate(),
-        timeFrom: defaultStartTime,
-        timeTo: calculateEndTime(defaultStartTime, sessionDuration) // Use current match duration
+        time: 900 // 09:00
       }
     ]);
   };
@@ -218,172 +213,85 @@ const CreateInvitation: React.FC = () => {
   };
 
   // Generate time options for select (from 6:00 to 22:00)
-  const getTimeOptions = (startTime?: string) => {
+  const getTimeOptions = () => {
     const options = [];
     for (let hour = 6; hour <= 22; hour++) {
-      for (const minutes of ['00', '30']) {
-        const time = `${String(hour).padStart(2, '0')}:${minutes}`;
-        if (!startTime || time > startTime) {
-          options.push(time);
-        }
+      for (const minutes of [0, 30]) {
+        const time = hour * 100 + minutes;
+        options.push(time);
       }
     }
     return options;
   };
 
-  const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string) => {
-    if (field === 'timeFrom') {
-      const endTime = calculateEndTime(value, sessionDuration);
-      setDateSlots(prev =>
-        prev.map(slot =>
-          slot.id === id ? { ...slot, timeFrom: value, timeTo: endTime } : slot
-        )
-      );
-    } else {
-      setDateSlots(prev =>
-        prev.map(slot =>
-          slot.id === id ? { ...slot, [field]: value } : slot
-        )
-      );
-    }
-  };
-
-  const timeOptions = getTimeOptions();
-
-  const renderLocationSelect = () => {
-    if (isLoadingLocations) {
-      return (
-        <div className="p-3 text-center bg-light border rounded">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading locations...</span>
-          </div>
-          <p className="mt-2 mb-0">Loading available locations...</p>
-        </div>
-      );
-    }
-
-    if (locationError) {
-      return (
-        <div className="alert alert-danger" role="alert">
-          {locationError}
-          <button 
-            type="button" 
-            className="btn btn-link"
-            onClick={() => window.location.reload()}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    if (locations.length === 0) {
-      return (
-        <div className="alert alert-info" role="alert">
-          No locations available at the moment.
-        </div>
-      );
-    }
-
-    // Group locations by area
-    const groupedLocations = locations.reduce((acc, location) => {
-      if (!acc[location.area]) {
-        acc[location.area] = [];
-      }
-      acc[location.area].push(location);
-      return acc;
-    }, {} as Record<string, Location[]>);
-
-    return (
-      <select
-        ref={selectRef}
-        className="form-select"
-        multiple
-        value={selectedLocations}
-        onChange={handleLocationChange}
-        data-searchable="true"
-        data-live-search="true"
-        data-actions-box="true"
-        data-selected-text-format="count > 2"
-        data-count-selected-text="{0} locations selected"
-        data-none-selected-text="Select locations..."
-        data-live-search-placeholder="Search locations..."
-        data-style="btn-outline-primary"
-        data-header="Select one or more locations"
-        data-max-height="300px"
-        data-position="down"
-      >
-        <option value="">Select locations...</option>
-
-        {Object.entries(groupedLocations).map(([area, areaLocations]) => (
-          <optgroup key={area} label={`${area} Area`}>
-            {areaLocations.map(location => (
-              <option 
-                key={location.id} 
-                value={location.id}
-                data-tokens={`${location.name} ${area}`}
-              >
-                {location.name}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
+  const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string | number) => {
+    setDateSlots(prev =>
+      prev.map(slot =>
+        slot.id === id
+          ? {
+              ...slot,
+              [field]: field === 'time' ? Number(value) : value
+            }
+          : slot
+      )
     );
   };
 
-  const handleCreateInvitation = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const requestData = {
-      locations: selectedLocations,
-      skillLevel,
-      sessionDuration: parseFloat(sessionDuration),
-      invitationType,
-      requestType,
-      description,
-      dates: dateSlots.map(slot => ({
-        date: slot.date,
-        timespan: {
-          from: parseInt(slot.timeFrom.replace(':', '')),
-          to: parseInt(slot.timeTo.replace(':', ''))
-        }
-      }))
-    };
+
+    if (selectedLocations.length === 0) {
+      setError('Please select at least one location');
+      return;
+    }
+
+    if (dateSlots.length === 0) {
+      setError('Please add at least one time slot');
+      return;
+    }
 
     try {
-      // Mock API call - replace with actual API endpoint when ready
-      const response = await fetch('/api/invitations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
+      setIsSubmitting(true);
+      setError(null);
+
+      await api.createInvitation({
+        locations: selectedLocations,
+        skillLevel,
+        sessionDuration,
+        invitationType,
+        requestType,
+        description: description.trim() || undefined,
+        timeSlots: dateSlots.map(slot => ({
+          date: new Date(slot.date),
+          time: slot.time
+        }))
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create invitation');
+      // Show success message
+      if (toastRef.current) {
+        const toast = new Toast(toastRef.current);
+        toast.show();
       }
 
-      // TODO: Add success notification and redirect to invitation details
-      setIsExpanded(false); // Collapse the form after successful submission
-      setSelectedLocations([]); // Reset locations
+      // Reset form
+      setSelectedLocations([]);
+      setSkillLevel(SkillLevel.Any);
+      setSessionDuration(2);
+      setInvitationType(ActivityType.Match);
+      setRequestType(SingleDoubleType.Single);
+      setDescription('');
       setDateSlots([{ 
         id: 1, 
         date: getTomorrowDate(),
-        timeFrom: '09:00',
-        timeTo: calculateEndTime('09:00', '2') // Reset to default 2 hours from 9:00
-      }]); // Reset form
-    } catch (error) {
-      console.error('Error creating invitation:', error);
-    }
-  };
+        time: 900
+      }]);
 
-  const handleInvitationTypeChange = (type: ActivityType) => {
-    setInvitationType(type);
-    if (type === ActivityType.Training && toastRef.current) {
-      const toast = new Toast(toastRef.current);
-      toast.show();
+      // Refresh the page to show the new invitation
+      window.location.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create invitation');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -448,12 +356,41 @@ const CreateInvitation: React.FC = () => {
                 <i className="bi bi-x-lg"></i>
               </button>
             </div>
-            <form onSubmit={handleCreateInvitation}>
+            <form onSubmit={handleSubmit} className="mt-4">
               <div className="mb-4">
                 <label className="form-label d-block">
                   Preferred Locations                  
                 </label>
-                {renderLocationSelect()}
+                <select
+                  ref={selectRef}
+                  className="form-select"
+                  multiple
+                  value={selectedLocations}
+                  onChange={handleLocationChange}
+                  data-searchable="true"
+                  data-live-search="true"
+                  data-actions-box="true"
+                  data-selected-text-format="count > 2"
+                  data-count-selected-text="{0} locations selected"
+                  data-none-selected-text="Select locations..."
+                  data-live-search-placeholder="Search locations..."
+                  data-style="btn-outline-primary"
+                  data-header="Select one or more locations"
+                  data-max-height="300px"
+                  data-position="down"
+                >
+                  <option value="">Select locations...</option>
+
+                  {locations.map(location => (
+                    <option 
+                      key={location.id} 
+                      value={location.id}
+                      data-tokens={`${location.name} ${location.area}`}
+                    >
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="mb-3">
@@ -510,15 +447,13 @@ const CreateInvitation: React.FC = () => {
 
               <div className="mb-3">
                 <label htmlFor="sessionDuration" className="form-label">Session Duration</label>
-                <select 
-                  className="form-select" 
-                  id="sessionDuration" 
-                  name="sessionDuration"
+                <select
+                  id="sessionDuration"
+                  className="form-select"
                   value={sessionDuration}
-                  onChange={(e) => setMatchDuration(e.target.value)}
-                  required
+                  onChange={(e) => setSessionDuration(Number(e.target.value))}
                 >
-                  {MATCH_DURATION_OPTIONS.map(option => (
+                  {SESSION_DURATION_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -536,7 +471,7 @@ const CreateInvitation: React.FC = () => {
                       name="invitationType"
                       className="form-check-input"
                       checked={invitationType === ActivityType.Match}
-                      onChange={() => handleInvitationTypeChange(ActivityType.Match)}
+                      onChange={() => setInvitationType(ActivityType.Match)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
@@ -558,7 +493,7 @@ const CreateInvitation: React.FC = () => {
                       name="invitationType"
                       className="form-check-input"
                       checked={invitationType === ActivityType.Training}
-                      onChange={() => handleInvitationTypeChange(ActivityType.Training)}
+                      onChange={() => setInvitationType(ActivityType.Training)}
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
@@ -575,84 +510,61 @@ const CreateInvitation: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label">Available Dates</label>
+              <div className="mb-4">
+                <label className="form-label d-flex justify-content-between align-items-center">
+                  Available Time Slots
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={handleAddDate}
+                  >
+                    <i className="bi bi-plus-circle me-1"></i>
+                    Add Time Slot
+                  </button>
+                </label>
                 {dateSlots.map(slot => (
-                  <div key={slot.id} className="card p-3 bg-light mb-2">
-                    <div className="row g-5">
-                      <div className="col-md-5">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`date-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            Date
-                          </label>
-                          <input 
-                            type="date" 
-                            className="form-control" 
-                            id={`date-${slot.id}`}
+                  <div key={slot.id} className="card mb-3">
+                    <div className="card-body">
+                      <div className="row g-3">
+                        <div className="col-md-6">
+                          <label className="form-label">Date</label>
+                          <input
+                            type="date"
+                            className="form-control"
                             value={slot.date}
                             min={getTomorrowDate()}
                             onChange={(e) => handleDateChange(slot.id, 'date', e.target.value)}
-                            required
                           />
                         </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`timeFrom-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            From
-                          </label>
-                          <select 
-                            className="form-select" 
-                            id={`timeFrom-${slot.id}`}
-                            value={slot.timeFrom}
-                            onChange={(e) => handleDateChange(slot.id, 'timeFrom', e.target.value)}
-                            required
+                        <div className="col-md-5">
+                          <label className="form-label">Start Time</label>
+                          <select
+                            className="form-select"
+                            value={slot.time}
+                            onChange={(e) => handleDateChange(slot.id, 'time', e.target.value)}
                           >
-                            {timeOptions.map(option => (
-                              <option key={option} value={option}>{option}</option>
+                            {getTimeOptions().map(time => (
+                              <option key={time} value={time}>
+                                {numberToTime(time)}
+                              </option>
                             ))}
                           </select>
                         </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`timeTo-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            To
-                          </label>
-                          <select 
-                            className="form-select" 
-                            id={`timeTo-${slot.id}`}
-                            value={slot.timeTo}
-                            onChange={(e) => handleDateChange(slot.id, 'timeTo', e.target.value)}
-                            required
-                          >
-                            {getTimeOptions(slot.timeFrom).map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
+                        <div className="col-md-1 d-flex align-items-end">
+                          {dateSlots.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger"
+                              onClick={() => handleRemoveDate(slot.id)}
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                          )}
                         </div>
                       </div>
-                      {dateSlots.length > 1 && (
-                        <div className="col-md-1 d-flex align-items-center">
-                          <button 
-                            type="button" 
-                            className="btn btn-outline-secondary w-100"
-                            onClick={() => handleRemoveDate(slot.id)}
-                          >
-                            <i className="bi bi-x"></i>
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
-                <button 
-                  type="button" 
-                  className="btn btn-outline-primary btn-sm mt-2"
-                  onClick={handleAddDate}
-                >
-                  + Add Another Date
-                </button>
               </div>
 
               <div className="mb-4">
@@ -670,8 +582,29 @@ const CreateInvitation: React.FC = () => {
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary w-100">
-                Create Invitation
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Create Invitation
+                  </>
+                )}
               </button>
             </form>
           </div>

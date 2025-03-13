@@ -1,115 +1,139 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Invitation } from '../services/domain/invitation';
-import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/api/provider';
-import BaseInvitationItem from './invitation/BaseInvitationItem';
+import { Location } from '../services/domain/locations';
 
 interface Props {
   invitation: Invitation;
-  onCancelled?: () => void;
+  onCancel: (id: string) => void;
 }
 
-const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) => {
+const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancel }) => {
   const api = useAPI();
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [locations, setLocations] = useState<Map<string, Location>>(new Map());
+  const [loadingLocations, setLoadingLocations] = useState(true);
 
-  const handleCancel = async () => {
-    try {
-      setCancelling(true);
-      await api.deleteInvitation(invitation.id);
-      setShowConfirmModal(false);
-      onCancelled?.();
-    } catch (error) {
-      console.error('Failed to cancel invitation:', error);
-      // TODO: Implement error handling with toast notifications or error messages
-    } finally {
-      setCancelling(false);
-    }
-  };
-
-  // Convert dates to time slots format
-  const timeSlots = invitation.timeSlots.flatMap(date => {
-    // Generate all possible 30-minute slots
-    const slots = [];
-    let currentTime = date.timespan.from;
-    while (currentTime <= date.timespan.to - invitation.sessionDuration * 100) {
-      slots.push({
-        date: date.date,
-        time: currentTime,
-        isSelected: invitation.selectedTimeSlots?.some(
-          slot => slot.date === date.date.toISOString().split('T')[0] && slot.startTime === currentTime
-        )
-      });
-      currentTime += 30;
-      if (currentTime % 100 === 60) {
-        currentTime += 40;
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const userId = await api.getCurrentUserId();
+        setCurrentUserId(userId);
+      } catch (err) {
+        console.error('Failed to get user ID:', err);
       }
-    }
-    return slots;
-  });
+    };
+
+    fetchUserId();
+  }, [api]);
+
+  const currentUserAck = invitation.acks.find(ack => 
+    ack.userId === currentUserId
+  );
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      if (!api || !currentUserAck) return;
+
+      try {
+        setLoadingLocations(true);
+        const locationPromises = currentUserAck.locations.map(id => api.getLocation(id));
+        const locationResults = await Promise.all(locationPromises);
+        const locationMap = new Map(locationResults.map(loc => [loc.id, loc]));
+        setLocations(locationMap);
+      } catch (error) {
+        console.error('Failed to fetch locations:', error);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+
+    fetchLocations();
+  }, [api, currentUserAck]);
+
+  if (!currentUserAck) {
+    return null;
+  }
 
   return (
-    <>
-      <BaseInvitationItem
-        invitation={invitation}
-        headerTitle={invitation.ownerId}
-        headerSubtitle="Host"
-        colorClass="text-primary"
-        borderColorClass="border-primary"
-        timeSlots={timeSlots}
-        timestamp={invitation.updatedAt || invitation.createdAt}
-        actionButton={{
-          variant: 'outline-danger',
-          icon: 'bi-x-circle',
-          label: 'Cancel',
-          onClick: () => setShowConfirmModal(true),
-          disabled: cancelling
-        }}
-      />
+    <div className="card mb-3">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 className="card-title">{invitation.invitationType} Invitation</h5>
+            <h6 className="card-subtitle mb-2 text-muted">
+              Skill Level: {invitation.skillLevel}
+            </h6>
+          </div>
+          <button
+            className="btn btn-outline-danger btn-sm"
+            onClick={() => onCancel(invitation.id)}
+          >
+            Cancel
+          </button>
+        </div>
 
-      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
-        <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fs-5">
-            <i className="bi bi-exclamation-triangle text-danger me-2"></i>
-            Cancel Game Session
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="pt-2">
-          <p>Are you sure you want to cancel your participation in this game session?</p>
-          <p className="text-muted mb-0">
-            <i className="bi bi-info-circle me-2"></i>
-            The host will be notified about your cancellation.
-          </p>
-        </Modal.Body>
-        <Modal.Footer className="border-0">
-          <button
-            className="btn btn-link text-decoration-none"
-            onClick={() => setShowConfirmModal(false)}
-            disabled={cancelling}
-          >
-            Keep Session
-          </button>
-          <button
-            className="btn btn-danger"
-            onClick={handleCancel}
-            disabled={cancelling}
-          >
-            {cancelling ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Cancelling...
-              </>
+        <div className="mt-3">
+          <h6>Your Selected Options:</h6>
+          <div className="mb-2">
+            <strong>Locations:</strong>
+            {loadingLocations ? (
+              <div className="text-muted">Loading locations...</div>
             ) : (
-              <>
-                <i className="bi bi-x-circle me-2"></i>
-                Yes, Cancel Session
-              </>
+              <ul className="list-unstyled">
+                {currentUserAck.locations.map(id => {
+                  const location = locations.get(id);
+                  return (
+                    <li key={id}>
+                      {location ? (
+                        <span>
+                          {location.name}
+                          {location.address && (
+                            <small className="text-muted ms-2">
+                              <i className="bi bi-geo-alt me-1"></i>
+                              {location.address}
+                            </small>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-muted">Unknown location</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-          </button>
-        </Modal.Footer>
-      </Modal>
-    </>
+          </div>
+          <div>
+            <strong>Time Slots:</strong>
+            <ul className="list-unstyled">
+              {currentUserAck.timeSlots.map((slot, index) => (
+                <li key={index}>
+                  {slot.date.toLocaleDateString()} at {String(slot.time).padStart(4, '0').replace(/(\d{2})(\d{2})/, '$1:$2')}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {currentUserAck.comment && (
+            <div className="mt-2">
+              <strong>Your Comment:</strong>
+              <p className="mb-0">{currentUserAck.comment}</p>
+            </div>
+          )}
+        </div>
+
+        {invitation.description && (
+          <div className="mt-3">
+            <strong>Description:</strong>
+            <p className="mb-0">{invitation.description}</p>
+          </div>
+        )}
+
+        <div className="mt-3 text-muted">
+          <small>Acknowledged on {currentUserAck.createdAt.toLocaleString()}</small>
+        </div>
+      </div>
+    </div>
   );
 };
 

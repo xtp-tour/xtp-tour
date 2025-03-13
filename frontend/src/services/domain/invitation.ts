@@ -4,7 +4,9 @@
 // 2. Users can send acks to the invitation selecting time slots and places that are available to them. Lets assume that UserB and UserC send their acks.
 // 3. Those acks are visible to UserA. UserA can now select one of the acks and confirm the reservation.
 // 4. UserA selects the ack of UserB. User A must make a reservation at the mutually agreed location and time. After reservation userA commits the ack of userB.
+// 4.1 If userA fails to make a reservation then Acks transitions into ReservationFailed state.
 // 5. UserC ack transitions into rejected state. 
+// 6. After the game date/time has passed, the invitation transitions to Completed state.
 // On that step the flow of the invitation is completed.
 
 export enum SkillLevel {
@@ -27,17 +29,11 @@ export enum SingleDoubleType {
 export enum InvitationStatus {
   Pending = 'PENDING',
   Accepted = 'ACCEPTED',
-  Confirmed = 'CONFIRMED',
-  Rejected = 'REJECTED',
+  Confirmed = 'CONFIRMED', // all players agreed and reservation is made  
+  Cancelled = 'CANCELLED', // owner cancelled the invitation
+  ReservationFailed = 'RESERVATION_FAILED', // owner failed to make a reservation
+  Completed = 'COMPLETED', // game/training session has occurred
 }
-
-export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
-  [SkillLevel.Any]: 'Any skill level',
-  [SkillLevel.Beginner]: 'Beginner (NTRP < 3.5)',
-  [SkillLevel.Intermediate]: 'Intermediate (NTRP 3.5–5.0)',
-  [SkillLevel.Advanced]: 'Advanced (NTRP > 5.0)',
-};
-
 
 export interface SessionTimeSlot {
   date: Date; 
@@ -47,7 +43,9 @@ export interface SessionTimeSlot {
 export enum AckStatus {
   Pending = 'PENDING',
   Accepted = 'ACCEPTED',
-  Rejected = 'REJECTED',
+  Rejected = 'REJECTED', // owner rejected the ack
+  Cancelled = 'CANCELLED', // userB cancelled his ack
+  ReservationFailed = 'RESERVATION_FAILED', // owner failed to make a reservation
 }
 
 // That's the record of players accepting an invitation
@@ -57,15 +55,17 @@ export interface Acks {
   timeSlots: SessionTimeSlot[];
   status: AckStatus;
   comment?: string;
+  createdAt: Date;  
 }
 
-// When player A reserves the court and confirms the reservation.
+// When owner reserves the court and confirms the reservation.
 export interface Reservation {
   location: string; // location ID 
   date: Date;
   time: number; // time in HHMM format (e.g., 1430 for 14:30)
   duration: number; // duration in minutes
-  playerBId: string; // player who accepted an invitation
+  playerBId: string; // player who accepted an invitation  
+  createdAt: Date;  
 }
 
 export interface Invitation {
@@ -81,5 +81,5 @@ export interface Invitation {
   status: InvitationStatus;
   createdAt: Date;
   acks: Acks[]; 
-  reservation: Reservation;
+  reservation?: Reservation;
 } 
