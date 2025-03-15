@@ -1,5 +1,6 @@
 import React from 'react';
-import { ClerkProvider } from '@clerk/clerk-react';
+import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import InvitationList from "./components/InvitationList";
 import CreateInvitation from "./components/CreateInvitation";
 import { APIProvider } from './services/apiProvider';
@@ -8,20 +9,73 @@ if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error('Missing Clerk Publishable Key');
 }
 
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="min-vh-100 bg-light">
+      <div className="container py-4">
+        <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
+          <h1 className="h2 text-primary mb-0">Tennis Hitting Partner Finder</h1>
+          <div>
+            <SignedOut>
+              <div className="d-flex gap-2">
+                <SignInButton mode="modal">
+                  <button className="btn btn-outline-primary" style={{ minWidth: '100px' }}>Sign in</button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="btn btn-primary" style={{ minWidth: '100px' }}>Sign up</button>
+                </SignUpButton>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+          </div>
+        </header>
+        <main>
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+const Home = () => {
+  return (
+    <>
+      <SignedIn>
+        <CreateInvitation />
+        <InvitationList />
+      </SignedIn>
+      <SignedOut>
+        <div className="text-center py-5">
+          <h2>Welcome to Tennis Hitting Partner Finder</h2>
+          <p className="lead mb-4">Connect with tennis players in your area for practice matches and training sessions.</p>
+          <div className="d-flex justify-content-center gap-3">
+            <SignInButton mode="modal">
+              <button className="btn btn-lg btn-outline-primary" style={{ minWidth: '180px' }}>Sign in</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="btn btn-lg btn-primary" style={{ minWidth: '180px' }}>Create an account</button>
+            </SignUpButton>
+          </div>
+        </div>
+      </SignedOut>
+    </>
+  );
+};
+
 function App() {
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <APIProvider useMock={true}>
-        <div className="container py-4">
-          <header className="pb-3 mb-4 border-bottom">
-            <h1 className="h2 text-primary">Tennis Hitting Partner Finder</h1>
-          </header>
-          
-          <main>
-            <CreateInvitation />
-            <InvitationList />
-          </main>
-        </div>
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
       </APIProvider>
     </ClerkProvider>
   );
