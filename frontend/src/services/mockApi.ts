@@ -299,7 +299,7 @@ export class MockAPIClient implements APIClient {
   }
 
   async listInvitations(): Promise<InvitationsResponse> {
-    await this.checkAuth();
+    // Remove authentication check for listing invitations
     await this.delay(500);
 
     return {

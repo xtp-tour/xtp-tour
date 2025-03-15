@@ -2,6 +2,7 @@ import React from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import InvitationList from "./components/InvitationList";
+import PublicInvitationList from "./components/PublicInvitationList";
 import CreateInvitation from "./components/CreateInvitation";
 import { APIProvider } from './services/apiProvider';
 
@@ -47,18 +48,7 @@ const Home = () => {
         <InvitationList />
       </SignedIn>
       <SignedOut>
-        <div className="text-center py-5">
-          <h2>Welcome to Tennis Hitting Partner Finder</h2>
-          <p className="lead mb-4">Connect with tennis players in your area for practice matches and training sessions.</p>
-          <div className="d-flex justify-content-center gap-3">
-            <SignInButton mode="modal">
-              <button className="btn btn-lg btn-outline-primary" style={{ minWidth: '180px' }}>Sign in</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="btn btn-lg btn-primary" style={{ minWidth: '180px' }}>Create an account</button>
-            </SignUpButton>
-          </div>
-        </div>
+        <PublicInvitationList />
       </SignedOut>
     </>
   );

@@ -38,15 +38,17 @@ const InvitationHeader: React.FC<InvitationHeaderProps> = ({
         <i className="bi bi-clock-history me-1"></i>
         {formatTimestamp(timestamp)}
       </small>
-      <Button
-        variant={actionButton.variant}
-        onClick={actionButton.onClick}
-        style={{ minWidth: '100px' }}
-        disabled={actionButton.disabled}
-      >
-        <i className={`bi ${actionButton.icon} me-1`}></i>
-        {actionButton.label}
-      </Button>
+      {actionButton.customButton || (
+        <Button
+          variant={actionButton.variant}
+          onClick={actionButton.onClick}
+          style={{ minWidth: '100px' }}
+          disabled={actionButton.disabled}
+        >
+          <i className={`bi ${actionButton.icon} me-1`}></i>
+          {actionButton.label}
+        </Button>
+      )}
     </div>
   </div>
 );

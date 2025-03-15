@@ -1,3 +1,4 @@
+import React from 'react';
 import { ActivityType, SingleDoubleType, SkillLevel } from '../../types/invitation';
 
 export interface TimeSlot {
@@ -11,8 +12,9 @@ export interface ActionButton {
   variant: string;
   icon: string;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
+  customButton?: React.ReactNode;
 }
 
 export interface StyleProps {
