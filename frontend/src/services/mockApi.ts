@@ -174,6 +174,94 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     acks: []
   },
+  {
+    id: '5',
+    ownerId: 'Roger Federer',
+    locations: ['central_park', 'riverside', 'east_side', 'west_side', 'north_side', 'south_side'],
+    skillLevel: SkillLevel.Intermediate,
+    invitationType: ActivityType.Match,
+    requestType: SingleDoubleType.Single,
+    sessionDuration: 1.5,
+    timeSlots: [
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[3]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[3]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[3]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 1900
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 2000
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 2100
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 1900
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 2000
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 2100
+      },
+      {
+        date: new Date(nextWeekDates[6]),
+        time: 2200
+      },
+      {
+        date: new Date(nextWeekDates[6]),
+        time: 2300
+      }
+    ],
+    description: 'Looking for competitive matches, NTRP 4.0',
+    status: InvitationStatus.Pending,
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    acks: []
+  },
+  
 
   // invitation that was accepted by the user
   {
@@ -190,9 +278,74 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
         time: 1600
       },
       {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
+        date: new Date(nextWeekDates[2]),
+        time: 1600
+      },
+      {
         date: new Date(nextWeekDates[3]),
         time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[3]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[3]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 1900
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 2000
+      },
+      {
+        date: new Date(nextWeekDates[4]),
+        time: 2100
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 1800
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 1900
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 2000
+      },
+      {
+        date: new Date(nextWeekDates[5]),
+        time: 2100
+      },
+      {
+        date: new Date(nextWeekDates[6]),
+        time: 2200
+      },
+      {
+        date: new Date(nextWeekDates[6]),
+        time: 2300
       }
+      
     ],
     description: 'Invitation that I accepted.  Looking for competitive matches, NTRP 4.0',
     status: InvitationStatus.Pending,

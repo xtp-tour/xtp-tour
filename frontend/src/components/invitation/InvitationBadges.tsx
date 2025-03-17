@@ -31,11 +31,11 @@ const InvitationBadges: React.FC<InvitationBadgesProps> = ({
   skillLevel,
   sessionDuration,
 }) => (
-  <div className="d-flex gap-2 mb-4">
-    <span className="badge" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+  <div className="d-flex flex-wrap gap-2 mb-3">
+    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
       {getInvitationTypeLabel(invitationType)}
     </span>
-    <span className="badge" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
       {getRequestTypeLabel(requestType)}
     </span>
     <SkillLevelBadge skillLevel={skillLevel} />
