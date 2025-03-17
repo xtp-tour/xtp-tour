@@ -32,31 +32,55 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
     <div className={`d-flex flex-column gap-4 ${className}`}>
       {Object.entries(groupedSlots).map(([dateStr, slots]) => (
         <div key={dateStr} className="time-slot-group">
-          <h6 className="d-flex align-items-center text-primary mb-3">
-            <i className="bi bi-calendar-event me-2"></i>
-            {new Date(dateStr).toLocaleDateString(undefined, {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric'
-            })}
+          <h6 className="d-flex align-items-center mb-3">
+            <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-accent)' }}></i>
+            <span style={{ color: 'var(--tennis-navy)' }}>
+              {new Date(dateStr).toLocaleDateString(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+              })}
+            </span>
           </h6>
           <div className="d-flex flex-wrap gap-2 ps-4">
             {slots.map((slot, index) => {
-              const labelClass = slot.isSelected
-                ? 'bg-success text-white'
+              const style = slot.isSelected
+                ? {
+                    backgroundColor: 'var(--tennis-navy)',
+                    color: 'var(--tennis-white)',
+                    borderColor: 'var(--tennis-navy)'
+                  }
                 : slot.isAvailable === false
-                  ? 'bg-light text-muted'
-                  : 'bg-light text-dark border border-primary border-opacity-25';
+                ? {
+                    backgroundColor: 'var(--tennis-light)',
+                    color: 'var(--tennis-gray)',
+                    borderColor: 'transparent'
+                  }
+                : {
+                    backgroundColor: 'var(--tennis-light)',
+                    color: 'var(--tennis-navy)',
+                    border: '1px solid var(--tennis-navy)',
+                    borderOpacity: '0.25'
+                  };
 
               return (
                 <div
                   key={`${dateStr}-${index}`}
-                  className={`badge ${labelClass} p-2 ${onSelect ? 'cursor-pointer' : ''}`}
+                  className={`badge p-2 ${onSelect ? 'cursor-pointer' : ''}`}
                   onClick={() => onSelect && slot.isAvailable !== false && onSelect(slot)}
                   role={onSelect ? 'button' : undefined}
-                  style={{ cursor: onSelect && slot.isAvailable !== false ? 'pointer' : 'default' }}
+                  style={{
+                    ...style,
+                    cursor: onSelect && slot.isAvailable !== false ? 'pointer' : 'default'
+                  }}
                 >
-                  <i className={`bi bi-clock me-1 ${slot.isSelected ? 'text-white' : 'text-primary'}`}></i>
+                  <i className={`bi bi-clock me-1`} style={{ 
+                    color: slot.isSelected 
+                      ? 'var(--tennis-white)' 
+                      : slot.isAvailable === false
+                        ? 'var(--tennis-gray)'
+                        : 'var(--tennis-navy)'
+                  }}></i>
                   {formatTime(slot.time)}
                 </div>
               );

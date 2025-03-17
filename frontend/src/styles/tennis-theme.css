@@ -1,0 +1,132 @@
+:root {
+  /* Tennis-themed color palette */
+  --tennis-navy: #1B365D;       /* Classic tennis navy as primary color */
+  --tennis-accent: #CFE025;     /* Tennis ball yellow-green */
+  --tennis-clay: #E35C34;       /* Clay court terracotta */
+  --tennis-blue: #4A90E2;       /* Australian Open court blue */
+  --tennis-white: #FFFFFF;      /* Clean white like court lines */
+  --tennis-light: #F8F9FB;      /* Light background color */
+  --tennis-gray: #6C757D;       /* Neutral gray for text */
+}
+
+/* Override Bootstrap theme colors */
+.btn-primary {
+  background-color: var(--tennis-navy) !important;
+  border-color: var(--tennis-navy) !important;
+  color: var(--tennis-white) !important;
+}
+
+.btn-primary:hover {
+  background-color: #142847 !important;
+  border-color: #142847 !important;
+}
+
+.btn-outline-primary {
+  color: var(--tennis-navy) !important;
+  border-color: var(--tennis-navy) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--tennis-navy) !important;
+  color: var(--tennis-white) !important;
+}
+
+.text-primary {
+  color: var(--tennis-navy) !important;
+}
+
+.border-primary {
+  border-color: var(--tennis-navy) !important;
+}
+
+.bg-light {
+  background-color: var(--tennis-light) !important;
+}
+
+/* Card styling */
+.card {
+  border-color: #E9ECEF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  border-bottom-color: #E9ECEF;
+}
+
+/* Custom tennis-themed classes */
+.tennis-accent {
+  color: var(--tennis-accent);
+}
+
+.tennis-clay {
+  color: var(--tennis-clay);
+}
+
+.tennis-blue {
+  color: var(--tennis-blue);
+}
+
+/* Spinner override */
+.spinner-border.text-primary {
+  color: var(--tennis-navy) !important;
+}
+
+/* Alert customization */
+.alert-danger {
+  background-color: #FFF5F5;
+  border-color: var(--tennis-clay);
+  color: var(--tennis-clay);
+}
+
+/* Bootstrap-select customization */
+.bootstrap-select .dropdown-toggle {
+  border-color: var(--tennis-navy) !important;
+  color: var(--tennis-navy) !important;
+  background-color: var(--tennis-white) !important;
+}
+
+.bootstrap-select .dropdown-toggle:hover,
+.bootstrap-select .dropdown-toggle:focus,
+.bootstrap-select.show .dropdown-toggle {
+  background-color: var(--tennis-light) !important;
+  border-color: var(--tennis-navy) !important;
+  box-shadow: 0 0 0 0.25rem rgba(27, 54, 93, 0.25) !important;
+}
+
+.bootstrap-select .dropdown-menu {
+  border-color: var(--tennis-navy) !important;
+}
+
+.bootstrap-select .dropdown-item.active,
+.bootstrap-select .dropdown-item:active,
+.bootstrap-select .dropdown-item:focus {
+  background-color: var(--tennis-navy) !important;
+  color: var(--tennis-white) !important;
+}
+
+.bootstrap-select .bs-searchbox .form-control:focus {
+  border-color: var(--tennis-navy) !important;
+  box-shadow: 0 0 0 0.25rem rgba(27, 54, 93, 0.25) !important;
+}
+
+.bootstrap-select .filter-option {
+  color: var(--tennis-navy) !important;
+}
+
+.bootstrap-select .dropdown-toggle .filter-option-inner-inner {
+  color: var(--tennis-navy) !important;
+}
+
+.bootstrap-select .bs-actionsbox .actions-btn {
+  border-color: var(--tennis-navy) !important;
+  color: var(--tennis-navy) !important;
+}
+
+.bootstrap-select .bs-actionsbox .actions-btn:hover {
+  background-color: var(--tennis-navy) !important;
+  color: var(--tennis-white) !important;
+}
+
+.bootstrap-select.show-tick .dropdown-menu .selected span.check-mark {
+  color: var(--tennis-navy) !important;
+} 

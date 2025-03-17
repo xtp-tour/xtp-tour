@@ -116,8 +116,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     <Modal show={show} onHide={onHide} size="lg">
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fs-4">
-          <i className="bi bi-calendar2-check me-2 text-primary"></i>
-          Join {hostName}'s Game Session
+          <i className="bi bi-calendar2-check me-2" style={{ color: 'var(--tennis-accent)' }}></i>
+          <span style={{ color: 'var(--tennis-navy)' }}>Join {hostName}'s Game Session</span>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
@@ -128,7 +128,11 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         />
 
         {error && (
-          <Alert variant="danger" className="mb-3">
+          <Alert variant="danger" className="mb-3" style={{ 
+            backgroundColor: '#FFF5F5', 
+            borderColor: 'var(--tennis-clay)',
+            color: 'var(--tennis-clay)'
+          }}>
             <i className="bi bi-exclamation-triangle me-2"></i>
             {error}
           </Alert>
@@ -136,7 +140,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
 
         {loading ? (
           <div className="text-center py-5">
-            <div className="spinner-border text-primary mb-2" role="status">
+            <div className="spinner-border mb-2" style={{ color: 'var(--tennis-navy)' }} role="status">
               <span className="visually-hidden">Loading...</span>
             </div>
             <p className="text-muted mb-0">Loading available options...</p>
@@ -146,8 +150,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
             <div className="card mb-4">
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
-                  <i className="bi bi-geo-alt me-2 text-primary"></i>
-                  Where would you like to play?
+                  <i className="bi bi-geo-alt me-2" style={{ color: 'var(--tennis-accent)' }}></i>
+                  <span style={{ color: 'var(--tennis-navy)' }}>Where would you like to play?</span>
                 </h6>
                 <div className="ps-2">
                   <div className="d-flex flex-wrap gap-2">
@@ -156,19 +160,33 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                         key={locationId}
                         className={`badge p-2 ${
                           selectedLocations.includes(locationId)
-                            ? 'bg-success text-white'
-                            : 'bg-light text-dark border border-primary border-opacity-25'
+                            ? 'text-white'
+                            : 'text-dark border border-opacity-25'
                         }`}
+                        style={{
+                          backgroundColor: selectedLocations.includes(locationId) 
+                            ? 'var(--tennis-navy)' 
+                            : 'var(--tennis-light)',
+                          borderColor: selectedLocations.includes(locationId)
+                            ? 'var(--tennis-navy)'
+                            : 'var(--tennis-navy)',
+                          cursor: 'pointer'
+                        }}
                         onClick={() => handleLocationChange(
                           locationId,
                           !selectedLocations.includes(locationId)
                         )}
                         role="button"
-                        style={{ cursor: 'pointer' }}
                       >
                         <i className={`bi bi-geo-alt me-1 ${
-                          selectedLocations.includes(locationId) ? 'text-white' : 'text-primary'
-                        }`}></i>
+                          selectedLocations.includes(locationId) 
+                            ? 'text-white' 
+                            : ''
+                        }`} style={{ 
+                          color: selectedLocations.includes(locationId) 
+                            ? 'var(--tennis-white)' 
+                            : 'var(--tennis-navy)' 
+                        }}></i>
                         {locationId}
                       </div>
                     ))}
@@ -184,8 +202,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
             <div className="card">
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
-                  <i className="bi bi-clock me-2 text-primary"></i>
-                  When would you like to start?
+                  <i className="bi bi-clock me-2" style={{ color: 'var(--tennis-accent)' }}></i>
+                  <span style={{ color: 'var(--tennis-navy)' }}>When would you like to start?</span>
                 </h6>
                 <div className="ps-2">
                   <TimeSlotLabels
@@ -216,13 +234,19 @@ export const AcceptInvitationModal: React.FC<Props> = ({
           onClick={onHide} 
           disabled={loading}
           className="text-decoration-none"
+          style={{ color: 'var(--tennis-gray)' }}
         >
           Cancel
         </Button>
         <Button 
-          variant="primary" 
           onClick={handleSubmit}
           disabled={loading || !options || selectedLocations.length === 0 || selectedTimeSlots.length === 0}
+          className="btn"
+          style={{
+            backgroundColor: 'var(--tennis-navy)',
+            borderColor: 'var(--tennis-navy)',
+            color: 'var(--tennis-white)'
+          }}
         >
           {loading ? (
             <>
@@ -230,9 +254,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
               Sending...
             </>
           ) : (
-            <>              
-              Send Response
-            </>
+            'Send Response'
           )}
         </Button>
       </Modal.Footer>

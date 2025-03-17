@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import 'use-bootstrap-select/dist/use-bootstrap-select.css'
-import UseBootstrapSelect from 'use-bootstrap-select'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'use-bootstrap-select/dist/use-bootstrap-select.css';
+import UseBootstrapSelect from 'use-bootstrap-select';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
 import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot, Invitation, InvitationStatus } from '../types/invitation';
@@ -221,20 +222,17 @@ const CreateInvitation: React.FC = () => {
         multiple
         value={selectedLocations}
         onChange={handleLocationChange}
-        data-searchable="true"
         data-live-search="true"
         data-actions-box="true"
         data-selected-text-format="count > 2"
         data-count-selected-text="{0} locations selected"
         data-none-selected-text="Select locations..."
         data-live-search-placeholder="Search locations..."
-        data-style="btn-outline-primary"
+        data-style="btn-outline-primary w-100"
         data-header="Select one or more locations"
         data-max-height="300px"
-        data-position="down"
+        data-width="100%"
       >
-        <option value="">Select locations...</option>
-
         {Object.entries(groupedLocations).map(([area, areaLocations]) => (
           <optgroup key={area} label={`${area} Area`}>
             {areaLocations.map(location => (

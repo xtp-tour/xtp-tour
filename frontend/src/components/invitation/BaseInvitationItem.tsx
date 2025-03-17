@@ -5,6 +5,7 @@ import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';
 import InvitationTimeSlots from './InvitationTimeSlots';
 import InvitationDescription from './InvitationDescription';
+import AcceptedUsers from './AcceptedUsers';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 
 interface BaseInvitationItemProps extends StyleProps {
@@ -64,6 +65,8 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
       <InvitationDescription
         description={invitation.description}
       />
+
+      <AcceptedUsers acks={invitation.acks} />
     </div>
   </div>
 );

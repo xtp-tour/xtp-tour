@@ -24,15 +24,19 @@ interface SectionHeaderProps {
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded, onToggle }) => (
   <div 
-    className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom text-primary cursor-pointer"
+    className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom cursor-pointer"
     onClick={onToggle}
-    style={{ cursor: 'pointer' }}
+    style={{ cursor: 'pointer', borderBottomColor: 'var(--tennis-light)' }}
   >
     <div className="d-flex align-items-center gap-2">
-      <h2 className="h4 mb-0">{title}</h2>
-      <span className="badge bg-primary rounded-pill">{count}</span>
+      <h2 className="h4 mb-0" style={{ color: 'var(--tennis-navy)' }}>{title}</h2>
+      <span className="badge rounded-pill" style={{ 
+        backgroundColor: 'var(--tennis-accent)',
+        color: 'var(--tennis-navy)',
+        minWidth: '24px'
+      }}>{count}</span>
     </div>
-    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} fs-4`}></i>
+    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} fs-4`} style={{ color: 'var(--tennis-navy)' }}></i>
   </div>
 );
 

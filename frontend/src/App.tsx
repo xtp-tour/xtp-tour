@@ -15,7 +15,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-vh-100 bg-light">
       <div className="container py-4">
         <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
-          <h1 className="h2 text-primary mb-0">Tennis Hitting Partner Finder</h1>
+          <div className="d-flex align-items-center">
+            <i className="bi bi-trophy-fill tennis-accent me-2 fs-3"></i>
+            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Tennis Hitting Partner Finder</h1>
+          </div>
           <div>
             <SignedOut>
               <div className="d-flex gap-2">
