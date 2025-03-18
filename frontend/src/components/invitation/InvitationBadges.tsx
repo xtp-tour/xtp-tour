@@ -46,8 +46,12 @@ const InvitationBadges: React.FC<InvitationBadgesProps> = ({
   sessionDuration,
 }) => (
   <div className="d-flex flex-wrap gap-2 mb-3">
-    <InvitationTypeBadge invitationType={invitationType} />
-    <RequestTypeBadge expectedPlayers={expectedPlayers} />    
+    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+      {getInvitationTypeLabel(invitationType)}
+    </span>
+    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+      {getRequestTypeLabel( expectedPlayers)}
+    </span>
     <SkillLevelBadge skillLevel={skillLevel} />
     <DurationBadge hours={sessionDuration} />
   </div>

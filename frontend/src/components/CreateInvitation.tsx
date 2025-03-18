@@ -222,13 +222,13 @@ const CreateInvitation: React.FC = () => {
     }
 
     // Group locations by area
-    const groupedLocations = locations.reduce<Record<string, Location[]>>((acc, location) => {
+    const groupedLocations = locations.reduce((acc, location) => {
       if (!acc[location.area]) {
         acc[location.area] = [];
       }
       acc[location.area].push(location);
       return acc;
-    }, {});
+    }, {} as Record<string, Location[]>);
 
     return (
       <select
@@ -257,7 +257,7 @@ const CreateInvitation: React.FC = () => {
               <option 
                 key={location.id} 
                 value={location.id}
-                data-tokens={`${location.name} ${location.area}`}
+                data-tokens={`${location.name} ${area}`}
               >
                 {location.name}
               </option>
