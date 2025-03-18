@@ -15,7 +15,7 @@ import {
   Reservation, 
   AckStatus
 } from '../types/invitation';
-import { Area, Location, LocationResponse } from '../types/locations';
+import { Location, LocationResponse } from '../types/locations';
 
 class MockAPIError extends Error {
   constructor(public code: string, message: string, public details?: Record<string, unknown>) {
@@ -30,23 +30,17 @@ const MOCK_LOCATIONS: Location[] = [
   {
     id: 'central_park',
     name: 'Central Park Tennis Courts',
-    area: Area.Central,
-    address: '123 Central Park West',
-    isActive: true,
+    address: '123 Central Park West',    
   },
   {
     id: 'riverside',
-    name: 'Riverside Tennis Center',
-    area: Area.West,
-    address: '456 Riverside Dr',
-    isActive: true,
+    name: 'Riverside Tennis Center',    
+    address: '456 Riverside Dr',    
   },
   {
     id: 'east_side',
-    name: 'East Side Tennis Club',
-    area: Area.East,
-    address: '789 East End Ave',
-    isActive: true,
+    name: 'East Side Tennis Club',  
+    address: '789 East End Ave',    
   },
 ];
 

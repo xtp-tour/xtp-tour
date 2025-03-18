@@ -221,15 +221,6 @@ const CreateInvitation: React.FC = () => {
       );
     }
 
-    // Group locations by area
-    const groupedLocations = locations.reduce<Record<string, Location[]>>((acc, location) => {
-      if (!acc[location.area]) {
-        acc[location.area] = [];
-      }
-      acc[location.area].push(location);
-      return acc;
-    }, {});
-
     return (
       <select
         ref={selectRef}
@@ -251,18 +242,14 @@ const CreateInvitation: React.FC = () => {
       >
         <option value="">Select locations...</option>
 
-        {Object.entries(groupedLocations).map(([area, areaLocations]) => (
-          <optgroup key={area} label={`${area} Area`}>
-            {areaLocations.map(location => (
-              <option 
-                key={location.id} 
-                value={location.id}
-                data-tokens={`${location.name} ${location.area}`}
-              >
-                {location.name}
-              </option>
-            ))}
-          </optgroup>
+        {locations.map(location => (
+          <option 
+            key={location.id} 
+            value={location.id}
+            data-tokens={`${location.name} ${location.area}`}
+          >
+            {location.name}
+          </option>
         ))}
       </select>
     );

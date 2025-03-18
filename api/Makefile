@@ -20,6 +20,10 @@ clean:
 run:
 	go run cmd/server/main.go
 
+# Development mode with hot-reload
+dev:
+	air
+
 # service tests
 servicetest.run:
 	go test ./test/stest -tags servicetest  -v -count=1

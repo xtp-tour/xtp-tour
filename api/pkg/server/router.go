@@ -58,11 +58,40 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 		tonic.Handler(r.thingPutHandler, http.StatusCreated))
 
 	challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
+
+	locations := api.Group("/locations", "Locations", "Locations operations", rest.AuthMiddleware(authConf))
+	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations")}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
 }
 
 func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesResponse, error) {
 	return ListChallengesResponse{
 		Challenges: r.testStorage,
+	}, nil
+}
+
+func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListLocationsResponse, error) {
+	return &ListLocationsResponse{
+		Locations: []Location{
+			{
+				ID:          "1",
+				Name:        "Location 1",
+				Area:        "Area 1",
+				Address:     "Address 1",
+				Coordinates: Coordinates{Latitude: 1.0, Longitude: 2.0},
+			},
+			{
+				ID:      "2",
+				Name:    "Location 2",
+				Area:    "Area 2",
+				Address: "Address 2",
+			},
+			{
+				ID:      "3",
+				Name:    "Location 3",
+				Area:    "Area 3",
+				Address: "Address 3",
+			},
+		},
 	}, nil
 }
 
