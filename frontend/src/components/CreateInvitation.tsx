@@ -63,11 +63,13 @@ const CreateInvitation: React.FC = () => {
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
+  
   const [invitationType, setInvitationType] = useState<ActivityType>(ActivityType.Match);
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
   const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
 
+  // Fetch locations
   useEffect(() => {
     const fetchLocations = async () => {
       setIsLoadingLocations(true);
@@ -75,17 +77,6 @@ const CreateInvitation: React.FC = () => {
       try {
         const response = await api.listLocations();
         setLocations(response.locations);
-
-        // Initialize bootstrap-select after locations are loaded
-        if (selectRef.current) {
-          UseBootstrapSelect.getOrCreateInstance(selectRef.current);
-        }
-
-        // Initialize tooltips
-        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltips.forEach(tooltip => {
-          new Tooltip(tooltip);
-        });
       } catch (error) {
         setLocationError('Failed to load locations. Please try again later.');
         console.error('Error fetching locations:', error);
@@ -95,9 +86,24 @@ const CreateInvitation: React.FC = () => {
     };
 
     fetchLocations();
+  }, [api]);
+
+  // Initialize bootstrap-select and tooltips
+  useEffect(() => {
+    // Initialize tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+      new Tooltip(tooltip);
+    });
+
+    // Only initialize select if component is expanded and locations are loaded
+    if (isExpanded && locations.length > 0 && !isLoadingLocations && selectRef.current) {
+      // Clean up existing instance and create a new one
+      UseBootstrapSelect.clearAll();
+      UseBootstrapSelect.getOrCreateInstance(selectRef.current);
+    }
 
     return () => {
-      UseBootstrapSelect.clearAll();
       // Clean up tooltips
       const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltips.forEach(tooltip => {
@@ -106,8 +112,11 @@ const CreateInvitation: React.FC = () => {
           bsTooltip.dispose();
         }
       });
+      
+      // Clean up bootstrap-select
+      UseBootstrapSelect.clearAll();
     };
-  }, [api]);
+  }, [isExpanded, locations, isLoadingLocations]);
 
   // Get tomorrow's date in YYYY-MM-DD format
   function getTomorrowDate(): string {
@@ -119,6 +128,10 @@ const CreateInvitation: React.FC = () => {
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = Array.from(e.target.selectedOptions, option => option.value);
     setSelectedLocations(selected);
+  };
+
+  const handleExpandToggle = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const handleAddDate = () => {
@@ -310,7 +323,7 @@ const CreateInvitation: React.FC = () => {
     <div className="mb-4">
       <button 
         className={`btn ${isExpanded ? 'btn-outline-secondary' : 'btn-primary'} w-100`}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleExpandToggle}
         aria-expanded={isExpanded}
         aria-controls="createInvitationForm"
       >
