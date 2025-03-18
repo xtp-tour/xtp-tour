@@ -1,5 +1,12 @@
 package server
 
+// System
+type HealthResponse struct {
+	Status  string `json:"status"`
+	Details string `json:"message"`
+	Service string `json:"service"`
+}
+
 // Skill level constants
 type SkillLevel string
 
@@ -131,10 +138,8 @@ type Coordinates struct {
 type Location struct {
 	ID          string      `json:"id"`
 	Name        string      `json:"name"`
-	Area        string      `json:"area"`
 	Address     string      `json:"address,omitempty"`
 	Coordinates Coordinates `json:"coordinates,omitempty"`
-	IsActive    bool        `json:"isActive"`
 }
 
 type ListLocationsRequest struct {

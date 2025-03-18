@@ -29,7 +29,7 @@ type AuthConfig struct {
 // MySql compatible config
 type DbConfig struct {
 	Host     string `default:"127.0.0.1" envvar:"DB_HOST"`
-	Port     int    `default:"3306" envvar:"DB_PORT"`
+	Port     int    `default:"33306" envvar:"DB_PORT"`
 	User     string `default:"root" envvar:"DB_USER"`
 	Password string `default:"password" envvar:"DB_PASSWORD"`
 	Database string `default:"xtp_tour" envvar:"DB_NAME"`

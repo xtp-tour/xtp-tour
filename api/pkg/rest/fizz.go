@@ -14,13 +14,9 @@ import (
 	"github.com/penglongli/gin-metrics/ginmetrics"
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
+	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
-
-type PingResponse struct {
-	Message string `json:"message"`
-	Service string `json:"service"`
-}
 
 type HttpError struct {
 	HttpCode int
@@ -31,7 +27,7 @@ func (g HttpError) Error() string {
 	return g.Message
 }
 
-func NewFizzRouter(httpConfig *pkg.HttpConfig, srvName string, srvVersion string, isDebug bool) *fizz.Fizz {
+func NewFizzRouter(httpConfig *pkg.HttpConfig, isDebug bool) *fizz.Fizz {
 
 	gin.SetMode(gin.ReleaseMode)
 	if isDebug {
@@ -49,14 +45,11 @@ func NewFizzRouter(httpConfig *pkg.HttpConfig, srvName string, srvVersion string
 	tonic.SetRenderHook(renderHook, jsonContentType[0])
 
 	f := fizz.NewFromEngine(g)
-	f.GET("/ping", nil, tonic.Handler(func(c *gin.Context) (*PingResponse, error) {
-		return &PingResponse{Message: "pong", Service: fmt.Sprintf("%s@%s", srvName, srvVersion)}, nil
-	}, http.StatusOK))
 
 	infos := &openapi.Info{
-		Title:       fmt.Sprintf("%v System", strings.ToTitle(srvName)),
+		Title:       fmt.Sprintf("%v System", strings.ToTitle(pkg.ServiceName)),
 		Description: "Service API",
-		Version:     srvVersion,
+		Version:     version.Version,
 	}
 
 	f.GET("/openapi.json", nil, f.OpenAPI(infos, "json"))

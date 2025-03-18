@@ -8,16 +8,24 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/stretchr/testify/assert"
-	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
 
 func init() {
 }
 
-var defaultConfig = &rest.HttpConfig{
+var defaultHttpConfig = &pkg.HttpConfig{
 	Cors: cors.Config{
 		AllowAllOrigins: true,
 	},
+}
+
+var defaultDbConfig = &pkg.DbConfig{
+	Host:     "localhost",
+	Port:     3306,
+	User:     "test",
+	Password: "test",
+	Database: "test",
 }
 
 func Test_RouterPing(t *testing.T) {
@@ -25,7 +33,8 @@ func Test_RouterPing(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
 
-	r := NewRouter(defaultConfig, false).fizz.Engine()
+	// Pass nil for DB connection in tests
+	r := NewRouter(defaultHttpConfig, nil, false).fizz.Engine()
 
 	// act
 	r.ServeHTTP(w, req)
@@ -36,7 +45,8 @@ func Test_RouterPing(t *testing.T) {
 }
 
 func Test_RouterGet(t *testing.T) {
-	r := NewRouter(defaultConfig, false).fizz.Engine()
+	// Pass nil for DB connection in tests
+	r := NewRouter(defaultHttpConfig, nil, false).fizz.Engine()
 	t.Run("PUT", func(tt *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/things/bar", strings.NewReader(`{ "value": "Thing value" }`))

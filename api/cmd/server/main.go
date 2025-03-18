@@ -33,8 +33,15 @@ func main() {
 		return
 	}
 
+	// Initialize database connection
+	dbConn, err := db.GetDB(&serviceConfig.Db)
+	if err != nil {
+		slog.Error("Failed to initialize database connection", "error", err)
+		os.Exit(1)
+	}
+
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
-	r := server.NewRouter(&serviceConfig.Service, serviceConfig.IsDebugMode)
+	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode)
 	r.Run()
 }
 
