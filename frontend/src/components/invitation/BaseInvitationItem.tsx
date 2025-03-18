@@ -1,5 +1,5 @@
 import React from 'react';
-import { Invitation } from '../../types/invitation';
+import { getRequestType, Invitation } from '../../types/invitation';
 import InvitationHeader from './InvitationHeader';
 import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';
@@ -43,7 +43,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
     <div className="card-body">
       <InvitationBadges
         invitationType={invitation.invitationType}
-        requestType={invitation.requestType}
+        expectedPlayers={invitation.expectedPlayers}
         skillLevel={invitation.skillLevel}
         sessionDuration={invitation.sessionDuration}
       />

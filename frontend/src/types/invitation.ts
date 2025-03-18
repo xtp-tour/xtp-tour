@@ -24,6 +24,7 @@ export enum ActivityType {
 export enum SingleDoubleType {
   Single = 'SINGLE',
   Doubles = 'DOUBLES',
+  Custom = 'CUSTOM',
 }
 
 export enum InvitationStatus {
@@ -75,7 +76,7 @@ export interface Invitation {
   locations: string[];  // Array of location IDs
   skillLevel: SkillLevel;
   invitationType: ActivityType;
-  requestType: SingleDoubleType;
+  expectedPlayers: number;  // this will be used to determine requestType
   sessionDuration: number;  // in hours
   timeSlots: SessionTimeSlot[];  // available time slots for the session
   description?: string;  
@@ -83,4 +84,16 @@ export interface Invitation {
   createdAt: Date;
   acks: Acks[]; 
   reservation?: Reservation;
+}
+
+// Helper function to determine request type based on number of players
+export function getRequestType(expectedPlayers: number): SingleDoubleType {
+  switch (expectedPlayers) {
+    case 2:
+      return SingleDoubleType.Single;
+    case 4:
+      return SingleDoubleType.Doubles;
+    default:
+      return SingleDoubleType.Custom;
+  }
 } 

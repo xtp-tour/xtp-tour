@@ -10,7 +10,6 @@ import {
 import { 
   Invitation, 
   ActivityType,
-  SingleDoubleType,
   SkillLevel,
   InvitationStatus,
   Reservation, 
@@ -72,7 +71,7 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
     invitationType: ActivityType.Match,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 2,
     sessionDuration: 2,
     timeSlots: [
       {
@@ -116,7 +115,7 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
     invitationType: ActivityType.Training,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 2,
     sessionDuration: 1.5,
     timeSlots: [
       {
@@ -138,7 +137,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     locations: ['east_side'],
     skillLevel: SkillLevel.Beginner,
     invitationType: ActivityType.Training,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 2,
     sessionDuration: 1,
     timeSlots: [
       {
@@ -161,7 +160,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
     invitationType: ActivityType.Match,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
       {
@@ -180,7 +179,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     locations: ['central_park', 'riverside', 'east_side', 'west_side', 'north_side', 'south_side'],
     skillLevel: SkillLevel.Intermediate,
     invitationType: ActivityType.Match,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
       {
@@ -270,7 +269,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
     invitationType: ActivityType.Match,
-    requestType: SingleDoubleType.Single,
+    expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
       {

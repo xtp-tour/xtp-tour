@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityType, SingleDoubleType, SkillLevel } from '../../types/invitation';
+import { ActivityType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/invitation';
 
 export interface TimeSlot {
   date: Date;
@@ -52,13 +52,16 @@ export const getInvitationTypeLabel = (type: ActivityType): string => {
   }
 };
 
-export const getRequestTypeLabel = (type: SingleDoubleType): string => {
+export const getRequestTypeLabel = (expectedPlayers: number): string => {
+  const type = getRequestType(expectedPlayers);
   switch (type) {
     case SingleDoubleType.Single:
-      return 'Single';
+      return 'Singles';
     case SingleDoubleType.Doubles:
       return 'Doubles';
+    case SingleDoubleType.Custom:
+      return `${expectedPlayers} Players`;
     default:
-      return type;
+      return 'Unknown';
   }
 }; 

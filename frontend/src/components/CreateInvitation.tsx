@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import 'use-bootstrap-select/dist/use-bootstrap-select.css';
-import UseBootstrapSelect from 'use-bootstrap-select';
+//  Don't add 'bootstrap/dist/js/bootstrap.bundle.min.js'; here. It breaks the locations selector
+import 'use-bootstrap-select/dist/use-bootstrap-select.css'
+import UseBootstrapSelect from 'use-bootstrap-select'
+
+
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
 import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot, Invitation, InvitationStatus } from '../types/invitation';
@@ -222,17 +224,20 @@ const CreateInvitation: React.FC = () => {
         multiple
         value={selectedLocations}
         onChange={handleLocationChange}
+        data-searchable="true"
         data-live-search="true"
         data-actions-box="true"
         data-selected-text-format="count > 2"
         data-count-selected-text="{0} locations selected"
         data-none-selected-text="Select locations..."
         data-live-search-placeholder="Search locations..."
-        data-style="btn-outline-primary w-100"
+        data-style="btn-outline-primary"
         data-header="Select one or more locations"
         data-max-height="300px"
-        data-width="100%"
+        data-position="down"
       >
+        <option value="">Select locations...</option>
+
         {Object.entries(groupedLocations).map(([area, areaLocations]) => (
           <optgroup key={area} label={`${area} Area`}>
             {areaLocations.map(location => (
@@ -250,6 +255,7 @@ const CreateInvitation: React.FC = () => {
     );
   };
 
+
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -266,7 +272,7 @@ const CreateInvitation: React.FC = () => {
       skillLevel,
       sessionDuration: parseFloat(sessionDuration),
       invitationType,
-      requestType,
+      expectedPlayers: requestType === SingleDoubleType.Doubles ? 4 : 2,
       description,
       timeSlots,
       status: InvitationStatus.Pending,

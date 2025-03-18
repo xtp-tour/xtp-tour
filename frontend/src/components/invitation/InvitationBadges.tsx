@@ -1,10 +1,10 @@
 import React from 'react';
-import { ActivityType, SingleDoubleType, SkillLevel } from '../../types/invitation';
+import { ActivityType, SkillLevel } from '../../types/invitation';
 import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
 
 interface InvitationBadgesProps {
-  invitationType: ActivityType;
-  requestType: SingleDoubleType;
+  invitationType: ActivityType;  
+  expectedPlayers: number;
   skillLevel: SkillLevel;
   sessionDuration: number;
 }
@@ -19,25 +19,35 @@ const SkillLevelBadge: React.FC<{ skillLevel: SkillLevel }> = ({ skillLevel }) =
 );
 
 const DurationBadge: React.FC<{ hours: number }> = ({ hours }) => (
-  <span className="badge" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+  <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
     <i className="bi bi-stopwatch me-1"></i>
     {hours} {hours === 1 ? 'hour' : 'hours'}
   </span>
 );
 
+const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlayers }) => (
+  <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+    {getRequestTypeLabel(expectedPlayers)}
+  </span>
+);
+
+const InvitationTypeBadge: React.FC<{ invitationType: ActivityType }> = ({ invitationType }) => (
+  <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+    {getInvitationTypeLabel(invitationType)}
+  </span>
+);
+
+
+
 const InvitationBadges: React.FC<InvitationBadgesProps> = ({
   invitationType,
-  requestType,
+  expectedPlayers,
   skillLevel,
   sessionDuration,
 }) => (
   <div className="d-flex flex-wrap gap-2 mb-3">
-    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-      {getInvitationTypeLabel(invitationType)}
-    </span>
-    <span className="badge mb-1" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
-      {getRequestTypeLabel(requestType)}
-    </span>
+    <InvitationTypeBadge invitationType={invitationType} />
+    <RequestTypeBadge expectedPlayers={expectedPlayers} />    
     <SkillLevelBadge skillLevel={skillLevel} />
     <DurationBadge hours={sessionDuration} />
   </div>
