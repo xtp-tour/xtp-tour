@@ -6,7 +6,7 @@ import UseBootstrapSelect from 'use-bootstrap-select'
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { EventType, SingleDoubleType, SkillLevel, SessionTimeSlot, Event, EventStatus } from '../types/invitation';
+import { EventType, SingleDoubleType, SkillLevel, SessionTimeSlot, Event, EventStatus } from '../types/event';
 import { useAPI } from '../services/apiProvider';
 import { Location } from '../types/locations';
 

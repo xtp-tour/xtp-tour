@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRequestType, Event } from '../../types/invitation';
+import { getRequestType, Event } from '../../types/event';
 import InvitationHeader from './InvitationHeader';
 import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';

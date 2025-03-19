@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SignInButton } from '@clerk/clerk-react';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Event, EventStatus } from '../types/invitation';
+import { Event, EventStatus } from '../types/event';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 

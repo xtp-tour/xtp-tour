@@ -1,5 +1,5 @@
 import React from 'react';
-import { EventType, SkillLevel } from '../../types/invitation';
+import { EventType, SkillLevel } from '../../types/event';
 import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
 
 interface InvitationBadgesProps {

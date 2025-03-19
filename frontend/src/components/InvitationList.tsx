@@ -4,7 +4,7 @@ import AvailableInvitationItem from './AvailableInvitationItem';
 import AcceptedInvitationItem from './AcceptedInvitationItem';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Event, EventStatus } from '../types/invitation';
+import { Event, EventStatus } from '../types/event';
 
 const transformInvitation = (invitation: APIInvitation): Event => ({
   ...invitation,

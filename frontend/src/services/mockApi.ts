@@ -14,7 +14,7 @@ import {
   EventStatus,
   EventConfirmation, 
   JoinRequestStatus
-} from '../types/invitation';
+} from '../types/event';
 import { Location, LocationResponse } from '../types/locations';
 
 class MockAPIError extends Error {

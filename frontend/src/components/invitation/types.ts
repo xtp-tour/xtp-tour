@@ -1,5 +1,5 @@
 import React from 'react';
-import { EventType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/invitation';
+import { EventType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/event';
 
 export interface TimeSlot {
   date: Date;

@@ -1,5 +1,5 @@
 import { Location, LocationResponse } from './locations';
-import { Event as Event, EventConfirmation as EventConfirmation } from './invitation';
+import { Event as Event, EventConfirmation as EventConfirmation } from './event';
 
 export interface CreateEventRequest {
    invitation: Event;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Event } from '../types/invitation';
+import { Event } from '../types/event';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 

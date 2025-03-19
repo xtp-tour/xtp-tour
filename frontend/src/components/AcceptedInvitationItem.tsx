@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Event } from '../types/invitation';
+import { Event } from '../types/event';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';

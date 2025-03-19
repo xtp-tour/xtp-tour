@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { APIClient, APIConfig,  ListEventsResponse, APIError, joinEventRequest, AcceptanceOptions } from '../types/api';
-import { Event, EventConfirmation } from '../types/invitation';
+import { Event, EventConfirmation } from '../types/event';
 import { Location, LocationResponse } from '../types/locations';
 
 class HTTPError extends Error {

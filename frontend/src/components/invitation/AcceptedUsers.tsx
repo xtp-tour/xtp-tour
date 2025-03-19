@@ -1,6 +1,6 @@
 import React from 'react';
-import { JoinRequest } from '../../types/invitation';
-import { JoinRequestStatus } from '../../types/invitation';
+import { JoinRequest } from '../../types/event';
+import { JoinRequestStatus } from '../../types/event';
 
 interface AcceptedUsersProps {
   acks: JoinRequest[];
