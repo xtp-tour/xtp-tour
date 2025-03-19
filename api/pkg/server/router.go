@@ -14,6 +14,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db/model"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
+	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
 
 	"github.com/wI2L/fizz"
 )
@@ -59,8 +60,10 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 
 	api := r.fizz.Group("/api", "API", "API operations")
 
+	authMiddleware := auth.CreateAuthMiddleware(authConf)
+
 	// Define routes here
-	challenges := api.Group("/challenges", "Challenges", "Challenges operations", rest.AuthMiddleware(authConf))
+	challenges := api.Group("/challenges", "Challenges", "Challenges operations", authMiddleware)
 
 	challenges.PUT("/:name",
 		[]fizz.OperationOption{fizz.Summary("Put a thing")},
@@ -68,7 +71,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 
 	challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
 
-	locations := api.Group("/locations", "Locations", "Locations operations", rest.AuthMiddleware(authConf))
+	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations")}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
 }
 
@@ -96,24 +99,6 @@ func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesResponse, 
 }
 
 func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListLocationsResponse, error) {
-	// If in test mode or no DB connection, return test data
-	if r.db == nil {
-		return &ListLocationsResponse{
-			Locations: []Location{
-				{
-					ID:          "1",
-					Name:        "Test Location 1",
-					Address:     "Test Address 1",
-					Coordinates: Coordinates{Latitude: 1.0, Longitude: 2.0},
-				},
-				{
-					ID:      "2",
-					Name:    "Test Location 2",
-					Address: "Test Address 2",
-				},
-			},
-		}, nil
-	}
 
 	ctx := context.Background()
 

@@ -1,4 +1,4 @@
-package rest
+package auth
 
 import (
 	"log/slog"
@@ -10,13 +10,14 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gin-gonic/gin"
-	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 )
 
 type JWKStore interface {
 	GetJWK() *clerk.JSONWebKey
 	SetJWK(*clerk.JSONWebKey)
 }
+
 type jwkStore struct {
 	jwk *clerk.JSONWebKey
 }
@@ -33,13 +34,11 @@ func NewJWKStore() JWKStore {
 	return &jwkStore{}
 }
 
-func AuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
+func CreateClerkAuth(clerkConfig string) func(c *gin.Context) {
 
-	if authConfig.Type != "clerk" {
-		panic("Authentication type is not supported ")
-	}
 	config := &clerk.ClientConfig{}
-	config.Key = clerk.String(authConfig.Config)
+
+	config.Key = clerk.String(clerkConfig)
 	jwksClient := jwks.NewClient(config)
 	userClient := user.NewClient(config)
 
@@ -57,7 +56,7 @@ func AuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 			})
 			if err != nil {
 				slog.Error("Error decoding JWT", "error", err)
-				c.AbortWithStatusJSON(http.StatusForbidden, ErrorResponse{Error: "Unauthorized"})
+				c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
 				return
 			}
 
@@ -68,7 +67,7 @@ func AuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 			})
 			if err != nil {
 				slog.Error("Error fetching JWK", "error", err)
-				c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: "Error fetching JWK"})
+				c.AbortWithStatusJSON(http.StatusInternalServerError, rest.ErrorResponse{Error: "Error fetching JWK"})
 				return
 			}
 		}
@@ -83,14 +82,14 @@ func AuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 		})
 		if err != nil {
 			slog.Error("Error verifying JWT", "error", err)
-			c.AbortWithStatusJSON(http.StatusForbidden, ErrorResponse{Error: "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
 			return
 		}
 
 		usr, err := userClient.Get(c.Request.Context(), claims.Subject)
 		if err != nil {
 			slog.Error("Error getting user", "error", err)
-			c.AbortWithStatusJSON(http.StatusForbidden, ErrorResponse{Error: "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
 			return
 		}
 		c.Set("user", usr)
