@@ -29,7 +29,7 @@ const PublicInvitationList: React.FC = () => {
         const response = await api.listEvents();
         const availableInvitations = response.invitations
           .map(transformInvitation)
-          .filter(inv => inv.status === EventStatus.Pending && inv.joinRequests.length === 0);
+          .filter(inv => inv.status === EventStatus.Open && inv.joinRequests.length === 0);
         setInvitations(availableInvitations);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load invitations');

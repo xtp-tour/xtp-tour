@@ -28,7 +28,7 @@ export enum SingleDoubleType {
 }
 
 export enum EventStatus {
-  Pending = 'PENDING',
+  Open = 'OPEN',
   Accepted = 'ACCEPTED',
   Confirmed = 'CONFIRMED', // all players agreed and reservation is made  
   Cancelled = 'CANCELLED', // owner cancelled the invitation
@@ -42,7 +42,7 @@ export interface SessionTimeSlot {
 }
 
 export enum JoinRequestStatus {
-  Pending = 'PENDING',
+  Waiting = 'WAITING',
   Accepted = 'ACCEPTED',
   Rejected = 'REJECTED', // owner rejected the ack
   Cancelled = 'CANCELLED', // userB cancelled his ack

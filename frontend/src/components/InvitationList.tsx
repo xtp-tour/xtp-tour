@@ -87,7 +87,7 @@ const InvitationList: React.FC = () => {
 
   // Filter invitations based on their status
   const pendingMyInvitations = myInvitations.filter(invitation => 
-    invitation.status === EventStatus.Pending
+    invitation.status === EventStatus.Open
   );
   
   const acceptedInvitations = otherInvitations.filter(invitation => 
@@ -95,7 +95,7 @@ const InvitationList: React.FC = () => {
   );
   
   const availableInvitations = otherInvitations.filter(invitation => 
-    invitation.status === EventStatus.Pending &&
+    invitation.status === EventStatus.Open &&
     invitation.joinRequests.length===0
   );
 

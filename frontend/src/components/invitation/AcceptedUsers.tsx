@@ -7,7 +7,7 @@ interface AcceptedUsersProps {
 }
 
 const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ acks }) => {
-  const pendingAcks = acks.filter(ack => ack.status === JoinRequestStatus.Pending);
+  const pendingAcks = acks.filter(ack => ack.status === JoinRequestStatus.Waiting);
   
   if (pendingAcks.length === 0) {
     return null;

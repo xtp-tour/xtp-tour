@@ -78,7 +78,7 @@ const MOCK_MY_INVITATIONS: Event[] = [
       }
     ],
     description: 'Accepted Invitation. Looking for a friendly match, prefer baseline rallies',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(),
     joinRequests: [
       {
@@ -88,7 +88,7 @@ const MOCK_MY_INVITATIONS: Event[] = [
           date: new Date(nextWeekDates[0]),
           time: 1000
         }],
-        status: JoinRequestStatus.Pending,
+        status: JoinRequestStatus.Waiting,
         createdAt: new Date()
       },
       {
@@ -98,7 +98,7 @@ const MOCK_MY_INVITATIONS: Event[] = [
           date: new Date(nextWeekDates[0]),
           time: 1000
         }],
-        status: JoinRequestStatus.Pending,
+        status: JoinRequestStatus.Waiting,
         createdAt: new Date()
       },
     ]
@@ -118,7 +118,7 @@ const MOCK_MY_INVITATIONS: Event[] = [
       }
     ],
     description: 'Want to practice serves and returns',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     joinRequests: []
   },
@@ -144,7 +144,7 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
       }
     ],
     description: 'New to tennis, looking for someone to practice basic strokes with',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     joinRequests: []
   },
@@ -163,7 +163,7 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     joinRequests: []
   },
@@ -250,7 +250,7 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     joinRequests: []
   },
@@ -341,7 +341,7 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
       
     ],
     description: 'Invitation that I accepted.  Looking for competitive matches, NTRP 4.0',
-    status: EventStatus.Pending,
+    status: EventStatus.Open,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     joinRequests: [
       {
@@ -463,7 +463,7 @@ export class MockAPIClient implements APIClient {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    if (invitation.status !== EventStatus.Pending) {
+    if (invitation.status !== EventStatus.Open) {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not available for acceptance');
     }
 
@@ -490,7 +490,7 @@ export class MockAPIClient implements APIClient {
 
     const invitation = this.otherInvitations[index];
 
-    if (invitation.status !== EventStatus.Pending) {
+    if (invitation.status !== EventStatus.Open) {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not in pending state');
     }
 

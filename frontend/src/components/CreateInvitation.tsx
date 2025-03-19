@@ -275,7 +275,7 @@ const CreateInvitation: React.FC = () => {
       expectedPlayers: requestType === SingleDoubleType.Doubles ? 4 : 2,
       description,
       timeSlots,
-      status: EventStatus.Pending,
+      status: EventStatus.Open,
       createdAt: new Date(),
       joinRequests: []
     };

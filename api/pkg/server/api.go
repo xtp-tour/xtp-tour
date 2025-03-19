@@ -1,5 +1,7 @@
 package server
 
+import "time"
+
 // System
 type HealthResponse struct {
 	Status  string `json:"status"`
@@ -18,11 +20,11 @@ const (
 )
 
 // Activity type constants
-type ActivityType string
+type EventType string
 
 const (
-	ActivityTypeMatch    ActivityType = "MATCH"
-	ActivityTypeTraining ActivityType = "TRAINING"
+	ActivityTypeMatch    EventType = "MATCH"
+	ActivityTypeTraining EventType = "TRAINING"
 )
 
 // Single/Double type constants
@@ -34,27 +36,27 @@ const (
 	SingleDoubleTypeCustom  SingleDoubleType = "CUSTOM"
 )
 
-// Invitation status constants
-type InvitationStatus string
+// Event status constants
+type EventStatus string
 
 const (
-	InvitationStatusPending           InvitationStatus = "PENDING"
-	InvitationStatusAccepted          InvitationStatus = "ACCEPTED"
-	InvitationStatusConfirmed         InvitationStatus = "CONFIRMED"
-	InvitationStatusCancelled         InvitationStatus = "CANCELLED"
-	InvitationStatusReservationFailed InvitationStatus = "RESERVATION_FAILED"
-	InvitationStatusCompleted         InvitationStatus = "COMPLETED"
+	EventStatusOpen              EventStatus = "OPEN"
+	EventStatusAccepted          EventStatus = "ACCEPTED"
+	EventStatusConfirmed         EventStatus = "CONFIRMED"
+	EventStatusCancelled         EventStatus = "CANCELLED"
+	EventStatusReservationFailed EventStatus = "RESERVATION_FAILED"
+	EventStatusCompleted         EventStatus = "COMPLETED"
 )
 
 // Ack status constants
-type AckStatus string
+type JoinRequestStatus string
 
 const (
-	AckStatusPending           AckStatus = "PENDING"
-	AckStatusAccepted          AckStatus = "ACCEPTED"
-	AckStatusRejected          AckStatus = "REJECTED"
-	AckStatusCancelled         AckStatus = "CANCELLED"
-	AckStatusReservationFailed AckStatus = "RESERVATION_FAILED"
+	JoinRequestStatusWaiting           JoinRequestStatus = "WAITING"
+	JoinRequestStatusAccepted          JoinRequestStatus = "ACCEPTED"
+	JoinRequestStatusRejected          JoinRequestStatus = "REJECTED"
+	JoinRequestStatusCancelled         JoinRequestStatus = "CANCELLED"
+	JoinRequestStatusReservationFailed JoinRequestStatus = "RESERVATION_FAILED"
 )
 
 // SessionTimeSlot represents an available time slot
@@ -63,69 +65,89 @@ type SessionTimeSlot struct {
 	Time int    `json:"time"`
 }
 
-// Acks represents a player's acceptance of an invitation
-type Acks struct {
-	UserID    string            `json:"userId"`
-	Locations []string          `json:"locations"`
-	TimeSlots []SessionTimeSlot `json:"timeSlots"`
-	Status    AckStatus         `json:"status"`
+type JoinRequestData struct {
+	Locations []string          `json:"locations" validate:"required"`
+	TimeSlots []SessionTimeSlot `json:"timeSlots" validate:"required"`
 	Comment   string            `json:"comment,omitempty"`
-	CreatedAt string            `json:"createdAt"`
 }
 
-// Reservation represents a confirmed court reservation
-type Reservation struct {
-	InvitationID string `json:"invitationId"`
-	Location     string `json:"location"`
-	Date         string `json:"date"`
-	Time         int    `json:"time"`
-	Duration     int    `json:"duration"`
-	PlayerBID    string `json:"playerBId"`
-	CreatedAt    string `json:"createdAt"`
+// JoinRequest represents a player's acceptance of an event
+type JoinRequest struct {
+	JoinRequestData
+	UserId    string            `json:"userId"`
+	Status    JoinRequestStatus `json:"status"`
+	CreatedAt time.Time         `json:"createdAt"`
 }
 
-// Invitation represents a tennis invitation
-type Invitation struct {
-	ID              string            `json:"id"`
-	OwnerID         string            `json:"ownerId"`
+// Confirmation represents a confirmed court reservation
+type Confirmation struct {
+	EventId          string        `json:"eventId"`
+	LocationId       string        `json:"location"`
+	Date             string        `json:"date"`
+	Time             int           `json:"time"`
+	Duration         int           `json:"duration"`
+	AcceptedRequests []JoinRequest `json:"acceptedRequests"`
+	CreatedAt        time.Time     `json:"createdAt"`
+}
+
+// EventData represents user's input for an event
+type EventData struct {
+	Id              string            `json:"id"`
 	Locations       []string          `json:"locations"`
 	SkillLevel      SkillLevel        `json:"skillLevel"`
-	InvitationType  ActivityType      `json:"invitationType"`
+	Description     string            `json:"description,omitempty"`
+	EventType       EventType         `json:"eventType"`
 	ExpectedPlayers int               `json:"expectedPlayers"`
 	SessionDuration int               `json:"sessionDuration"`
 	TimeSlots       []SessionTimeSlot `json:"timeSlots"`
-	Description     string            `json:"description,omitempty"`
-	Status          InvitationStatus  `json:"status"`
-	CreatedAt       string            `json:"createdAt"`
-	Acks            []Acks            `json:"acks"`
-	Reservation     *Reservation      `json:"reservation,omitempty"`
 }
 
-// API Request/Response types for invitations
-type CreateInvitationRequest struct {
-	Invitation Invitation `json:"invitation" validate:"required"`
+// Event represents an internal representation of an event
+type Event struct {
+	EventData
+	UserId       string         `json:"userId"`
+	Status       EventStatus    `json:"status"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	JoinRequests []*JoinRequest `json:"joinRequests"`
+	Confirmation *Confirmation  `json:"confirmation,omitempty"`
 }
 
-type CreateInvitationResponse struct {
-	ID string `json:"id"`
+// API Request/Response types for events
+type CreateEventRequest struct {
+	Event EventData `json:"event" validate:"required"`
 }
 
-type GetInvitationRequest struct {
-	ID string `path:"id" validate:"required"`
+type CreateEventResponse struct {
+	Event *Event `json:"event"`
 }
 
-type GetInvitationResponse struct {
-	Invitation Invitation `json:"invitation"`
+type GetEventRequest struct {
+	Id string `path:"id" validate:"required"`
 }
 
-type ListInvitationsRequest struct {
-	Status  string `query:"status,omitempty"`
-	OwnerID string `query:"ownerId,omitempty"`
+type GetEventResponse struct {
+	Event *Event `json:"event"`
 }
 
-type ListInvitationsResponse struct {
-	Invitations []Invitation `json:"invitations"`
-	Total       int          `json:"total"`
+type DeleteEventRequest struct {
+	Id string `path:"id" validate:"required"`
+}
+
+type JoinRequestRequest struct {
+	EventId     string          `path:"eventId" validate:"required"`
+	JoinRequest JoinRequestData `json:"joinRequest" validate:"required"`
+}
+
+type JoinRequestResponse struct {
+	JoinRequest JoinRequest `json:"joinRequest"`
+}
+
+type ListEventsRequest struct {
+}
+
+type ListEventsResponse struct {
+	Events []Event `json:"events"`
+	Total  int     `json:"total"`
 }
 
 // Locations
@@ -159,6 +181,7 @@ type GetLocationResponse struct {
 
 // end Locations
 
+// Leftovers
 type GetChallengesRequest struct {
 	Id string `path:"id" validate:"required"`
 }

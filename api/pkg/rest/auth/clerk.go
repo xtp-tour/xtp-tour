@@ -93,6 +93,7 @@ func CreateClerkAuth(clerkConfig string) func(c *gin.Context) {
 			return
 		}
 		c.Set("user", usr)
+		c.Set(USER_ID_CONTEXT_KEY, usr.ID)
 		c.Request.Context()
 
 		c.Next()

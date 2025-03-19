@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
@@ -20,10 +22,10 @@ import (
 )
 
 type Router struct {
-	fizz        *fizz.Fizz
-	port        int
-	testStorage map[string]string
-	db          *sql.DB
+	fizz         *fizz.Fizz
+	port         int
+	eventStorage map[string]*Event
+	db           *sql.DB
 }
 
 func (r *Router) Run() {
@@ -40,10 +42,10 @@ func NewRouter(config *pkg.HttpConfig, dbConn *sql.DB, debugMode bool) *Router {
 	f := rest.NewFizzRouter(config, debugMode)
 
 	r := &Router{
-		fizz:        f,
-		port:        config.Port,
-		testStorage: map[string]string{},
-		db:          dbConn,
+		fizz:         f,
+		port:         config.Port,
+		eventStorage: map[string]*Event{},
+		db:           dbConn,
 	}
 	r.init(config.AuthConfig)
 	return r
@@ -51,25 +53,27 @@ func NewRouter(config *pkg.HttpConfig, dbConn *sql.DB, debugMode bool) *Router {
 
 func (r *Router) init(authConf pkg.AuthConfig) {
 
-	// DEBUG STUFF
-	r.testStorage["challenge 1"] = "test challenge 1"
-	r.testStorage["challenge 2"] = "test challenge 2"
-	r.testStorage["challenge 3"] = "test challenge 3"
-
 	r.fizz.GET("/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
 
 	api := r.fizz.Group("/api", "API", "API operations")
 
 	authMiddleware := auth.CreateAuthMiddleware(authConf)
 
+	events := api.Group("/events", "Events", "Events operations", authMiddleware)
+	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusCreated))
+	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
+	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
+	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
+	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
+
 	// Define routes here
-	challenges := api.Group("/challenges", "Challenges", "Challenges operations", authMiddleware)
+	//challenges := api.Group("/challenges", "Challenges", "Challenges operations", authMiddleware)
 
-	challenges.PUT("/:name",
-		[]fizz.OperationOption{fizz.Summary("Put a thing")},
-		tonic.Handler(r.thingPutHandler, http.StatusCreated))
+	// challenges.PUT("/:name",
+	// 	[]fizz.OperationOption{fizz.Summary("Put a thing")},
+	// 	tonic.Handler(r.thingPutHandler, http.StatusCreated))
 
-	challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
+	//challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations")}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
@@ -90,12 +94,6 @@ func (r *Router) healthHandler(c *gin.Context) (*HealthResponse, error) {
 	}
 
 	return resp, nil
-}
-
-func (r *Router) listChallengesHandler(c *gin.Context) (ListChallengesResponse, error) {
-	return ListChallengesResponse{
-		Challenges: r.testStorage,
-	}, nil
 }
 
 func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListLocationsResponse, error) {
@@ -137,21 +135,76 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest)
 	}, nil
 }
 
-func (r *Router) getChallengeHandler(c *gin.Context, req *GetChallengesRequest) (*GetChallengesResponse, error) {
-
-	if val, ok := r.testStorage[req.Id]; ok {
-		return &GetChallengesResponse{
-			Result: val,
-		}, nil
-	} else {
+// Events
+func (r *Router) createEventHandler(c *gin.Context, req *CreateEventRequest) (*CreateEventResponse, error) {
+	req.Event.Id = uuid.New().String()
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
 		return nil, rest.HttpError{
-			HttpCode: http.StatusNotFound,
-			Message:  "Not found",
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
 		}
 	}
+
+	event := &Event{
+		EventData: req.Event,
+		Status:    EventStatusOpen,
+		CreatedAt: time.Now().UTC(),
+		UserId:    userId.(string),
+	}
+
+	r.eventStorage[req.Event.Id] = event
+
+	return &CreateEventResponse{
+		Event: event,
+	}, nil
 }
 
-func (r *Router) thingPutHandler(c *gin.Context, req *ThingPutRequest) (*ThingPutResponse, error) {
-	r.testStorage[req.Name] = req.Value
-	return &ThingPutResponse{}, nil
+func (r *Router) listEventsHandler(c *gin.Context, req *ListEventsRequest) (*ListEventsResponse, error) {
+
+	events := make([]Event, 0, len(r.eventStorage))
+	for _, event := range r.eventStorage {
+		events = append(events, *event)
+	}
+
+	return &ListEventsResponse{Events: events}, nil
+}
+
+func (r *Router) getEventHandler(c *gin.Context, req *GetEventRequest) (*GetEventResponse, error) {
+	event, ok := r.eventStorage[req.Id]
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+
+	return &GetEventResponse{Event: event}, nil
+}
+
+func (r *Router) deleteEventHandler(c *gin.Context, req *DeleteEventRequest) error {
+	delete(r.eventStorage, req.Id)
+	return nil
+}
+
+func (r *Router) joinEventHandler(c *gin.Context, req *JoinRequestRequest) (*JoinRequestResponse, error) {
+	event, ok := r.eventStorage[req.EventId]
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+	userId, _ := c.Get(auth.USER_ID_CONTEXT_KEY)
+
+	joinRequest := JoinRequest{
+		UserId:    userId.(string),
+		Status:    JoinRequestStatusWaiting,
+		CreatedAt: time.Now().UTC(),
+	}
+	event.JoinRequests = append(event.JoinRequests, &joinRequest)
+
+	return &JoinRequestResponse{
+		JoinRequest: joinRequest,
+	}, nil
 }
