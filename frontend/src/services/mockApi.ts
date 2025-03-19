@@ -1,19 +1,19 @@
 import { 
   APIClient, 
   APIConfig,  
-  InvitationsResponse, 
+  ListEventsResponse, 
   APIInvitation,
-  AcceptInvitationRequest,
+  joinEventRequest,
   AcceptanceOptions,
   TimeSlotOption
 } from '../types/api';
 import { 
-  Invitation, 
-  ActivityType,
+  Event, 
+  EventType,
   SkillLevel,
-  InvitationStatus,
-  Reservation, 
-  AckStatus
+  EventStatus,
+  EventConfirmation, 
+  JoinRequestStatus
 } from '../types/invitation';
 import { Location, LocationResponse } from '../types/locations';
 
@@ -58,13 +58,13 @@ const getNextWeekDates = () => {
 
 const nextWeekDates = getNextWeekDates();
 
-const MOCK_MY_INVITATIONS: Invitation[] = [
+const MOCK_MY_INVITATIONS: Event[] = [
   {
     id: '1',
     ownerId: 'current_user',
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: ActivityType.Match,
+    invitationType: EventType.Match,
     expectedPlayers: 2,
     sessionDuration: 2,
     timeSlots: [
@@ -78,9 +78,9 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
       }
     ],
     description: 'Accepted Invitation. Looking for a friendly match, prefer baseline rallies',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(),
-    acks: [
+    joinRequests: [
       {
         userId: 'other_user',
         locations: ['central_park'],
@@ -88,7 +88,7 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
           date: new Date(nextWeekDates[0]),
           time: 1000
         }],
-        status: AckStatus.Pending,
+        status: JoinRequestStatus.Pending,
         createdAt: new Date()
       },
       {
@@ -98,7 +98,7 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
           date: new Date(nextWeekDates[0]),
           time: 1000
         }],
-        status: AckStatus.Pending,
+        status: JoinRequestStatus.Pending,
         createdAt: new Date()
       },
     ]
@@ -108,7 +108,7 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
     ownerId: 'current_user',
     locations: ['riverside'],
     skillLevel: SkillLevel.Advanced,
-    invitationType: ActivityType.Training,
+    invitationType: EventType.Training,
     expectedPlayers: 2,
     sessionDuration: 1.5,
     timeSlots: [
@@ -118,19 +118,19 @@ const MOCK_MY_INVITATIONS: Invitation[] = [
       }
     ],
     description: 'Want to practice serves and returns',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    acks: []
+    joinRequests: []
   },
 ];
 
-const MOCK_OTHER_INVITATIONS: Invitation[] = [
+const MOCK_OTHER_INVITATIONS: Event[] = [
   {
     id: '3',
     ownerId: 'john_doe',
     locations: ['east_side'],
     skillLevel: SkillLevel.Beginner,
-    invitationType: ActivityType.Training,
+    invitationType: EventType.Training,
     expectedPlayers: 2,
     sessionDuration: 1,
     timeSlots: [
@@ -144,16 +144,16 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
       }
     ],
     description: 'New to tennis, looking for someone to practice basic strokes with',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    acks: []
+    joinRequests: []
   },
   {
     id: '4',
     ownerId: 'sarah_smith',
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: ActivityType.Match,
+    invitationType: EventType.Match,
     expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
@@ -163,16 +163,16 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    acks: []
+    joinRequests: []
   },
   {
     id: '5',
     ownerId: 'Roger Federer',
     locations: ['central_park', 'riverside', 'east_side', 'west_side', 'north_side', 'south_side'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: ActivityType.Match,
+    invitationType: EventType.Match,
     expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
@@ -250,9 +250,9 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
       }
     ],
     description: 'Looking for competitive matches, NTRP 4.0',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    acks: []
+    joinRequests: []
   },
   
 
@@ -262,7 +262,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
     ownerId: 'sonia_parker',
     locations: ['central_park', 'riverside'],
     skillLevel: SkillLevel.Intermediate,
-    invitationType: ActivityType.Match,
+    invitationType: EventType.Match,
     expectedPlayers: 4,
     sessionDuration: 1.5,
     timeSlots: [
@@ -341,9 +341,9 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
       
     ],
     description: 'Invitation that I accepted.  Looking for competitive matches, NTRP 4.0',
-    status: InvitationStatus.Pending,
+    status: EventStatus.Pending,
     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    acks: [
+    joinRequests: [
       {
         userId: 'current_user',
         locations: [ 'riverside'],
@@ -351,7 +351,7 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
           date: new Date(nextWeekDates[2]),
           time: 1600
         }],
-        status: AckStatus.Accepted,
+        status: JoinRequestStatus.Accepted,
         createdAt: new Date()
       }
     ]
@@ -360,8 +360,8 @@ const MOCK_OTHER_INVITATIONS: Invitation[] = [
 
 export class MockAPIClient implements APIClient {
   private config: APIConfig;
-  private myInvitations: Invitation[];
-  private otherInvitations: Invitation[];
+  private myInvitations: Event[];
+  private otherInvitations: Event[];
   private locations: Location[] = [...MOCK_LOCATIONS];
 
   constructor(config: APIConfig) {
@@ -390,7 +390,7 @@ export class MockAPIClient implements APIClient {
     }
   }
 
-  private toAPIInvitation(invitation: Invitation): APIInvitation {
+  private toAPIInvitation(invitation: Event): APIInvitation {
     return {
       ...invitation,
       timeSlots: invitation.timeSlots.map(ts => ({
@@ -401,14 +401,14 @@ export class MockAPIClient implements APIClient {
     };
   }
 
-  async createInvitation(request: Invitation): Promise<Invitation> {   
+  async createEvent(request: Event): Promise<Event> {   
     await this.checkAuth();
     await this.delay(500);
     this.myInvitations.push(request);
     return request;
   }
 
-  async confirmInvitation(request: Reservation): Promise<Invitation> {
+  async confirmEvent(request: EventConfirmation): Promise<Event> {
     await this.checkAuth();
     await this.delay(500);
 
@@ -417,13 +417,13 @@ export class MockAPIClient implements APIClient {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    if (invitation.status !== InvitationStatus.Accepted) {
+    if (invitation.status !== EventStatus.Accepted) {
       throw new MockAPIError('INVALID_STATE', 'Invitation must be in Accepted state to confirm');
     }
 
     const updatedInvitation = {
       ...invitation,
-      status: InvitationStatus.Confirmed,
+      status: EventStatus.Confirmed,
       reservation: request
     };
 
@@ -434,7 +434,7 @@ export class MockAPIClient implements APIClient {
     return updatedInvitation;
   }
 
-  async listMyInvitations(): Promise<InvitationsResponse> {
+  async listMyEvents(): Promise<ListEventsResponse> {
     await this.checkAuth();
     await this.delay(500);
 
@@ -444,7 +444,7 @@ export class MockAPIClient implements APIClient {
     };
   }
 
-  async listInvitations(): Promise<InvitationsResponse> {
+  async listEvents(): Promise<ListEventsResponse> {
     // Remove authentication check for listing invitations
     await this.delay(500);
 
@@ -463,7 +463,7 @@ export class MockAPIClient implements APIClient {
       throw new MockAPIError('NOT_FOUND', 'Invitation not found');
     }
 
-    if (invitation.status !== InvitationStatus.Pending) {
+    if (invitation.status !== EventStatus.Pending) {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not available for acceptance');
     }
 
@@ -479,7 +479,7 @@ export class MockAPIClient implements APIClient {
     };
   }
 
-  async acceptInvitation(request: AcceptInvitationRequest): Promise<void> {
+  async joinEvent(request: joinEventRequest): Promise<void> {
     await this.checkAuth();
     await this.delay(500);
 
@@ -490,20 +490,20 @@ export class MockAPIClient implements APIClient {
 
     const invitation = this.otherInvitations[index];
 
-    if (invitation.status !== InvitationStatus.Pending) {
+    if (invitation.status !== EventStatus.Pending) {
       throw new MockAPIError('INVALID_STATE', 'Invitation is not in pending state');
     }
 
     // Update the invitation
     this.otherInvitations[index] = {
       ...invitation,
-      status: InvitationStatus.Accepted
+      status: EventStatus.Accepted
     };
     
     this.saveInvitations();
   }
 
-  async deleteInvitation(id: string): Promise<void> {
+  async deleteEvent(id: string): Promise<void> {
     await this.checkAuth();
     await this.delay(500);
 
@@ -516,7 +516,7 @@ export class MockAPIClient implements APIClient {
     this.saveInvitations();
   }
 
-  async getInvitation(id: string): Promise<Invitation> {
+  async getEvent(id: string): Promise<Event> {
     await this.checkAuth();
     await this.delay(500);
 

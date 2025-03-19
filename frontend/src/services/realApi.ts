@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { APIClient, APIConfig,  InvitationsResponse, APIError, AcceptInvitationRequest, AcceptanceOptions } from '../types/api';
-import { Invitation, Reservation } from '../types/invitation';
+import { APIClient, APIConfig,  ListEventsResponse, APIError, joinEventRequest, AcceptanceOptions } from '../types/api';
+import { Event, EventConfirmation } from '../types/invitation';
 import { Location, LocationResponse } from '../types/locations';
 
 class HTTPError extends Error {
@@ -51,37 +51,37 @@ export class RealAPIClient implements APIClient {
       }
     );
   }
-  confirmInvitation(request: Reservation): Promise<Invitation> {
+  confirmEvent(request: EventConfirmation): Promise<Event> {
     throw new Error('Method not implemented.');
   }
-  listMyInvitations(): Promise<InvitationsResponse> {
+  listMyEvents(): Promise<ListEventsResponse> {
     throw new Error('Method not implemented.');
   }
   getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
     throw new Error('Method not implemented.');
   }
 
-  async createInvitation(request: Invitation): Promise<Invitation> {
+  async createEvent(request: Event): Promise<Event> {
     return this.axiosInstance.post('/invitations', request);
   }
 
-  async updateInvitation(request: UpdateInvitationRequest): Promise<Invitation> {
+  async updateInvitation(request: UpdateInvitationRequest): Promise<Event> {
     return this.axiosInstance.put(`/invitations/${request.id}`, request);
   }
 
-  async deleteInvitation(id: string): Promise<void> {
+  async deleteEvent(id: string): Promise<void> {
     await this.axiosInstance.delete(`/invitations/${id}`);
   }
 
-  async getInvitation(id: string): Promise<Invitation> {
+  async getEvent(id: string): Promise<Event> {
     return this.axiosInstance.get(`/invitations/${id}`);
   }
 
-  async listInvitations(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<InvitationsResponse> {
+  async listEvents(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<ListEventsResponse> {
     return this.axiosInstance.get('/invitations', { params });
   }
 
-  async acceptInvitation(request: AcceptInvitationRequest): Promise<void> {
+  async joinEvent(request: joinEventRequest): Promise<void> {
     return this.axiosInstance.post(`/invitations/${request.id}/ack`, request);
   }
 

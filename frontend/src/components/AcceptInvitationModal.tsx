@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { AcceptInvitationRequest } from '../types/api';
+import { joinEventRequest } from '../types/api';
 import { useAPI } from '../services/apiProvider';
 import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
@@ -96,13 +96,13 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         throw new Error('Please select at least one time slot');
       }
 
-      const request: AcceptInvitationRequest = {
+      const request: joinEventRequest = {
         id: invitationId,
         selectedLocations,
         selectedTimeSlots
       };
 
-      await api.acceptInvitation(request);
+      await api.joinEvent(request);
       onAccepted();
       onHide();
     } catch (err) {

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Invitation } from '../types/invitation';
+import { Event } from '../types/invitation';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 
 interface Props {
-  invitation: Invitation;
+  invitation: Event;
   onDelete: (id: string) => Promise<void>;
 }
 

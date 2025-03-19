@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/invitation';
+import { EventType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/invitation';
 
 export interface TimeSlot {
   date: Date;
@@ -41,11 +41,11 @@ export const SECTION_TITLES = {
   description: 'Description'
 } as const;
 
-export const getInvitationTypeLabel = (type: ActivityType): string => {
+export const getInvitationTypeLabel = (type: EventType): string => {
   switch (type) {
-    case ActivityType.Match:
+    case EventType.Match:
       return 'Match';
-    case ActivityType.Training:
+    case EventType.Training:
       return 'Training';
     default:
       return type;

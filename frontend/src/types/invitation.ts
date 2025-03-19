@@ -16,7 +16,7 @@ export enum SkillLevel {
   Advanced = 'ADVANCED',
 }
 
-export enum ActivityType {
+export enum EventType {
   Match = 'MATCH',
   Training = 'TRAINING',
 }
@@ -27,7 +27,7 @@ export enum SingleDoubleType {
   Custom = 'CUSTOM',
 }
 
-export enum InvitationStatus {
+export enum EventStatus {
   Pending = 'PENDING',
   Accepted = 'ACCEPTED',
   Confirmed = 'CONFIRMED', // all players agreed and reservation is made  
@@ -41,7 +41,7 @@ export interface SessionTimeSlot {
   time: number;  // time in HHMM format (e.g., 1430 for 14:30)
 }
 
-export enum AckStatus {
+export enum JoinRequestStatus {
   Pending = 'PENDING',
   Accepted = 'ACCEPTED',
   Rejected = 'REJECTED', // owner rejected the ack
@@ -50,17 +50,17 @@ export enum AckStatus {
 }
 
 // That's the record of players accepting an invitation
-export interface Acks {
+export interface JoinRequest {
   userId: string;
   locations: string[];
   timeSlots: SessionTimeSlot[];
-  status: AckStatus;
+  status: JoinRequestStatus;
   comment?: string;
   createdAt: Date;  
 }
 
 // When owner reserves the court and confirms the reservation.
-export interface Reservation {
+export interface EventConfirmation {
   invitationId: string;
   location: string; // location ID 
   date: Date;
@@ -70,20 +70,20 @@ export interface Reservation {
   createdAt: Date;  
 }
 
-export interface Invitation {
+export interface Event {
   id: string;
   ownerId: string;  // Clerk user ID
   locations: string[];  // Array of location IDs
   skillLevel: SkillLevel;
-  invitationType: ActivityType;
+  invitationType: EventType;
   expectedPlayers: number;  // this will be used to determine requestType
   sessionDuration: number;  // in hours
   timeSlots: SessionTimeSlot[];  // available time slots for the session
   description?: string;  
-  status: InvitationStatus;
+  status: EventStatus;
   createdAt: Date;
-  acks: Acks[]; 
-  reservation?: Reservation;
+  joinRequests: JoinRequest[]; 
+  reservation?: EventConfirmation;
 }
 
 // Helper function to determine request type based on number of players

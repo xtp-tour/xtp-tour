@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { SignInButton } from '@clerk/clerk-react';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Invitation, InvitationStatus } from '../types/invitation';
+import { Event, EventStatus } from '../types/invitation';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 
-const transformInvitation = (invitation: APIInvitation): Invitation => ({
+const transformInvitation = (invitation: APIInvitation): Event => ({
   ...invitation,
   timeSlots: invitation.timeSlots.map(ts => ({
     date: new Date(ts.date),
@@ -19,17 +19,17 @@ const PublicInvitationList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invitations, setInvitations] = useState<Event[]>([]);
 
   useEffect(() => {
     const fetchInvitations = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.listInvitations();
+        const response = await api.listEvents();
         const availableInvitations = response.invitations
           .map(transformInvitation)
-          .filter(inv => inv.status === InvitationStatus.Pending && inv.acks.length === 0);
+          .filter(inv => inv.status === EventStatus.Pending && inv.joinRequests.length === 0);
         setInvitations(availableInvitations);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load invitations');

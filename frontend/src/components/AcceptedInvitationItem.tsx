@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Invitation } from '../types/invitation';
+import { Event } from '../types/invitation';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 
 interface Props {
-  invitation: Invitation;
+  invitation: Event;
   onCancelled?: () => void;
 }
 
@@ -18,7 +18,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   const handleCancel = async () => {
     try {
       setCancelling(true);
-      await api.deleteInvitation(invitation.id);
+      await api.deleteEvent(invitation.id);
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {

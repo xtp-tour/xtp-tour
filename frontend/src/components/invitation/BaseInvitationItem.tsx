@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRequestType, Invitation } from '../../types/invitation';
+import { getRequestType, Event } from '../../types/invitation';
 import InvitationHeader from './InvitationHeader';
 import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';
@@ -9,7 +9,7 @@ import AcceptedUsers from './AcceptedUsers';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 
 interface BaseInvitationItemProps extends StyleProps {
-  invitation: Invitation;
+  invitation: Event;
   headerTitle: string;
   headerSubtitle?: string;
   timeSlots: TimeSlot[];
@@ -66,7 +66,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
         description={invitation.description}
       />
 
-      <AcceptedUsers acks={invitation.acks} />
+      <AcceptedUsers acks={invitation.joinRequests} />
     </div>
   </div>
 );

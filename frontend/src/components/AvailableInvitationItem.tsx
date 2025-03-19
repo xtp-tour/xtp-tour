@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Invitation } from '../types/invitation';
+import { Event } from '../types/invitation';
 import { AcceptInvitationModal } from './AcceptInvitationModal';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 
 interface Props {
-  invitation: Invitation;
-  onAccept: (invitation: Invitation) => void;
+  invitation: Event;
+  onAccept: (invitation: Event) => void;
 }
 
 const AvailableInvitationItem: React.FC<Props> = ({ invitation, onAccept }) => {

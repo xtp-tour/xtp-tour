@@ -1,13 +1,13 @@
 import React from 'react';
-import { Acks } from '../../types/invitation';
-import { AckStatus } from '../../types/invitation';
+import { JoinRequest } from '../../types/invitation';
+import { JoinRequestStatus } from '../../types/invitation';
 
 interface AcceptedUsersProps {
-  acks: Acks[];
+  acks: JoinRequest[];
 }
 
 const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ acks }) => {
-  const pendingAcks = acks.filter(ack => ack.status === AckStatus.Pending);
+  const pendingAcks = acks.filter(ack => ack.status === JoinRequestStatus.Pending);
   
   if (pendingAcks.length === 0) {
     return null;

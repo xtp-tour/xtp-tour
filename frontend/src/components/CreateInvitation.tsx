@@ -6,7 +6,7 @@ import UseBootstrapSelect from 'use-bootstrap-select'
 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { ActivityType, SingleDoubleType, SkillLevel, SessionTimeSlot, Invitation, InvitationStatus } from '../types/invitation';
+import { EventType, SingleDoubleType, SkillLevel, SessionTimeSlot, Event, EventStatus } from '../types/invitation';
 import { useAPI } from '../services/apiProvider';
 import { Location } from '../types/locations';
 
@@ -64,7 +64,7 @@ const CreateInvitation: React.FC = () => {
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
   
-  const [invitationType, setInvitationType] = useState<ActivityType>(ActivityType.Match);
+  const [invitationType, setInvitationType] = useState<EventType>(EventType.Match);
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
   const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
@@ -265,7 +265,7 @@ const CreateInvitation: React.FC = () => {
       time: parseInt(slot.timeFrom.replace(':', ''))
     }));
 
-    const requestData: Invitation = {
+    const requestData: Event = {
       id: '', // Will be assigned by the server
       ownerId: '', // Will be assigned by the server
       locations: selectedLocations,
@@ -275,13 +275,13 @@ const CreateInvitation: React.FC = () => {
       expectedPlayers: requestType === SingleDoubleType.Doubles ? 4 : 2,
       description,
       timeSlots,
-      status: InvitationStatus.Pending,
+      status: EventStatus.Pending,
       createdAt: new Date(),
-      acks: []
+      joinRequests: []
     };
 
     try {
-      await api.createInvitation(requestData);
+      await api.createEvent(requestData);
 
       // Reset form after successful submission
       setIsExpanded(false);
@@ -298,9 +298,9 @@ const CreateInvitation: React.FC = () => {
     }
   };
 
-  const handleInvitationTypeChange = (type: ActivityType) => {
+  const handleInvitationTypeChange = (type: EventType) => {
     setInvitationType(type);
-    if (type === ActivityType.Training && toastRef.current) {
+    if (type === EventType.Training && toastRef.current) {
       const toast = new Toast(toastRef.current);
       toast.show();
     }
@@ -454,8 +454,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeMatch"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === ActivityType.Match}
-                      onChange={() => handleInvitationTypeChange(ActivityType.Match)}
+                      checked={invitationType === EventType.Match}
+                      onChange={() => handleInvitationTypeChange(EventType.Match)}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
@@ -476,8 +476,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeTraining"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === ActivityType.Training}
-                      onChange={() => handleInvitationTypeChange(ActivityType.Training)}
+                      checked={invitationType === EventType.Training}
+                      onChange={() => handleInvitationTypeChange(EventType.Training)}
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
@@ -585,7 +585,7 @@ const CreateInvitation: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={invitationType === ActivityType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                  placeholder={invitationType === EventType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
                 />
               </div>
 

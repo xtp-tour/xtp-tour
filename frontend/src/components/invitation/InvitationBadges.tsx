@@ -1,9 +1,9 @@
 import React from 'react';
-import { ActivityType, SkillLevel } from '../../types/invitation';
+import { EventType, SkillLevel } from '../../types/invitation';
 import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
 
 interface InvitationBadgesProps {
-  invitationType: ActivityType;  
+  invitationType: EventType;  
   expectedPlayers: number;
   skillLevel: SkillLevel;
   sessionDuration: number;
@@ -31,7 +31,7 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
   </span>
 );
 
-const InvitationTypeBadge: React.FC<{ invitationType: ActivityType }> = ({ invitationType }) => (
+const InvitationTypeBadge: React.FC<{ invitationType: EventType }> = ({ invitationType }) => (
   <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
     {getInvitationTypeLabel(invitationType)}
   </span>

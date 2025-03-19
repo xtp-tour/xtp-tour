@@ -4,9 +4,9 @@ import AvailableInvitationItem from './AvailableInvitationItem';
 import AcceptedInvitationItem from './AcceptedInvitationItem';
 import { useAPI } from '../services/apiProvider';
 import { APIInvitation } from '../types/api';
-import { Invitation, InvitationStatus } from '../types/invitation';
+import { Event, EventStatus } from '../types/invitation';
 
-const transformInvitation = (invitation: APIInvitation): Invitation => ({
+const transformInvitation = (invitation: APIInvitation): Event => ({
   ...invitation,
   timeSlots: invitation.timeSlots.map(ts => ({
     date: new Date(ts.date),
@@ -44,8 +44,8 @@ const InvitationList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [myInvitations, setMyInvitations] = useState<Invitation[]>([]);
-  const [otherInvitations, setOtherInvitations] = useState<Invitation[]>([]);
+  const [myInvitations, setMyInvitations] = useState<Event[]>([]);
+  const [otherInvitations, setOtherInvitations] = useState<Event[]>([]);
 
   // State for section expansion
   const [expandedSections, setExpandedSections] = useState({
@@ -69,8 +69,8 @@ const InvitationList: React.FC = () => {
         
         // Fetch both my invitations and other invitations
         const [myResponse, otherResponse] = await Promise.all([
-          api.listMyInvitations(),
-          api.listInvitations()
+          api.listMyEvents(),
+          api.listEvents()
         ]);
 
         setMyInvitations(myResponse.invitations.map(transformInvitation));
@@ -87,16 +87,16 @@ const InvitationList: React.FC = () => {
 
   // Filter invitations based on their status
   const pendingMyInvitations = myInvitations.filter(invitation => 
-    invitation.status === InvitationStatus.Pending
+    invitation.status === EventStatus.Pending
   );
   
   const acceptedInvitations = otherInvitations.filter(invitation => 
-    invitation.acks.length > 0
+    invitation.joinRequests.length > 0
   );
   
   const availableInvitations = otherInvitations.filter(invitation => 
-    invitation.status === InvitationStatus.Pending &&
-    invitation.acks.length===0
+    invitation.status === EventStatus.Pending &&
+    invitation.joinRequests.length===0
   );
 
   if (loading) {
@@ -137,7 +137,7 @@ const InvitationList: React.FC = () => {
                   invitation={invitation} 
                   onDelete={async (id) => {
                     try {
-                      await api.deleteInvitation(id);
+                      await api.deleteEvent(id);
                       setMyInvitations(prev => prev.filter(inv => inv.id !== id));
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to delete invitation');

@@ -1,12 +1,12 @@
 import { Location, LocationResponse } from './locations';
-import { Invitation, Reservation } from './invitation';
+import { Event as Event, EventConfirmation as EventConfirmation } from './invitation';
 
-export interface CreateInvitationRequest {
-   invitation: Invitation;
+export interface CreateEventRequest {
+   invitation: Event;
 }
 
 
-export interface AcceptInvitationRequest {
+export interface joinEventRequest {
   id: string;
   selectedLocations: string[];
   selectedTimeSlots: {
@@ -17,7 +17,7 @@ export interface AcceptInvitationRequest {
 
 
 
-export interface APIInvitation extends Omit<Invitation, 'timeSlots' | 'createdAt'> {
+export interface APIInvitation extends Omit<Event, 'timeSlots' | 'createdAt'> {
   timeSlots: {
     date: string;
     time: number;
@@ -26,7 +26,7 @@ export interface APIInvitation extends Omit<Invitation, 'timeSlots' | 'createdAt
   updatedAt?: string;
 }
 
-export interface InvitationsResponse {
+export interface ListEventsResponse {
   invitations: APIInvitation[];
   total: number;
 }
@@ -55,18 +55,18 @@ export interface APIConfig {
 
 export interface APIClient {
   // Invitation endpoints
-  createInvitation(request: Invitation): Promise<Invitation>;
-  deleteInvitation(id: string): Promise<void>;
-  getInvitation(id: string): Promise<Invitation>;
-  confirmInvitation(request: Reservation): Promise<Invitation>;
+  createEvent(request: Event): Promise<Event>;
+  deleteEvent(id: string): Promise<void>;
+  getEvent(id: string): Promise<Event>;
+  confirmEvent(request: EventConfirmation): Promise<Event>;
 
-  listMyInvitations() : Promise<InvitationsResponse>
-  listInvitations(): Promise<InvitationsResponse>;  
+  listMyEvents() : Promise<ListEventsResponse>
+  listEvents(): Promise<ListEventsResponse>;  
 
 
   getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
   
-  acceptInvitation(request: AcceptInvitationRequest): Promise<void>;
+  joinEvent(request: joinEventRequest): Promise<void>;
   
   // Location endpoints
   getLocation(id: string): Promise<Location>;
