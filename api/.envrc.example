@@ -1,2 +1,2 @@
-export AUTH_TYPE=clerk
+export AUTH_TYPE=[clerk | debug]
 export AUTH_CONFIG=[your clerk secret key]
