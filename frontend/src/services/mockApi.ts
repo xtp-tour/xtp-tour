@@ -540,13 +540,10 @@ export class MockAPIClient implements APIClient {
     return location;
   }
 
-  async listLocations(params?: { page?: number; limit?: number; area?: string; search?: string; }): Promise<LocationResponse> {
+  async listLocations(params?: { page?: number; limit?: number; search?: string; }): Promise<LocationResponse> {
     await this.delay(500);
 
-    let filtered = this.locations;
-    if (params?.area) {
-      filtered = filtered.filter(loc => loc.area === params.area);
-    }
+    let filtered = this.locations;    
     if (params?.search) {
       const search = params.search.toLowerCase();
       filtered = filtered.filter(loc => 

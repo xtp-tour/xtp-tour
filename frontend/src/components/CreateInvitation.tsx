@@ -246,7 +246,7 @@ const CreateInvitation: React.FC = () => {
           <option 
             key={location.id} 
             value={location.id}
-            data-tokens={`${location.name} ${location.area}`}
+            data-tokens={`${location.name}`}
           >
             {location.name}
           </option>

@@ -51,22 +51,18 @@ export class RealAPIClient implements APIClient {
       }
     );
   }
-  confirmEvent(request: EventConfirmation): Promise<Event> {
+  confirmEvent(_request: EventConfirmation): Promise<Event> {
     throw new Error('Method not implemented.');
   }
   listMyEvents(): Promise<ListEventsResponse> {
     throw new Error('Method not implemented.');
   }
-  getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
+  getAcceptanceOptions(_id: string): Promise<AcceptanceOptions> {
     throw new Error('Method not implemented.');
   }
 
   async createEvent(request: Event): Promise<Event> {
     return this.axiosInstance.post('/invitations', request);
-  }
-
-  async updateInvitation(request: UpdateInvitationRequest): Promise<Event> {
-    return this.axiosInstance.put(`/invitations/${request.id}`, request);
   }
 
   async deleteEvent(id: string): Promise<void> {
