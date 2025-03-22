@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8080:8080"
+      - "10250:10250" # For metrics as seen in the test config
+    environment:
+      - LOG_LEVEL=info
+      - SERVICE_HOST=http://localhost:8080
+      - METRICS_HOST=http://localhost:10250
+    restart: unless-stopped 

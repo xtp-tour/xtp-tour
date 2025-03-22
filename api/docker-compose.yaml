@@ -4,7 +4,7 @@ services:
     ports:
       - "33306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: xtp_tour_secret_password
       MYSQL_DATABASE: xtp_tour
     volumes:
       - ./.data/db:/var/lib/mysql

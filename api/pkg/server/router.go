@@ -48,7 +48,29 @@ func NewRouter(config *pkg.HttpConfig, dbConn *sql.DB, debugMode bool) *Router {
 		db:           dbConn,
 	}
 	r.init(config.AuthConfig)
+
+	// Serve frontend static files
+	r.serveFrontend()
+
 	return r
+}
+
+// serveFrontend configures routes to serve the frontend static files
+func (r *Router) serveFrontend() {
+	// Serve static files from the frontend/dist directory
+	r.fizz.Engine().Static("/assets", "/app/frontend/dist/assets")
+
+	// Serve index.html for all routes not matched by the API
+	r.fizz.Engine().NoRoute(func(c *gin.Context) {
+		// Skip API routes
+		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		// Serve the index.html for all other routes
+		c.File("/app/frontend/dist/index.html")
+	})
 }
 
 func (r *Router) init(authConf pkg.AuthConfig) {
