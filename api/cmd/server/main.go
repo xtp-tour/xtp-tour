@@ -10,16 +10,14 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
 
-	"github.com/xtp-tour/xtp-tour/api/cmd/version"
-
-	ccmd "github.com/xtp-tour/xtp-tour/api/pkg/cmd"
 	"github.com/xtp-tour/xtp-tour/api/pkg/server"
+	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 )
 
 var serviceConfig = &pkg.Config{}
 
 func main() {
-	ccmd.ProcessVersionArgument(pkg.ServiceName, os.Args, version.Version)
+	version.ProcessVersionArgument(pkg.ServiceName, os.Args, version.Version)
 
 	loadConfig()
 

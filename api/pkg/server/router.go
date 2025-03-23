@@ -66,14 +66,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
 
-	// Define routes here
-	//challenges := api.Group("/challenges", "Challenges", "Challenges operations", authMiddleware)
 
-	// challenges.PUT("/:name",
-	// 	[]fizz.OperationOption{fizz.Summary("Put a thing")},
-	// 	tonic.Handler(r.thingPutHandler, http.StatusCreated))
-
-	//challenges.GET("/", []fizz.OperationOption{fizz.Summary("Get list of challenges")}, tonic.Handler(r.listChallengesHandler, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations")}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
