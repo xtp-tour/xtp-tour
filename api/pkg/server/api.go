@@ -79,6 +79,19 @@ type JoinRequest struct {
 	CreatedAt time.Time         `json:"createdAt"`
 }
 
+type EventConfirmationRequest struct {
+	EventId         string   `path:"eventId" validate:"required"`
+	LocationId      string   `json:"locationId" validate:"required"`
+	Date            string   `json:"date" validate:"required"`
+	Time            int      `json:"time" validate:"required"`
+	Duration        int      `json:"duration" validate:"required"`
+	JoinRequestsIds []string `json:"joinRequestsIds" validate:"required"`
+}
+
+type EventConfirmationResponse struct {
+	Confirmation Confirmation `json:"confirmation"`
+}
+
 // Confirmation represents a confirmed court reservation
 type Confirmation struct {
 	EventId          string        `json:"eventId"`

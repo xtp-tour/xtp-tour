@@ -1,7 +1,7 @@
 //go:build servicetest
 // +build servicetest
 
-package service
+package stest
 
 import (
 	"log/slog"
@@ -37,25 +37,6 @@ func Test_Ping(t *testing.T) {
 		assert.Equal(t, r.StatusCode(), http.StatusOK)
 	})
 }
-
-// // Call endpoint and check response
-// func Test_Things(t *testing.T) {
-// 	// call the PUT endpoint
-// 	t.Run("Add", func(tt *testing.T) {
-// 		r, err := restClient.R().SetBody(`{ "value": "Thing value" }`).Put(tConfig.ServiceHost + "/things/some-name")
-// 		if assert.NoError(tt, err) {
-// 			assert.Equal(tt, http.StatusCreated, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-// 		}
-// 	})
-
-// 	// call the GET endpoint
-// 	t.Run("Get", func(tt *testing.T) {
-// 		r, err := restClient.R().Get(tConfig.ServiceHost + "/things/some-name")
-// 		if assert.NoError(tt, err) {
-// 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-// 		}
-// 	})
-// }
 
 // Check that prometheus metrics are available
 func Test_GetMetrics(t *testing.T) {
@@ -147,6 +128,7 @@ func Test_EventAPI(t *testing.T) {
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
 				},
+				Comment: "Hey, let's play"
 			},
 		}
 
@@ -205,6 +187,128 @@ func Test_EventAPI(t *testing.T) {
 		assert.Equal(tt, response.Event.Id, eventId)
 		assert.Equal(tt, response.Event.Status, server.EventStatusOpen)
 		assert.Len(tt, response.Event.JoinRequests, 2)
+	})
+
+	t.Run("Confirm event by not owner",func(tt *testing.T) {
+		if eventId == "" {
+			tt.Skip("Skipping test because event ID is not available")
+		}
+
+		var response server.GetEventResponse
+		confirmation := server.EventConfirmationRequest{
+			EventId: eventId,
+			LocationId: "location1",
+			Date: "2023-10-15",
+			Time: 14,
+			Duration: 60,
+			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			SetResult(&response).
+			SetBody(confirmation).
+			Get(tConfig.ServiceHost + "/api/events/" + eventId+"/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+ 	} )
+
+	t.Run("Confirm event by owner with invalid time slot", func(tt *testing.T) {
+		if eventId == "" {
+			tt.Skip("Skipping test because event ID is not available")
+		}
+
+		confirmation := server.EventConfirmationRequest{
+			EventId: eventId,
+			LocationId: "location1",
+			Date: "2023-05-15",
+			Time: 14,
+			Duration: 60,
+			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("Confirm event by owner with invalid location", func(tt *testing.T) {
+		if eventId == "" {
+			tt.Skip("Skipping test because event ID is not available")
+		}
+
+		confirmation := server.EventConfirmationRequest{
+			EventId: eventId,
+			LocationId: "location3",
+			Date: "2023-10-15",
+			Time: 14,
+			Duration: 60,
+			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("Confirm event by owner", func(tt *testing.T) {
+		if eventId == "" {
+			tt.Skip("Skipping test because event ID is not available")
+		}
+
+		confirmation := server.EventConfirmationRequest{
+			EventId: eventId,
+			LocationId: "location1",
+			Date: "2023-10-15",
+			Time: 14,
+			Duration: 60,
+			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("Get confirmed event", func(tt *testing.T) {
+		if eventId == "" {
+			tt.Skip("Skipping test because event ID is not available")
+		}
+
+		var response server.GetEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/" + eventId)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+
+		// Verify event is confirmed
+		assert.Equal(tt, server.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
+		assert.Equal(tt, "location1", response.Event.ConfirmedLocation, "Confirmed location should match")
+		assert.Equal(tt, "2023-10-15", response.Event.ConfirmedDate, "Confirmed date should match")
+		assert.Equal(tt, 14, response.Event.ConfirmedTime, "Confirmed time should match")
+		assert.Equal(tt, 60, response.Event.ConfirmedDuration, "Confirmed duration should match")
+		assert.Len(tt, response.Event.ConfirmedJoinRequestIds, 1, "Should have one confirmed join request")
+		assert.Equal(tt, response.Event.JoinRequests[0].Id, response.Event.ConfirmedJoinRequestIds[0], "Confirmed join request ID should match")
 	})
 
 	// Delete an event

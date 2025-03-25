@@ -17,6 +17,9 @@ var (
 	mutex    sync.Mutex
 )
 
+type Db struct {
+}
+
 // GetDB returns a singleton database connection
 func GetDB(config *pkg.DbConfig) (*sql.DB, error) {
 	var err error

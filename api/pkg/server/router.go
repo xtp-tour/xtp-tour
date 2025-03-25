@@ -65,8 +65,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
-
-
+	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations")}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
@@ -200,4 +199,24 @@ func (r *Router) joinEventHandler(c *gin.Context, req *JoinRequestRequest) (*Joi
 	return &JoinRequestResponse{
 		JoinRequest: joinRequest,
 	}, nil
+}
+
+func (r *Router) confirmEvent(c *gin.Context, req *EventConfirmationRequest) (*EventConfirmationResponse, error) {
+	event, ok := r.eventStorage[req.EventId]
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+	userId, _ := c.Get(auth.USER_ID_CONTEXT_KEY)
+
+	joinRequest := JoinRequest{
+		UserId:    userId.(string),
+		Status:    JoinRequestStatusWaiting,
+		CreatedAt: time.Now().UTC(),
+	}
+	event.JoinRequests = append(event.JoinRequests, &joinRequest)
+
+	return &EventConfirmationResponse{}, nil
 }
