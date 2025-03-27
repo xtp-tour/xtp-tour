@@ -66,6 +66,7 @@ type SessionTimeSlot struct {
 }
 
 type JoinRequestData struct {
+	Id        string            `json:"id,omitempty"`
 	Locations []string          `json:"locations" validate:"required"`
 	TimeSlots []SessionTimeSlot `json:"timeSlots" validate:"required"`
 	Comment   string            `json:"comment,omitempty"`
@@ -96,7 +97,7 @@ type EventConfirmationResponse struct {
 type Confirmation struct {
 	EventId          string        `json:"eventId"`
 	LocationId       string        `json:"location"`
-	Date             string        `json:"date"`
+	Date             time.Time     `json:"date"`
 	Time             int           `json:"time"`
 	Duration         int           `json:"duration"`
 	AcceptedRequests []JoinRequest `json:"acceptedRequests"`

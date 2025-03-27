@@ -4,6 +4,7 @@
 package stest
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"testing"
@@ -75,33 +76,46 @@ func Test_EventAPI(t *testing.T) {
 			},
 		}
 
+		var response server.CreateEventResponse
+
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
 			SetBody(eventData).
+			SetResult(&response).
 			Post(tConfig.ServiceHost + "/api/events/")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusCreated, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			eventId = response.Event.Id
 		}
+
 	})
 
 	// List events
 	t.Run("ListEvents", func(tt *testing.T) {
+		var response server.ListEventsResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
+			SetResult(&response).
 			Get(tConfig.ServiceHost + "/api/events/")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-			assert.Contains(tt, string(r.Body()), `"events":`)
-			assert.Contains(tt, string(r.Body()), `"description":"Test event for integration testing"`)
+			exist := false
+			for _, e := range response.Events {
+				if e.Id == eventId {
+					exist = true
+					break
+				}
+			}
+			assert.True(tt, exist, "Event ID should exist in the list of events")
 		}
 	})
 
 	// Get event by ID
 	t.Run("GetEvent", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		r, err := restClient.R().
@@ -115,10 +129,12 @@ func Test_EventAPI(t *testing.T) {
 		}
 	})
 
+	var joinRequestId string
+
 	// Join an event
 	t.Run("JoinEvent1", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		joinRequestData := server.JoinRequestRequest{
@@ -128,7 +144,7 @@ func Test_EventAPI(t *testing.T) {
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
 				},
-				Comment: "Hey, let's play"
+				Comment: "Hey, let's play",
 			},
 		}
 
@@ -144,7 +160,7 @@ func Test_EventAPI(t *testing.T) {
 
 	t.Run("JoinEvent2AllOptionsSelected", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		joinRequestData := server.JoinRequestRequest{
@@ -172,7 +188,7 @@ func Test_EventAPI(t *testing.T) {
 
 	t.Run("GetEvent", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		var response server.GetEventResponse
@@ -183,49 +199,49 @@ func Test_EventAPI(t *testing.T) {
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, response.Event.Id, eventId)
+			assert.Equal(tt, response.Event.Status, server.EventStatusOpen)
+			assert.Len(tt, response.Event.JoinRequests, 2)
+			joinRequestId = response.Event.JoinRequests[0].Id
 		}
-		assert.Equal(tt, response.Event.Id, eventId)
-		assert.Equal(tt, response.Event.Status, server.EventStatusOpen)
-		assert.Len(tt, response.Event.JoinRequests, 2)
 	})
 
-	t.Run("Confirm event by not owner",func(tt *testing.T) {
-		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+	t.Run("Confirm event by not owner", func(tt *testing.T) {
+		if eventId == "" || joinRequestId == "" {
+			assert.Fail(tt, fmt.Sprintf("Event ID or join request ID is not available. Event ID: %s, join request ID: %s", eventId, joinRequestId))
 		}
 
-		var response server.GetEventResponse
 		confirmation := server.EventConfirmationRequest{
-			EventId: eventId,
-			LocationId: "location1",
-			Date: "2023-10-15",
-			Time: 14,
-			Duration: 60,
-			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+			EventId:         eventId,
+			LocationId:      "location1",
+			Date:            "2023-10-15",
+			Time:            14,
+			Duration:        60,
+			JoinRequestsIds: []string{joinRequestId},
+		}
 
 		r, err := restClient.R().
 			SetHeader("Authentication", user2).
-			SetResult(&response).
 			SetBody(confirmation).
-			Get(tConfig.ServiceHost + "/api/events/" + eventId+"/confirmation")
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, http.StatusForbidden, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
- 	} )
+	})
 
 	t.Run("Confirm event by owner with invalid time slot", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		confirmation := server.EventConfirmationRequest{
-			EventId: eventId,
-			LocationId: "location1",
-			Date: "2023-05-15",
-			Time: 14,
-			Duration: 60,
-			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+			EventId:         eventId,
+			LocationId:      "location1",
+			Date:            "2023-05-15",
+			Time:            14,
+			Duration:        60,
+			JoinRequestsIds: []string{joinRequestId},
 		}
 
 		r, err := restClient.R().
@@ -234,22 +250,22 @@ func Test_EventAPI(t *testing.T) {
 			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
 	})
 
 	t.Run("Confirm event by owner with invalid location", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		confirmation := server.EventConfirmationRequest{
-			EventId: eventId,
-			LocationId: "location3",
-			Date: "2023-10-15",
-			Time: 14,
-			Duration: 60,
-			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+			EventId:         eventId,
+			LocationId:      "location3",
+			Date:            "2023-10-15",
+			Time:            14,
+			Duration:        60,
+			JoinRequestsIds: []string{joinRequestId},
 		}
 
 		r, err := restClient.R().
@@ -258,22 +274,22 @@ func Test_EventAPI(t *testing.T) {
 			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusInvalidRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
 	})
 
 	t.Run("Confirm event by owner", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		confirmation := server.EventConfirmationRequest{
-			EventId: eventId,
-			LocationId: "location1",
-			Date: "2023-10-15",
-			Time: 14,
-			Duration: 60,
-			JoinRequestsIds: []string{response.Event.JoinRequests[0].Id},
+			EventId:         eventId,
+			LocationId:      "location1",
+			Date:            "2023-10-15",
+			Time:            14,
+			Duration:        60,
+			JoinRequestsIds: []string{joinRequestId},
 		}
 
 		r, err := restClient.R().
@@ -288,7 +304,7 @@ func Test_EventAPI(t *testing.T) {
 
 	t.Run("Get confirmed event", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		var response server.GetEventResponse
@@ -299,22 +315,21 @@ func Test_EventAPI(t *testing.T) {
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-		}
 
-		// Verify event is confirmed
-		assert.Equal(tt, server.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
-		assert.Equal(tt, "location1", response.Event.ConfirmedLocation, "Confirmed location should match")
-		assert.Equal(tt, "2023-10-15", response.Event.ConfirmedDate, "Confirmed date should match")
-		assert.Equal(tt, 14, response.Event.ConfirmedTime, "Confirmed time should match")
-		assert.Equal(tt, 60, response.Event.ConfirmedDuration, "Confirmed duration should match")
-		assert.Len(tt, response.Event.ConfirmedJoinRequestIds, 1, "Should have one confirmed join request")
-		assert.Equal(tt, response.Event.JoinRequests[0].Id, response.Event.ConfirmedJoinRequestIds[0], "Confirmed join request ID should match")
+			// Verify event is confirmed
+			assert.Equal(tt, server.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
+			assert.Equal(tt, "location1", response.Event.Confirmation.LocationId, "Confirmed location should match")
+			assert.Equal(tt, "2023-10-15", response.Event.Confirmation.Date.Format("2006-01-02"), "Confirmed date should match")
+			assert.Equal(tt, 14, response.Event.Confirmation.Time, "Confirmed time should match")
+			assert.Equal(tt, 60, response.Event.Confirmation.Duration, "Confirmed duration should match")
+			assert.Len(tt, response.Event.Confirmation.AcceptedRequests, 1, "Should have one confirmed join request")
+			assert.Equal(tt, joinRequestId, response.Event.Confirmation.AcceptedRequests[0].Id, "Confirmed join request ID should match")
+		}
 	})
 
-	// Delete an event
-	t.Run("DeleteEvent", func(tt *testing.T) {
+	t.Run("DeleteEvent fails after confirmation", func(tt *testing.T) {
 		if eventId == "" {
-			tt.Skip("Skipping test because event ID is not available")
+			assert.Fail(tt, "Event ID is not available")
 		}
 
 		r, err := restClient.R().
@@ -322,17 +337,60 @@ func Test_EventAPI(t *testing.T) {
 			Delete(tConfig.ServiceHost + "/api/events/" + eventId)
 
 		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+
+	})
+
+}
+
+func Test_DeleteEvent(t *testing.T) {
+
+	t.Run("CreateEvent", func(tt *testing.T) {
+		user := "test-user-1"
+		// Create an event
+		eventData := server.CreateEventRequest{
+			Event: server.EventData{
+				Locations:       []string{"location1", "location2"},
+				SkillLevel:      server.SkillLevelIntermediate,
+				EventType:       server.ActivityTypeMatch,
+				ExpectedPlayers: 2,
+				SessionDuration: 60,
+				TimeSlots: []server.SessionTimeSlot{
+					{Date: "2023-10-17", Time: 19},
+				},
+			},
+		}
+
+		var response server.CreateEventResponse
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetBody(eventData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusCreated, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+
+		// delete event
+		r, err = restClient.R().
+			SetHeader("Authentication", user).
+			Delete(tConfig.ServiceHost + "/api/events/" + response.Event.Id)
+
+		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
 
-		// Verify event is deleted
 		r, err = restClient.R().
 			SetHeader("Authentication", user).
-			Get(tConfig.ServiceHost + "/api/events/" + eventId)
+			Get(tConfig.ServiceHost + "/api/events/" + response.Event.Id)
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Event should be deleted")
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
+
 	})
 }
 
