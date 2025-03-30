@@ -4,6 +4,9 @@ build: servicetest.build
 	@echo Building version: \"$(BIN_VER)\"
 	env CGO_ENABLED=0 go build -ldflags='-X github.com/xtp-tour/xtp-tour/api/cmd/version.Version=$(BIN_VER) -extldflags=-static' -o bin/api cmd/server/main.go
 
+migrate:
+	go run ./... migrate
+
 test:
 	go test -v ./...
 
@@ -12,7 +15,7 @@ lint:
 	golangci-lint run
 
 deps:
-	go install
+	go install github.com/xo/xo@latest
 
 clean:
 	rm pb/gen/*.go
@@ -25,7 +28,8 @@ dev:
 	air
 
 gen-schemas:
-	xo schema "mysql://root:password@127.0.0.1:33306/xtp_tour?parseTime=true&sql_mode=ansi"  -o pkg/db/model 
+	go run ./... migrate
+	xo schema "mysql://root:password@127.0.0.1:33306/xtp_tour?parseTime=true&sql_mode=ansi"  -o pkg/db/model
 
 # service tests
 servicetest.run:
@@ -35,4 +39,3 @@ servicetest.run:
 servicetest.build:
 	env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
 
-	 

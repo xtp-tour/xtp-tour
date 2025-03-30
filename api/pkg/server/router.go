@@ -21,10 +21,9 @@ import (
 )
 
 type Router struct {
-	fizz         *fizz.Fizz
-	port         int
-	eventStorage map[string]*Event
-	db           model.DB
+	fizz *fizz.Fizz
+	port int
+	db   model.DB
 }
 
 func (r *Router) Run() {
@@ -41,17 +40,15 @@ func NewRouter(config *pkg.HttpConfig, dbConn model.DB, debugMode bool) *Router 
 	f := rest.NewFizzRouter(config, debugMode)
 
 	r := &Router{
-		fizz:         f,
-		port:         config.Port,
-		eventStorage: map[string]*Event{},
-		db:           dbConn,
+		fizz: f,
+		port: config.Port,
+		db:   dbConn,
 	}
 	r.init(config.AuthConfig)
 	return r
 }
 
 func (r *Router) init(authConf pkg.AuthConfig) {
-
 	r.fizz.GET("/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
 
 	api := r.fizz.Group("/api", "API", "API operations")
@@ -88,7 +85,6 @@ func (r *Router) healthHandler(c *gin.Context) (*HealthResponse, error) {
 }
 
 func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListLocationsResponse, error) {
-
 	ctx := context.Background()
 
 	// Get facilities from database
@@ -104,21 +100,7 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest)
 	// Map facilities to API response
 	locations := make([]Location, 0, len(facilities))
 	for _, facility := range facilities {
-		location := Location{
-			ID:      facility.ID,
-			Name:    facility.Name,
-			Address: facility.Address,
-		}
-
-		// Convert point (location) to coordinates if needed
-		if facility.Location != (model.Point{}) {
-			location.Coordinates = Coordinates{
-				Latitude:  facility.Location.Lat,
-				Longitude: facility.Location.Lng,
-			}
-		}
-
-		locations = append(locations, location)
+		locations = append(locations, DBToAPILocation(facility))
 	}
 
 	return &ListLocationsResponse{
@@ -128,7 +110,9 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest)
 
 // Events
 func (r *Router) createEventHandler(c *gin.Context, req *CreateEventRequest) (*CreateEventResponse, error) {
+	ctx := context.Background()
 	req.Event.Id = uuid.New().String()
+
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		return nil, rest.HttpError{
@@ -144,7 +128,15 @@ func (r *Router) createEventHandler(c *gin.Context, req *CreateEventRequest) (*C
 		UserId:    userId.(string),
 	}
 
-	r.eventStorage[req.Event.Id] = event
+	// Convert to DB model and save
+	dbEvent := APIToDBEvent(event)
+	if err := dbEvent.Insert(ctx, r.db); err != nil {
+		slog.Error("Failed to create event", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create event",
+		}
+	}
 
 	return &CreateEventResponse{
 		Event: event,
@@ -152,6 +144,8 @@ func (r *Router) createEventHandler(c *gin.Context, req *CreateEventRequest) (*C
 }
 
 func (r *Router) listEventsHandler(c *gin.Context, req *ListEventsRequest) (*ListEventsResponse, error) {
+	ctx := context.Background()
+
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		return nil, rest.HttpError{
@@ -160,12 +154,29 @@ func (r *Router) listEventsHandler(c *gin.Context, req *ListEventsRequest) (*Lis
 		}
 	}
 
-	// Filter events to only show those created by the user
-	events := make([]Event, 0)
-	for _, event := range r.eventStorage {
-		if event.UserId == userId.(string) {
-			events = append(events, *event)
+	// Query events from database
+	query := `SELECT id, user_id, skill_level, description, event_type, expected_players, session_duration, status, created_at, updated_at FROM xtp_tour.events WHERE user_id = ?`
+	rows, err := r.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		slog.Error("Failed to query events", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to retrieve events",
 		}
+	}
+	defer rows.Close()
+
+	var events []Event
+	for rows.Next() {
+		var dbEvent model.Event
+		if err := rows.Scan(&dbEvent.ID, &dbEvent.UserID, &dbEvent.SkillLevel, &dbEvent.Description, &dbEvent.EventType, &dbEvent.ExpectedPlayers, &dbEvent.SessionDuration, &dbEvent.Status, &dbEvent.CreatedAt, &dbEvent.UpdatedAt); err != nil {
+			slog.Error("Failed to scan event", "error", err)
+			return nil, rest.HttpError{
+				HttpCode: http.StatusInternalServerError,
+				Message:  "Failed to process events",
+			}
+		}
+		events = append(events, *DBToAPIEvent(&dbEvent))
 	}
 
 	return &ListEventsResponse{
@@ -175,13 +186,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *ListEventsRequest) (*Lis
 }
 
 func (r *Router) getEventHandler(c *gin.Context, req *GetEventRequest) (*GetEventResponse, error) {
-	event, ok := r.eventStorage[req.Id]
-	if !ok {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusNotFound,
-			Message:  "Event not found",
-		}
-	}
+	ctx := context.Background()
 
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
@@ -191,55 +196,116 @@ func (r *Router) getEventHandler(c *gin.Context, req *GetEventRequest) (*GetEven
 		}
 	}
 
-	// Only allow event owner to view the event
-	if event.UserId != userId.(string) {
+	// Get event from database
+	dbEvent, err := model.EventByID(ctx, r.db, req.Id)
+	if err != nil {
+		slog.Error("Failed to get event", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+
+	// Check ownership
+	if dbEvent.UserID != userId.(string) {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusForbidden,
 			Message:  "Not authorized to view this event",
 		}
 	}
 
-	return &GetEventResponse{Event: event}, nil
+	return &GetEventResponse{
+		Event: DBToAPIEvent(dbEvent),
+	}, nil
 }
 
 func (r *Router) deleteEventHandler(c *gin.Context, req *DeleteEventRequest) error {
-	event, ok := r.eventStorage[req.Id]
+	ctx := context.Background()
+
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
+		return rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// Get event from database
+	dbEvent, err := model.EventByID(ctx, r.db, req.Id)
+	if err != nil {
+		slog.Error("Failed to get event", "error", err)
 		return rest.HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
 		}
 	}
 
-	if event.Status == EventStatusConfirmed {
+	// Check ownership
+	if dbEvent.UserID != userId.(string) {
+		return rest.HttpError{
+			HttpCode: http.StatusForbidden,
+			Message:  "Not authorized to delete this event",
+		}
+	}
+
+	// Check status
+	if dbEvent.Status == model.StatusConfirmed {
 		return rest.HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Event is confirmed and cannot be deleted",
 		}
 	}
 
-	delete(r.eventStorage, req.Id)
+	// Delete event
+	if err := dbEvent.Delete(ctx, r.db); err != nil {
+		slog.Error("Failed to delete event", "error", err)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to delete event",
+		}
+	}
+
 	return nil
 }
 
 func (r *Router) joinEventHandler(c *gin.Context, req *JoinRequestRequest) (*JoinRequestResponse, error) {
-	event, ok := r.eventStorage[req.EventId]
+	ctx := context.Background()
+
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// Get event from database
+	_, err := model.EventByID(ctx, r.db, req.EventId)
+	if err != nil {
+		slog.Error("Failed to get event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
 		}
 	}
-	userId, _ := c.Get(auth.USER_ID_CONTEXT_KEY)
-	req.JoinRequest.Id = uuid.New().String()
 
+	req.JoinRequest.Id = uuid.New().String()
 	joinRequest := JoinRequest{
 		JoinRequestData: req.JoinRequest,
 		UserId:          userId.(string),
 		Status:          JoinRequestStatusWaiting,
 		CreatedAt:       time.Now().UTC(),
 	}
-	event.JoinRequests = append(event.JoinRequests, &joinRequest)
+
+	// Convert to DB model and save
+	dbJoinRequest := APIToDBJoinRequest(&joinRequest, req.EventId)
+	if err := dbJoinRequest.Insert(ctx, r.db); err != nil {
+		slog.Error("Failed to create join request", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create join request",
+		}
+	}
 
 	return &JoinRequestResponse{
 		JoinRequest: joinRequest,
@@ -247,13 +313,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *JoinRequestRequest) (*Joi
 }
 
 func (r *Router) confirmEvent(c *gin.Context, req *EventConfirmationRequest) (*EventConfirmationResponse, error) {
-	event, ok := r.eventStorage[req.EventId]
-	if !ok {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusNotFound,
-			Message:  "Event not found",
-		}
-	}
+	ctx := context.Background()
 
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
@@ -263,8 +323,18 @@ func (r *Router) confirmEvent(c *gin.Context, req *EventConfirmationRequest) (*E
 		}
 	}
 
-	// Check if user is event owner
-	if event.UserId != userId.(string) {
+	// Get event from database
+	dbEvent, err := model.EventByID(ctx, r.db, req.EventId)
+	if err != nil {
+		slog.Error("Failed to get event", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+
+	// Check ownership
+	if dbEvent.UserID != userId.(string) {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusForbidden,
 			Message:  "Only event owner can confirm the event",
@@ -272,32 +342,11 @@ func (r *Router) confirmEvent(c *gin.Context, req *EventConfirmationRequest) (*E
 	}
 
 	// Validate location
-	locationValid := false
-	for _, loc := range event.Locations {
-		if loc == req.LocationId {
-			locationValid = true
-			break
-		}
-	}
-	if !locationValid {
+	_, err = model.EventLocationByEventIDLocationID(ctx, r.db, req.EventId, req.LocationId)
+	if err != nil {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Invalid location selected",
-		}
-	}
-
-	// Validate time slot
-	timeSlotValid := false
-	for _, slot := range event.TimeSlots {
-		if slot.Date == req.Date && slot.Time == req.Time {
-			timeSlotValid = true
-			break
-		}
-	}
-	if !timeSlotValid {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusBadRequest,
-			Message:  "Invalid time slot selected",
 		}
 	}
 
@@ -310,29 +359,52 @@ func (r *Router) confirmEvent(c *gin.Context, req *EventConfirmationRequest) (*E
 		}
 	}
 
-	// Update event status and create confirmation
-	event.Status = EventStatusConfirmed
-	event.Confirmation = &Confirmation{
-		EventId:    event.Id,
+	// Create confirmation
+	confirmation := &Confirmation{
+		EventId:    req.EventId,
 		LocationId: req.LocationId,
 		Date:       parsedDate,
 		Time:       req.Time,
-		Duration:   event.SessionDuration,
+		Duration:   dbEvent.SessionDuration,
 		CreatedAt:  time.Now().UTC(),
 	}
 
-	// Update join request statuses - only accept specified requests
-	for _, joinReq := range event.JoinRequests {
-		for _, acceptedId := range req.JoinRequestsIds {
-			if joinReq.Id == acceptedId {
-				joinReq.Status = JoinRequestStatusAccepted
-				event.Confirmation.AcceptedRequests = append(event.Confirmation.AcceptedRequests, *joinReq)
-				break
-			}
+	// Convert to DB model and save
+	dbConfirmation := APIToDBConfirmation(confirmation)
+	if err := dbConfirmation.Insert(ctx, r.db); err != nil {
+		slog.Error("Failed to create confirmation", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create confirmation",
 		}
 	}
 
+	// Update event status
+	dbEvent.Status = model.StatusConfirmed
+	if err := dbEvent.Update(ctx, r.db); err != nil {
+		slog.Error("Failed to update event status", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to update event status",
+		}
+	}
+
+	// Update join request statuses
+	for _, joinReqId := range req.JoinRequestsIds {
+		dbJoinRequest, err := model.JoinRequestByID(ctx, r.db, joinReqId)
+		if err != nil {
+			slog.Error("Failed to get join request", "error", err)
+			continue
+		}
+		dbJoinRequest.Status = model.StatusAccepted
+		if err := dbJoinRequest.Update(ctx, r.db); err != nil {
+			slog.Error("Failed to update join request status", "error", err)
+			continue
+		}
+		confirmation.AcceptedRequests = append(confirmation.AcceptedRequests, *DBToAPIJoinRequest(dbJoinRequest))
+	}
+
 	return &EventConfirmationResponse{
-		Confirmation: *event.Confirmation,
+		Confirmation: *confirmation,
 	}, nil
 }
