@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -25,7 +24,7 @@ type Router struct {
 	fizz         *fizz.Fizz
 	port         int
 	eventStorage map[string]*Event
-	db           *sql.DB
+	db           model.DB
 }
 
 func (r *Router) Run() {
@@ -36,7 +35,7 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *pkg.HttpConfig, dbConn *sql.DB, debugMode bool) *Router {
+func NewRouter(config *pkg.HttpConfig, dbConn model.DB, debugMode bool) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
 
 	f := rest.NewFizzRouter(config, debugMode)
@@ -77,7 +76,7 @@ func (r *Router) healthHandler(c *gin.Context) (*HealthResponse, error) {
 		Status:  "OK",
 	}
 
-	err := r.db.Ping()
+	_, err := r.db.QueryContext(context.Background(), "SELECT 1")
 
 	if err != nil {
 		resp.Status = "DB Connection Error"
