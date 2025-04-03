@@ -5,16 +5,21 @@ go 1.23.0
 toolchain go1.23.2
 
 require (
+	github.com/aarondl/opt v0.0.0-20240623220848-083f18ab9536
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
+	github.com/jaswdr/faker/v2 v2.3.3
 	github.com/loopfz/gadgeto v0.11.4
 	github.com/num30/config v0.1.3
 	github.com/num30/gin-swagger-ui v0.0.3
 	github.com/penglongli/gin-metrics v0.1.13
 	github.com/prometheus/client_golang v1.21.0
+	github.com/shopspring/decimal v1.3.1
+	github.com/stephenafamo/bob v0.31.0
+	github.com/stephenafamo/scan v0.6.1
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/fizz v0.22.0
 	google.golang.org/protobuf v1.36.5
@@ -22,6 +27,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/aarondl/json v0.0.0-20221020222930-8b0db17ef1bf // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
@@ -30,6 +36,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/qdm12/reprint v0.0.0-20200326205758-722754a53494 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

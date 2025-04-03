@@ -6,18 +6,18 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/xtp-tour/xtp-tour/api/pkg/db/model"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db/models"
 )
 
 func TestDBToAPILocation(t *testing.T) {
 	tests := []struct {
 		name     string
-		facility *model.Facility
+		facility *models.Facility
 		want     Location
 	}{
 		{
 			name: "basic location without coordinates",
-			facility: &model.Facility{
+			facility: &models.Facility{
 				ID:      "facility1",
 				Name:    "Tennis Club",
 				Address: "123 Tennis St",
@@ -30,11 +30,11 @@ func TestDBToAPILocation(t *testing.T) {
 		},
 		{
 			name: "location with coordinates",
-			facility: &model.Facility{
+			facility: &models.Facility{
 				ID:      "facility2",
 				Name:    "Tennis Club 2",
 				Address: "456 Tennis Ave",
-				Location: model.Point{
+				Location: models.Point{
 					Lat: 45.123,
 					Lng: -122.456,
 				},

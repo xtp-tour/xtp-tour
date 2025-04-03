@@ -13,7 +13,6 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
-	"github.com/xtp-tour/xtp-tour/api/pkg/db/model"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
 
@@ -23,7 +22,7 @@ import (
 type Router struct {
 	fizz *fizz.Fizz
 	port int
-	db   model.DB
+	db   *db.Db
 }
 
 func (r *Router) Run() {
@@ -34,7 +33,7 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *pkg.HttpConfig, dbConn model.DB, debugMode bool) *Router {
+func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
 
 	f := rest.NewFizzRouter(config, debugMode)
@@ -73,7 +72,7 @@ func (r *Router) healthHandler(c *gin.Context) (*HealthResponse, error) {
 		Status:  "OK",
 	}
 
-	_, err := r.db.QueryContext(context.Background(), "SELECT 1")
+	err := r.db.Ping()
 
 	if err != nil {
 		resp.Status = "DB Connection Error"
@@ -84,11 +83,11 @@ func (r *Router) healthHandler(c *gin.Context) (*HealthResponse, error) {
 	return resp, nil
 }
 
-func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListLocationsResponse, error) {
+func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest) (*ListFacilitiesResponse, error) {
 	ctx := context.Background()
 
 	// Get facilities from database
-	facilities, err := db.GetAllFacilities(ctx, r.db)
+	facilities, err := r.db.GetAllFacilities(ctx)
 	if err != nil {
 		slog.Error("Failed to get facilities", "error", err)
 		return nil, rest.HttpError{
@@ -97,14 +96,13 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *ListLocationsRequest)
 		}
 	}
 
-	// Map facilities to API response
 	locations := make([]Location, 0, len(facilities))
 	for _, facility := range facilities {
 		locations = append(locations, DBToAPILocation(facility))
 	}
 
-	return &ListLocationsResponse{
-		Locations: locations,
+	return &ListFacilitiesResponse{
+		Facilities: locations,
 	}, nil
 }
 

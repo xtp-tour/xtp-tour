@@ -1,228 +1,196 @@
 package server
 
 import (
-	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
-	"github.com/xtp-tour/xtp-tour/api/pkg/db/model"
+	"github.com/aarondl/opt/null"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db/models"
 )
 
 // DBToAPILocation converts a DB Facility model to an API Location model
-func DBToAPILocation(facility *model.Facility) Location {
-	location := Location{
-		ID:      facility.ID,
-		Name:    facility.Name,
-		Address: facility.Address,
-	}
-
-	if facility.Location != (model.Point{}) {
-		location.Coordinates = Coordinates{
-			Latitude:  facility.Location.Lat,
-			Longitude: facility.Location.Lng,
+func DBToAPILocation(facility *models.Facility) Location {
+	// Parse coordinates from the location string
+	var coordinates Coordinates
+	if facility.Location != "" {
+		// Parse the location string which is in the format "latitude,longitude"
+		parts := strings.Split(facility.Location, ",")
+		if len(parts) == 2 {
+			if lat, err := strconv.ParseFloat(parts[0], 64); err == nil {
+				coordinates.Latitude = lat
+			}
+			if lng, err := strconv.ParseFloat(parts[1], 64); err == nil {
+				coordinates.Longitude = lng
+			}
 		}
 	}
 
-	return location
+	return Location{
+		ID:          facility.ID,
+		Name:        facility.Name,
+		Address:     facility.Address,
+		Coordinates: coordinates,
+	}
+}
+
+// APIToDBFacility converts an API Location model to a DB Facility model
+func APIToDBFacility(location *Location) *models.Facility {
+	// Format location string as "latitude,longitude"
+	locationStr := ""
+	if location.Coordinates.Latitude != 0 || location.Coordinates.Longitude != 0 {
+		locationStr = fmt.Sprintf("%f,%f", location.Coordinates.Latitude, location.Coordinates.Longitude)
+	}
+
+	facility := &models.Facility{
+		ID:       location.ID,
+		Name:     location.Name,
+		Address:  location.Address,
+		Location: locationStr,
+		// Default country if not provided
+		Country: "US",
+	}
+
+	return facility
+}
+
+// DBToAPIFacility converts a DB Facility model to an API Location model
+func DBToAPIFacility(facility *models.Facility) Location {
+	// Parse coordinates from the location string
+	var coordinates Coordinates
+	if facility.Location != "" {
+		// Parse the location string which is in the format "latitude,longitude"
+		parts := strings.Split(facility.Location, ",")
+		if len(parts) == 2 {
+			if lat, err := strconv.ParseFloat(parts[0], 64); err == nil {
+				coordinates.Latitude = lat
+			}
+			if lng, err := strconv.ParseFloat(parts[1], 64); err == nil {
+				coordinates.Longitude = lng
+			}
+		}
+	}
+
+	return Location{
+		ID:          facility.ID,
+		Name:        facility.Name,
+		Address:     facility.Address,
+		Coordinates: coordinates,
+	}
 }
 
 // APIToDBEvent converts an API Event model to a DB Event model
-func APIToDBEvent(event *Event) *model.Event {
-	dbEvent := &model.Event{
+func APIToDBEvent(event *Event) *models.Event {
+	var description null.Val[string]
+	if event.Description != "" {
+		description.Set(event.Description)
+	}
+
+	dbEvent := &models.Event{
 		ID:              event.Id,
 		UserID:          event.UserId,
-		Description:     sql.NullString{String: event.Description, Valid: event.Description != ""},
-		ExpectedPlayers: event.ExpectedPlayers,
-		SessionDuration: event.SessionDuration,
+		SkillLevel:      models.EventsSkillLevel(event.SkillLevel),
+		Description:     description,
+		EventType:       models.EventsEventType(event.EventType),
+		ExpectedPlayers: int32(event.ExpectedPlayers),
+		SessionDuration: int32(event.SessionDuration),
+		Status:          models.EventsStatus(event.Status),
 		CreatedAt:       event.CreatedAt,
-		UpdatedAt:       time.Now().UTC(),
-	}
-
-	// Map skill level
-	switch event.SkillLevel {
-	case SkillLevelAny:
-		dbEvent.SkillLevel = model.SkillLevelAny
-	case SkillLevelBeginner:
-		dbEvent.SkillLevel = model.SkillLevelBeginner
-	case SkillLevelIntermediate:
-		dbEvent.SkillLevel = model.SkillLevelIntermediate
-	case SkillLevelAdvanced:
-		dbEvent.SkillLevel = model.SkillLevelAdvanced
-	}
-
-	// Map event type
-	switch event.EventType {
-	case ActivityTypeMatch:
-		dbEvent.EventType = model.EventTypeMatch
-	case ActivityTypeTraining:
-		dbEvent.EventType = model.EventTypeTraining
-	}
-
-	// Map status
-	switch event.Status {
-	case EventStatusOpen:
-		dbEvent.Status = model.StatusOpen
-	case EventStatusAccepted:
-		dbEvent.Status = model.StatusAccepted
-	case EventStatusConfirmed:
-		dbEvent.Status = model.StatusConfirmed
-	case EventStatusCancelled:
-		dbEvent.Status = model.StatusCancelled
-	case EventStatusReservationFailed:
-		dbEvent.Status = model.StatusReservationFailed
-	case EventStatusCompleted:
-		dbEvent.Status = model.StatusCompleted
+		UpdatedAt:       time.Now(),
 	}
 
 	return dbEvent
 }
 
 // DBToAPIEvent converts a DB Event model to an API Event model
-func DBToAPIEvent(dbEvent *model.Event) *Event {
+func DBToAPIEvent(dbEvent *models.Event) *Event {
+	var description string
+	if dbEvent.Description.IsSet() {
+		description = dbEvent.Description.MustGet()
+	}
+
 	event := &Event{
 		EventData: EventData{
 			Id:              dbEvent.ID,
-			Description:     dbEvent.Description.String,
-			ExpectedPlayers: dbEvent.ExpectedPlayers,
-			SessionDuration: dbEvent.SessionDuration,
+			SkillLevel:      SkillLevel(dbEvent.SkillLevel),
+			Description:     description,
+			EventType:       EventType(dbEvent.EventType),
+			ExpectedPlayers: int(dbEvent.ExpectedPlayers),
+			SessionDuration: int(dbEvent.SessionDuration),
 		},
 		UserId:    dbEvent.UserID,
+		Status:    EventStatus(dbEvent.Status),
 		CreatedAt: dbEvent.CreatedAt,
-	}
-
-	// Map skill level
-	switch dbEvent.SkillLevel {
-	case model.SkillLevelAny:
-		event.SkillLevel = SkillLevelAny
-	case model.SkillLevelBeginner:
-		event.SkillLevel = SkillLevelBeginner
-	case model.SkillLevelIntermediate:
-		event.SkillLevel = SkillLevelIntermediate
-	case model.SkillLevelAdvanced:
-		event.SkillLevel = SkillLevelAdvanced
-	}
-
-	// Map event type
-	switch dbEvent.EventType {
-	case model.EventTypeMatch:
-		event.EventType = ActivityTypeMatch
-	case model.EventTypeTraining:
-		event.EventType = ActivityTypeTraining
-	}
-
-	// Map status
-	switch dbEvent.Status {
-	case model.StatusOpen:
-		event.Status = EventStatusOpen
-	case model.StatusAccepted:
-		event.Status = EventStatusAccepted
-	case model.StatusConfirmed:
-		event.Status = EventStatusConfirmed
-	case model.StatusCancelled:
-		event.Status = EventStatusCancelled
-	case model.StatusReservationFailed:
-		event.Status = EventStatusReservationFailed
-	case model.StatusCompleted:
-		event.Status = EventStatusCompleted
 	}
 
 	return event
 }
 
-// APIToDBConfirmation converts an API Confirmation model to a DB Confirmation model
-func APIToDBConfirmation(confirmation *Confirmation) *model.Confirmation {
-	return &model.Confirmation{
-		ID:         confirmation.EventId,
-		EventID:    confirmation.EventId,
-		LocationID: confirmation.LocationId,
-		Date:       confirmation.Date,
-		Time:       confirmation.Time,
-		Duration:   confirmation.Duration,
-		CreatedAt:  confirmation.CreatedAt,
-	}
-}
-
-// DBToAPIConfirmation converts a DB Confirmation model to an API Confirmation model
-func DBToAPIConfirmation(dbConfirmation *model.Confirmation) *Confirmation {
-	return &Confirmation{
-		EventId:    dbConfirmation.EventID,
-		LocationId: dbConfirmation.LocationID,
-		Date:       dbConfirmation.Date,
-		Time:       dbConfirmation.Time,
-		Duration:   dbConfirmation.Duration,
-		CreatedAt:  dbConfirmation.CreatedAt,
-	}
-}
-
 // APIToDBJoinRequest converts an API JoinRequest model to a DB JoinRequest model
-func APIToDBJoinRequest(joinRequest *JoinRequest, eventId string) *model.JoinRequest {
-	dbJoinRequest := &model.JoinRequest{
+func APIToDBJoinRequest(joinRequest *JoinRequest, eventId string) *models.JoinRequest {
+	var comment null.Val[string]
+	if joinRequest.Comment != "" {
+		comment.Set(joinRequest.Comment)
+	}
+
+	dbJoinRequest := &models.JoinRequest{
 		ID:        joinRequest.Id,
 		EventID:   eventId,
 		UserID:    joinRequest.UserId,
-		Comment:   sql.NullString{String: joinRequest.Comment, Valid: joinRequest.Comment != ""},
+		Status:    models.JoinRequestsStatus(joinRequest.Status),
+		Comment:   comment,
 		CreatedAt: joinRequest.CreatedAt,
-	}
-
-	// Map status
-	switch joinRequest.Status {
-	case JoinRequestStatusWaiting:
-		dbJoinRequest.Status = model.StatusOpen
-	case JoinRequestStatusAccepted:
-		dbJoinRequest.Status = model.StatusAccepted
-	case JoinRequestStatusRejected:
-		dbJoinRequest.Status = model.StatusCancelled
-	case JoinRequestStatusCancelled:
-		dbJoinRequest.Status = model.StatusCancelled
-	case JoinRequestStatusReservationFailed:
-		dbJoinRequest.Status = model.StatusReservationFailed
 	}
 
 	return dbJoinRequest
 }
 
 // DBToAPIJoinRequest converts a DB JoinRequest model to an API JoinRequest model
-func DBToAPIJoinRequest(dbJoinRequest *model.JoinRequest) *JoinRequest {
+func DBToAPIJoinRequest(dbJoinRequest *models.JoinRequest) *JoinRequest {
+	var comment string
+	if dbJoinRequest.Comment.IsSet() {
+		comment = dbJoinRequest.Comment.MustGet()
+	}
+
 	joinRequest := &JoinRequest{
 		JoinRequestData: JoinRequestData{
 			Id:      dbJoinRequest.ID,
-			Comment: dbJoinRequest.Comment.String,
+			Comment: comment,
 		},
 		UserId:    dbJoinRequest.UserID,
+		Status:    JoinRequestStatus(dbJoinRequest.Status),
 		CreatedAt: dbJoinRequest.CreatedAt,
-	}
-
-	// Map status
-	switch dbJoinRequest.Status {
-	case model.StatusOpen:
-		joinRequest.Status = JoinRequestStatusWaiting
-	case model.StatusAccepted:
-		joinRequest.Status = JoinRequestStatusAccepted
-	case model.StatusCancelled:
-		joinRequest.Status = JoinRequestStatusRejected
-	case model.StatusReservationFailed:
-		joinRequest.Status = JoinRequestStatusReservationFailed
 	}
 
 	return joinRequest
 }
 
-// APIToDBTimeSlot converts an API SessionTimeSlot to a DB TimeSlot
-func APIToDBTimeSlot(timeSlot SessionTimeSlot) (*model.EventTimeSlot, error) {
-	date, err := time.Parse("2006-01-02", timeSlot.Date)
-	if err != nil {
-		return nil, err
+// APIToDBConfirmation converts an API Confirmation model to a DB Confirmation model
+func APIToDBConfirmation(confirmation *Confirmation) *models.Confirmation {
+	dbConfirmation := &models.Confirmation{
+		ID:         confirmation.EventId, // Using EventId as the ID for simplicity
+		EventID:    confirmation.EventId,
+		LocationID: confirmation.LocationId,
+		Date:       confirmation.Date,
+		Time:       int32(confirmation.Time),
+		Duration:   int32(confirmation.Duration),
+		CreatedAt:  confirmation.CreatedAt,
 	}
 
-	return &model.EventTimeSlot{
-		Date: date,
-		Time: timeSlot.Time,
-	}, nil
+	return dbConfirmation
 }
 
-// DBToAPITimeSlot converts a DB TimeSlot to an API SessionTimeSlot
-func DBToAPITimeSlot(dbTimeSlot *model.EventTimeSlot) SessionTimeSlot {
-	return SessionTimeSlot{
-		Date: dbTimeSlot.Date.Format("2006-01-02"),
-		Time: dbTimeSlot.Time,
+// DBToAPIConfirmation converts a DB Confirmation model to an API Confirmation model
+func DBToAPIConfirmation(dbConfirmation *models.Confirmation) *Confirmation {
+	confirmation := &Confirmation{
+		EventId:    dbConfirmation.EventID,
+		LocationId: dbConfirmation.LocationID,
+		Date:       dbConfirmation.Date,
+		Time:       int(dbConfirmation.Time),
+		Duration:   int(dbConfirmation.Duration),
+		CreatedAt:  dbConfirmation.CreatedAt,
 	}
+
+	return confirmation
 }

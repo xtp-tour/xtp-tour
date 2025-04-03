@@ -181,8 +181,8 @@ type Location struct {
 type ListLocationsRequest struct {
 }
 
-type ListLocationsResponse struct {
-	Locations []Location `json:"locations"`
+type ListFacilitiesResponse struct {
+	Facilities []Location `json:"locations"`
 }
 
 type GetLocationRequest struct {

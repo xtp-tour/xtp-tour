@@ -15,7 +15,7 @@ lint:
 	golangci-lint run
 
 deps:
-	go install github.com/xo/xo@latest
+	go install github.com/stephenafamo/bob/cmd/bob@latest
 
 clean:
 	rm pb/gen/*.go
@@ -29,7 +29,8 @@ dev:
 
 gen-schemas:
 	go run ./... migrate
-	xo schema "mysql://root:password@127.0.0.1:33306/xtp_tour?parseTime=true&sql_mode=ansi"  -o pkg/db/model
+	cd pkg/db && MYSQL_DSN='root:password@tcp(127.0.0.1:33306)/xtp_tour?parseTime=true' go run github.com/stephenafamo/bob/gen/bobgen-mysql@v0.31.0
+
 
 # service tests
 servicetest.run:
