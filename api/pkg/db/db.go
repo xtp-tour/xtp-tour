@@ -53,7 +53,7 @@ func GetDB(config *pkg.DbConfig) (*sql.DB, error) {
 }
 
 // GetAllFacilities retrieves all facilities from the database
-func GetAllFacilities(ctx context.Context, db model.DB) ([]*model.Facility, error) {
+func (db *Db) GetAllFacilities(ctx context.Context) ([]*model.Facility, error) {
 	query := `SELECT id, name, address, google_maps_link, website, country, location FROM xtp_tour.facilities`
 
 	rows, err := db.QueryContext(ctx, query)
@@ -63,15 +63,6 @@ func GetAllFacilities(ctx context.Context, db model.DB) ([]*model.Facility, erro
 	defer rows.Close()
 
 	var facilities []*model.Facility
-	for rows.Next() {
-		f := &model.Facility{}
-
-		if err := rows.Scan(&f.ID, &f.Name, &f.Address, &f.GoogleMapsLink, &f.Website, &f.Country, &f.Location); err != nil {
-			return nil, err
-		}
-
-		facilities = append(facilities, f)
-	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
