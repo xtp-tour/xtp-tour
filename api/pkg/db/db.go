@@ -2,71 +2,77 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
-	"github.com/xtp-tour/xtp-tour/api/pkg/db/model"
+	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 )
 
 var (
-	instance *sql.DB
-	once     sync.Once
-	mutex    sync.Mutex
+	dbConn *sqlx.DB
+	once   sync.Once
 )
 
 type Db struct {
+	conn *sqlx.DB
 }
 
 // GetDB returns a singleton database connection
-func GetDB(config *pkg.DbConfig) (*sql.DB, error) {
+func GetDB(config *pkg.DbConfig) (*Db, error) {
 	var err error
+	var db *Db
 
 	once.Do(func() {
 		slog.Info("Initializing database connection", "host", config.Host, "port", config.Port, "database", config.Database)
-		instance, err = sql.Open("mysql", config.GetConnectionString())
+		dbConn, err = sqlx.Connect("mysql", config.GetConnectionString())
 		if err != nil {
 			slog.Error("Failed to connect to database", "error", err)
 			return
 		}
 
-		err = instance.Ping()
+		err = dbConn.Ping()
 		if err != nil {
 			slog.Error("Failed to ping database", "error", err)
 			return
 		}
 
 		// Configure connection pool
-		instance.SetMaxOpenConns(25)
-		instance.SetMaxIdleConns(5)
+		dbConn.SetMaxOpenConns(25)
+		dbConn.SetMaxIdleConns(5)
 
 		slog.Info("Database connection established")
+		db = &Db{conn: dbConn}
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	return instance, nil
+	return db, nil
+}
+
+func (db *Db) Ping(ctx context.Context) error {
+	return db.conn.PingContext(ctx)
 }
 
 // GetAllFacilities retrieves all facilities from the database
-func (db *Db) GetAllFacilities(ctx context.Context) ([]*model.Facility, error) {
-	query := `SELECT id, name, address, google_maps_link, website, country, location FROM xtp_tour.facilities`
+func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
+	query := `SELECT 
+		id,
+		name,
+		address,
+		ST_Y(location) as 'coordinates.latitude',
+		ST_X(location) as 'coordinates.longitude'
+	FROM xtp_tour.facilities`
 
-	rows, err := db.QueryContext(ctx, query)
+	var locations []api.Location
+	err := db.conn.SelectContext(ctx, &locations, query)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var facilities []*model.Facility
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return facilities, nil
+	return locations, nil
 }

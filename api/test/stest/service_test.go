@@ -12,7 +12,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/num30/config"
 	"github.com/stretchr/testify/assert"
-	"github.com/xtp-tour/xtp-tour/api/pkg/server"
+	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 )
 
 type TestConfig struct {
@@ -59,14 +59,14 @@ func Test_EventAPI(t *testing.T) {
 
 	// Create an event
 	t.Run("CreateEvent", func(tt *testing.T) {
-		eventData := server.CreateEventRequest{
-			Event: server.EventData{
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
 				Locations:       []string{"location1", "location2"},
-				SkillLevel:      server.SkillLevelIntermediate,
-				EventType:       server.ActivityTypeMatch,
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []server.SessionTimeSlot{
+				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
 					{Date: "2023-10-17", Time: 18},
@@ -76,7 +76,7 @@ func Test_EventAPI(t *testing.T) {
 			},
 		}
 
-		var response server.CreateEventResponse
+		var response api.CreateEventResponse
 
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
@@ -93,7 +93,7 @@ func Test_EventAPI(t *testing.T) {
 
 	// List events
 	t.Run("ListEvents", func(tt *testing.T) {
-		var response server.ListEventsResponse
+		var response api.ListEventsResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
 			SetResult(&response).
@@ -137,10 +137,10 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		joinRequestData := server.JoinRequestRequest{
-			JoinRequest: server.JoinRequestData{
+		joinRequestData := api.JoinRequestRequest{
+			JoinRequest: api.JoinRequestData{
 				Locations: []string{"location1"},
-				TimeSlots: []server.SessionTimeSlot{
+				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
 				},
@@ -163,10 +163,10 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		joinRequestData := server.JoinRequestRequest{
-			JoinRequest: server.JoinRequestData{
+		joinRequestData := api.JoinRequestRequest{
+			JoinRequest: api.JoinRequestData{
 				Locations: []string{"location2", "location1"},
-				TimeSlots: []server.SessionTimeSlot{
+				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
 					{Date: "2023-10-17", Time: 18},
@@ -191,7 +191,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		var response server.GetEventResponse
+		var response api.GetEventResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
 			SetResult(&response).
@@ -200,7 +200,7 @@ func Test_EventAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			assert.Equal(tt, response.Event.Id, eventId)
-			assert.Equal(tt, response.Event.Status, server.EventStatusOpen)
+			assert.Equal(tt, response.Event.Status, api.EventStatusOpen)
 			assert.Len(tt, response.Event.JoinRequests, 2)
 			joinRequestId = response.Event.JoinRequests[0].Id
 		}
@@ -211,7 +211,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, fmt.Sprintf("Event ID or join request ID is not available. Event ID: %s, join request ID: %s", eventId, joinRequestId))
 		}
 
-		confirmation := server.EventConfirmationRequest{
+		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location1",
 			Date:            "2023-10-15",
@@ -235,7 +235,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		confirmation := server.EventConfirmationRequest{
+		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location1",
 			Date:            "2023-05-15",
@@ -259,7 +259,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		confirmation := server.EventConfirmationRequest{
+		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location3",
 			Date:            "2023-10-15",
@@ -283,7 +283,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		confirmation := server.EventConfirmationRequest{
+		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location1",
 			Date:            "2023-10-15",
@@ -307,7 +307,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Fail(tt, "Event ID is not available")
 		}
 
-		var response server.GetEventResponse
+		var response api.GetEventResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
 			SetResult(&response).
@@ -317,7 +317,7 @@ func Test_EventAPI(t *testing.T) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 
 			// Verify event is confirmed
-			assert.Equal(tt, server.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
+			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
 			assert.Equal(tt, "location1", response.Event.Confirmation.LocationId, "Confirmed location should match")
 			assert.Equal(tt, "2023-10-15", response.Event.Confirmation.Date.Format("2006-01-02"), "Confirmed date should match")
 			assert.Equal(tt, 14, response.Event.Confirmation.Time, "Confirmed time should match")
@@ -349,20 +349,20 @@ func Test_DeleteEvent(t *testing.T) {
 	t.Run("CreateEvent", func(tt *testing.T) {
 		user := "test-user-1"
 		// Create an event
-		eventData := server.CreateEventRequest{
-			Event: server.EventData{
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
 				Locations:       []string{"location1", "location2"},
-				SkillLevel:      server.SkillLevelIntermediate,
-				EventType:       server.ActivityTypeMatch,
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []server.SessionTimeSlot{
+				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-17", Time: 19},
 				},
 			},
 		}
 
-		var response server.CreateEventResponse
+		var response api.CreateEventResponse
 
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
