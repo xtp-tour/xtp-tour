@@ -242,3 +242,24 @@ func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api
 	}
 	return &events[0], nil
 }
+
+func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) error {
+
+	result, err := db.conn.ExecContext(ctx, `DELETE FROM events WHERE id = ? AND user_id = ?`, eventId, userId)
+	if err != nil {
+		slog.Error("Failed to delete event", "error", err, "eventId", eventId, "userId", userId)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		slog.Error("Failed to get rows affected", "error", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return DbObjectNotFoundError{Message: "Event not found"}
+	}
+
+	return nil
+}

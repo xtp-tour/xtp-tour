@@ -190,6 +190,13 @@ func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api
 
 	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
 	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Event not found",
+			}
+		}
+
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -202,8 +209,32 @@ func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api
 }
 
 func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest) error {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
 
-	panic("not implemented")
+	err := r.db.DeleteEvent(context.Background(), userId.(string), req.Id)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Event not found",
+			}
+		}
+
+		slog.Error("Failed to delete event", "error", err, "eventId", req.Id, "userId", userId)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to delete event",
+		}
+	}
+
+	return nil
 }
 
 func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (*api.JoinRequestResponse, error) {
