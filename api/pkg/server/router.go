@@ -179,8 +179,26 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 }
 
 func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
-	panic("not implemented")
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
 
+	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get event",
+		}
+	}
+
+	return &api.GetEventResponse{
+		Event: event,
+	}, nil
 }
 
 func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest) error {

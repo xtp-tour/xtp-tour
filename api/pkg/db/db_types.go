@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type DbObjectNotFoundError struct {
+	Message string
+}
+
+func (e DbObjectNotFoundError) Error() string {
+	return e.Message
+}
+
 type EventLocationRow struct {
 	EventId    string `db:"event_id"`
 	LocationId string `db:"location_id"`

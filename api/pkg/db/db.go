@@ -144,6 +144,10 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 
 func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]api.Event, error) {
 	// First, get all events for the user
+	return db.getEventsInternal(ctx, userId, "")
+}
+
+func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter string, extraFilterParams ...interface{}) ([]api.Event, error) {
 	query := `SELECT 
 		e.id,
 		e.user_id,
@@ -157,9 +161,14 @@ func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]api.Event, 
 		e.created_at
 	FROM events e
 	WHERE e.user_id = ?`
+	if extraFilter != "" {
+		query += " AND " + extraFilter
+	}
 
 	var eventRows []EventRow
-	err := db.conn.SelectContext(ctx, &eventRows, query, userId)
+	params := []interface{}{userId}
+	params = append(params, extraFilterParams...)
+	err := db.conn.SelectContext(ctx, &eventRows, query, params...)
 	if err != nil {
 		slog.Error("Failed to get user events", "error", err, "userId", userId)
 		return nil, err
@@ -221,4 +230,15 @@ func (db *Db) getEventTimeSlots(ctx context.Context, eventId string) ([]api.Sess
 		return nil, err
 	}
 	return timeSlots, nil
+}
+
+func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
+	events, err := db.getEventsInternal(ctx, userId, "e.id = ?", eventId)
+	if err != nil {
+		return nil, err
+	}
+	if len(events) == 0 {
+		return nil, DbObjectNotFoundError{Message: "Event not found"}
+	}
+	return &events[0], nil
 }
