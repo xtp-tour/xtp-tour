@@ -35,6 +35,7 @@ func (r *Router) Run() {
 
 func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
+	slog.Info("Auth config type", "type", config.AuthConfig.Type)
 
 	f := rest.NewFizzRouter(config, debugMode)
 
@@ -79,8 +80,8 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	authMiddleware := auth.CreateAuthMiddleware(authConf)
 
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
-	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusCreated))
-	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
+	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
+	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
 	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
@@ -129,11 +130,52 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *api.ListLocationsRequ
 
 // Events
 func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest) (*api.CreateEventResponse, error) {
-	panic("not implemented")
+
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	req.Event.UserId = userId.(string)
+	err := r.db.CreateEvent(context.Background(), &req.Event)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create event",
+		}
+	}
+
+	return &api.CreateEventResponse{
+		Event: &api.Event{
+			EventData: req.Event,
+		},
+	}, nil
 }
 
 func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (*api.ListEventsResponse, error) {
-	panic("not implemented")
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	events, err := r.db.GetEventsOfUser(context.Background(), userId.(string))
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get events",
+		}
+	}
+
+	return &api.ListEventsResponse{
+		Events: events,
+	}, nil
 }
 
 func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {

@@ -1,6 +1,6 @@
 -- Create events table
 CREATE TABLE IF NOT EXISTS events (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     user_id VARCHAR(36) NOT NULL,
     skill_level ENUM('ANY', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED') NOT NULL,
     description TEXT,
@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS events (
     expected_players INT NOT NULL,
     session_duration INT NOT NULL,
     status ENUM('OPEN', 'ACCEPTED', 'CONFIRMED', 'CANCELLED', 'RESERVATION_FAILED', 'COMPLETED') NOT NULL DEFAULT 'OPEN',
+    visibility ENUM('PUBLIC', 'PRIVATE') NOT NULL DEFAULT 'PUBLIC',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS event_locations (
 
 -- Create event_time_slots table
 CREATE TABLE IF NOT EXISTS event_time_slots (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     event_id VARCHAR(36) NOT NULL,
     date DATE NOT NULL,
     time INT NOT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS event_time_slots (
 
 -- Create join_requests table
 CREATE TABLE IF NOT EXISTS join_requests (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     event_id VARCHAR(36) NOT NULL,
     user_id VARCHAR(36) NOT NULL,
     status ENUM('WAITING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'RESERVATION_FAILED') NOT NULL DEFAULT 'WAITING',
@@ -52,7 +53,7 @@ CREATE TABLE IF NOT EXISTS join_request_locations (
 
 -- Create join_request_time_slots table
 CREATE TABLE IF NOT EXISTS join_request_time_slots (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     join_request_id VARCHAR(36) NOT NULL,
     date DATE NOT NULL,
     time INT NOT NULL,

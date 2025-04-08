@@ -59,6 +59,14 @@ const (
 	JoinRequestStatusReservationFailed JoinRequestStatus = "RESERVATION_FAILED"
 )
 
+// Event visibility constants
+type EventVisibility string
+
+const (
+	EventVisibilityPublic  EventVisibility = "PUBLIC"
+	EventVisibilityPrivate EventVisibility = "PRIVATE"
+)
+
 // SessionTimeSlot represents an available time slot
 type SessionTimeSlot struct {
 	Date string `json:"date"`
@@ -107,19 +115,20 @@ type Confirmation struct {
 // EventData represents user's input for an event
 type EventData struct {
 	Id              string            `json:"id"`
-	Locations       []string          `json:"locations"`
-	SkillLevel      SkillLevel        `json:"skillLevel"`
-	Description     string            `json:"description,omitempty"`
-	EventType       EventType         `json:"eventType"`
-	ExpectedPlayers int               `json:"expectedPlayers"`
-	SessionDuration int               `json:"sessionDuration"`
-	TimeSlots       []SessionTimeSlot `json:"timeSlots"`
+	UserId          string            `json:"userId" db:"user_id"`
+	Locations       []string          `json:"locations" validate:"required" db:"locations"`
+	SkillLevel      SkillLevel        `json:"skillLevel" validate:"required" db:"skill_level"`
+	Description     string            `json:"description,omitempty" `
+	EventType       EventType         `json:"eventType" validate:"required" db:"event_type"`
+	ExpectedPlayers int               `json:"expectedPlayers" validate:"required" db:"expected_players"`
+	SessionDuration int               `json:"sessionDuration" validate:"required" db:"session_duration"`
+	TimeSlots       []SessionTimeSlot `json:"timeSlots" validate:"required"`
+	Visibility      EventVisibility   `json:"visibility" validate:"required" `
 }
 
 // Event represents an internal representation of an event
 type Event struct {
 	EventData
-	UserId       string         `json:"userId"`
 	Status       EventStatus    `json:"status"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	JoinRequests []*JoinRequest `json:"joinRequests"`

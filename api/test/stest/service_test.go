@@ -61,7 +61,7 @@ func Test_EventAPI(t *testing.T) {
 	t.Run("CreateEvent", func(tt *testing.T) {
 		eventData := api.CreateEventRequest{
 			Event: api.EventData{
-				Locations:       []string{"location1", "location2"},
+				Locations:       []string{"matchpoint", "spartan-pultuska"},
 				SkillLevel:      api.SkillLevelIntermediate,
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
@@ -73,6 +73,7 @@ func Test_EventAPI(t *testing.T) {
 					{Date: "2023-10-17", Time: 19},
 				},
 				Description: "Test event for integration testing",
+				Visibility:  api.EventVisibilityPublic,
 			},
 		}
 
@@ -85,14 +86,16 @@ func Test_EventAPI(t *testing.T) {
 			Post(tConfig.ServiceHost + "/api/events/")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusCreated, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-			eventId = response.Event.Id
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Event) {
+				eventId = response.Event.Id
+			}
 		}
 
 	})
 
 	// List events
-	t.Run("ListEvents", func(tt *testing.T) {
+	t.Run("ListEventsOfUser", func(tt *testing.T) {
 		var response api.ListEventsResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
@@ -139,7 +142,7 @@ func Test_EventAPI(t *testing.T) {
 
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
-				Locations: []string{"location1"},
+				Locations: []string{"matchpoint"},
 				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
@@ -165,7 +168,7 @@ func Test_EventAPI(t *testing.T) {
 
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
-				Locations: []string{"location2", "location1"},
+				Locations: []string{"matchpoint", "spartan-pultuska"},
 				TimeSlots: []api.SessionTimeSlot{
 					{Date: "2023-10-15", Time: 14},
 					{Date: "2023-10-16", Time: 16},
@@ -213,7 +216,7 @@ func Test_EventAPI(t *testing.T) {
 
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
-			LocationId:      "location1",
+			LocationId:      "matchpoint",
 			Date:            "2023-10-15",
 			Time:            14,
 			Duration:        60,
@@ -237,7 +240,7 @@ func Test_EventAPI(t *testing.T) {
 
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
-			LocationId:      "location1",
+			LocationId:      "matchpoint",
 			Date:            "2023-05-15",
 			Time:            14,
 			Duration:        60,
@@ -285,7 +288,7 @@ func Test_EventAPI(t *testing.T) {
 
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
-			LocationId:      "location1",
+			LocationId:      "matchpoint",
 			Date:            "2023-10-15",
 			Time:            14,
 			Duration:        60,
@@ -318,7 +321,7 @@ func Test_EventAPI(t *testing.T) {
 
 			// Verify event is confirmed
 			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
-			assert.Equal(tt, "location1", response.Event.Confirmation.LocationId, "Confirmed location should match")
+			assert.Equal(tt, "matchpoint", response.Event.Confirmation.LocationId, "Confirmed location should match")
 			assert.Equal(tt, "2023-10-15", response.Event.Confirmation.Date.Format("2006-01-02"), "Confirmed date should match")
 			assert.Equal(tt, 14, response.Event.Confirmation.Time, "Confirmed time should match")
 			assert.Equal(tt, 60, response.Event.Confirmation.Duration, "Confirmed duration should match")
@@ -351,7 +354,7 @@ func Test_DeleteEvent(t *testing.T) {
 		// Create an event
 		eventData := api.CreateEventRequest{
 			Event: api.EventData{
-				Locations:       []string{"location1", "location2"},
+				Locations:       []string{"matchpoint", "spartan-pultuska"},
 				SkillLevel:      api.SkillLevelIntermediate,
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,

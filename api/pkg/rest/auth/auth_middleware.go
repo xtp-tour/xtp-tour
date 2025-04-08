@@ -12,11 +12,11 @@ const USER_ID_CONTEXT_KEY = "userId"
 // CreateAuthMiddleware creates an auth middleware based on the auth config
 func CreateAuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 
-	if authConfig.Type != "clerk" {
+	if authConfig.Type == "clerk" {
 		return CreateClerkAuth(authConfig.Type)
 	}
 
-	if authConfig.Type != "debug" {
+	if authConfig.Type == "debug" {
 		return func(c *gin.Context) {
 
 			userId := c.GetHeader("Authentication")
