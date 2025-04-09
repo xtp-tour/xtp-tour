@@ -104,6 +104,7 @@ func Test_EventAPI(t *testing.T) {
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Greater(tt, len(response.Events), 0, "No events found")
 			exist := false
 			for _, e := range response.Events {
 				if e.Id == eventId {

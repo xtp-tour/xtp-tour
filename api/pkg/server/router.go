@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
@@ -238,11 +239,111 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 }
 
 func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (*api.JoinRequestResponse, error) {
-	panic("not implemented")
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	err := r.db.CreateJoinRequest(context.Background(), req.EventId, userId.(string), &req.JoinRequest)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Event not found",
+			}
+		}
+		slog.Error("Failed to create join request", "error", err, "eventId", req.EventId, "userId", userId)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create join request",
+		}
+	}
+
+	return &api.JoinRequestResponse{
+		JoinRequest: api.JoinRequest{
+			JoinRequestData: req.JoinRequest,
+			UserId:          userId.(string),
+			Status:          api.JoinRequestStatusWaiting,
+			CreatedAt:       time.Now(),
+		},
+	}, nil
 }
 
 func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest) (*api.EventConfirmationResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
 
-	panic("not implemented")
+	// Verify event ownership
+	eventOwner, err := r.db.GetEventOwner(context.Background(), req.EventId)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  err.Error(),
+			}
+		}
+		slog.Error("Failed to get event owner", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to verify event ownership",
+		}
+	}
 
+	if eventOwner != userId.(string) {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusForbidden,
+			Message:  "You don't have permission to confirm this event",
+		}
+	}
+
+	// Verify join requests status
+	joinRequestStatuses, err := r.db.GetJoinRequestsStatus(context.Background(), req.EventId, req.JoinRequestsIds)
+	if err != nil {
+		slog.Error("Failed to get join requests status", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to verify join requests",
+		}
+	}
+
+	// Verify all join requests exist and are in WAITING status
+	for _, joinRequestId := range req.JoinRequestsIds {
+		status, exists := joinRequestStatuses[joinRequestId]
+		if !exists {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  fmt.Sprintf("Join request %s not found", joinRequestId),
+			}
+		}
+		if status != api.JoinRequestStatusWaiting {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusBadRequest,
+				Message:  fmt.Sprintf("Join request %s is not in WAITING status", joinRequestId),
+			}
+		}
+	}
+
+	// All validations passed, proceed with confirmation
+	confirmation, err := r.db.ConfirmEvent(context.Background(), userId.(string), req.EventId, req)
+	if err != nil {
+		slog.Error("Failed to confirm event", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to confirm event",
+		}
+	}
+
+	return &api.EventConfirmationResponse{
+		Confirmation: *confirmation,
+	}, nil
 }

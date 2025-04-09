@@ -2,8 +2,12 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
+	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -142,69 +146,206 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	return nil
 }
 
-func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]api.Event, error) {
+func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]*api.Event, error) {
 	// First, get all events for the user
 	return db.getEventsInternal(ctx, userId, "")
 }
 
-func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter string, extraFilterParams ...interface{}) ([]api.Event, error) {
-	query := `SELECT 
-		e.id,
-		e.user_id,
-		e.skill_level,
-		e.description,
-		e.event_type,
-		e.expected_players,
-		e.session_duration,
-		e.visibility,
-		e.status,
-		e.created_at
-	FROM events e
-	WHERE e.user_id = ?`
+func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter string, extraFilterParams ...interface{}) ([]*api.Event, error) {
+	// First query: get all events, timeslots, locations and confirmations
+	query := `
+		WITH event_data AS (
+			SELECT DISTINCT
+				e.id,
+				e.user_id,
+				e.skill_level,
+				e.description,
+				e.event_type,
+				e.expected_players,
+				e.session_duration,
+				e.visibility,
+				e.status,
+				e.created_at,
+				GROUP_CONCAT(DISTINCT el.location_id) as locations,
+				GROUP_CONCAT(DISTINCT CONCAT(ets.date, ':', ets.time)) as time_slots,
+				c.location_id as confirmed_location,
+				c.date as confirmed_date,
+				c.time as confirmed_time,
+				c.duration as confirmed_duration
+			FROM events e
+			LEFT JOIN event_locations el ON e.id = el.event_id
+			LEFT JOIN event_time_slots ets ON e.id = ets.event_id
+			LEFT JOIN confirmations c ON e.id = c.event_id
+			WHERE e.user_id = ?
+			GROUP BY e.id, e.user_id, e.skill_level, e.description, e.event_type, 
+				e.expected_players, e.session_duration, e.visibility, e.status, e.created_at,
+				c.location_id, c.date, c.time, c.duration
+		)
+		SELECT * FROM event_data
+	`
+
 	if extraFilter != "" {
-		query += " AND " + extraFilter
+		query += " WHERE " + extraFilter
 	}
 
-	var eventRows []EventRow
 	params := []interface{}{userId}
 	params = append(params, extraFilterParams...)
-	err := db.conn.SelectContext(ctx, &eventRows, query, params...)
+
+	rows, err := db.conn.QueryContext(ctx, query, params...)
 	if err != nil {
 		slog.Error("Failed to get user events", "error", err, "userId", userId)
 		return nil, err
 	}
+	defer rows.Close()
 
-	// Convert to API events
-	events := make([]api.Event, len(eventRows))
-	for i, row := range eventRows {
-		// Get locations for this event
-		locations, err := db.getEventLocations(ctx, row.Id)
+	eventMap := make(map[string]*api.Event)
+
+	for rows.Next() {
+		var (
+			id              string
+			userId          string
+			skillLevel      string
+			description     string
+			eventType       string
+			expectedPlayers int
+			sessionDuration int
+			visibility      string
+			status          string
+			createdAt       time.Time
+			locationsStr    sql.NullString
+			timeSlotsStr    sql.NullString
+			confirmedLoc    sql.NullString
+			confirmedDate   sql.NullTime
+			confirmedTime   sql.NullInt64
+			confirmedDur    sql.NullInt64
+		)
+
+		err := rows.Scan(
+			&id, &userId, &skillLevel, &description, &eventType,
+			&expectedPlayers, &sessionDuration, &visibility, &status,
+			&createdAt, &locationsStr, &timeSlotsStr,
+			&confirmedLoc, &confirmedDate, &confirmedTime, &confirmedDur,
+		)
 		if err != nil {
+			slog.Error("Failed to scan event row", "error", err)
 			return nil, err
 		}
 
-		// Get time slots for this event
-		timeSlots, err := db.getEventTimeSlots(ctx, row.Id)
-		if err != nil {
-			return nil, err
+		// Parse locations
+		var locations []string
+		if locationsStr.Valid {
+			locations = strings.Split(locationsStr.String, ",")
 		}
 
-		events[i] = api.Event{
+		// Parse time slots
+		var timeSlots []api.SessionTimeSlot
+		if timeSlotsStr.Valid {
+			slots := strings.Split(timeSlotsStr.String, ",")
+			for _, slot := range slots {
+				parts := strings.Split(slot, ":")
+				if len(parts) == 2 {
+					time, _ := strconv.Atoi(parts[1])
+					timeSlots = append(timeSlots, api.SessionTimeSlot{
+						Date: parts[0],
+						Time: time,
+					})
+				}
+			}
+		}
+
+		// Parse confirmation
+		var confirmation *api.Confirmation
+		if confirmedLoc.Valid && confirmedDate.Valid && confirmedTime.Valid && confirmedDur.Valid {
+			confirmation = &api.Confirmation{
+				EventId:    id,
+				LocationId: confirmedLoc.String,
+				Date:       confirmedDate.Time,
+				Time:       int(confirmedTime.Int64),
+				Duration:   int(confirmedDur.Int64),
+				CreatedAt:  time.Now(),
+			}
+		}
+
+		event := &api.Event{
 			EventData: api.EventData{
-				Id:              row.Id,
-				UserId:          row.UserId,
+				Id:              id,
+				UserId:          userId,
 				Locations:       locations,
-				SkillLevel:      api.SkillLevel(row.SkillLevel),
-				Description:     row.Description,
-				EventType:       api.EventType(row.EventType),
-				ExpectedPlayers: row.ExpectedPlayers,
-				SessionDuration: row.SessionDuration,
+				SkillLevel:      api.SkillLevel(skillLevel),
+				Description:     description,
+				EventType:       api.EventType(eventType),
+				ExpectedPlayers: expectedPlayers,
+				SessionDuration: sessionDuration,
 				TimeSlots:       timeSlots,
-				Visibility:      api.EventVisibility(row.Visibility),
+				Visibility:      api.EventVisibility(visibility),
 			},
-			Status:    api.EventStatus(row.Status),
-			CreatedAt: row.CreatedAt,
+			Status:       api.EventStatus(status),
+			CreatedAt:    createdAt,
+			Confirmation: confirmation,
 		}
+
+		eventMap[id] = event
+	}
+
+	// Second query: get all join requests for these events
+	joinRequestsQuery := `
+		SELECT 
+			jr.id,
+			jr.event_id,
+			jr.user_id,
+			jr.status,
+			jr.comment,
+			jr.created_at
+		FROM join_requests jr
+		WHERE jr.event_id IN (
+			SELECT id FROM events 
+			WHERE user_id = ? OR id IN (
+				SELECT event_id FROM join_requests WHERE user_id = ?
+			)
+		)
+		ORDER BY jr.created_at
+	`
+
+	joinRequestRows, err := db.conn.QueryContext(ctx, joinRequestsQuery, userId, userId)
+	if err != nil {
+		slog.Error("Failed to get join requests", "error", err)
+		return nil, err
+	}
+	defer joinRequestRows.Close()
+
+	for joinRequestRows.Next() {
+		var (
+			id        string
+			eventId   string
+			userId    string
+			status    string
+			comment   string
+			createdAt time.Time
+		)
+
+		err := joinRequestRows.Scan(&id, &eventId, &userId, &status, &comment, &createdAt)
+		if err != nil {
+			slog.Error("Failed to scan join request row", "error", err)
+			continue
+		}
+
+		if event, exists := eventMap[eventId]; exists {
+			joinRequest := &api.JoinRequest{
+				JoinRequestData: api.JoinRequestData{
+					Id:      id,
+					Comment: comment,
+				},
+				UserId:    userId,
+				Status:    api.JoinRequestStatus(status),
+				CreatedAt: createdAt,
+			}
+			event.JoinRequests = append(event.JoinRequests, joinRequest)
+		}
+	}
+
+	events := make([]*api.Event, 0, len(eventMap))
+	for _, event := range eventMap {
+		events = append(events, event)
 	}
 
 	return events, nil
@@ -233,18 +374,17 @@ func (db *Db) getEventTimeSlots(ctx context.Context, eventId string) ([]api.Sess
 }
 
 func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
-	events, err := db.getEventsInternal(ctx, userId, "e.id = ?", eventId)
+	events, err := db.getEventsInternal(ctx, userId, "id = ?", eventId)
 	if err != nil {
 		return nil, err
 	}
 	if len(events) == 0 {
 		return nil, DbObjectNotFoundError{Message: "Event not found"}
 	}
-	return &events[0], nil
+	return events[0], nil
 }
 
 func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) error {
-
 	result, err := db.conn.ExecContext(ctx, `DELETE FROM events WHERE id = ? AND user_id = ?`, eventId, userId)
 	if err != nil {
 		slog.Error("Failed to delete event", "error", err, "eventId", eventId, "userId", userId)
@@ -262,4 +402,247 @@ func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) er
 	}
 
 	return nil
+}
+
+func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId string, req *api.JoinRequestData) error {
+	tx, err := db.conn.BeginTxx(ctx, nil)
+	if err != nil {
+		slog.Error("Failed to begin transaction", "error", err)
+		return err
+	}
+
+	// First verify that the event exists
+	var eventExists bool
+	err = tx.GetContext(ctx, &eventExists, `SELECT EXISTS(SELECT 1 FROM events WHERE id = ?)`, eventId)
+	if err != nil {
+		tx.Rollback()
+		slog.Error("Failed to verify event existence", "error", err, "eventId", eventId)
+		return err
+	}
+	if !eventExists {
+		tx.Rollback()
+		return DbObjectNotFoundError{Message: "Event not found"}
+	}
+
+	// Create join request
+	joinRequestId := uuid.New().String()
+	query := `INSERT INTO join_requests (id, event_id, user_id, status, comment) VALUES (?, ?, ?, ?, ?)`
+	_, err = tx.ExecContext(ctx, query, joinRequestId, eventId, userId, api.JoinRequestStatusWaiting, req.Comment)
+	if err != nil {
+		tx.Rollback()
+		slog.Error("Failed to insert join request", "error", err)
+		return err
+	}
+
+	// Insert locations
+	if len(req.Locations) > 0 {
+		query = `INSERT INTO join_request_locations (join_request_id, location_id) VALUES (?, ?)`
+		for _, locationId := range req.Locations {
+			_, err = tx.ExecContext(ctx, query, joinRequestId, locationId)
+			if err != nil {
+				tx.Rollback()
+				slog.Error("Failed to insert join request location", "error", err)
+				return err
+			}
+		}
+	}
+
+	// Insert time slots
+	if len(req.TimeSlots) > 0 {
+		query = `INSERT INTO join_request_time_slots (id, join_request_id, date, time) VALUES (?, ?, ?, ?)`
+		for _, timeSlot := range req.TimeSlots {
+			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, timeSlot.Date, timeSlot.Time)
+			if err != nil {
+				tx.Rollback()
+				slog.Error("Failed to insert join request time slot", "error", err)
+				return err
+			}
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		slog.Error("Failed to commit transaction", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, req *api.EventConfirmationRequest) (*api.Confirmation, error) {
+	tx, err := db.conn.BeginTxx(ctx, nil)
+	if err != nil {
+		slog.Error("Failed to begin transaction", "error", err)
+		return nil, err
+	}
+
+	// Create confirmation
+	confirmationId := uuid.New().String()
+	query := `INSERT INTO confirmations (id, event_id, location_id, date, time, duration) VALUES (?, ?, ?, ?, ?, ?)`
+	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, req.Date, req.Time, req.Duration)
+	if err != nil {
+		tx.Rollback()
+		slog.Error("Failed to create confirmation", "error", err)
+		return nil, err
+	}
+
+	// Link join requests to confirmation
+	for _, joinRequestId := range req.JoinRequestsIds {
+		// Update join request status
+		_, err = tx.ExecContext(ctx, `
+			UPDATE join_requests 
+			SET status = ? 
+			WHERE id = ?`, api.JoinRequestStatusAccepted, joinRequestId)
+		if err != nil {
+			tx.Rollback()
+			slog.Error("Failed to update join request status", "error", err)
+			return nil, err
+		}
+
+		// Link to confirmation
+		_, err = tx.ExecContext(ctx, `
+			INSERT INTO confirmation_join_requests (confirmation_id, join_request_id) 
+			VALUES (?, ?)`, confirmationId, joinRequestId)
+		if err != nil {
+			tx.Rollback()
+			slog.Error("Failed to link join request to confirmation", "error", err)
+			return nil, err
+		}
+	}
+
+	// Update event status
+	_, err = tx.ExecContext(ctx, `
+		UPDATE events 
+		SET status = ? 
+		WHERE id = ?`, api.EventStatusConfirmed, eventId)
+	if err != nil {
+		tx.Rollback()
+		slog.Error("Failed to update event status", "error", err)
+		return nil, err
+	}
+
+	// Get accepted join requests for response
+	var acceptedRequests []api.JoinRequest
+	err = tx.SelectContext(ctx, &acceptedRequests, `
+		SELECT jr.id, jr.event_id, jr.user_id, jr.status, jr.comment, jr.created_at
+		FROM join_requests jr
+		JOIN confirmation_join_requests cjr ON jr.id = cjr.join_request_id
+		WHERE cjr.confirmation_id = ?`, confirmationId)
+	if err != nil {
+		tx.Rollback()
+		slog.Error("Failed to get accepted join requests", "error", err)
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		slog.Error("Failed to commit transaction", "error", err)
+		return nil, err
+	}
+
+	// Build response
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		slog.Error("Failed to parse date", "error", err)
+		return nil, err
+	}
+
+	confirmation := &api.Confirmation{
+		EventId:          eventId,
+		LocationId:       req.LocationId,
+		Date:             date,
+		Time:             req.Time,
+		Duration:         req.Duration,
+		AcceptedRequests: acceptedRequests,
+		CreatedAt:        time.Now(),
+	}
+
+	return confirmation, nil
+}
+
+// Add helper methods for router validation
+func (db *Db) GetEventOwner(ctx context.Context, eventId string) (string, error) {
+	var userId string
+	err := db.conn.GetContext(ctx, &userId, `SELECT user_id FROM events WHERE id = ?`, eventId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", DbObjectNotFoundError{Message: "Event not found"}
+		}
+		slog.Error("Failed to get event owner", "error", err, "eventId", eventId)
+		return "", err
+	}
+	return userId, nil
+}
+
+func (db *Db) GetJoinRequestsStatus(ctx context.Context, eventId string, joinRequestIds []string) (map[string]api.JoinRequestStatus, error) {
+	if len(joinRequestIds) == 0 {
+		return make(map[string]api.JoinRequestStatus), nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT id, status 
+		FROM join_requests 
+		WHERE event_id = ? AND id IN (?)`, eventId, joinRequestIds)
+	if err != nil {
+		return nil, err
+	}
+	query = db.conn.Rebind(query)
+
+	rows, err := db.conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	statuses := make(map[string]api.JoinRequestStatus)
+	for rows.Next() {
+		var id string
+		var status api.JoinRequestStatus
+		if err := rows.Scan(&id, &status); err != nil {
+			return nil, err
+		}
+		statuses[id] = status
+	}
+
+	return statuses, nil
+}
+
+func (db *Db) getJoinRequests(ctx context.Context, eventId string) ([]*api.JoinRequest, error) {
+	query := `SELECT id, event_id, user_id, status, comment, created_at FROM join_requests WHERE event_id = ?`
+	var rows []*JoinRequestRow
+	err := db.conn.SelectContext(ctx, &rows, query, eventId)
+	if err != nil {
+		slog.Error("Failed to get join requests", "error", err, "eventId", eventId)
+		return nil, err
+	}
+
+	joinRequests := make([]*api.JoinRequest, len(rows))
+	for i, row := range rows {
+		joinRequests[i] = &api.JoinRequest{
+			JoinRequestData: api.JoinRequestData{
+				Id:      row.Id,
+				Comment: row.Comment,
+			},
+			UserId: row.UserId,
+			Status: api.JoinRequestStatus(row.Status),
+		}
+	}
+
+	return joinRequests, nil
+}
+
+func (db *Db) getEventConfirmation(ctx context.Context, eventId string) (*ConfirmationRow, error) {
+	query := `SELECT id, event_id, location_id, date, time, duration FROM confirmations WHERE event_id = ?`
+	var rows []*ConfirmationRow
+	err := db.conn.SelectContext(ctx, &rows, query, eventId)
+	if err != nil {
+		slog.Error("Failed to get event confirmation", "error", err, "eventId", eventId)
+		return nil, err
+	}
+
+	if len(rows) == 0 {
+		return nil, nil
+	}
+
+	return rows[0], nil
 }

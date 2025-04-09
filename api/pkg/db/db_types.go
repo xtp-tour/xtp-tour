@@ -2,6 +2,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 )
 
 type DbObjectNotFoundError struct {
@@ -34,4 +36,30 @@ type EventRow struct {
 	Visibility      string    `db:"visibility"`
 	Status          string    `db:"status"`
 	CreatedAt       time.Time `db:"created_at"`
+}
+
+type JoinRequestRow struct {
+	Id        string    `db:"id"`
+	EventId   string    `db:"event_id"`
+	UserId    string    `db:"user_id"`
+	Status    string    `db:"status"`
+	Comment   string    `db:"comment"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+type ConfirmationRow struct {
+	Id         string    `db:"id"`
+	EventId    string    `db:"event_id"`
+	LocationId string    `db:"location_id"`
+	Date       time.Time `db:"date"`
+	Time       int       `db:"time"`
+}
+
+func (row *ConfirmationRow) ToApi() *api.Confirmation {
+	return &api.Confirmation{
+		EventId:    row.EventId,
+		LocationId: row.LocationId,
+		Date:       row.Date,
+		Time:       row.Time,
+	}
 }

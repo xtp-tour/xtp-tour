@@ -169,8 +169,8 @@ type ListEventsRequest struct {
 }
 
 type ListEventsResponse struct {
-	Events []Event `json:"events"`
-	Total  int     `json:"total"`
+	Events []*Event `json:"events"`
+	Total  int      `json:"total"`
 }
 
 // Locations
