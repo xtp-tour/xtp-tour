@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -121,14 +120,13 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 		return err
 	}
 
-	query = `INSERT INTO event_time_slots (event_id, date, time) VALUES (:event_id, :date, :time)`
+	query = `INSERT INTO event_time_slots (event_id, dt) VALUES (:event_id, :dt)`
 
 	timeSlots := make([]EventTimeSlotRow, len(event.TimeSlots))
 	for i, timeSlot := range event.TimeSlots {
 		timeSlots[i] = EventTimeSlotRow{
 			EventId: event.Id,
-			Date:    timeSlot.Date,
-			Time:    timeSlot.Time,
+			Dt:      timeSlot,
 		}
 	}
 	_, err = tx.NamedExecContext(ctx, query, timeSlots)
@@ -167,10 +165,9 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 				e.status,
 				e.created_at,
 				GROUP_CONCAT(DISTINCT el.location_id) as locations,
-				GROUP_CONCAT(DISTINCT CONCAT(ets.date, ':', ets.time)) as time_slots,
+				GROUP_CONCAT(DISTINCT ets.dt) as time_slots,
 				c.location_id as confirmed_location,
-				c.date as confirmed_date,
-				c.time as confirmed_time,
+				c.dt as confirmed_dt,
 				c.duration as confirmed_duration
 			FROM events e
 			LEFT JOIN event_locations el ON e.id = el.event_id
@@ -179,7 +176,7 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 			WHERE e.user_id = ?
 			GROUP BY e.id, e.user_id, e.skill_level, e.description, e.event_type, 
 				e.expected_players, e.session_duration, e.visibility, e.status, e.created_at,
-				c.location_id, c.date, c.time, c.duration
+				c.location_id, c.dt, c.duration
 		)
 		SELECT * FROM event_data
 	`
@@ -215,8 +212,7 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 			locationsStr    sql.NullString
 			timeSlotsStr    sql.NullString
 			confirmedLoc    sql.NullString
-			confirmedDate   sql.NullTime
-			confirmedTime   sql.NullInt64
+			confirmedDt     sql.NullTime
 			confirmedDur    sql.NullInt64
 		)
 
@@ -224,7 +220,7 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 			&id, &userId, &skillLevel, &description, &eventType,
 			&expectedPlayers, &sessionDuration, &visibility, &status,
 			&createdAt, &locationsStr, &timeSlotsStr,
-			&confirmedLoc, &confirmedDate, &confirmedTime, &confirmedDur,
+			&confirmedLoc, &confirmedDt, &confirmedDur,
 		)
 		if err != nil {
 			slog.Error("Failed to scan event row", "error", err)
@@ -238,29 +234,24 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 		}
 
 		// Parse time slots
-		var timeSlots []api.SessionTimeSlot
+		var timeSlots []time.Time
 		if timeSlotsStr.Valid {
 			slots := strings.Split(timeSlotsStr.String, ",")
 			for _, slot := range slots {
-				parts := strings.Split(slot, ":")
-				if len(parts) == 2 {
-					time, _ := strconv.Atoi(parts[1])
-					timeSlots = append(timeSlots, api.SessionTimeSlot{
-						Date: parts[0],
-						Time: time,
-					})
+				dt, err := time.Parse("2006-01-02 15:04:05", slot)
+				if err == nil {
+					timeSlots = append(timeSlots, dt)
 				}
 			}
 		}
 
 		// Parse confirmation
 		var confirmation *api.Confirmation
-		if confirmedLoc.Valid && confirmedDate.Valid && confirmedTime.Valid && confirmedDur.Valid {
+		if confirmedLoc.Valid && confirmedDt.Valid && confirmedDur.Valid {
 			confirmation = &api.Confirmation{
 				EventId:    id,
 				LocationId: confirmedLoc.String,
-				Date:       confirmedDate.Time,
-				Time:       int(confirmedTime.Int64),
+				Datetime:   confirmedDt.Time,
 				Duration:   int(confirmedDur.Int64),
 				CreatedAt:  time.Now(),
 			}
@@ -362,9 +353,9 @@ func (db *Db) getEventLocations(ctx context.Context, eventId string) ([]string, 
 	return locations, nil
 }
 
-func (db *Db) getEventTimeSlots(ctx context.Context, eventId string) ([]api.SessionTimeSlot, error) {
-	query := `SELECT date, time FROM event_time_slots WHERE event_id = ?`
-	var timeSlots []api.SessionTimeSlot
+func (db *Db) getEventTimeSlots(ctx context.Context, eventId string) ([]time.Time, error) {
+	query := `SELECT dt FROM event_time_slots WHERE event_id = ?`
+	var timeSlots []time.Time
 	err := db.conn.SelectContext(ctx, &timeSlots, query, eventId)
 	if err != nil {
 		slog.Error("Failed to get event time slots", "error", err, "eventId", eventId)
@@ -379,7 +370,7 @@ func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api
 		return nil, err
 	}
 	if len(events) == 0 {
-		return nil, DbObjectNotFoundError{Message: "Event not found"}
+		return nil, nil
 	}
 	return events[0], nil
 }
@@ -449,9 +440,9 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 
 	// Insert time slots
 	if len(req.TimeSlots) > 0 {
-		query = `INSERT INTO join_request_time_slots (id, join_request_id, date, time) VALUES (?, ?, ?, ?)`
+		query = `INSERT INTO join_request_time_slots (id, join_request_id, dt) VALUES (?, ?, ?)`
 		for _, timeSlot := range req.TimeSlots {
-			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, timeSlot.Date, timeSlot.Time)
+			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, timeSlot)
 			if err != nil {
 				tx.Rollback()
 				slog.Error("Failed to insert join request time slot", "error", err)
@@ -469,6 +460,14 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	return nil
 }
 
+type ValidationError struct {
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
 func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, req *api.EventConfirmationRequest) (*api.Confirmation, error) {
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
@@ -478,8 +477,8 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 	// Create confirmation
 	confirmationId := uuid.New().String()
-	query := `INSERT INTO confirmations (id, event_id, location_id, date, time, duration) VALUES (?, ?, ?, ?, ?, ?)`
-	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, req.Date, req.Time, req.Duration)
+	query := `INSERT INTO confirmations (id, event_id, location_id, dt, duration) VALUES (?, ?, ?, ?, ?)`
+	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, req.Datetime, req.Duration)
 	if err != nil {
 		tx.Rollback()
 		slog.Error("Failed to create confirmation", "error", err)
@@ -541,17 +540,10 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	}
 
 	// Build response
-	date, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
-		slog.Error("Failed to parse date", "error", err)
-		return nil, err
-	}
-
 	confirmation := &api.Confirmation{
 		EventId:          eventId,
 		LocationId:       req.LocationId,
-		Date:             date,
-		Time:             req.Time,
+		Datetime:         req.Datetime,
 		Duration:         req.Duration,
 		AcceptedRequests: acceptedRequests,
 		CreatedAt:        time.Now(),
@@ -632,7 +624,7 @@ func (db *Db) getJoinRequests(ctx context.Context, eventId string) ([]*api.JoinR
 }
 
 func (db *Db) getEventConfirmation(ctx context.Context, eventId string) (*ConfirmationRow, error) {
-	query := `SELECT id, event_id, location_id, date, time, duration FROM confirmations WHERE event_id = ?`
+	query := `SELECT id, event_id, location_id, dt, duration FROM confirmations WHERE event_id = ?`
 	var rows []*ConfirmationRow
 	err := db.conn.SelectContext(ctx, &rows, query, eventId)
 	if err != nil {

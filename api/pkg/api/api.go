@@ -67,17 +67,11 @@ const (
 	EventVisibilityPrivate EventVisibility = "PRIVATE"
 )
 
-// SessionTimeSlot represents an available time slot
-type SessionTimeSlot struct {
-	Date string `json:"date"`
-	Time int    `json:"time"`
-}
-
 type JoinRequestData struct {
-	Id        string            `json:"id,omitempty"`
-	Locations []string          `json:"locations" validate:"required"`
-	TimeSlots []SessionTimeSlot `json:"timeSlots" validate:"required"`
-	Comment   string            `json:"comment,omitempty"`
+	Id        string      `json:"id,omitempty"`
+	Locations []string    `json:"locations" validate:"required,min=1"`
+	TimeSlots []time.Time `json:"timeSlots" validate:"required,min=1"`
+	Comment   string      `json:"comment,omitempty"`
 }
 
 // JoinRequest represents a player's acceptance of an event
@@ -89,12 +83,11 @@ type JoinRequest struct {
 }
 
 type EventConfirmationRequest struct {
-	EventId         string   `path:"eventId" validate:"required"`
-	LocationId      string   `json:"locationId" validate:"required"`
-	Date            string   `json:"date" validate:"required"`
-	Time            int      `json:"time" validate:"required"`
-	Duration        int      `json:"duration" validate:"required"`
-	JoinRequestsIds []string `json:"joinRequestsIds" validate:"required"`
+	EventId         string    `path:"eventId" validate:"required"`
+	LocationId      string    `json:"locationId" validate:"required"`
+	Datetime        time.Time `json:"datetime" validate:"required"`
+	Duration        int       `json:"duration" validate:"required"`
+	JoinRequestsIds []string  `json:"joinRequestsIds" validate:"required"`
 }
 
 type EventConfirmationResponse struct {
@@ -105,8 +98,7 @@ type EventConfirmationResponse struct {
 type Confirmation struct {
 	EventId          string        `json:"eventId"`
 	LocationId       string        `json:"location"`
-	Date             time.Time     `json:"date"`
-	Time             int           `json:"time"`
+	Datetime         time.Time     `json:"datetime"`
 	Duration         int           `json:"duration"`
 	AcceptedRequests []JoinRequest `json:"acceptedRequests"`
 	CreatedAt        time.Time     `json:"createdAt"`
@@ -114,16 +106,16 @@ type Confirmation struct {
 
 // EventData represents user's input for an event
 type EventData struct {
-	Id              string            `json:"id"`
-	UserId          string            `json:"userId" db:"user_id"`
-	Locations       []string          `json:"locations" validate:"required" db:"locations"`
-	SkillLevel      SkillLevel        `json:"skillLevel" validate:"required" db:"skill_level"`
-	Description     string            `json:"description,omitempty" `
-	EventType       EventType         `json:"eventType" validate:"required" db:"event_type"`
-	ExpectedPlayers int               `json:"expectedPlayers" validate:"required" db:"expected_players"`
-	SessionDuration int               `json:"sessionDuration" validate:"required" db:"session_duration"`
-	TimeSlots       []SessionTimeSlot `json:"timeSlots" validate:"required"`
-	Visibility      EventVisibility   `json:"visibility" validate:"required" `
+	Id              string          `json:"id"`
+	UserId          string          `json:"userId" db:"user_id"`
+	Locations       []string        `json:"locations" validate:"required,min=1" db:"locations"`
+	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" db:"skill_level"`
+	Description     string          `json:"description,omitempty" `
+	EventType       EventType       `json:"eventType" validate:"required" db:"event_type"`
+	ExpectedPlayers int             `json:"expectedPlayers" validate:"required" db:"expected_players"`
+	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration"`
+	TimeSlots       []time.Time     `json:"timeSlots" validate:"required,min=1"`
+	Visibility      EventVisibility `json:"visibility" validate:"required" `
 }
 
 // Event represents an internal representation of an event

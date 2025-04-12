@@ -20,9 +20,8 @@ type EventLocationRow struct {
 }
 
 type EventTimeSlotRow struct {
-	EventId string `db:"event_id"`
-	Date    string `db:"date"`
-	Time    int    `db:"time"`
+	EventId string    `db:"event_id"`
+	Dt      time.Time `db:"dt"`
 }
 
 type EventRow struct {
@@ -51,15 +50,17 @@ type ConfirmationRow struct {
 	Id         string    `db:"id"`
 	EventId    string    `db:"event_id"`
 	LocationId string    `db:"location_id"`
-	Date       time.Time `db:"date"`
-	Time       int       `db:"time"`
+	Dt         time.Time `db:"dt"`
+	Duration   int       `db:"duration"`
+	CreatedAt  time.Time `db:"created_at"`
 }
 
 func (row *ConfirmationRow) ToApi() *api.Confirmation {
 	return &api.Confirmation{
 		EventId:    row.EventId,
 		LocationId: row.LocationId,
-		Date:       row.Date,
-		Time:       row.Time,
+		Datetime:   row.Dt,
+		Duration:   row.Duration,
+		CreatedAt:  row.CreatedAt,
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/num30/config"
@@ -66,11 +67,11 @@ func Test_EventAPI(t *testing.T) {
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []api.SessionTimeSlot{
-					{Date: "2023-10-15", Time: 14},
-					{Date: "2023-10-16", Time: 16},
-					{Date: "2023-10-17", Time: 18},
-					{Date: "2023-10-17", Time: 19},
+				TimeSlots: []time.Time{
+					api.ParseDt("2023-10-15T14:00:00Z"),
+					api.ParseDt("2023-10-16T16:00:00Z"),
+					api.ParseDt("2023-10-17T18:00:00Z"),
+					api.ParseDt("2023-10-17T19:00:00Z"),
 				},
 				Description: "Test event for integration testing",
 				Visibility:  api.EventVisibilityPublic,
@@ -144,9 +145,9 @@ func Test_EventAPI(t *testing.T) {
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint"},
-				TimeSlots: []api.SessionTimeSlot{
-					{Date: "2023-10-15", Time: 14},
-					{Date: "2023-10-16", Time: 16},
+				TimeSlots: []time.Time{
+					time.Date(2023, 10, 15, 14, 0, 0, 0, time.UTC),
+					time.Date(2023, 10, 16, 16, 0, 0, 0, time.UTC),
 				},
 				Comment: "Hey, let's play",
 			},
@@ -170,11 +171,11 @@ func Test_EventAPI(t *testing.T) {
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint", "spartan-pultuska"},
-				TimeSlots: []api.SessionTimeSlot{
-					{Date: "2023-10-15", Time: 14},
-					{Date: "2023-10-16", Time: 16},
-					{Date: "2023-10-17", Time: 18},
-					{Date: "2023-10-17", Time: 19},
+				TimeSlots: []time.Time{
+					api.ParseDt("2023-10-15T14:00:00Z"),
+					api.ParseDt("2023-10-16T16:00:00Z"),
+					api.ParseDt("2023-10-17T18:00:00Z"),
+					api.ParseDt("2023-10-17T19:00:00Z"),
 				},
 				Comment: "Let's play tennis!",
 			},
@@ -218,8 +219,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			Date:            "2023-10-15",
-			Time:            14,
+			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestId},
 		}
@@ -230,7 +230,7 @@ func Test_EventAPI(t *testing.T) {
 			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusForbidden, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
 	})
 
@@ -242,8 +242,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			Date:            "2023-05-15",
-			Time:            14,
+			Datetime:        api.ParseDt("2023-05-15T14:00:00Z"),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestId},
 		}
@@ -266,8 +265,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location3",
-			Date:            "2023-10-15",
-			Time:            14,
+			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestId},
 		}
@@ -290,8 +288,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			Date:            "2023-10-15",
-			Time:            14,
+			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestId},
 		}
@@ -323,8 +320,7 @@ func Test_EventAPI(t *testing.T) {
 			// Verify event is confirmed
 			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
 			assert.Equal(tt, "matchpoint", response.Event.Confirmation.LocationId, "Confirmed location should match")
-			assert.Equal(tt, "2023-10-15", response.Event.Confirmation.Date.Format("2006-01-02"), "Confirmed date should match")
-			assert.Equal(tt, 14, response.Event.Confirmation.Time, "Confirmed time should match")
+			assert.Equal(tt, api.ParseDt("2023-10-15T14:00:00Z"), response.Event.Confirmation.Datetime, "Confirmed date should match")
 			assert.Equal(tt, 60, response.Event.Confirmation.Duration, "Confirmed duration should match")
 			assert.Len(tt, response.Event.Confirmation.AcceptedRequests, 1, "Should have one confirmed join request")
 			assert.Equal(tt, joinRequestId, response.Event.Confirmation.AcceptedRequests[0].Id, "Confirmed join request ID should match")
@@ -360,8 +356,8 @@ func Test_DeleteEvent(t *testing.T) {
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []api.SessionTimeSlot{
-					{Date: "2023-10-17", Time: 19},
+				TimeSlots: []time.Time{
+					api.ParseDt("2023-10-17T19:00:00Z"),
 				},
 			},
 		}

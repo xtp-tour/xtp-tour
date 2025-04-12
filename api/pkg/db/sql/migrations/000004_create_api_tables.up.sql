@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS event_locations (
 CREATE TABLE IF NOT EXISTS event_time_slots (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     event_id VARCHAR(36) NOT NULL,
-    date DATE NOT NULL,
-    time INT NOT NULL,
+    dt DATETIME NOT NULL,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
@@ -55,8 +54,7 @@ CREATE TABLE IF NOT EXISTS join_request_locations (
 CREATE TABLE IF NOT EXISTS join_request_time_slots (
     id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     join_request_id VARCHAR(36) NOT NULL,
-    date DATE NOT NULL,
-    time INT NOT NULL,
+    dt DATETIME NOT NULL,
     FOREIGN KEY (join_request_id) REFERENCES join_requests(id) ON DELETE CASCADE
 );
 
@@ -65,10 +63,9 @@ CREATE TABLE IF NOT EXISTS confirmations (
     id VARCHAR(36) PRIMARY KEY,
     event_id VARCHAR(36) NOT NULL,
     location_id VARCHAR(36) NOT NULL,
-    date DATE NOT NULL,
-    time INT NOT NULL,
+    dt DATETIME NOT NULL,
     duration INT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
     FOREIGN KEY (location_id) REFERENCES facilities(id) ON DELETE CASCADE
 );

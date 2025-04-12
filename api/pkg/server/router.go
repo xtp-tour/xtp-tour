@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -191,16 +192,16 @@ func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api
 
 	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
 	if err != nil {
-		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return nil, rest.HttpError{
-				HttpCode: http.StatusNotFound,
-				Message:  "Event not found",
-			}
-		}
-
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
+		}
+	}
+
+	if event == nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
 		}
 	}
 
@@ -283,59 +284,44 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
-	// Verify event ownership
-	eventOwner, err := r.db.GetEventOwner(context.Background(), req.EventId)
+	event, err := r.db.GetEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
-		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return nil, rest.HttpError{
-				HttpCode: http.StatusNotFound,
-				Message:  err.Error(),
-			}
-		}
-		slog.Error("Failed to get event owner", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "Failed to verify event ownership",
+			Message:  "Failed to get event",
 		}
 	}
 
-	if eventOwner != userId.(string) {
+	if event == nil {
 		return nil, rest.HttpError{
-			HttpCode: http.StatusForbidden,
-			Message:  "You don't have permission to confirm this event",
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
 		}
 	}
 
-	// Verify join requests status
-	joinRequestStatuses, err := r.db.GetJoinRequestsStatus(context.Background(), req.EventId, req.JoinRequestsIds)
-	if err != nil {
-		slog.Error("Failed to get join requests status", "error", err)
+	if !slices.Contains(event.Locations, req.LocationId) {
 		return nil, rest.HttpError{
-			HttpCode: http.StatusInternalServerError,
-			Message:  "Failed to verify join requests",
+			HttpCode: http.StatusBadRequest,
+			Message:  "Location not found",
 		}
 	}
 
-	// Verify all join requests exist and are in WAITING status
-	for _, joinRequestId := range req.JoinRequestsIds {
-		status, exists := joinRequestStatuses[joinRequestId]
-		if !exists {
-			return nil, rest.HttpError{
-				HttpCode: http.StatusNotFound,
-				Message:  fmt.Sprintf("Join request %s not found", joinRequestId),
-			}
-		}
-		if status != api.JoinRequestStatusWaiting {
-			return nil, rest.HttpError{
-				HttpCode: http.StatusBadRequest,
-				Message:  fmt.Sprintf("Join request %s is not in WAITING status", joinRequestId),
-			}
+	// TODO add time verification
+	if !slices.Contains(event.TimeSlots, req.Datetime) {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Time slot not found",
 		}
 	}
 
-	// All validations passed, proceed with confirmation
 	confirmation, err := r.db.ConfirmEvent(context.Background(), userId.(string), req.EventId, req)
 	if err != nil {
+		if validationErr, ok := err.(*db.ValidationError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusBadRequest,
+				Message:  validationErr.Message,
+			}
+		}
 		slog.Error("Failed to confirm event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
