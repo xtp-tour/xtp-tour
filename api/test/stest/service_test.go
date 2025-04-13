@@ -56,13 +56,17 @@ func Test_EventAPI(t *testing.T) {
 	user := "test-user-1"
 	user2 := "test-user-2"
 	user3 := "test-user-3"
+	confirmedDate := api.ParseDt("2023-10-17T18:00:00Z")
+	confirmedLocation := "matchpoint"
+	confirmedDuration := 60
+	var joinRequestIdToConfirm string
 	var eventId string
 
 	// Create an event
 	t.Run("CreateEvent", func(tt *testing.T) {
 		eventData := api.CreateEventRequest{
 			Event: api.EventData{
-				Locations:       []string{"matchpoint", "spartan-pultuska"},
+				Locations:       []string{confirmedLocation, "spartan-pultuska"},
 				SkillLevel:      api.SkillLevelIntermediate,
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
@@ -70,8 +74,8 @@ func Test_EventAPI(t *testing.T) {
 				TimeSlots: []time.Time{
 					api.ParseDt("2023-10-15T14:00:00Z"),
 					api.ParseDt("2023-10-16T16:00:00Z"),
-					api.ParseDt("2023-10-17T18:00:00Z"),
-					api.ParseDt("2023-10-17T19:00:00Z"),
+					api.ParseDt("2023-10-16T18:00:00Z"),
+					confirmedDate,
 				},
 				Description: "Test event for integration testing",
 				Visibility:  api.EventVisibilityPublic,
@@ -134,8 +138,6 @@ func Test_EventAPI(t *testing.T) {
 		}
 	})
 
-	var joinRequestId string
-
 	// Join an event
 	t.Run("JoinEvent1", func(tt *testing.T) {
 		if eventId == "" {
@@ -146,8 +148,9 @@ func Test_EventAPI(t *testing.T) {
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint"},
 				TimeSlots: []time.Time{
-					time.Date(2023, 10, 15, 14, 0, 0, 0, time.UTC),
-					time.Date(2023, 10, 16, 16, 0, 0, 0, time.UTC),
+					api.ParseDt("2023-10-15T14:00:00Z"),
+					api.ParseDt("2023-10-16T16:00:00Z"),
+					confirmedDate,
 				},
 				Comment: "Hey, let's play",
 			},
@@ -174,8 +177,8 @@ func Test_EventAPI(t *testing.T) {
 				TimeSlots: []time.Time{
 					api.ParseDt("2023-10-15T14:00:00Z"),
 					api.ParseDt("2023-10-16T16:00:00Z"),
-					api.ParseDt("2023-10-17T18:00:00Z"),
 					api.ParseDt("2023-10-17T19:00:00Z"),
+					confirmedDate,
 				},
 				Comment: "Let's play tennis!",
 			},
@@ -207,13 +210,13 @@ func Test_EventAPI(t *testing.T) {
 			assert.Equal(tt, response.Event.Id, eventId)
 			assert.Equal(tt, response.Event.Status, api.EventStatusOpen)
 			assert.Len(tt, response.Event.JoinRequests, 2)
-			joinRequestId = response.Event.JoinRequests[0].Id
+			joinRequestIdToConfirm = response.Event.JoinRequests[0].Id
 		}
 	})
 
 	t.Run("Confirm event by not owner", func(tt *testing.T) {
-		if eventId == "" || joinRequestId == "" {
-			assert.Fail(tt, fmt.Sprintf("Event ID or join request ID is not available. Event ID: %s, join request ID: %s", eventId, joinRequestId))
+		if eventId == "" || joinRequestIdToConfirm == "" {
+			assert.Fail(tt, fmt.Sprintf("Event ID or join request ID is not available. Event ID: %s, join request ID: %s", eventId, joinRequestIdToConfirm))
 		}
 
 		confirmation := api.EventConfirmationRequest{
@@ -221,7 +224,7 @@ func Test_EventAPI(t *testing.T) {
 			LocationId:      "matchpoint",
 			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
 			Duration:        60,
-			JoinRequestsIds: []string{joinRequestId},
+			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
 		r, err := restClient.R().
@@ -244,7 +247,7 @@ func Test_EventAPI(t *testing.T) {
 			LocationId:      "matchpoint",
 			Datetime:        api.ParseDt("2023-05-15T14:00:00Z"),
 			Duration:        60,
-			JoinRequestsIds: []string{joinRequestId},
+			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
 		r, err := restClient.R().
@@ -258,16 +261,13 @@ func Test_EventAPI(t *testing.T) {
 	})
 
 	t.Run("Confirm event by owner with invalid location", func(tt *testing.T) {
-		if eventId == "" {
-			assert.Fail(tt, "Event ID is not available")
-		}
 
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location3",
 			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
 			Duration:        60,
-			JoinRequestsIds: []string{joinRequestId},
+			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
 		r, err := restClient.R().
@@ -281,16 +281,13 @@ func Test_EventAPI(t *testing.T) {
 	})
 
 	t.Run("Confirm event by owner", func(tt *testing.T) {
-		if eventId == "" {
-			assert.Fail(tt, "Event ID is not available")
-		}
 
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
-			LocationId:      "matchpoint",
-			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
-			Duration:        60,
-			JoinRequestsIds: []string{joinRequestId},
+			LocationId:      confirmedLocation,
+			Datetime:        confirmedDate,
+			Duration:        confirmedDuration,
+			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
 		r, err := restClient.R().
@@ -319,11 +316,18 @@ func Test_EventAPI(t *testing.T) {
 
 			// Verify event is confirmed
 			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
-			assert.Equal(tt, "matchpoint", response.Event.Confirmation.LocationId, "Confirmed location should match")
-			assert.Equal(tt, api.ParseDt("2023-10-15T14:00:00Z"), response.Event.Confirmation.Datetime, "Confirmed date should match")
-			assert.Equal(tt, 60, response.Event.Confirmation.Duration, "Confirmed duration should match")
-			assert.Len(tt, response.Event.Confirmation.AcceptedRequests, 1, "Should have one confirmed join request")
-			assert.Equal(tt, joinRequestId, response.Event.Confirmation.AcceptedRequests[0].Id, "Confirmed join request ID should match")
+			assert.Equal(tt, confirmedLocation, response.Event.Confirmation.LocationId, "Confirmed location should match")
+			assert.Equal(tt, confirmedDate, response.Event.Confirmation.Datetime, "Confirmed date should match")
+			assert.Equal(tt, confirmedDuration, response.Event.Confirmation.Duration, "Confirmed duration should match")
+
+			haveAcceptedReq := false
+			for _, r := range response.Event.JoinRequests {
+				if r.Status == api.JoinRequestStatusAccepted && r.Id == joinRequestIdToConfirm {
+					haveAcceptedReq = true
+					break
+				}
+			}
+			assert.True(tt, haveAcceptedReq, "Accepted join request was not found")
 		}
 	})
 
@@ -359,6 +363,7 @@ func Test_DeleteEvent(t *testing.T) {
 				TimeSlots: []time.Time{
 					api.ParseDt("2023-10-17T19:00:00Z"),
 				},
+				Visibility: api.EventVisibilityPublic,
 			},
 		}
 
@@ -371,7 +376,7 @@ func Test_DeleteEvent(t *testing.T) {
 			Post(tConfig.ServiceHost + "/api/events/")
 
 		if assert.NoError(tt, err) {
-			assert.Equal(tt, http.StatusCreated, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 		}
 
 		// delete event

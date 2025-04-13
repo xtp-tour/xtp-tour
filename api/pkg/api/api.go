@@ -96,12 +96,11 @@ type EventConfirmationResponse struct {
 
 // Confirmation represents a confirmed court reservation
 type Confirmation struct {
-	EventId          string        `json:"eventId"`
-	LocationId       string        `json:"location"`
-	Datetime         time.Time     `json:"datetime"`
-	Duration         int           `json:"duration"`
-	AcceptedRequests []JoinRequest `json:"acceptedRequests"`
-	CreatedAt        time.Time     `json:"createdAt"`
+	EventId    string    `json:"eventId"`
+	LocationId string    `json:"location"`
+	Datetime   time.Time `json:"datetime"`
+	Duration   int       `json:"duration"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 // EventData represents user's input for an event

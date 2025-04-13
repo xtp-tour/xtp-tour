@@ -220,7 +220,29 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 		}
 	}
 
-	err := r.db.DeleteEvent(context.Background(), userId.(string), req.Id)
+	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
+	if err != nil {
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get event",
+		}
+	}
+
+	if event == nil {
+		return rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+
+	if event.Status == api.EventStatusConfirmed {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Cannot delete confirmed event",
+		}
+	}
+
+	err = r.db.DeleteEvent(context.Background(), userId.(string), req.Id)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
 			return rest.HttpError{
@@ -306,7 +328,6 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
-	// TODO add time verification
 	if !slices.Contains(event.TimeSlots, req.Datetime) {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusBadRequest,
