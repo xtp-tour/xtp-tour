@@ -13,12 +13,11 @@ const USER_ID_CONTEXT_KEY = "userId"
 func CreateAuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 
 	if authConfig.Type == "clerk" {
-		return CreateClerkAuth(authConfig.Type)
+		return CreateClerkAuth(authConfig.Config)
 	}
 
 	if authConfig.Type == "debug" {
 		return func(c *gin.Context) {
-
 			userId := c.GetHeader("Authentication")
 			if userId == "" {
 				c.Abort()
