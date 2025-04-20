@@ -78,7 +78,7 @@ type JoinRequestData struct {
 type JoinRequest struct {
 	JoinRequestData
 	UserId    string            `json:"userId"`
-	Status    JoinRequestStatus `json:"status"`
+	Status    JoinRequestStatus `json:"status" enum:"WAITING,ACCEPTED,REJECTED,CANCELLED,RESERVATION_FAILED"`
 	CreatedAt time.Time         `json:"createdAt"`
 }
 
@@ -108,19 +108,19 @@ type EventData struct {
 	Id              string          `json:"id"`
 	UserId          string          `json:"userId" db:"user_id"`
 	Locations       []string        `json:"locations" validate:"required,min=1" db:"locations"`
-	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" db:"skill_level"`
+	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" db:"skill_level" enum:"ANY,BEGINNER,INTERMEDIATE,ADVANCED"`
 	Description     string          `json:"description,omitempty" `
-	EventType       EventType       `json:"eventType" validate:"required" db:"event_type"`
+	EventType       EventType       `json:"eventType" validate:"required" db:"event_type" enum:"MATCH,TRAINING"`
 	ExpectedPlayers int             `json:"expectedPlayers" validate:"required" db:"expected_players"`
 	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration"`
 	TimeSlots       []time.Time     `json:"timeSlots" validate:"required,min=1"`
-	Visibility      EventVisibility `json:"visibility" validate:"required" `
+	Visibility      EventVisibility `json:"visibility" validate:"required" enum:"PUBLIC,PRIVATE"`
 }
 
 // Event represents an internal representation of an event
 type Event struct {
 	EventData
-	Status       EventStatus    `json:"status"`
+	Status       EventStatus    `json:"status" enum:"OPEN,ACCEPTED,CONFIRMED,CANCELLED,RESERVATION_FAILED,COMPLETED"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	JoinRequests []*JoinRequest `json:"joinRequests"`
 	Confirmation *Confirmation  `json:"confirmation,omitempty"`
@@ -188,9 +188,3 @@ type ListLocationsResponse struct {
 type GetLocationRequest struct {
 	ID string `path:"id" validate:"required"`
 }
-
-type GetLocationResponse struct {
-	Location Location `json:"location"`
-}
-
-// end Locations
