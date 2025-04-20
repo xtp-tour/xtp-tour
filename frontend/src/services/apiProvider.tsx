@@ -5,22 +5,23 @@ import { MockAPIClient } from './mockApi';
 import { RealAPIClient } from './realApi';
 
 // Define types based on the schema
-type Event = components['schemas']['ApiEvent'];
-type EventConfirmation = components['schemas']['ApiConfirmation'];
-type JoinRequest = components['schemas']['ApiJoinRequest'];
-type Location = components['schemas']['ApiLocation'];
+export type Event = components['schemas']['ApiEvent'];
+export type EventConfirmation = components['schemas']['ApiConfirmation'];
+export type JoinRequest = components['schemas']['ApiJoinRequest'];
+export type Location = components['schemas']['ApiLocation'];
 
 // Response types
-type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
+export type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
+export type GetEventResponse = components['schemas']['ApiGetEventResponse'];
 
 // Request types
-type CreateEventRequest = {
+export type CreateEventRequest = {
   event: components['schemas']['ApiEventData'];
 };
 
-type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
+export type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
 
-type JoinEventRequest = {
+export type JoinEventRequest = {
   joinRequest: components['schemas']['ApiJoinRequestData'];
 };
 
@@ -50,7 +51,7 @@ interface APIProviderProps {
   baseUrl?: string;
 }
 
-export function APIProvider({ children, useMock = true, baseUrl = '/api' }: APIProviderProps) {
+export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProviderProps) {
   const { getToken } = useAuth();
 
   const client = useMemo(() => {

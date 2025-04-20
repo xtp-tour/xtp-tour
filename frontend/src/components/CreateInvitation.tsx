@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 //  Don't add 'bootstrap/dist/js/bootstrap.bundle.min.js'; here. It breaks the locations selector
 import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
-
-
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
-import { EventType, SingleDoubleType, SkillLevel, SessionTimeSlot, Event, EventStatus } from '../types/event';
-import { useAPI } from '../services/apiProvider';
-import { Location } from '../types/locations';
+import { components } from '../types/schema';
+import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
+
+type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
+type EventType = components['schemas']['ApiEventData']['eventType'];
+type SingleDoubleType = 'SINGLE' | 'DOUBLES';
 
 interface DateTimeSlot {
   id: number;
@@ -28,21 +29,29 @@ const MATCH_DURATION_OPTIONS = [
 ];
 
 const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
-  [SkillLevel.Any]: 'Any NTRP',
-  [SkillLevel.Beginner]: 'NTRP < 3.5',
-  [SkillLevel.Intermediate]: 'NTRP 3.5–5.0',
-  [SkillLevel.Advanced]: 'NTRP > 5.0'
+  'INTERMEDIATE': 'NTRP 3.5–5.0',
+  'BEGINNER': 'NTRP < 3.5',
+  'ADVANCED': 'NTRP > 5.0',
+  'ANY': 'Any NTRP'
 };
 
 const calculateEndTime = (startTime: string, duration: string): string => {
   const [hours, minutes] = startTime.split(':').map(Number);
-  const durationHours = parseFloat(duration);
-  
-  const totalMinutes = hours * 60 + minutes + durationHours * 60;
+  const totalMinutes = hours * 60 + minutes + parseInt(duration) * 60;
   const endHours = Math.floor(totalMinutes / 60);
   const endMinutes = totalMinutes % 60;
   
   return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+};
+
+const formatDateTime = (date: string, time: string): string => {
+  return `${date}T${time}:00.000Z`;
+};
+
+const formatTime = (date: Date): string => {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 
 const CreateInvitation: React.FC = () => {
@@ -52,22 +61,22 @@ const CreateInvitation: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [sessionDuration, setSessionDuration] = useState('2'); // Default to 2 hours
-  const [skillLevel, setSkillLevel] = useState<SkillLevel>(SkillLevel.Any);
+  const [sessionDuration, setSessionDuration] = useState('2');
+  const [skillLevel, setSkillLevel] = useState<SkillLevel>('INTERMEDIATE');
   const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
     { 
       id: 1, 
       date: getTomorrowDate(),
       timeFrom: '09:00',
-      timeTo: calculateEndTime('09:00', '2') // Default to 2 hours from 9:00
+      timeTo: calculateEndTime('09:00', '2')
     }
   ]);
   const selectRef = useRef<HTMLSelectElement>(null);
   
-  const [invitationType, setInvitationType] = useState<EventType>(EventType.Match);
+  const [invitationType, setInvitationType] = useState<EventType>('MATCH');
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
-  const [requestType, setRequestType] = useState<SingleDoubleType>(SingleDoubleType.Single);
+  const [requestType, setRequestType] = useState<SingleDoubleType>('SINGLE');
 
   // Fetch locations
   useEffect(() => {
@@ -76,7 +85,15 @@ const CreateInvitation: React.FC = () => {
       setLocationError(null);
       try {
         const response = await api.listLocations();
-        setLocations(response.locations);
+        console.log('response type:', typeof response);
+        console.log('response keys:', Object.keys(response));
+        console.log('response array length:', Array.isArray(response) ? response.length : 0);
+        
+        if (Array.isArray(response) && response.length > 0) {
+          setLocations(response);
+        } else {
+          setLocationError('No locations available');
+        }
       } catch (error) {
         setLocationError('Failed to load locations. Please try again later.');
         console.error('Error fetching locations:', error);
@@ -93,30 +110,47 @@ const CreateInvitation: React.FC = () => {
     // Initialize tooltips
     const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltips.forEach(tooltip => {
-      new Tooltip(tooltip);
+      if (tooltip instanceof HTMLElement) {
+        new Tooltip(tooltip);
+      }
     });
 
     // Only initialize select if component is expanded and locations are loaded
     if (isExpanded && locations.length > 0 && !isLoadingLocations && selectRef.current) {
       // Clean up existing instance and create a new one
-      UseBootstrapSelect.clearAll();
-      UseBootstrapSelect.getOrCreateInstance(selectRef.current);
+      if (typeof UseBootstrapSelect.clearAll === 'function') {
+        UseBootstrapSelect.clearAll();
+      }
+      if (typeof UseBootstrapSelect.getOrCreateInstance === 'function') {
+        const select = UseBootstrapSelect.getOrCreateInstance(selectRef.current);
+        // Ensure the select is initialized with the current selected values
+        select.setValue(selectedLocations);
+        // Add change event listener to update React state
+        selectRef.current.addEventListener('change', handleNativeLocationChange);
+      }
     }
 
     return () => {
       // Clean up tooltips
       const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       tooltips.forEach(tooltip => {
-        const bsTooltip = Tooltip.getInstance(tooltip);
-        if (bsTooltip) {
-          bsTooltip.dispose();
+        if (tooltip instanceof HTMLElement) {
+          const bsTooltip = Tooltip.getInstance(tooltip);
+          if (bsTooltip) {
+            bsTooltip.dispose();
+          }
         }
       });
       
-      // Clean up bootstrap-select
-      UseBootstrapSelect.clearAll();
+      // Clean up bootstrap-select and event listeners
+      if (selectRef.current) {
+        selectRef.current.removeEventListener('change', handleNativeLocationChange);
+      }
+      if (typeof UseBootstrapSelect.clearAll === 'function') {
+        UseBootstrapSelect.clearAll();
+      }
     };
-  }, [isExpanded, locations, isLoadingLocations]);
+  }, [isExpanded, locations, isLoadingLocations, selectedLocations]);
 
   // Get tomorrow's date in YYYY-MM-DD format
   function getTomorrowDate(): string {
@@ -126,8 +160,16 @@ const CreateInvitation: React.FC = () => {
   }
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions, option => option.value);
-    setSelectedLocations(selected);
+    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+    setSelectedLocations(selectedOptions);
+  };
+
+  const handleNativeLocationChange = (e: Event) => {
+    const select = e.target as HTMLSelectElement;
+    if (select) {
+      const selected = Array.from(select.selectedOptions, option => option.value);
+      setSelectedLocations(selected);
+    }
   };
 
   const handleExpandToggle = () => {
@@ -186,6 +228,21 @@ const CreateInvitation: React.FC = () => {
 
   const timeOptions = getTimeOptions();
 
+  const showToast = (message: string) => {
+    if (toastRef.current) {
+      const toastElement = toastRef.current;
+      const toastBody = toastElement.querySelector('.toast-body');
+      if (toastBody) {
+        toastBody.textContent = message;
+      }
+      const toast = new Toast(toastElement, {
+        autohide: true,
+        delay: 3000
+      });
+      toast.show();
+    }
+  };
+
   const renderLocationSelect = () => {
     if (isLoadingLocations) {
       return (
@@ -200,23 +257,8 @@ const CreateInvitation: React.FC = () => {
 
     if (locationError) {
       return (
-        <div className="alert alert-danger" role="alert">
-          {locationError}
-          <button 
-            type="button" 
-            className="btn btn-link"
-            onClick={() => window.location.reload()}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    if (locations.length === 0) {
-      return (
-        <div className="alert alert-info" role="alert">
-          No locations available at the moment.
+        <div className="p-3 text-center bg-light border rounded">
+          <p className="text-danger mb-0">{locationError}</p>
         </div>
       );
     }
@@ -228,26 +270,11 @@ const CreateInvitation: React.FC = () => {
         multiple
         value={selectedLocations}
         onChange={handleLocationChange}
-        data-searchable="true"
         data-live-search="true"
-        data-actions-box="true"
-        data-selected-text-format="count > 2"
-        data-count-selected-text="{0} locations selected"
-        data-none-selected-text="Select locations..."
-        data-live-search-placeholder="Search locations..."
-        data-style="btn-outline-primary"
-        data-header="Select one or more locations"
-        data-max-height="300px"
-        data-position="down"
+        title="Select locations"
       >
-        <option value="">Select locations...</option>
-
         {locations.map(location => (
-          <option 
-            key={location.id} 
-            value={location.id}
-            data-tokens={`${location.name} ${location.area}`}
-          >
+          <option key={location.id} value={location.id}>
             {location.name}
           </option>
         ))}
@@ -259,51 +286,74 @@ const CreateInvitation: React.FC = () => {
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Convert date slots to SessionTimeSlot format
-    const timeSlots: SessionTimeSlot[] = dateSlots.map(slot => ({
-      date: new Date(slot.date),
-      time: parseInt(slot.timeFrom.replace(':', ''))
-    }));
+    if (selectedLocations.length === 0) {
+      showToast('Please select at least one location');
+      return;
+    }
 
-    const requestData: Event = {
-      id: '', // Will be assigned by the server
-      ownerId: '', // Will be assigned by the server
-      locations: selectedLocations,
-      skillLevel,
-      sessionDuration: parseFloat(sessionDuration),
-      invitationType,
-      expectedPlayers: requestType === SingleDoubleType.Doubles ? 4 : 2,
-      description,
-      timeSlots,
-      status: EventStatus.Open,
-      createdAt: new Date(),
-      joinRequests: []
-    };
+    if (dateSlots.length === 0) {
+      showToast('Please add at least one date and time slot');
+      return;
+    }
 
     try {
-      await api.createEvent(requestData);
+      const timeSlots: string[] = [];
+      for (const slot of dateSlots) {
+        const cur = new Date(formatDateTime(slot.date, slot.timeFrom));
+        const durationMins  = (parseFloat(sessionDuration)/0.5)*30;
 
-      // Reset form after successful submission
+        const end = new Date(formatDateTime(slot.date, slot.timeTo));
+        end.setMinutes(end.getMinutes() - durationMins);
+        
+        while (cur <= end) {
+          console.log('!!! cur:', cur.toISOString());
+          timeSlots.push(cur.toISOString());
+          cur.setMinutes(cur.getMinutes() + 30);
+        }            
+      }
+
+      const request: CreateEventRequest = {
+        event: {
+          eventType: invitationType,
+          description,
+          expectedPlayers: requestType === 'SINGLE' ? 2 : 4,
+          sessionDuration: parseFloat(sessionDuration),
+          skillLevel,
+          visibility: 'PUBLIC',
+          locations: selectedLocations,
+          timeSlots: timeSlots,
+        }
+      };
+
+      console.log('Sending request:', JSON.stringify(request, null, 2));
+      await api.createEvent(request);
+      showToast('Event created successfully!');
       setIsExpanded(false);
-      setSelectedLocations([]);
-      setDateSlots([{ 
-        id: 1, 
-        date: getTomorrowDate(),
-        timeFrom: '09:00',
-        timeTo: calculateEndTime('09:00', '2')
-      }]);
     } catch (error) {
-      console.error('Error creating invitation:', error);
-      // TODO: Add error handling with toast notifications
+      showToast('Failed to create event. Please try again.');
+      console.error('Error creating event:', error);
     }
   };
 
-  const handleInvitationTypeChange = (type: EventType) => {
+  const handleDurationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSessionDuration(e.target.value);
+  };
+
+  const handleSkillLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSkillLevel(e.target.value as SkillLevel);
+  };
+
+  const handleInvitationTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const type = e.target.value as EventType;
     setInvitationType(type);
-    if (type === EventType.Training && toastRef.current) {
+    if (type === 'TRAINING' && toastRef.current) {
       const toast = new Toast(toastRef.current);
       toast.show();
     }
+  };
+
+  const handleRequestTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRequestType(e.target.value as SingleDoubleType);
   };
 
   return (
@@ -384,8 +434,8 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeSingle"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === SingleDoubleType.Single}
-                      onChange={() => setRequestType(SingleDoubleType.Single)}
+                      checked={requestType === 'SINGLE'}
+                      onChange={handleRequestTypeChange}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeSingle">
@@ -398,7 +448,7 @@ const CreateInvitation: React.FC = () => {
                       id="requestTypeDoubles"
                       name="requestType"
                       className="form-check-input"
-                      checked={requestType === SingleDoubleType.Doubles}
+                      checked={requestType === 'DOUBLES'}
                       disabled
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeDoubles">
@@ -416,7 +466,7 @@ const CreateInvitation: React.FC = () => {
                   id="skillLevel" 
                   name="skillLevel"
                   value={skillLevel}
-                  onChange={(e) => setSkillLevel(e.target.value as SkillLevel)}
+                  onChange={handleSkillLevelChange}
                   required
                 >
                   {Object.entries(SKILL_LEVEL_LABELS).map(([value, label]) => (
@@ -434,7 +484,7 @@ const CreateInvitation: React.FC = () => {
                   id="sessionDuration" 
                   name="sessionDuration"
                   value={sessionDuration}
-                  onChange={(e) => setSessionDuration(e.target.value)}
+                  onChange={handleDurationChange}
                   required
                 >
                   {MATCH_DURATION_OPTIONS.map(option => (
@@ -454,8 +504,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeMatch"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === EventType.Match}
-                      onChange={() => handleInvitationTypeChange(EventType.Match)}
+                      checked={invitationType === 'MATCH'}
+                      onChange={handleInvitationTypeChange}
                       required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
@@ -476,8 +526,8 @@ const CreateInvitation: React.FC = () => {
                       id="invitationTypeTraining"
                       name="invitationType"
                       className="form-check-input"
-                      checked={invitationType === EventType.Training}
-                      onChange={() => handleInvitationTypeChange(EventType.Training)}
+                      checked={invitationType === 'TRAINING'}
+                      onChange={handleInvitationTypeChange}
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training
@@ -585,7 +635,7 @@ const CreateInvitation: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={invitationType === EventType.Training ? "Describe your training plan and goals..." : "Add any additional information..."}
+                  placeholder={invitationType === 'TRAINING' ? "Describe your training plan and goals..." : "Add any additional information..."}
                 />
               </div>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRequestType, Event } from '../../types/event';
+import { components } from '../../types/schema';
 import InvitationHeader from './InvitationHeader';
 import InvitationBadges from './InvitationBadges';
 import InvitationLocations from './InvitationLocations';
@@ -8,8 +8,10 @@ import InvitationDescription from './InvitationDescription';
 import AcceptedUsers from './AcceptedUsers';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 
+type ApiEvent = components['schemas']['ApiEvent'];
+
 interface BaseInvitationItemProps extends StyleProps {
-  invitation: Event;
+  invitation: ApiEvent;
   headerTitle: string;
   headerSubtitle?: string;
   timeSlots: TimeSlot[];
@@ -42,7 +44,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
 
     <div className="card-body">
       <InvitationBadges
-        invitationType={invitation.invitationType}
+        invitationType={invitation.eventType}
         expectedPlayers={invitation.expectedPlayers}
         skillLevel={invitation.skillLevel}
         sessionDuration={invitation.sessionDuration}
@@ -50,7 +52,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
 
       <InvitationLocations
         locations={invitation.locations}
-        selectedLocations={invitation.reservation?.location ? [invitation.reservation.location] : undefined}
+        selectedLocations={invitation.confirmation?.location ? [invitation.confirmation.location] : undefined}
         colorClass={colorClass}
         borderColorClass={borderColorClass}
         onLocationClick={onLocationClick}
@@ -58,7 +60,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
 
       <InvitationTimeSlots
         timeSlots={timeSlots}
-        hasSelectedTimeSlots={!!invitation.reservation}
+        hasSelectedTimeSlots={!!invitation.confirmation}
         onTimeSlotClick={onTimeSlotClick}
       />
 
@@ -66,7 +68,7 @@ const BaseInvitationItem: React.FC<BaseInvitationItemProps> = ({
         description={invitation.description}
       />
 
-      <AcceptedUsers acks={invitation.joinRequests} />
+      <AcceptedUsers joinRequests={invitation.joinRequests || []} />
     </div>
   </div>
 );

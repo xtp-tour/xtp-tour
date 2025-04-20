@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Event } from '../types/event';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
-import { TimeSlot } from './invitation/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation } from './invitation/types';
+import { ApiEvent } from '../types/api';
+
 
 interface Props {
-  invitation: Event;
+  invitation: ApiEvent;
   onCancelled?: () => void;
 }
 
@@ -18,7 +19,7 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   const handleCancel = async () => {
     try {
       setCancelling(true);
-      await api.deleteEvent(invitation.id);
+      await api.deleteEvent(invitation.id || '');
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {
@@ -30,24 +31,18 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   };
 
   // Convert invitation time slots to the format expected by BaseInvitationItem
-  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
-    date: slot.date,
-    time: slot.time,
-    isAvailable: true,
-    isSelected: invitation.reservation?.date.getTime() === slot.date.getTime() && 
-                invitation.reservation?.time === slot.time
-  }));
+  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, invitation.confirmation));
 
   return (
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.ownerId}
+        headerTitle={invitation.userId || ''}
         headerSubtitle="Host"
         colorClass="text-primary"
         borderColorClass="border-primary"
         timeSlots={timeSlots}
-        timestamp={invitation.createdAt}
+        timestamp={new Date(invitation.createdAt || '')}
         actionButton={{
           variant: 'outline-danger',
           icon: 'bi-x-circle',

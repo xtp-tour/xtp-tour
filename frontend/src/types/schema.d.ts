@@ -112,9 +112,9 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ApiConfirmation: {
-            /** Format: date-time */
+            /** Format: date */
             createdAt?: string;
-            /** Format: date-time */
+            /** Format: date */
             datetime?: string;
             /** Format: int32 */
             duration?: number;
@@ -132,7 +132,7 @@ export interface components {
         };
         ApiEvent: {
             confirmation?: components["schemas"]["ApiConfirmation"];
-            /** Format: date-time */
+            /** Format: date */
             createdAt?: string;
             description?: string;
             /** @enum {string} */
@@ -148,7 +148,7 @@ export interface components {
             skillLevel: "ANY" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
             status?: "OPEN" | "ACCEPTED" | "CONFIRMED" | "CANCELLED" | "RESERVATION_FAILED" | "COMPLETED";
-            timeSlots: components["schemas"]["TimeTime"][];
+            timeSlots: string[];
             userId?: string;
             /** @enum {string} */
             visibility: "PUBLIC" | "PRIVATE";
@@ -168,7 +168,7 @@ export interface components {
             sessionDuration: number;
             /** @enum {string} */
             skillLevel: "ANY" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-            timeSlots: components["schemas"]["TimeTime"][];
+            timeSlots: string[];
             userId?: string;
             /** @enum {string} */
             visibility: "PUBLIC" | "PRIVATE";
@@ -183,20 +183,20 @@ export interface components {
         };
         ApiJoinRequest: {
             comment?: string;
-            /** Format: date-time */
+            /** Format: date */
             createdAt?: string;
             id?: string;
             locations: string[];
             /** @enum {string} */
             status?: "WAITING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "RESERVATION_FAILED";
-            timeSlots: components["schemas"]["TimeTime"][];
+            timeSlots: string[];
             userId?: string;
         };
         ApiJoinRequestData: {
             comment?: string;
             id?: string;
             locations: string[];
-            timeSlots: components["schemas"]["TimeTime"][];
+            timeSlots: string[];
         };
         ApiJoinRequestResponse: {
             joinRequest?: components["schemas"]["ApiJoinRequest"];
@@ -216,7 +216,7 @@ export interface components {
             name?: string;
         };
         "ConfirmEvent-FmInput": {
-            /** Format: date-time */
+            /** Format: date */
             datetime: string;
             /** Format: int32 */
             duration: number;
@@ -229,7 +229,6 @@ export interface components {
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
         };
-        TimeTime: Record<string, never>;
     };
     responses: never;
     parameters: never;

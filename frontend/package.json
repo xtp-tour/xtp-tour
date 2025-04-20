@@ -16,6 +16,7 @@
     "axios": "^1.8.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "moment": "^2.30.1",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",

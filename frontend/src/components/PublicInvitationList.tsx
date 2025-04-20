@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { SignInButton } from '@clerk/clerk-react';
 import { useAPI } from '../services/apiProvider';
-import { APIInvitation } from '../types/api';
-import { Event, EventStatus } from '../types/event';
+import { components } from '../types/schema';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot } from './invitation/types';
 
-const transformInvitation = (invitation: APIInvitation): Event => ({
+type Event = components['schemas']['ApiEvent'];
+
+const transformInvitation = (invitation: Event): Event => ({
   ...invitation,
   timeSlots: invitation.timeSlots.map(ts => ({
-    date: new Date(ts.date),
-    time: ts.time
+    date: new Date(ts.date || ''),
+    time: ts.time || ''
   })),
-  createdAt: new Date(invitation.createdAt)
+  createdAt: new Date(invitation.createdAt || '')
 });
 
 const PublicInvitationList: React.FC = () => {
@@ -27,9 +28,9 @@ const PublicInvitationList: React.FC = () => {
         setLoading(true);
         setError(null);
         const response = await api.listEvents();
-        const availableInvitations = response.invitations
+        const availableInvitations = response.events
           .map(transformInvitation)
-          .filter(inv => inv.status === EventStatus.Open && inv.joinRequests.length === 0);
+          .filter(inv => inv.status === 'OPEN' && (!inv.joinRequests || inv.joinRequests.length === 0));
         setInvitations(availableInvitations);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load invitations');

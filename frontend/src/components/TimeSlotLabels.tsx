@@ -1,12 +1,6 @@
 import React from 'react';
-import { formatTime } from '../utils/dateUtils';
+import { TimeSlot } from './invitation/types';
 
-interface TimeSlot {
-  date: Date | string;
-  time: number;
-  isSelected?: boolean;
-  isAvailable?: boolean;
-}
 
 interface Props {
   timeSlots: TimeSlot[];
@@ -15,11 +9,13 @@ interface Props {
 }
 
 const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }) => {
+
+  console.log("!!! timeSlots", timeSlots);
   // Group slots by date
   const groupedSlots = timeSlots.reduce((acc, slot) => {
-    const dateStr = slot.date instanceof Date 
-      ? slot.date.toISOString().split('T')[0]
-      : slot.date;
+    
+    console.log("!!! date", slot.date);
+    const dateStr = slot.date.toISOString().split('T')[0];
     
     if (!acc[dateStr]) {
       acc[dateStr] = [];
@@ -81,7 +77,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                         ? 'var(--tennis-gray)'
                         : 'var(--tennis-navy)'
                   }}></i>
-                  {formatTime(slot.time)}
+                  { slot.date.format('HH:mm') }
                 </div>
               );
             })}

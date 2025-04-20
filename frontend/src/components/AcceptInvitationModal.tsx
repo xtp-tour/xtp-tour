@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { joinEventRequest } from '../types/api';
-import { useAPI } from '../services/apiProvider';
+import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
+import { components } from '../types/schema';
 import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
+
+type TimeTime = components['schemas']['TimeTime'];
 
 interface Props {
   invitationId: string;
@@ -13,13 +15,15 @@ interface Props {
   onAccepted: () => void;
 }
 
+interface TimeSlot {
+  datetime: string;
+  isSelected?: boolean;
+  isAvailable?: boolean;
+}
+
 interface AcceptanceOptions {
   locations: string[];
-  timeSlots: {
-    date: string;
-    time: number;
-    isAvailable: boolean;
-  }[];
+  timeSlots: TimeSlot[];
 }
 
 export const AcceptInvitationModal: React.FC<Props> = ({
@@ -34,21 +38,31 @@ export const AcceptInvitationModal: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [options, setOptions] = useState<AcceptanceOptions | null>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<{
-    date: string;
-    startTime: number;
-  }[]>([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
     const fetchOptions = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.getAcceptanceOptions(invitationId);
-        setOptions(response);
-        // Pre-select first location by default
-        if (response.locations.length > 0) {
-          setSelectedLocations([response.locations[0]]);
+        const response = await api.getEvent(invitationId);
+        if (response && 'event' in response) {
+          const event = response.event as Event;
+          if (event) {
+            const timeSlots: TimeSlot[] = event.timeSlots.map(slot => ({
+              datetime: `${slot.date || ''}T${slot.time || ''}`,
+              isAvailable: true,
+              isSelected: false
+            }));
+            setOptions({
+              locations: event.locations,
+              timeSlots
+            });
+            // Pre-select first location by default
+            if (event.locations.length > 0) {
+              setSelectedLocations([event.locations[0]]);
+            }
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load options');
@@ -70,16 +84,11 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     );
   };
 
-  const handleTimeSlotChange = (slot: { date: Date | string; time: number }) => {
-    const dateStr = slot.date instanceof Date ? slot.date.toISOString().split('T')[0] : slot.date;
-    const isSelected = selectedTimeSlots.some(
-      s => s.date === dateStr && s.startTime === slot.time
-    );
-
+  const handleTimeSlotChange = (slot: TimeSlot) => {
     setSelectedTimeSlots(prev =>
-      isSelected
-        ? prev.filter(s => !(s.date === dateStr && s.startTime === slot.time))
-        : [...prev, { date: dateStr, startTime: slot.time }]
+      prev.some(s => s.datetime === slot.datetime)
+        ? prev.filter(s => s.datetime !== slot.datetime)
+        : [...prev, slot]
     );
   };
 
@@ -96,13 +105,18 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         throw new Error('Please select at least one time slot');
       }
 
-      const request: joinEventRequest = {
-        id: invitationId,
-        selectedLocations,
-        selectedTimeSlots
+      const request: JoinEventRequest = {
+        joinRequest: {
+          id: invitationId,
+          locations: selectedLocations,
+          timeSlots: selectedTimeSlots.map(slot => {
+            const [date, time] = slot.datetime.split('T');
+            return { date, time } as TimeTime;
+          })
+        }
       };
 
-      await api.joinEvent(request);
+      await api.joinEvent(invitationId, request);
       onAccepted();
       onHide();
     } catch (err) {
@@ -208,12 +222,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                 <div className="ps-2">
                   <TimeSlotLabels
                     timeSlots={options.timeSlots.map(slot => ({
-                      date: new Date(slot.date),
-                      time: slot.time,
-                      isSelected: selectedTimeSlots.some(
-                        s => s.date === slot.date && s.startTime === slot.time
-                      ),
-                      isAvailable: slot.isAvailable
+                      ...slot,
+                      isSelected: selectedTimeSlots.some(s => s.datetime === slot.datetime)
                     }))}
                     onSelect={handleTimeSlotChange}
                     className="mb-2"

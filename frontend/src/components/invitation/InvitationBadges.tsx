@@ -1,15 +1,19 @@
 import React from 'react';
-import { EventType, SkillLevel } from '../../types/event';
+import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
 
+type ApiEvent = components['schemas']['ApiEvent'];
+type ApiEventType = ApiEvent['eventType'];
+type ApiSkillLevel = ApiEvent['skillLevel'];
+
 interface InvitationBadgesProps {
-  invitationType: EventType;  
+  invitationType: ApiEventType;  
   expectedPlayers: number;
-  skillLevel: SkillLevel;
+  skillLevel: ApiSkillLevel;
   sessionDuration: number;
 }
 
-const SkillLevelBadge: React.FC<{ skillLevel: SkillLevel }> = ({ skillLevel }) => (
+const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }) => (
   <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
     <span>{skillLevel}</span>
     <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
@@ -31,13 +35,11 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
   </span>
 );
 
-const InvitationTypeBadge: React.FC<{ invitationType: EventType }> = ({ invitationType }) => (
+const InvitationTypeBadge: React.FC<{ invitationType: ApiEventType }> = ({ invitationType }) => (
   <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
     {getInvitationTypeLabel(invitationType)}
   </span>
 );
-
-
 
 const InvitationBadges: React.FC<InvitationBadgesProps> = ({
   invitationType,

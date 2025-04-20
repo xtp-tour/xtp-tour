@@ -3,17 +3,39 @@ import MyInvitationItem from './MyInvitationItem';
 import AvailableInvitationItem from './AvailableInvitationItem';
 import AcceptedInvitationItem from './AcceptedInvitationItem';
 import { useAPI } from '../services/apiProvider';
-import { APIInvitation } from '../types/api';
-import { Event, EventStatus } from '../types/event';
+import { components } from '../types/schema';
 
-const transformInvitation = (invitation: APIInvitation): Event => ({
-  ...invitation,
-  timeSlots: invitation.timeSlots.map(ts => ({
-    date: new Date(ts.date),
-    time: ts.time
-  })),
-  createdAt: new Date(invitation.createdAt)
-});
+type Event = components['schemas']['ApiEvent'];
+
+interface DisplayEvent extends Event {
+  _displayTimeSlots: Array<{
+    date: Date;
+    time: string;
+    isAvailable: boolean;
+    isSelected: boolean;
+  }>;
+  _displayCreatedAt: Date;
+}
+
+const transformEventData = (event: Event): DisplayEvent => {
+  // Convert string dates to Date objects for display purposes
+  const transformedTimeSlots = event.timeSlots.map(ts => ({
+    date: new Date(ts.date || ''),
+    time: ts.time || '',
+    isAvailable: true,
+    isSelected: event.confirmation ? 
+      new Date(event.confirmation.datetime || '').getTime() === new Date(ts.date || '').getTime() : 
+      false
+  }));
+
+  return {
+    ...event,
+    timeSlots: event.timeSlots, // Keep original timeSlots for API compatibility
+    createdAt: event.createdAt, // Keep original createdAt for API compatibility
+    _displayTimeSlots: transformedTimeSlots, // Add display-specific timeSlots
+    _displayCreatedAt: new Date(event.createdAt || '') // Add display-specific createdAt
+  };
+};
 
 interface SectionHeaderProps {
   title: string;
@@ -44,8 +66,7 @@ const InvitationList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [myInvitations, setMyInvitations] = useState<Event[]>([]);
-  const [otherInvitations, setOtherInvitations] = useState<Event[]>([]);
+  const [events, setEvents] = useState<DisplayEvent[]>([]);
 
   // State for section expansion
   const [expandedSections, setExpandedSections] = useState({
@@ -62,41 +83,35 @@ const InvitationList: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchInvitations = async () => {
+    const fetchEvents = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Fetch both my invitations and other invitations
-        const [myResponse, otherResponse] = await Promise.all([
-          api.listMyEvents(),
-          api.listEvents()
-        ]);
-
-        setMyInvitations(myResponse.invitations.map(transformInvitation));
-        setOtherInvitations(otherResponse.invitations.map(transformInvitation));
+        const response = await api.listEvents();
+        setEvents((response.events || []).map(transformEventData));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load invitations');
+        setError(err instanceof Error ? err.message : 'Failed to load events');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInvitations();
+    fetchEvents();
   }, [api]);
 
-  // Filter invitations based on their status
-  const pendingMyInvitations = myInvitations.filter(invitation => 
-    invitation.status === EventStatus.Open
+  // Filter events based on their status and ownership
+  const myEvents = events.filter(event => 
+    event.status === 'OPEN'
   );
   
-  const acceptedInvitations = otherInvitations.filter(invitation => 
-    invitation.joinRequests.length > 0
+  const acceptedEvents = events.filter(event => 
+    event.joinRequests && event.joinRequests.length > 0
   );
   
-  const availableInvitations = otherInvitations.filter(invitation => 
-    invitation.status === EventStatus.Open &&
-    invitation.joinRequests.length===0
+  const availableEvents = events.filter(event => 
+    event.status === 'OPEN' &&
+    (!event.joinRequests || event.joinRequests.length === 0)
   );
 
   if (loading) {
@@ -121,26 +136,26 @@ const InvitationList: React.FC = () => {
     <div className="mt-4">
       <section className="mb-5">
         <SectionHeader
-          title="Your Invitations"
-          count={pendingMyInvitations.length}
+          title="Your Events"
+          count={myEvents.length}
           isExpanded={expandedSections.myInvitations}
           onToggle={() => toggleSection('myInvitations')}
         />
         {expandedSections.myInvitations && (
-          pendingMyInvitations.length === 0 ? (
-            <p className="text-muted">You haven't created any invitations yet.</p>
+          myEvents.length === 0 ? (
+            <p className="text-muted">You haven't created any events yet.</p>
           ) : (
             <div>
-              {pendingMyInvitations.map(invitation => (
+              {myEvents.map(event => (
                 <MyInvitationItem 
-                  key={invitation.id} 
-                  invitation={invitation} 
+                  key={event.id} 
+                  invitation={event} 
                   onDelete={async (id) => {
                     try {
                       await api.deleteEvent(id);
-                      setMyInvitations(prev => prev.filter(inv => inv.id !== id));
+                      setEvents(prev => prev.filter(ev => ev.id !== id));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Failed to delete invitation');
+                      setError(err instanceof Error ? err.message : 'Failed to delete event');
                     }
                   }} 
                 />
@@ -152,18 +167,18 @@ const InvitationList: React.FC = () => {
 
       <section className="mb-5">
         <SectionHeader
-          title="Accepted Invitations"
-          count={acceptedInvitations.length}
+          title="Accepted Events"
+          count={acceptedEvents.length}
           isExpanded={expandedSections.acceptedInvitations}
           onToggle={() => toggleSection('acceptedInvitations')}
         />
         {expandedSections.acceptedInvitations && (
-          acceptedInvitations.length === 0 ? (
-            <p className="text-muted">You haven't accepted any invitations yet.</p>
+          acceptedEvents.length === 0 ? (
+            <p className="text-muted">You haven't accepted any events yet.</p>
           ) : (
             <div>
-              {acceptedInvitations.map(invitation => (
-                <AcceptedInvitationItem key={invitation.id} invitation={invitation} />
+              {acceptedEvents.map(event => (
+                <AcceptedInvitationItem key={event.id} invitation={event} />
               ))}
             </div>
           )
@@ -172,22 +187,22 @@ const InvitationList: React.FC = () => {
 
       <section className="mb-5">
         <SectionHeader
-          title="Available Invitations to Join"
-          count={availableInvitations.length}
+          title="Available Events to Join"
+          count={availableEvents.length}
           isExpanded={expandedSections.availableInvitations}
           onToggle={() => toggleSection('availableInvitations')}
         />
         {expandedSections.availableInvitations && (
-          availableInvitations.length === 0 ? (
-            <p className="text-muted">No available invitations at the moment.</p>
+          availableEvents.length === 0 ? (
+            <p className="text-muted">No available events at the moment.</p>
           ) : (
             <div>
-              {availableInvitations.map(invitation => (
+              {availableEvents.map(event => (
                 <AvailableInvitationItem 
-                  key={invitation.id} 
-                  invitation={invitation}
+                  key={event.id} 
+                  invitation={event}
                   onAccept={() => {
-                    // TODO: Implement invitation acceptance callback
+                    // TODO: Implement event acceptance callback
                   }}
                 />
               ))}
