@@ -20,6 +20,12 @@ export type ApiConfirmation = components['schemas']['ApiConfirmation'];
 export type ApiEventStatus = ApiEvent['status']; // will be "OPEN" | "ACCEPTED" | etc.
 export type ApiSkillLevel = components['schemas']['ApiEventData']['skillLevel']; // "ANY" | "BEGINNER" etc.
 
+export type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
+export type CreateEventResponse = components['schemas']['ApiCreateEventResponse'];
+export type GetEventResponse = components['schemas']['ApiGetEventResponse'];
+export type ConfirmEventResponse = components['schemas']['ApiEventConfirmationResponse'];
+export type JoinRequestResponse = components['schemas']['ApiJoinRequestResponse'];
+export type ListLocationsResponse = components['schemas']['ApiListLocationsResponse'];
 
 // export enum SkillLevel {
 //   Any = 'ANY',

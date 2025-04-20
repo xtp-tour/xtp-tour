@@ -1,4 +1,4 @@
-import { APIConfig } from '../types/api';
+import { APIConfig, ListEventsResponse } from '../types/api';
 import { components } from '../types/schema';
 
 // Define types based on the schema
@@ -7,13 +7,7 @@ type EventConfirmation = components['schemas']['ApiConfirmation'];
 type JoinRequest = components['schemas']['ApiJoinRequest'];
 type Location = components['schemas']['ApiLocation'];
 
-// Response types
-type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
-type CreateEventResponse = components['schemas']['ApiCreateEventResponse'];
-type GetEventResponse = components['schemas']['ApiGetEventResponse'];
-type ConfirmEventResponse = components['schemas']['ApiEventConfirmationResponse'];
-type JoinRequestResponse = components['schemas']['ApiJoinRequestResponse'];
-type ListLocationsResponse = components['schemas']['ApiListLocationsResponse'];
+
 
 // Request types
 type CreateEventRequest = {
