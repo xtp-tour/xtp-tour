@@ -291,7 +291,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 			JoinRequestData: req.JoinRequest,
 			UserId:          userId.(string),
 			Status:          api.JoinRequestStatusWaiting,
-			CreatedAt:       time.Now(),
+			CreatedAt:       api.DtToIso(time.Now()),
 		},
 	}, nil
 }
@@ -328,7 +328,7 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
-	if !slices.Contains(event.TimeSlots, req.Datetime) {
+	if !slices.Contains(event.TimeSlots, req.DateTime) {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Time slot not found",

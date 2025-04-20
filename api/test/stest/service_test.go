@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/num30/config"
@@ -56,7 +55,7 @@ func Test_EventAPI(t *testing.T) {
 	user := "test-user-1"
 	user2 := "test-user-2"
 	user3 := "test-user-3"
-	confirmedDate := api.ParseDt("2023-10-17T18:00:00Z")
+	confirmedDate := "2023-10-17T18:00:00Z"
 	confirmedLocation := "matchpoint"
 	confirmedDuration := 60
 	var joinRequestIdToConfirm string
@@ -71,10 +70,10 @@ func Test_EventAPI(t *testing.T) {
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []time.Time{
-					api.ParseDt("2023-10-15T14:00:00Z"),
-					api.ParseDt("2023-10-16T16:00:00Z"),
-					api.ParseDt("2023-10-16T18:00:00Z"),
+				TimeSlots: []string{
+					"2023-10-15T14:00:00Z",
+					"2023-10-16T16:00:00Z",
+					"2023-10-16T18:00:00Z",
 					confirmedDate,
 				},
 				Description: "Test event for integration testing",
@@ -147,9 +146,9 @@ func Test_EventAPI(t *testing.T) {
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint"},
-				TimeSlots: []time.Time{
-					api.ParseDt("2023-10-15T14:00:00Z"),
-					api.ParseDt("2023-10-16T16:00:00Z"),
+				TimeSlots: []string{
+					"2023-10-15T14:00:00Z",
+					"2023-10-16T16:00:00Z",
 					confirmedDate,
 				},
 				Comment: "Hey, let's play",
@@ -174,10 +173,10 @@ func Test_EventAPI(t *testing.T) {
 		joinRequestData := api.JoinRequestRequest{
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint", "spartan-pultuska"},
-				TimeSlots: []time.Time{
-					api.ParseDt("2023-10-15T14:00:00Z"),
-					api.ParseDt("2023-10-16T16:00:00Z"),
-					api.ParseDt("2023-10-17T19:00:00Z"),
+				TimeSlots: []string{
+					"2023-10-15T14:00:00Z",
+					"2023-10-16T16:00:00Z",
+					"2023-10-17T19:00:00Z",
 					confirmedDate,
 				},
 				Comment: "Let's play tennis!",
@@ -222,7 +221,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
+			DateTime:        api.DtToIso(api.ParseDt("2023-10-15T14:00:00Z")),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -245,7 +244,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			Datetime:        api.ParseDt("2023-05-15T14:00:00Z"),
+			DateTime:        api.DtToIso(api.ParseDt("2023-05-15T14:00:00Z")),
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -265,7 +264,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location3",
-			Datetime:        api.ParseDt("2023-10-15T14:00:00Z"),
+			DateTime:        "2023-10-15T14:00:00Z",
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -285,7 +284,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      confirmedLocation,
-			Datetime:        confirmedDate,
+			DateTime:        confirmedDate,
 			Duration:        confirmedDuration,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -360,8 +359,8 @@ func Test_DeleteEvent(t *testing.T) {
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []time.Time{
-					api.ParseDt("2023-10-17T19:00:00Z"),
+				TimeSlots: []string{
+					api.DtToIso(api.ParseDt("2023-10-17T19:00:00Z")),
 				},
 				Visibility: api.EventVisibilityPublic,
 			},

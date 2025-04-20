@@ -59,8 +59,8 @@ func (row *ConfirmationRow) ToApi() *api.Confirmation {
 	return &api.Confirmation{
 		EventId:    row.EventId,
 		LocationId: row.LocationId,
-		Datetime:   row.Dt,
+		Datetime:   api.DtToIso(row.Dt),
 		Duration:   row.Duration,
-		CreatedAt:  row.CreatedAt,
+		CreatedAt:  api.DtToIso(row.CreatedAt),
 	}
 }

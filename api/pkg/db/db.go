@@ -126,7 +126,7 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	for i, timeSlot := range event.TimeSlots {
 		timeSlots[i] = EventTimeSlotRow{
 			EventId: event.Id,
-			Dt:      timeSlot,
+			Dt:      api.ParseDt(timeSlot),
 		}
 	}
 	_, err = tx.NamedExecContext(ctx, query, timeSlots)
@@ -251,9 +251,9 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 			confirmation = &api.Confirmation{
 				EventId:    id,
 				LocationId: confirmedLoc.String,
-				Datetime:   confirmedDt.Time,
+				Datetime:   api.DtToIso(confirmedDt.Time),
 				Duration:   int(confirmedDur.Int64),
-				CreatedAt:  time.Now(),
+				CreatedAt:  api.DtToIso(time.Now()),
 			}
 		}
 
@@ -267,11 +267,11 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 				EventType:       api.EventType(eventType),
 				ExpectedPlayers: expectedPlayers,
 				SessionDuration: sessionDuration,
-				TimeSlots:       timeSlots,
+				TimeSlots:       api.DtToIsoArray(timeSlots),
 				Visibility:      api.EventVisibility(visibility),
 			},
 			Status:       api.EventStatus(status),
-			CreatedAt:    createdAt,
+			CreatedAt:    api.DtToIso(createdAt),
 			Confirmation: confirmation,
 		}
 
@@ -331,7 +331,7 @@ func (db *Db) getEventsInternal(ctx context.Context, userId string, extraFilter 
 					Comment: comment,
 				},
 				UserId:    userId,
-				CreatedAt: createdAt,
+				CreatedAt: api.DtToIso(createdAt),
 			}
 
 			joinRequest.Status = getJoinRequestStatus(event.Status, confirmationId, isRejected)
@@ -455,7 +455,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	if len(req.TimeSlots) > 0 {
 		query = `INSERT INTO join_request_time_slots (id, join_request_id, dt) VALUES (?, ?, ?)`
 		for _, timeSlot := range req.TimeSlots {
-			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, timeSlot)
+			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, api.ParseDt(timeSlot))
 			if err != nil {
 				tx.Rollback()
 				slog.Error("Failed to insert join request time slot", "error", err)
@@ -491,7 +491,7 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	// Create confirmation
 	confirmationId := uuid.New().String()
 	query := `INSERT INTO confirmations (id, event_id, location_id, dt, duration) VALUES (?, ?, ?, ?, ?)`
-	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, req.Datetime, req.Duration)
+	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime), req.Duration)
 	if err != nil {
 		tx.Rollback()
 		slog.Error("Failed to create confirmation", "error", err)
@@ -533,9 +533,9 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	confirmation := &api.Confirmation{
 		EventId:    eventId,
 		LocationId: req.LocationId,
-		Datetime:   req.Datetime,
+		Datetime:   req.DateTime,
 		Duration:   req.Duration,
-		CreatedAt:  time.Now(),
+		CreatedAt:  api.DtToIso(time.Now()),
 	}
 
 	return confirmation, nil
