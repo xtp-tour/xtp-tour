@@ -2,6 +2,7 @@ import React from 'react';
 import { components } from '../types/schema';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './invitation/types';
+import moment from 'moment';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -27,7 +28,7 @@ const MyInvitationItem: React.FC<Props> = ({ invitation, onDelete }) => {
       colorClass="text-primary"
       borderColorClass="border-primary"
       timeSlots={timeSlots}
-      timestamp={new Date(invitation.createdAt || '')}
+      timestamp={moment(invitation.createdAt || '')}
       actionButton={{
         variant: 'outline-danger',
         icon: 'bi-x-circle',

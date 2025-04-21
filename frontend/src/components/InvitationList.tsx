@@ -95,7 +95,9 @@ const InvitationList: React.FC = () => {
         ]);
 
         setMyEvents((myEventsResponse.events || []).map(transformEventData));
-        setAvailableEvents((availableEventsResponse.events || []).map(transformEventData));
+        setAvailableEvents((availableEventsResponse.events || [])
+          .map(transformEventData)
+          .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load events');
       } finally {
@@ -107,13 +109,13 @@ const InvitationList: React.FC = () => {
   }, [api]);
 
   // Filter events based on their status and ownership
-  const myOpenEvents = myEvents.filter(event => 
-    event.status === 'OPEN'
-  );
+  const myOpenEvents = myEvents
+    .filter(event => event.status === 'OPEN')
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
   
-  const acceptedEvents = myEvents.filter(event => 
-    event.joinRequests && event.joinRequests.length > 0
-  );
+  const acceptedEvents = myEvents
+    .filter(event => event.joinRequests && event.joinRequests.length > 0)
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
     return (

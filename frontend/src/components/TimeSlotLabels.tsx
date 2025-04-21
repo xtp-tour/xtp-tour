@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimeSlot } from './invitation/types';
+import moment from 'moment';
 
 
 interface Props {
@@ -9,29 +10,25 @@ interface Props {
 }
 
 const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }) => {
-  // Group slots by date
+  // Group slots by date using moment
   const groupedSlots = timeSlots.reduce((acc, slot) => {
-    const dateStr = slot.date.toISOString().split('T')[0];
+    const dateKey = slot.date.format('YYYY-MM-DD');
     
-    if (!acc[dateStr]) {
-      acc[dateStr] = [];
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
     }
-    acc[dateStr].push(slot);
+    acc[dateKey].push(slot);
     return acc;
   }, {} as Record<string, TimeSlot[]>);
 
   return (
     <div className={`d-flex flex-column gap-4 ${className}`}>
-      {Object.entries(groupedSlots).map(([dateStr, slots]) => (
-        <div key={dateStr} className="time-slot-group">
+      {Object.entries(groupedSlots).map(([dateKey, slots]) => (
+        <div key={dateKey} className="time-slot-group">
           <h6 className="d-flex align-items-center mb-3">
             <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-accent)' }}></i>
             <span style={{ color: 'var(--tennis-navy)' }}>
-              {new Date(dateStr).toLocaleDateString(undefined, {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric'
-              })}
+              {moment(dateKey).format('ddd, MMM D')}
             </span>
           </h6>
           <div className="d-flex flex-wrap gap-2 ps-4">
@@ -57,7 +54,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
 
               return (
                 <div
-                  key={`${dateStr}-${index}`}
+                  key={`${dateKey}-${index}`}
                   className={`badge p-2 ${onSelect ? 'cursor-pointer' : ''}`}
                   onClick={() => onSelect && slot.isAvailable !== false && onSelect(slot)}
                   role={onSelect ? 'button' : undefined}
@@ -73,7 +70,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                         ? 'var(--tennis-gray)'
                         : 'var(--tennis-navy)'
                   }}></i>
-                  { slot.date.format('HH:mm') }
+                  {slot.date.format('h:mm A')}
                 </div>
               );
             })}

@@ -7,6 +7,7 @@ import InvitationTimeSlots from './InvitationTimeSlots';
 import InvitationDescription from './InvitationDescription';
 import AcceptedUsers from './AcceptedUsers';
 import { ActionButton, StyleProps, TimeSlot } from './types';
+import moment from 'moment';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -15,7 +16,7 @@ interface BaseInvitationItemProps extends StyleProps {
   headerTitle: string;
   headerSubtitle?: string;
   timeSlots: TimeSlot[];
-  timestamp: Date;
+  timestamp: moment.Moment;
   actionButton: ActionButton;
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;

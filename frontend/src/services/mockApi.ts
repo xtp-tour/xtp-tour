@@ -1,5 +1,6 @@
 import { APIConfig, ListEventsResponse } from '../types/api';
 import { components } from '../types/schema';
+import moment from 'moment';
 
 // Define types based on the schema
 type Event = components['schemas']['ApiEvent'];
@@ -69,29 +70,29 @@ const MOCK_MY_INVITATIONS: Event[] = [
     expectedPlayers: 2,
     sessionDuration: 2,
     timeSlots: [
-      {},
-      {}
+      moment().add(1, 'day').set({ hour: 10, minute: 0 }).toISOString(),
+      moment().add(1, 'day').set({ hour: 14, minute: 0 }).toISOString()
     ],
     description: 'Accepted Invitation. Looking for a friendly match, prefer baseline rallies',
     status: 'OPEN',
-    createdAt: new Date().toISOString(),
+    createdAt: moment().toISOString(),
     visibility: 'PUBLIC',
     joinRequests: [
       {
         id: '1',
         userId: 'other_user',
         locations: ['central_park'],
-        timeSlots: [{}],
+        timeSlots: [moment().add(1, 'day').set({ hour: 10, minute: 0 }).toISOString()],
         status: 'WAITING',
-        createdAt: new Date().toISOString()
+        createdAt: moment().toISOString()
       },
       {
         id: '2',
         userId: 'john_doe',
         locations: ['riverside'],
-        timeSlots: [{}],
+        timeSlots: [moment().add(1, 'day').set({ hour: 14, minute: 0 }).toISOString()],
         status: 'WAITING',
-        createdAt: new Date().toISOString()
+        createdAt: moment().toISOString()
       },
     ]
   },
@@ -103,10 +104,10 @@ const MOCK_MY_INVITATIONS: Event[] = [
     eventType: 'TRAINING',
     expectedPlayers: 2,
     sessionDuration: 1.5,
-    timeSlots: [{}],
+    timeSlots: [moment().add(2, 'days').set({ hour: 16, minute: 0 }).toISOString()],
     description: 'Want to practice serves and returns',
     status: 'OPEN',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: moment().subtract(1, 'day').toISOString(),
     visibility: 'PUBLIC',
     joinRequests: []
   },
@@ -121,10 +122,13 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
     eventType: 'TRAINING',
     expectedPlayers: 2,
     sessionDuration: 1,
-    timeSlots: [{}, {}],
+    timeSlots: [
+      moment().add(3, 'days').set({ hour: 9, minute: 0 }).toISOString(),
+      moment().add(3, 'days').set({ hour: 11, minute: 0 }).toISOString()
+    ],
     description: 'New to tennis, looking for someone to practice basic strokes with',
     status: 'OPEN',
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    createdAt: moment().subtract(2, 'hours').toISOString(),
     visibility: 'PUBLIC',
     joinRequests: []
   },
@@ -136,10 +140,10 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
     eventType: 'MATCH',
     expectedPlayers: 4,
     sessionDuration: 1.5,
-    timeSlots: [{}],
+    timeSlots: [moment().add(4, 'days').set({ hour: 15, minute: 0 }).toISOString()],
     description: 'Looking for competitive matches, NTRP 4.0',
     status: 'OPEN',
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    createdAt: moment().subtract(12, 'hours').toISOString(),
     visibility: 'PUBLIC',
     joinRequests: []
   }
@@ -199,7 +203,7 @@ export class MockAPIClient implements APIClient {
       userId: 'current_user',
       ...request.event,
       status: 'OPEN',
-      createdAt: new Date().toISOString(),
+      createdAt: moment().toISOString(),
       joinRequests: []
     };
 
@@ -222,7 +226,7 @@ export class MockAPIClient implements APIClient {
       datetime: request.datetime,
       duration: request.duration,
       location: request.locationId,
-      createdAt: new Date().toISOString()
+      createdAt: moment().toISOString()
     };
 
     event.status = 'CONFIRMED';
