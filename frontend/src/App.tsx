@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import InvitationList from "./components/InvitationList";
@@ -45,6 +45,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <APIProvider useMock={false}>
@@ -54,8 +56,8 @@ function App() {
               <Route path="/" element={
                 <Layout>
                   <SignedIn>
-                    <InvitationList />
-                    <CreateInvitation />
+                    <InvitationList key={refreshKey} />
+                    <CreateInvitation onEventCreated={() => setRefreshKey(prev => prev + 1)} />
                   </SignedIn>
                   <SignedOut>
                     <PublicInvitationList />

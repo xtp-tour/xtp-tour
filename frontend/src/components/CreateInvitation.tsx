@@ -49,7 +49,7 @@ const formatDateTime = (date: string, time: string): string => {
 };
 
 
-const CreateInvitation: React.FC = () => {
+const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
   const api = useAPI();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -324,6 +324,7 @@ const CreateInvitation: React.FC = () => {
       await api.createEvent(request);
       showToast('Event created successfully!');
       setIsExpanded(false);
+      onEventCreated?.();
     } catch (error) {
       showToast('Failed to create event. Please try again.');
       console.error('Error creating event:', error);

@@ -57,18 +57,15 @@ export const getInvitationTypeLabel = (type: ApiEventType): string => {
 };
 
 export const getRequestTypeLabel = (expectedPlayers: number): string => {
-  const type = expectedPlayers === 1 ? 'SINGLE' : expectedPlayers === 2 ? 'DOUBLE' : 'CUSTOM';
-  switch (type) {
-    case 'SINGLE':
+  switch (expectedPlayers) {
+    case 2:
       return 'Singles';
-    case 'DOUBLE':
+    case 4:
       return 'Doubles';
-    case 'CUSTOM':
-      return `${expectedPlayers} Players`;
     default:
-      return 'Unknown';
+      return `${expectedPlayers} Players`;
   }
-}; 
+};
 
 export const timeSlotFromDateAndConfirmation= (date: string, confirmation?:  ApiConfirmation, isAvailable: boolean = true, ) => {
     const dateObj = moment(new Date(date));

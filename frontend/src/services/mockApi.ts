@@ -152,6 +152,7 @@ export interface APIClient {
   getEvent(id: string): Promise<Event>;
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
+  listPublicEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
 
   // Location endpoints
@@ -238,6 +239,16 @@ export class MockAPIClient implements APIClient {
     return {
       events: this.events,
       total: this.events.length
+    };
+  }
+
+  async listPublicEvents(): Promise<ListEventsResponse> {
+    await this.delay(500);
+    
+    const publicEvents = this.events.filter(event => event.visibility === 'PUBLIC' && event.status === 'OPEN');
+    return {
+      events: publicEvents,
+      total: publicEvents.length
     };
   }
 

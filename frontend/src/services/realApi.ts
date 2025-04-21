@@ -104,4 +104,8 @@ export class RealAPIClient {
     const response = await this.fetch<ListLocationsResponse>('/api/locations/');
     return response.locations || [];
   }
+
+  async listPublicEvents(): Promise<ListEventsResponse> {
+    return this.fetch<ListEventsResponse>('/api/events/public');
+  }
 }

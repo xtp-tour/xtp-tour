@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get list of public events */
+        get: operations["listPublicEventsHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{eventId}/confirmation": {
         parameters: {
             query?: never;
@@ -209,6 +226,11 @@ export interface components {
         ApiListLocationsResponse: {
             locations?: components["schemas"]["ApiLocation"][];
         };
+        ApiListPublicEventsResponse: {
+            events?: components["schemas"]["ApiEvent"][];
+            /** Format: int32 */
+            total?: number;
+        };
         ApiLocation: {
             address?: string;
             coordinates?: components["schemas"]["ApiCoordinates"];
@@ -278,6 +300,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiCreateEventResponse"];
+                };
+            };
+        };
+    };
+    "listPublicEventsHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiListPublicEventsResponse"];
                 };
             };
         };
