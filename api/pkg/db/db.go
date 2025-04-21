@@ -152,7 +152,7 @@ func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]*api.Event,
 }
 
 func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event, error) {
-	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ?", userId, api.EventVisibilityPublic)
+	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ?", userId, api.EventVisibilityPublic, api.EventStatusOpen)
 }
 
 func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFilterParams ...interface{}) ([]*api.Event, error) {
