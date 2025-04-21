@@ -398,7 +398,7 @@ func (db *Db) GetEventTimeSlots(ctx context.Context, eventId string) ([]time.Tim
 }
 
 func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
-	events, err := db.getEventsInternal(ctx, "event_id = ? and user_id = ?", eventId, userId)
+	events, err := db.getEventsInternal(ctx, "event_id = ? and (user_id = ? OR visibility = ?)", eventId, userId, api.EventVisibilityPublic)
 	if err != nil {
 		return nil, err
 	}
