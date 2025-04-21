@@ -1,35 +1,4 @@
-import { APIConfig } from '../types/api';
-import { components } from '../types/schema';
-
-// Define types based on the schema
-type Event = components['schemas']['ApiEvent'];
-type EventConfirmation = components['schemas']['ApiConfirmation'];
-type JoinRequest = components['schemas']['ApiJoinRequest'];
-type Location = components['schemas']['ApiLocation'];
-
-// Response types
-type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
-type CreateEventResponse = components['schemas']['ApiCreateEventResponse'];
-type GetEventResponse = components['schemas']['ApiGetEventResponse'];
-type ConfirmEventResponse = components['schemas']['ApiEventConfirmationResponse'];
-type JoinRequestResponse = components['schemas']['ApiJoinRequestResponse'];
-type ListLocationsResponse = components['schemas']['ApiListLocationsResponse'];
-
-// Request types
-type CreateEventRequest = {
-  event: components['schemas']['ApiEventData'];
-};
-
-type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
-
-type JoinEventRequest = {
-  joinRequest: components['schemas']['ApiJoinRequestData'];
-};
-
-export interface APIError {
-  message: string;
-  status: number;
-}
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest } from '../types/api';
 
 export class HTTPError extends Error implements APIError {
   constructor(public status: number, message: string) {
@@ -61,7 +30,7 @@ export class RealAPIClient {
     return response.json();
   }
 
-  async createEvent(request: CreateEventRequest): Promise<Event> {
+  async createEvent(request: CreateEventRequest): Promise<ApiEvent> {
     const response = await this.fetch<CreateEventResponse>('/api/events/', {
       method: 'POST',
       body: JSON.stringify(request),
@@ -75,12 +44,12 @@ export class RealAPIClient {
     });
   }
 
-  async getEvent(id: string): Promise<Event> {
+  async getEvent(id: string): Promise<ApiEvent> {
     const response = await this.fetch<GetEventResponse>(`/api/events/${id}`);
     return response.event!;
   }
 
-  async confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation> {
+  async confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<ApiConfirmation> {
     const response = await this.fetch<ConfirmEventResponse>(`/api/events/${eventId}/confirmation`, {
       method: 'POST',
       body: JSON.stringify(request),
@@ -92,7 +61,7 @@ export class RealAPIClient {
     return this.fetch<ListEventsResponse>('/api/events/');
   }
 
-  async joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest> {
+  async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {
     const response = await this.fetch<JoinRequestResponse>(`/api/events/${eventId}/join`, {
       method: 'POST',
       body: JSON.stringify(request),
@@ -100,7 +69,7 @@ export class RealAPIClient {
     return response.joinRequest!;
   }
 
-  async listLocations(): Promise<Location[]> {
+  async listLocations(): Promise<ApiLocation[]> {
     const response = await this.fetch<ListLocationsResponse>('/api/locations/');
     return response.locations || [];
   }

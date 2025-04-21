@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
-import { components } from '../types/schema';
 import TimeSlotLabels from './TimeSlotLabels';
 import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
-
-type TimeTime = components['schemas']['TimeTime'];
+import { TimeSlot } from './invitation/types';
+import moment from 'moment';
 
 interface Props {
   invitationId: string;
@@ -13,12 +12,6 @@ interface Props {
   show: boolean;
   onHide: () => void;
   onAccepted: () => void;
-}
-
-interface TimeSlot {
-  datetime: string;
-  isSelected?: boolean;
-  isAvailable?: boolean;
 }
 
 interface AcceptanceOptions {
@@ -46,11 +39,11 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         setLoading(true);
         setError(null);
         const response = await api.getEvent(invitationId);
-        if (response && 'event' in response) {
-          const event = response.event as Event;
+        if (response) {
+          const event = response as Event;
           if (event) {
             const timeSlots: TimeSlot[] = event.timeSlots.map(slot => ({
-              datetime: `${slot.date || ''}T${slot.time || ''}`,
+              date: moment(slot),
               isAvailable: true,
               isSelected: false
             }));
@@ -86,8 +79,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
 
   const handleTimeSlotChange = (slot: TimeSlot) => {
     setSelectedTimeSlots(prev =>
-      prev.some(s => s.datetime === slot.datetime)
-        ? prev.filter(s => s.datetime !== slot.datetime)
+      prev.some(s => s.date.isSame(slot.date))
+        ? prev.filter(s => !s.date.isSame(slot.date))
         : [...prev, slot]
     );
   };
@@ -109,10 +102,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         joinRequest: {
           id: invitationId,
           locations: selectedLocations,
-          timeSlots: selectedTimeSlots.map(slot => {
-            const [date, time] = slot.datetime.split('T');
-            return { date, time } as TimeTime;
-          })
+          timeSlots: selectedTimeSlots.map(slot => slot.date.utc().format())
         }
       };
 
@@ -223,7 +213,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
                   <TimeSlotLabels
                     timeSlots={options.timeSlots.map(slot => ({
                       ...slot,
-                      isSelected: selectedTimeSlots.some(s => s.datetime === slot.datetime)
+                      isSelected: selectedTimeSlots.some(s => s.date.isSame(slot.date))
                     }))}
                     onSelect={handleTimeSlotChange}
                     className="mb-2"
@@ -248,23 +238,19 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         >
           Cancel
         </Button>
-        <Button 
+        <Button
+          variant="primary"
           onClick={handleSubmit}
-          disabled={loading || !options || selectedLocations.length === 0 || selectedTimeSlots.length === 0}
-          className="btn"
-          style={{
-            backgroundColor: 'var(--tennis-navy)',
-            borderColor: 'var(--tennis-navy)',
-            color: 'var(--tennis-white)'
-          }}
+          disabled={loading || !options}
+          style={{ backgroundColor: 'var(--tennis-navy)', borderColor: 'var(--tennis-navy)' }}
         >
           {loading ? (
             <>
               <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Sending...
+              Submitting...
             </>
           ) : (
-            'Send Response'
+            'Submit'
           )}
         </Button>
       </Modal.Footer>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import MyInvitationItem from './MyInvitationItem';
-import AvailableInvitationItem from './AvailableInvitationItem';
 import AcceptedInvitationItem from './AcceptedInvitationItem';
+import PublicInvitationList from './PublicInvitationList';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
 
@@ -20,11 +20,11 @@ interface DisplayEvent extends Event {
 const transformEventData = (event: Event): DisplayEvent => {
   // Convert string dates to Date objects for display purposes
   const transformedTimeSlots = event.timeSlots.map(ts => ({
-    date: new Date(ts.date || ''),
-    time: ts.time || '',
+    date: new Date(ts),
+    time: ts,
     isAvailable: true,
     isSelected: event.confirmation ? 
-      new Date(event.confirmation.datetime || '').getTime() === new Date(ts.date || '').getTime() : 
+      new Date(event.confirmation.datetime || '').getTime() === new Date(ts).getTime() : 
       false
   }));
 
@@ -66,7 +66,8 @@ const InvitationList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<DisplayEvent[]>([]);
+  const [myEvents, setMyEvents] = useState<DisplayEvent[]>([]);
+  const [availableEvents, setAvailableEvents] = useState<DisplayEvent[]>([]);
 
   // State for section expansion
   const [expandedSections, setExpandedSections] = useState({
@@ -88,8 +89,13 @@ const InvitationList: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        const response = await api.listEvents();
-        setEvents((response.events || []).map(transformEventData));
+        const [myEventsResponse, availableEventsResponse] = await Promise.all([
+          api.listEvents(),
+          api.listPublicEvents()
+        ]);
+
+        setMyEvents((myEventsResponse.events || []).map(transformEventData));
+        setAvailableEvents((availableEventsResponse.events || []).map(transformEventData));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load events');
       } finally {
@@ -101,17 +107,12 @@ const InvitationList: React.FC = () => {
   }, [api]);
 
   // Filter events based on their status and ownership
-  const myEvents = events.filter(event => 
+  const myOpenEvents = myEvents.filter(event => 
     event.status === 'OPEN'
   );
   
-  const acceptedEvents = events.filter(event => 
+  const acceptedEvents = myEvents.filter(event => 
     event.joinRequests && event.joinRequests.length > 0
-  );
-  
-  const availableEvents = events.filter(event => 
-    event.status === 'OPEN' &&
-    (!event.joinRequests || event.joinRequests.length === 0)
   );
 
   if (loading) {
@@ -137,23 +138,23 @@ const InvitationList: React.FC = () => {
       <section className="mb-5">
         <SectionHeader
           title="Your Events"
-          count={myEvents.length}
+          count={myOpenEvents.length}
           isExpanded={expandedSections.myInvitations}
           onToggle={() => toggleSection('myInvitations')}
         />
         {expandedSections.myInvitations && (
-          myEvents.length === 0 ? (
+          myOpenEvents.length === 0 ? (
             <p className="text-muted">You haven't created any events yet.</p>
           ) : (
             <div>
-              {myEvents.map(event => (
+              {myOpenEvents.map(event => (
                 <MyInvitationItem 
                   key={event.id} 
                   invitation={event} 
                   onDelete={async (id) => {
                     try {
                       await api.deleteEvent(id);
-                      setEvents(prev => prev.filter(ev => ev.id !== id));
+                      setMyEvents(prev => prev.filter(ev => ev.id !== id));
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to delete event');
                     }
@@ -192,23 +193,7 @@ const InvitationList: React.FC = () => {
           isExpanded={expandedSections.availableInvitations}
           onToggle={() => toggleSection('availableInvitations')}
         />
-        {expandedSections.availableInvitations && (
-          availableEvents.length === 0 ? (
-            <p className="text-muted">No available events at the moment.</p>
-          ) : (
-            <div>
-              {availableEvents.map(event => (
-                <AvailableInvitationItem 
-                  key={event.id} 
-                  invitation={event}
-                  onAccept={() => {
-                    // TODO: Implement event acceptance callback
-                  }}
-                />
-              ))}
-            </div>
-          )
-        )}
+        {expandedSections.availableInvitations && <PublicInvitationList />}
       </section>
     </div>
   );

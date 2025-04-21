@@ -38,6 +38,7 @@ export interface APIClient {
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
+  listPublicEvents(): Promise<ListEventsResponse>;
 
   // Location endpoints
   listLocations(): Promise<Location[]>;
@@ -83,3 +84,8 @@ export function useAPI(): APIClient {
   }
   return client;
 } 
+
+export interface APIConfig {
+  baseUrl: string;
+  getAuthToken(): Promise<string | undefined>;
+}
