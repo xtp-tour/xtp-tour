@@ -186,3 +186,11 @@ type ListLocationsResponse struct {
 type GetLocationRequest struct {
 	ID string `path:"id" validate:"required"`
 }
+
+type ListPublicEventsRequest struct {
+}
+
+type ListPublicEventsResponse struct {
+	Events []*Event `json:"events"`
+	Total  int      `json:"total"`
+}

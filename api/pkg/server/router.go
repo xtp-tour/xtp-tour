@@ -84,6 +84,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
+	events.GET("/public", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
 	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
@@ -177,6 +178,27 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 
 	return &api.ListEventsResponse{
 		Events: events,
+	}, nil
+}
+
+func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListPublicEventsResponse, error) {
+	// Get user ID if available
+	var userId string
+	if userIdVal, ok := c.Get(auth.USER_ID_CONTEXT_KEY); ok {
+		userId = userIdVal.(string)
+	}
+
+	events, err := r.db.GetPublicEvents(context.Background(), userId)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get events",
+		}
+	}
+
+	return &api.ListPublicEventsResponse{
+		Events: events,
+		Total:  len(events),
 	}, nil
 }
 
