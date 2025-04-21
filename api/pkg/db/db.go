@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
+	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -278,31 +280,34 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 		eventMap[eventId] = event
 	}
 
+	if len(eventMap) == 0 {
+		return nil, nil
+	}
+
 	// Second query: get all join requests for these events
 	joinRequestsQuery := `
-		WITH join_requests_data AS (
 			SELECT 
 				jr.id,
 				jr.event_id,
 				jr.user_id as join_owner_id,
 				jr.comment,
 				jr.created_at,
-				jr.is_rejected,
-				ed.user_id as user_id,
-				ed.visibility as visibility,
-			c.id as confirmation_id
+				jr.is_rejected,				
+				c.id as confirmation_id
 		FROM join_requests jr
 		LEFT JOIN confirmation_join_requests cjr ON jr.id = cjr.join_request_id
 		LEFT JOIN confirmations c ON cjr.confirmation_id = c.id		
-		INNER JOIN events ed ON jr.event_id = ed.id
-		ORDER BY jr.created_at)
-		SELECT * FROM join_requests_data		
+		WHERE jr.event_id IN (?)
+		ORDER BY jr.created_at		
 	`
-	if extraFilter != "" {
-		joinRequestsQuery += " WHERE " + extraFilter
+	query, args, err := sqlx.In(joinRequestsQuery, slices.Collect(maps.Keys(eventMap)))
+	if err != nil {
+		slog.Error("Failed to prepare join requests query", "error", err)
+		return nil, err
 	}
+	query = db.conn.Rebind(query)
 
-	joinRequestRows, err := db.conn.QueryContext(ctx, joinRequestsQuery, extraFilterParams...)
+	joinRequestRows, err := db.conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		slog.Error("Failed to get join requests", "error", err)
 		return nil, err
@@ -318,11 +323,9 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 			createdAt      time.Time
 			isRejected     bool
 			confirmationId sql.NullString
-			userId         string
-			visibility     string
 		)
 
-		err := joinRequestRows.Scan(&id, &eventId, &joinOwnerId, &comment, &createdAt, &isRejected, &userId, &visibility, &confirmationId)
+		err := joinRequestRows.Scan(&id, &eventId, &joinOwnerId, &comment, &createdAt, &isRejected, &confirmationId)
 		if err != nil {
 			slog.Error("Failed to scan join request row", "error", err)
 			continue
