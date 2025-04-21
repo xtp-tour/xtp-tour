@@ -3,7 +3,7 @@ import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserBut
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import InvitationList from "./components/InvitationList";
 import PublicInvitationList from "./components/PublicInvitationList";
-import CreateInvitation from "./components/CreateInvitation";
+import CreateEvent from "./components/CreateEvent";
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -56,8 +56,8 @@ function App() {
               <Route path="/" element={
                 <Layout>
                   <SignedIn>
-                    <InvitationList key={refreshKey} />
-                    <CreateInvitation onEventCreated={() => setRefreshKey(prev => prev + 1)} />
+                    <CreateEvent onEventCreated={() => setRefreshKey(prev => prev + 1)} />
+                    <InvitationList key={refreshKey} />                    
                   </SignedIn>
                   <SignedOut>
                     <PublicInvitationList />

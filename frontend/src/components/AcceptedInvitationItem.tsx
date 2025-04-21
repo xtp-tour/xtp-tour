@@ -15,16 +15,21 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   const api = useAPI();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCancel = async () => {
     try {
       setCancelling(true);
+      setError(null);
       await api.deleteEvent(invitation.id || '');
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {
-      console.error('Failed to cancel invitation:', error);
-      // TODO: Implement error handling with toast notifications or error messages
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to cancel invitation. Please try again later.');
+      }
     } finally {
       setCancelling(false);
     }
@@ -65,6 +70,12 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
             <i className="bi bi-info-circle me-2"></i>
             The host will be notified about your cancellation.
           </p>
+          {error && (
+            <div className="alert alert-danger mt-3 mb-0" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer className="border-0">
           <button

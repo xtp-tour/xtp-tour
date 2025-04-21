@@ -48,8 +48,7 @@ const formatDateTime = (date: string, time: string): string => {
   return `${date}T${time}:00.000Z`;
 };
 
-
-const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
+const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
   const api = useAPI();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -80,18 +79,13 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
       setLocationError(null);
       try {
         const response = await api.listLocations();
-        console.log('response type:', typeof response);
-        console.log('response keys:', Object.keys(response));
-        console.log('response array length:', Array.isArray(response) ? response.length : 0);
-        
         if (Array.isArray(response) && response.length > 0) {
           setLocations(response);
         } else {
           setLocationError('No locations available');
         }
-      } catch (error) {
+      } catch {
         setLocationError('Failed to load locations. Please try again later.');
-        console.error('Error fetching locations:', error);
       } finally {
         setIsLoadingLocations(false);
       }
@@ -154,17 +148,17 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
     return tomorrow.toISOString().split('T')[0];
   }
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-    setSelectedLocations(selectedOptions);
-  };
-
   const handleNativeLocationChange = (e: Event) => {
     const select = e.target as HTMLSelectElement;
     if (select) {
       const selected = Array.from(select.selectedOptions, option => option.value);
       setSelectedLocations(selected);
     }
+  };
+
+  const handleReactLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedLocations(selected);
   };
 
   const handleExpandToggle = () => {
@@ -264,7 +258,7 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
         className="form-select"
         multiple
         value={selectedLocations}
-        onChange={handleLocationChange}
+        onChange={handleReactLocationChange}
         data-live-search="true"
         title="Select locations"
       >
@@ -277,8 +271,7 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
     );
   };
 
-
-  const handleCreateInvitation = async (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (selectedLocations.length === 0) {
@@ -301,7 +294,6 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
         end.setMinutes(end.getMinutes() - durationMins);
         
         while (cur <= end) {
-          console.log('!!! cur:', cur.toISOString());
           timeSlots.push(cur.toISOString());
           cur.setMinutes(cur.getMinutes() + 30);
         }            
@@ -320,14 +312,16 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
         }
       };
 
-      console.log('Sending request:', JSON.stringify(request, null, 2));
       await api.createEvent(request);
       showToast('Event created successfully!');
       setIsExpanded(false);
       onEventCreated?.();
     } catch (error) {
-      showToast('Failed to create event. Please try again.');
-      console.error('Error creating event:', error);
+      if (error instanceof Error) {
+        showToast(`Failed to create event: ${error.message}`);
+      } else {
+        showToast('Failed to create event. Please try again later.');
+      }
     }
   };
 
@@ -358,7 +352,7 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
         className={`btn ${isExpanded ? 'btn-outline-secondary' : 'btn-primary'} w-100`}
         onClick={handleExpandToggle}
         aria-expanded={isExpanded}
-        aria-controls="createInvitationForm"
+        aria-controls="CreateEventForm"
       >
         {isExpanded ? (
           <>
@@ -368,14 +362,14 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
         ) : (
           <>
             <i className="bi bi-plus-lg me-1"></i>
-            Create Invitation
+            Create Event
           </>
         )}
       </button>
 
       <div 
         className={`collapse mt-3 ${isExpanded ? 'show' : ''}`} 
-        id="createInvitationForm"
+        id="CreateEventForm"
       >
         <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
           <div 
@@ -413,7 +407,7 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
                 <i className="bi bi-x-lg"></i>
               </button>
             </div>
-            <form onSubmit={handleCreateInvitation}>
+            <form onSubmit={handleCreateEvent}>
               <div className="mb-4">
                 <label className="form-label d-block">
                   Preferred Locations                  
@@ -646,4 +640,4 @@ const CreateInvitation: React.FC<{ onEventCreated?: () => void }> = ({ onEventCr
   );
 };
 
-export default CreateInvitation;
+export default CreateEvent;

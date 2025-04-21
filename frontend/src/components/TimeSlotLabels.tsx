@@ -9,12 +9,8 @@ interface Props {
 }
 
 const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }) => {
-
-  console.log("!!! timeSlots", timeSlots);
   // Group slots by date
   const groupedSlots = timeSlots.reduce((acc, slot) => {
-    
-    console.log("!!! date", slot.date);
     const dateStr = slot.date.toISOString().split('T')[0];
     
     if (!acc[dateStr]) {

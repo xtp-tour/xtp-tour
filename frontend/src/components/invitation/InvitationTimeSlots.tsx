@@ -19,7 +19,7 @@ const InvitationTimeSlots: React.FC<InvitationTimeSlotsProps> = ({
     </h6>
     <TimeSlotLabels
       timeSlots={timeSlots}
-      onTimeSlotClick={onTimeSlotClick}
+      onSelect={onTimeSlotClick}
     />
   </div>
 );
