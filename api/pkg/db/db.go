@@ -347,8 +347,14 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 	}
 
 	events := make([]*api.Event, 0, len(eventMap))
+
 	for _, event := range eventMap {
-		events = append(events, event)
+		i, _ := slices.BinarySearchFunc(events, event, func(a, b *api.Event) int {
+			dtA, _ := time.Parse(time.RFC1123, a.CreatedAt)
+			dtB, _ := time.Parse(time.RFC1123, b.CreatedAt)
+			return dtA.Compare(dtB)
+		})
+		events = slices.Insert(events, i, event)
 	}
 
 	return events, nil
