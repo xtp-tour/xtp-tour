@@ -352,7 +352,7 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 		i, _ := slices.BinarySearchFunc(events, event, func(a, b *api.Event) int {
 			dtA, _ := time.Parse(time.RFC1123, a.CreatedAt)
 			dtB, _ := time.Parse(time.RFC1123, b.CreatedAt)
-			return dtA.Compare(dtB)
+			return -1 * dtA.Compare(dtB)
 		})
 		events = slices.Insert(events, i, event)
 	}
