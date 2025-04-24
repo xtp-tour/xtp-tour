@@ -1,13 +1,4 @@
-// Here is the flow: 
-// 1. UserA creates and invitations. This invitation is become visible to other players.
-// 1.1 UserA can cancel his own invitation at any point before confirmation.
-// 2. Users can send acks to the invitation selecting time slots and places that are available to them. Lets assume that UserB and UserC send their acks.
-// 3. Those acks are visible to UserA. UserA can now select one of the acks and confirm the reservation.
-// 4. UserA selects the ack of UserB. User A must make a reservation at the mutually agreed location and time. After reservation userA commits the ack of userB.
-// 4.1 If userA fails to make a reservation then Acks transitions into ReservationFailed state.
-// 5. UserC ack transitions into rejected state. 
-// 6. After the game date/time has passed, the invitation transitions to Completed state.
-// On that step the flow of the invitation is completed.
+
 
 import { components } from "./schema";
 
