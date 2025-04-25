@@ -1,9 +1,13 @@
 import React from 'react';
-import { EventType, SingleDoubleType, SkillLevel, getRequestType } from '../../types/event';
+import { components } from '../../types/schema';
+import { ApiConfirmation } from '../../types/api';
+import moment from 'moment';
+
+type ApiEvent = components['schemas']['ApiEvent'];
+type ApiEventType = ApiEvent['eventType'];
 
 export interface TimeSlot {
-  date: Date;
-  time: number;
+  date: moment.Moment;
   isAvailable?: boolean;
   isSelected?: boolean;
 }
@@ -23,10 +27,10 @@ export interface StyleProps {
 }
 
 export const SKILL_LEVEL_DESCRIPTIONS = {
-  [SkillLevel.Any]: 'Any NTRP',
-  [SkillLevel.Beginner]: 'NTRP < 3.5',
-  [SkillLevel.Intermediate]: 'NTRP 3.5–5.0',
-  [SkillLevel.Advanced]: 'NTRP > 5.0'
+  ANY: 'Any NTRP',
+  BEGINNER: 'NTRP < 3.5',
+  INTERMEDIATE: 'NTRP 3.5–5.0',
+  ADVANCED: 'NTRP > 5.0'
 } as const;
 
 export const SECTION_TITLES = {
@@ -41,11 +45,11 @@ export const SECTION_TITLES = {
   description: 'Description'
 } as const;
 
-export const getInvitationTypeLabel = (type: EventType): string => {
+export const getInvitationTypeLabel = (type: ApiEventType): string => {
   switch (type) {
-    case EventType.Match:
+    case 'MATCH':
       return 'Match';
-    case EventType.Training:
+    case 'TRAINING':
       return 'Training';
     default:
       return type;
@@ -53,15 +57,28 @@ export const getInvitationTypeLabel = (type: EventType): string => {
 };
 
 export const getRequestTypeLabel = (expectedPlayers: number): string => {
-  const type = getRequestType(expectedPlayers);
-  switch (type) {
-    case SingleDoubleType.Single:
+  switch (expectedPlayers) {
+    case 2:
       return 'Singles';
-    case SingleDoubleType.Doubles:
+    case 4:
       return 'Doubles';
-    case SingleDoubleType.Custom:
-      return `${expectedPlayers} Players`;
     default:
-      return 'Unknown';
+      return `${expectedPlayers} Players`;
   }
-}; 
+};
+
+export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: ApiConfirmation, isAvailable: boolean = true): TimeSlot => {
+  // Parse UTC date string into moment object
+  const dateObj = moment.utc(date);
+  
+  // Check if the date matches the confirmation datetime
+  const isSelected = confirmation ? 
+    moment.utc(confirmation.datetime).isSame(dateObj) : 
+    false;
+
+  return {
+    date: dateObj,
+    isSelected,
+    isAvailable
+  };
+};

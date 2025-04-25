@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Event } from '../types/event';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseInvitationItem from './invitation/BaseInvitationItem';
-import { TimeSlot } from './invitation/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation } from './invitation/types';
+import { ApiEvent } from '../types/api';
+
 
 interface Props {
-  invitation: Event;
+  invitation: ApiEvent;
   onCancelled?: () => void;
 }
 
@@ -14,40 +15,39 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   const api = useAPI();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCancel = async () => {
     try {
       setCancelling(true);
-      await api.deleteEvent(invitation.id);
+      setError(null);
+      await api.deleteEvent(invitation.id || '');
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {
-      console.error('Failed to cancel invitation:', error);
-      // TODO: Implement error handling with toast notifications or error messages
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to cancel invitation. Please try again later.');
+      }
     } finally {
       setCancelling(false);
     }
   };
 
   // Convert invitation time slots to the format expected by BaseInvitationItem
-  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
-    date: slot.date,
-    time: slot.time,
-    isAvailable: true,
-    isSelected: invitation.reservation?.date.getTime() === slot.date.getTime() && 
-                invitation.reservation?.time === slot.time
-  }));
+  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, invitation.confirmation));
 
   return (
     <>
       <BaseInvitationItem
         invitation={invitation}
-        headerTitle={invitation.ownerId}
+        headerTitle={invitation.userId || ''}
         headerSubtitle="Host"
         colorClass="text-primary"
         borderColorClass="border-primary"
         timeSlots={timeSlots}
-        timestamp={invitation.createdAt}
+        timestamp={new Date(invitation.createdAt || '')}
         actionButton={{
           variant: 'outline-danger',
           icon: 'bi-x-circle',
@@ -70,6 +70,12 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
             <i className="bi bi-info-circle me-2"></i>
             The host will be notified about your cancellation.
           </p>
+          {error && (
+            <div className="alert alert-danger mt-3 mb-0" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer className="border-0">
           <button

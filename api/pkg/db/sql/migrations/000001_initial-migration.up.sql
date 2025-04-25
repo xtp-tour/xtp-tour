@@ -18,7 +18,7 @@ CREATE TABLE user_pref (
 -- Tennis facilities
 
 CREATE TABLE facilities (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(255) NOT NULL,
     address TEXT NOT NULL,
     google_maps_link VARCHAR(1024),
@@ -30,7 +30,7 @@ CREATE TABLE facilities (
 
 -- Create partner cards table
 CREATE TABLE partner_cards (
-    id VARCHAR(50) PRIMARY KEY,
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     name VARCHAR(200) NOT NULL
 );
 
@@ -45,7 +45,7 @@ CREATE TABLE facility_partner_cards (
 
 -- Create court groups table
 CREATE TABLE court_groups (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY ,
     facility_id VARCHAR(36) NOT NULL,
     surface ENUM('hard', 'clay', 'artificial-grass', 'carpet', 'grass') NOT NULL,
     type ENUM('indoor', 'outdoor', 'tent', 'balloon', 'baloon') NOT NULL,

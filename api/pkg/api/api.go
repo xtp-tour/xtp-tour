@@ -1,6 +1,4 @@
-package server
-
-import "time"
+package api
 
 // System
 type HealthResponse struct {
@@ -59,32 +57,33 @@ const (
 	JoinRequestStatusReservationFailed JoinRequestStatus = "RESERVATION_FAILED"
 )
 
-// SessionTimeSlot represents an available time slot
-type SessionTimeSlot struct {
-	Date string `json:"date"`
-	Time int    `json:"time"`
-}
+// Event visibility constants
+type EventVisibility string
+
+const (
+	EventVisibilityPublic  EventVisibility = "PUBLIC"
+	EventVisibilityPrivate EventVisibility = "PRIVATE"
+)
 
 type JoinRequestData struct {
-	Id        string            `json:"id,omitempty"`
-	Locations []string          `json:"locations" validate:"required"`
-	TimeSlots []SessionTimeSlot `json:"timeSlots" validate:"required"`
-	Comment   string            `json:"comment,omitempty"`
+	Id        string   `json:"id,omitempty"`
+	Locations []string `json:"locations" validate:"required,min=1"`
+	TimeSlots []string `json:"timeSlots" validate:"required,min=1"`
+	Comment   string   `json:"comment,omitempty"`
 }
 
 // JoinRequest represents a player's acceptance of an event
 type JoinRequest struct {
 	JoinRequestData
 	UserId    string            `json:"userId"`
-	Status    JoinRequestStatus `json:"status"`
-	CreatedAt time.Time         `json:"createdAt"`
+	Status    JoinRequestStatus `json:"status" enum:"WAITING,ACCEPTED,REJECTED,CANCELLED,RESERVATION_FAILED"`
+	CreatedAt string            `json:"createdAt" format:"date"`
 }
 
 type EventConfirmationRequest struct {
 	EventId         string   `path:"eventId" validate:"required"`
 	LocationId      string   `json:"locationId" validate:"required"`
-	Date            string   `json:"date" validate:"required"`
-	Time            int      `json:"time" validate:"required"`
+	DateTime        string   `json:"datetime" validate:"required" format:"date"`
 	Duration        int      `json:"duration" validate:"required"`
 	JoinRequestsIds []string `json:"joinRequestsIds" validate:"required"`
 }
@@ -95,33 +94,32 @@ type EventConfirmationResponse struct {
 
 // Confirmation represents a confirmed court reservation
 type Confirmation struct {
-	EventId          string        `json:"eventId"`
-	LocationId       string        `json:"location"`
-	Date             time.Time     `json:"date"`
-	Time             int           `json:"time"`
-	Duration         int           `json:"duration"`
-	AcceptedRequests []JoinRequest `json:"acceptedRequests"`
-	CreatedAt        time.Time     `json:"createdAt"`
+	EventId    string `json:"eventId"`
+	LocationId string `json:"location"`
+	Datetime   string `json:"datetime" format:"date"`
+	Duration   int    `json:"duration"`
+	CreatedAt  string `json:"createdAt" format:"date"`
 }
 
 // EventData represents user's input for an event
 type EventData struct {
-	Id              string            `json:"id"`
-	Locations       []string          `json:"locations"`
-	SkillLevel      SkillLevel        `json:"skillLevel"`
-	Description     string            `json:"description,omitempty"`
-	EventType       EventType         `json:"eventType"`
-	ExpectedPlayers int               `json:"expectedPlayers"`
-	SessionDuration int               `json:"sessionDuration"`
-	TimeSlots       []SessionTimeSlot `json:"timeSlots"`
+	Id              string          `json:"id"`
+	UserId          string          `json:"userId" db:"user_id"`
+	Locations       []string        `json:"locations" validate:"required,min=1" db:"locations"`
+	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" db:"skill_level" enum:"ANY,BEGINNER,INTERMEDIATE,ADVANCED"`
+	Description     string          `json:"description,omitempty" `
+	EventType       EventType       `json:"eventType" validate:"required" db:"event_type" enum:"MATCH,TRAINING"`
+	ExpectedPlayers int             `json:"expectedPlayers" validate:"required" db:"expected_players"`
+	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration"`
+	TimeSlots       []string        `json:"timeSlots" validate:"required,min=1"`
+	Visibility      EventVisibility `json:"visibility" validate:"required" enum:"PUBLIC,PRIVATE"`
 }
 
 // Event represents an internal representation of an event
 type Event struct {
 	EventData
-	UserId       string         `json:"userId"`
-	Status       EventStatus    `json:"status"`
-	CreatedAt    time.Time      `json:"createdAt"`
+	Status       EventStatus    `json:"status" enum:"OPEN,ACCEPTED,CONFIRMED,CANCELLED,RESERVATION_FAILED,COMPLETED"`
+	CreatedAt    string         `json:"createdAt" format:"date"`
 	JoinRequests []*JoinRequest `json:"joinRequests"`
 	Confirmation *Confirmation  `json:"confirmation,omitempty"`
 }
@@ -160,8 +158,8 @@ type ListEventsRequest struct {
 }
 
 type ListEventsResponse struct {
-	Events []Event `json:"events"`
-	Total  int     `json:"total"`
+	Events []*Event `json:"events"`
+	Total  int      `json:"total"`
 }
 
 // Locations
@@ -189,29 +187,10 @@ type GetLocationRequest struct {
 	ID string `path:"id" validate:"required"`
 }
 
-type GetLocationResponse struct {
-	Location Location `json:"location"`
+type ListPublicEventsRequest struct {
 }
 
-// end Locations
-
-// Leftovers
-type GetChallengesRequest struct {
-	Id string `path:"id" validate:"required"`
-}
-
-type ListChallengesResponse struct {
-	Challenges map[string]string `json:"challenges"`
-}
-
-type GetChallengesResponse struct {
-	Result string
-}
-
-type ThingPutRequest struct {
-	Name  string `path:"name" validate:"required"`
-	Value string `json:"value" validate:"required"`
-}
-
-type ThingPutResponse struct {
+type ListPublicEventsResponse struct {
+	Events []*Event `json:"events"`
+	Total  int      `json:"total"`
 }

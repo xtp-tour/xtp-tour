@@ -1,42 +1,37 @@
 import React from 'react';
-import { JoinRequest } from '../../types/event';
-import { JoinRequestStatus } from '../../types/event';
+import { components } from '../../types/schema';
+
+type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
 
 interface AcceptedUsersProps {
-  acks: JoinRequest[];
+  joinRequests: ApiJoinRequest[];
 }
 
-const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ acks }) => {
-  const pendingAcks = acks.filter(ack => ack.status === JoinRequestStatus.Waiting);
-  
-  if (pendingAcks.length === 0) {
+const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ joinRequests }) => {
+  const acceptedUsers = joinRequests.filter(
+    request => request.status === 'ACCEPTED'
+  );
+
+  if (acceptedUsers.length === 0) {
     return null;
   }
 
   return (
-    <div className="mt-3">
-      <div className="d-flex align-items-center mb-2">
-        <i className="bi bi-people-fill me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-        <h6 className="mb-0" style={{ color: 'var(--tennis-navy)' }}>Accepted by</h6>
-      </div>
-      <div className="d-flex flex-wrap gap-2">
-        {pendingAcks.map(ack => (
-          <div 
-            key={ack.userId}
-            className="d-flex align-items-center bg-light rounded-pill px-3 py-1"
-            style={{ border: '1px solid var(--tennis-light)' }}
-          >
-            <i className="bi bi-person-circle me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-            <span style={{ color: 'var(--tennis-navy)' }}>{ack.userId}</span>
-            {ack.comment && (
-              <span className="ms-2 text-muted small">
-                <i className="bi bi-chat-dots me-1"></i>
-                {ack.comment}
+    <div className="mt-4">
+      <h3 className="text-lg font-semibold">Accepted Players</h3>
+      <ul className="mt-2 space-y-2">
+        {acceptedUsers.map(user => (
+          <li key={user.id} className="flex items-center">
+            <span className="text-gray-700">{user.userId}</span>
+            {user.comment && (
+              <span className="ml-2 text-sm text-gray-500">
+                <i className="bi bi-chat-dots mr-1"></i>
+                {user.comment}
               </span>
             )}
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };

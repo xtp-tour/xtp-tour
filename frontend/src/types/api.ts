@@ -1,51 +1,40 @@
-import { Location, LocationResponse } from './locations';
-import { Event as Event, EventConfirmation as EventConfirmation } from './event';
-
-export interface CreateEventRequest {
-   invitation: Event;
-}
 
 
-export interface joinEventRequest {
-  id: string;
-  selectedLocations: string[];
-  selectedTimeSlots: {
-    date: string;
-    startTime: number; // in HHMM format
-  }[];
-}
+import { components } from "./schema";
 
+// Get types from schema
+export type ApiEvent = components['schemas']['ApiEvent'];
+export type ApiConfirmation = components['schemas']['ApiConfirmation'];
+export type ApiEventStatus = ApiEvent['status'];
+export type ApiSkillLevel = components['schemas']['ApiEventData']['skillLevel'];
+export type ApiEventType = components['schemas']['ApiEventData']['eventType'];
+export type ApiVisibility = components['schemas']['ApiEventData']['visibility'];
+export type ApiJoinRequestStatus = components['schemas']['ApiJoinRequest']['status'];
+export type ApiLocation = components['schemas']['ApiLocation'];
+export type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
 
+// Response types
+export type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
+export type CreateEventResponse = components['schemas']['ApiCreateEventResponse'];
+export type GetEventResponse = components['schemas']['ApiGetEventResponse'];
+export type ConfirmEventResponse = components['schemas']['ApiEventConfirmationResponse'];
+export type JoinRequestResponse = components['schemas']['ApiJoinRequestResponse'];
+export type ListLocationsResponse = components['schemas']['ApiListLocationsResponse'];
 
-export interface APIInvitation extends Omit<Event, 'timeSlots' | 'createdAt'> {
-  timeSlots: {
-    date: string;
-    time: number;
-  }[];
-  createdAt: string;
-  updatedAt?: string;
-}
+// Request types
+export type CreateEventRequest = {
+  event: components['schemas']['ApiEventData'];
+};
 
-export interface ListEventsResponse {
-  invitations: APIInvitation[];
-  total: number;
-}
+export type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
 
-export interface TimeSlotOption {
-  date: string;
-  time: number;
-  isAvailable: boolean;
-}
-
-export interface AcceptanceOptions {
-  locations: string[];
-  timeSlots: TimeSlotOption[];
-}
+export type JoinEventRequest = {
+  joinRequest: components['schemas']['ApiJoinRequestData'];
+};
 
 export interface APIError {
-  code: string;
   message: string;
-  details?: Record<string, unknown>;
+  status: number;
 }
 
 export interface APIConfig {
@@ -54,26 +43,15 @@ export interface APIConfig {
 }
 
 export interface APIClient {
-  // Invitation endpoints
-  createEvent(request: Event): Promise<Event>;
+  // Event endpoints
+  createEvent(request: CreateEventRequest): Promise<ApiEvent>;
   deleteEvent(id: string): Promise<void>;
-  getEvent(id: string): Promise<Event>;
-  confirmEvent(request: EventConfirmation): Promise<Event>;
+  getEvent(id: string): Promise<ApiEvent>;
+  confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<ApiConfirmation>;
+  listEvents(): Promise<ListEventsResponse>;
+  listPublicEvents(): Promise<ListEventsResponse>;
+  joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest>;
 
-  listMyEvents() : Promise<ListEventsResponse>
-  listEvents(): Promise<ListEventsResponse>;  
-
-
-  getAcceptanceOptions(id: string): Promise<AcceptanceOptions>;
-  
-  joinEvent(request: joinEventRequest): Promise<void>;
-  
   // Location endpoints
-  getLocation(id: string): Promise<Location>;
-  listLocations(params?: {
-    page?: number;
-    limit?: number;
-    area?: string;
-    search?: string;
-  }): Promise<LocationResponse>;
+  listLocations(): Promise<ApiLocation[]>;
 }

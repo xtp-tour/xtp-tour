@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import InvitationList from "./components/InvitationList";
 import PublicInvitationList from "./components/PublicInvitationList";
-import CreateInvitation from "./components/CreateInvitation";
+import CreateEvent from "./components/CreateEvent";
 import { APIProvider } from './services/apiProvider';
+import ErrorBoundary from './components/ErrorBoundary';
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error('Missing Clerk Publishable Key');
@@ -43,32 +44,30 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const Home = () => {
-  return (
-    <>
-      <SignedIn>
-        <CreateInvitation />
-        <InvitationList />
-      </SignedIn>
-      <SignedOut>
-        <PublicInvitationList />
-      </SignedOut>
-    </>
-  );
-};
-
 function App() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <APIProvider useMock={false}>
-        <BrowserRouter>
-          <Layout>
+        <ErrorBoundary>
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={
+                <Layout>
+                  <SignedIn>
+                    <CreateEvent onEventCreated={() => setRefreshKey(prev => prev + 1)} />
+                    <InvitationList key={refreshKey} />                    
+                  </SignedIn>
+                  <SignedOut>
+                    <PublicInvitationList />
+                  </SignedOut>
+                </Layout>
+              } />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Layout>
-        </BrowserRouter>
+          </BrowserRouter>
+        </ErrorBoundary>
       </APIProvider>
     </ClerkProvider>
   );

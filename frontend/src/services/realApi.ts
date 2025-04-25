@@ -1,95 +1,80 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { APIClient, APIConfig,  ListEventsResponse, APIError, joinEventRequest, AcceptanceOptions } from '../types/api';
-import { Event, EventConfirmation } from '../types/event';
-import { Location, LocationResponse } from '../types/locations';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest } from '../types/api';
 
-class HTTPError extends Error {
-  constructor(public code: string, message: string, public details?: Record<string, unknown>) {
+export class HTTPError extends Error implements APIError {
+  constructor(public status: number, message: string) {
     super(message);
     this.name = 'HTTPError';
   }
 }
 
-export class RealAPIClient implements APIClient {
-  private config: APIConfig;
-  private axiosInstance: AxiosInstance;
+export class RealAPIClient {
+  constructor(private config: APIConfig) {}
 
-  constructor(config: APIConfig) {
-    this.config = config;
-    this.axiosInstance = axios.create({
-      baseURL: this.config.baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  private async fetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const token = await this.config.getAuthToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    };
+
+    const response = await fetch(`${this.config.baseUrl}${path}`, {
+      ...options,
+      headers,
     });
 
-    // Add request interceptor for auth token
-    this.axiosInstance.interceptors.request.use(async (config) => {
-      const token = await this.config.getAuthToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
+    if (!response.ok) {
+      throw new HTTPError(response.status, await response.text());
+    }
+
+    return response.json();
+  }
+
+  async createEvent(request: CreateEventRequest): Promise<ApiEvent> {
+    const response = await this.fetch<CreateEventResponse>('/api/events/', {
+      method: 'POST',
+      body: JSON.stringify(request),
     });
-
-    // Add response interceptor for error handling
-    this.axiosInstance.interceptors.response.use(
-      (response) => response.data,
-      (error: AxiosError<APIError>) => {
-        if (error.response?.data) {
-          const data = error.response.data;
-          throw new HTTPError(
-            data.code,
-            data.message,
-            data.details
-          );
-        }
-        throw new HTTPError(
-          'NETWORK_ERROR',
-          error.message || 'A network error occurred'
-        );
-      }
-    );
-  }
-  confirmEvent(request: EventConfirmation): Promise<Event> {
-    throw new Error('Method not implemented.');
-  }
-  listMyEvents(): Promise<ListEventsResponse> {
-    throw new Error('Method not implemented.');
-  }
-  getAcceptanceOptions(id: string): Promise<AcceptanceOptions> {
-    throw new Error('Method not implemented.');
-  }
-
-  async createEvent(request: Event): Promise<Event> {
-    return this.axiosInstance.post('/invitations', request);
-  }
-
-  async updateInvitation(request: UpdateInvitationRequest): Promise<Event> {
-    return this.axiosInstance.put(`/invitations/${request.id}`, request);
+    return response.event!;
   }
 
   async deleteEvent(id: string): Promise<void> {
-    await this.axiosInstance.delete(`/invitations/${id}`);
+    await this.fetch(`/api/events/${id}`, {
+      method: 'DELETE',
+    });
   }
 
-  async getEvent(id: string): Promise<Event> {
-    return this.axiosInstance.get(`/invitations/${id}`);
+  async getEvent(id: string): Promise<ApiEvent> {
+    const response = await this.fetch<GetEventResponse>(`/api/events/${id}`);
+    return response.event!;
   }
 
-  async listEvents(params?: { page?: number; limit?: number; ownOnly?: boolean; }): Promise<ListEventsResponse> {
-    return this.axiosInstance.get('/invitations', { params });
+  async confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<ApiConfirmation> {
+    const response = await this.fetch<ConfirmEventResponse>(`/api/events/${eventId}/confirmation`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+    return response.confirmation!;
   }
 
-  async joinEvent(request: joinEventRequest): Promise<void> {
-    return this.axiosInstance.post(`/invitations/${request.id}/ack`, request);
+  async listEvents(): Promise<ListEventsResponse> {
+    return this.fetch<ListEventsResponse>('/api/events/');
   }
 
-  async getLocation(id: string): Promise<Location> {
-    return this.axiosInstance.get(`/locations/${id}`);
+  async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {
+    const response = await this.fetch<JoinRequestResponse>(`/api/events/${eventId}/join`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+    return response.joinRequest!;
   }
 
-  async listLocations(params?: { page?: number; limit?: number; area?: string; search?: string; }): Promise<LocationResponse> {
-    return this.axiosInstance.get('/locations', { params });
+  async listLocations(): Promise<ApiLocation[]> {
+    const response = await this.fetch<ListLocationsResponse>('/api/locations/');
+    return response.locations || [];
+  }
+
+  async listPublicEvents(): Promise<ListEventsResponse> {
+    return this.fetch<ListEventsResponse>('/api/events/public');
   }
 }

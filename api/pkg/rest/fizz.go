@@ -16,6 +16,7 @@ import (
 	"github.com/wI2L/fizz/openapi"
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
 type HttpError struct {
@@ -81,6 +82,10 @@ func errorHook(c *gin.Context, e error) (int, interface{}) {
 		// case *grpcGate.HTTPStatusError:
 		// 	errcode = et.HTTPStatus
 		// 	errpl = e.Error()
+
+	case db.DbObjectNotFoundError:
+		errcode = http.StatusNotFound
+		errpl = e.Error()
 	}
 
 	// Using the gRpc downstreame services? Uncomment this to enable gRpc error code conversion
