@@ -70,7 +70,7 @@ func (db *Db) Ping(ctx context.Context) error {
 
 // GetAllFacilities retrieves all facilities from the database
 func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
-	query := `SELECT 
+	query := `SELECT
 		id,
 		name,
 		address,
@@ -155,7 +155,36 @@ func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event,
 	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ?", userId, api.EventVisibilityPublic, api.EventStatusOpen)
 }
 
-func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFilterParams ...interface{}) ([]*api.Event, error) {
+func (db *Db) GetAcceptedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
+
+	rows, err := db.conn.QueryContext(ctx, `SELECT event_id FROM join_requests j
+		inner join events e on j.event_id = e.id
+	WHERE j.user_id = ?`, userId)
+	if err != nil {
+		slog.Error("Failed to get accepted events", "error", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var eventIds []string
+	for rows.Next() {
+		var eventId string
+		if err := rows.Scan(&eventId); err != nil {
+			slog.Error("Failed to scan event ID", "error", err)
+			return nil, err
+		}
+		eventIds = append(eventIds, eventId)
+	}
+	if len(eventIds) == 0 {
+		return nil, nil
+	}
+
+	slog.Info("Accepted events", "eventIds", eventIds)
+
+	return db.getEventsInternal(ctx, "event_id IN (?) ", eventIds)
+}
+
+func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals ...interface{}) ([]*api.Event, error) {
 	// First query: get all events, timeslots, locations and confirmations
 	query := `
 		WITH event_data AS (
@@ -178,19 +207,34 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 			FROM events e
 			LEFT JOIN event_locations el ON e.id = el.event_id
 			LEFT JOIN event_time_slots ets ON e.id = ets.event_id
-			LEFT JOIN confirmations c ON e.id = c.event_id			
-			GROUP BY e.id, e.user_id, e.skill_level, e.description, e.event_type, 
+			LEFT JOIN confirmations c ON e.id = c.event_id
+			GROUP BY e.id, e.user_id, e.skill_level, e.description, e.event_type,
 				e.expected_players, e.session_duration, e.visibility, e.status, e.created_at,
 				c.location_id, c.dt, c.duration
 		)
-		SELECT * FROM event_data 
+		SELECT * FROM event_data
 	`
 
-	if extraFilter != "" {
-		query += " WHERE " + extraFilter
+	if filter != "" {
+		query += " WHERE " + filter
 	}
 
-	rows, err := db.conn.QueryContext(ctx, query, extraFilterParams...)
+	var err error
+	var rows *sql.Rows
+	if strings.Contains(strings.ToLower(filter), "in") {
+		var args []interface{}
+		query, args, err = sqlx.In(query, filterVals...)
+		if err != nil {
+			slog.Error("Failed to prepare query with IN clause", "error", err)
+			return nil, err
+		}
+
+		query = db.conn.Rebind(query)
+		rows, err = db.conn.QueryContext(ctx, query, args...)
+	} else {
+		rows, err = db.conn.QueryContext(ctx, query, filterVals...)
+	}
+
 	if err != nil {
 		slog.Error("Failed to get  events", "error", err)
 		return nil, err
@@ -286,19 +330,19 @@ func (db *Db) getEventsInternal(ctx context.Context, extraFilter string, extraFi
 
 	// Second query: get all join requests for these events
 	joinRequestsQuery := `
-			SELECT 
+			SELECT
 				jr.id,
 				jr.event_id,
 				jr.user_id as join_owner_id,
 				jr.comment,
 				jr.created_at,
-				jr.is_rejected,				
+				jr.is_rejected,
 				c.id as confirmation_id
 		FROM join_requests jr
 		LEFT JOIN confirmation_join_requests cjr ON jr.id = cjr.join_request_id
-		LEFT JOIN confirmations c ON cjr.confirmation_id = c.id		
+		LEFT JOIN confirmations c ON cjr.confirmation_id = c.id
 		WHERE jr.event_id IN (?)
-		ORDER BY jr.created_at		
+		ORDER BY jr.created_at
 	`
 	query, args, err := sqlx.In(joinRequestsQuery, slices.Collect(maps.Keys(eventMap)))
 	if err != nil {
@@ -404,7 +448,7 @@ func (db *Db) GetEventTimeSlots(ctx context.Context, eventId string) ([]time.Tim
 }
 
 func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
-	events, err := db.getEventsInternal(ctx, "event_id = ? and (user_id = ? OR visibility = ?)", eventId, userId, api.EventVisibilityPublic)
+	events, err := db.getEventsInternal(ctx, "event_id = ? and user_id = ?", eventId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +560,7 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 		// Link to confirmation
 		_, err = tx.ExecContext(ctx, `
-			INSERT INTO confirmation_join_requests (confirmation_id, join_request_id) 
+			INSERT INTO confirmation_join_requests (confirmation_id, join_request_id)
 			VALUES (?, ?)`, confirmationId, joinRequestId)
 		if err != nil {
 			tx.Rollback()
@@ -527,8 +571,8 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 	// Update event status
 	_, err = tx.ExecContext(ctx, `
-		UPDATE events 
-		SET status = ? 
+		UPDATE events
+		SET status = ?
 		WHERE id = ?`, api.EventStatusConfirmed, eventId)
 	if err != nil {
 		tx.Rollback()

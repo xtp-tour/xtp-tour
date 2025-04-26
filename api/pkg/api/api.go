@@ -189,8 +189,3 @@ type GetLocationRequest struct {
 
 type ListPublicEventsRequest struct {
 }
-
-type ListPublicEventsResponse struct {
-	Events []*Event `json:"events"`
-	Total  int      `json:"total"`
-}

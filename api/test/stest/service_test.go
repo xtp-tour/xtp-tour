@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -98,6 +99,7 @@ func Test_EventAPI(t *testing.T) {
 
 	})
 
+	t.Logf("Event ID: %s", eventId)
 	// List events
 	t.Run("ListEventsOfUser", func(tt *testing.T) {
 		var response api.ListEventsResponse
@@ -190,6 +192,22 @@ func Test_EventAPI(t *testing.T) {
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("ListEventsThatUserJoined", func(tt *testing.T) {
+		var response api.ListEventsResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/joined")
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Greater(tt, len(response.Events), 0, "No events found")
+			c := slices.ContainsFunc(response.Events, func(e *api.Event) bool {
+				return e.Id == eventId
+			})
+			assert.True(tt, c, "Event ID should exist in the list of events")
 		}
 	})
 
@@ -331,7 +349,7 @@ func Test_EventAPI(t *testing.T) {
 	})
 
 	t.Run("List public events", func(tt *testing.T) {
-		var response api.ListPublicEventsResponse
+		var response api.ListEventsResponse
 		r, err := restClient.R().
 			SetHeader("Authentication", user).
 			SetResult(&response).

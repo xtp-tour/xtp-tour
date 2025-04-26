@@ -85,6 +85,8 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
 	events.GET("/public", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
+	events.GET("/joined", []fizz.OperationOption{fizz.Summary("Get list of events that user joined")}, tonic.Handler(r.listJoinedEventsHandler, http.StatusOK))
+
 	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
@@ -181,7 +183,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 	}, nil
 }
 
-func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListPublicEventsResponse, error) {
+func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListEventsResponse, error) {
 	// Get user ID if available
 	var userId string
 	if userIdVal, ok := c.Get(auth.USER_ID_CONTEXT_KEY); ok {
@@ -196,7 +198,28 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 		}
 	}
 
-	return &api.ListPublicEventsResponse{
+	return &api.ListEventsResponse{
+		Events: events,
+		Total:  len(events),
+	}, nil
+}
+
+func (r *Router) listJoinedEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListEventsResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+	events, err := r.db.GetAcceptedEvents(context.Background(), userId.(string))
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get events",
+		}
+	}
+	return &api.ListEventsResponse{
 		Events: events,
 		Total:  len(events),
 	}, nil
