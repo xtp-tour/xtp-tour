@@ -77,4 +77,8 @@ export class RealAPIClient {
   async listPublicEvents(): Promise<ListEventsResponse> {
     return this.fetch<ListEventsResponse>('/api/events/public');
   }
+
+  async listJoinedEvents(): Promise<ListEventsResponse> {
+    return this.fetch<ListEventsResponse>('/api/events/joined');
+  }
 }

@@ -157,6 +157,7 @@ export interface APIClient {
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
   listPublicEvents(): Promise<ListEventsResponse>;
+  listJoinedEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
 
   // Location endpoints
@@ -248,7 +249,7 @@ export class MockAPIClient implements APIClient {
 
   async listPublicEvents(): Promise<ListEventsResponse> {
     await this.delay(500);
-    
+
     const publicEvents = this.events.filter(event => event.visibility === 'PUBLIC' && event.status === 'OPEN');
     return {
       events: publicEvents,
@@ -307,4 +308,20 @@ export class MockAPIClient implements APIClient {
     await this.delay(500);
     return this.locations;
   }
-} 
+
+  async listJoinedEvents(): Promise<ListEventsResponse> {
+    await this.checkAuth();
+    await this.delay(500);
+
+    // Find events where the current user has joined (has a join request)
+    const joinedEvents = this.events.filter(event =>
+      event.userId !== 'current_user' && // Not my own events
+      event.joinRequests?.some(jr => jr.userId === 'current_user')
+    );
+
+    return {
+      events: joinedEvents,
+      total: joinedEvents.length
+    };
+  }
+}

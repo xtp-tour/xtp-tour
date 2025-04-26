@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/joined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get list of events that user joined */
+        get: operations["listJoinedEventsHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/public": {
         parameters: {
             query?: never;
@@ -226,11 +243,6 @@ export interface components {
         ApiListLocationsResponse: {
             locations?: components["schemas"]["ApiLocation"][];
         };
-        ApiListPublicEventsResponse: {
-            events?: components["schemas"]["ApiEvent"][];
-            /** Format: int32 */
-            total?: number;
-        };
         ApiLocation: {
             address?: string;
             coordinates?: components["schemas"]["ApiCoordinates"];
@@ -304,6 +316,26 @@ export interface operations {
             };
         };
     };
+    "listJoinedEventsHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiListEventsResponse"];
+                };
+            };
+        };
+    };
     "listPublicEventsHandler-fm": {
         parameters: {
             query?: never;
@@ -319,7 +351,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiListPublicEventsResponse"];
+                    "application/json": components["schemas"]["ApiListEventsResponse"];
                 };
             };
         };

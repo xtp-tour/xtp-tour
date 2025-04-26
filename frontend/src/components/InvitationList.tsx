@@ -67,6 +67,7 @@ const InvitationList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [myEvents, setMyEvents] = useState<DisplayEvent[]>([]);
+  const [joinedEvents, setJoinedEvents] = useState<DisplayEvent[]>([]); 
   const [availableEvents, setAvailableEvents] = useState<DisplayEvent[]>([]);
 
   // State for section expansion
@@ -88,13 +89,14 @@ const InvitationList: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const [myEventsResponse, availableEventsResponse] = await Promise.all([
+        const [myEventsResponse, joinedEventsResponse, availableEventsResponse] = await Promise.all([
           api.listEvents(),
+          api.listJoinedEvents(),
           api.listPublicEvents()
         ]);
 
         setMyEvents((myEventsResponse.events || []).map(transformEventData));
+        setJoinedEvents((joinedEventsResponse.events || []).map(transformEventData));
         setAvailableEvents((availableEventsResponse.events || [])
           .map(transformEventData)
           .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()));
@@ -113,9 +115,10 @@ const InvitationList: React.FC = () => {
     .filter(event => event.status === 'OPEN')
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
   
-  const acceptedEvents = myEvents
-    .filter(event => event.joinRequests && event.joinRequests.length > 0)
-    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
+  // No longer needed as we're using the dedicated API endpoint
+  // const acceptedEvents = myEvents
+  //  .filter(event => event.joinRequests && event.joinRequests.length > 0)
+  //  .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
     return (
@@ -171,17 +174,30 @@ const InvitationList: React.FC = () => {
       <section className="mb-5">
         <SectionHeader
           title="Accepted Events"
-          count={acceptedEvents.length}
+          count={joinedEvents.length}
           isExpanded={expandedSections.acceptedInvitations}
           onToggle={() => toggleSection('acceptedInvitations')}
         />
         {expandedSections.acceptedInvitations && (
-          acceptedEvents.length === 0 ? (
+          joinedEvents.length === 0 ? (
             <p className="text-muted">You haven't accepted any events yet.</p>
           ) : (
             <div>
-              {acceptedEvents.map(event => (
-                <AcceptedInvitationItem key={event.id} invitation={event} />
+              {joinedEvents.map(event => (
+                <AcceptedInvitationItem 
+                  key={event.id} 
+                  invitation={event} 
+                  onCancelled={() => {
+                    // Refresh joined events after cancellation
+                    api.listJoinedEvents()
+                      .then(response => {
+                        setJoinedEvents((response.events || []).map(transformEventData));
+                      })
+                      .catch(err => {
+                        console.error("Failed to refresh joined events:", err);
+                      });
+                  }}
+                />
               ))}
             </div>
           )
@@ -201,4 +217,4 @@ const InvitationList: React.FC = () => {
   );
 };
 
-export default InvitationList; 
+export default InvitationList;

@@ -39,6 +39,7 @@ export interface APIClient {
   listEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
   listPublicEvents(): Promise<ListEventsResponse>;
+  listJoinedEvents(): Promise<ListEventsResponse>;
 
   // Location endpoints
   listLocations(): Promise<Location[]>;
@@ -83,7 +84,7 @@ export function useAPI(): APIClient {
     throw new Error('useAPI must be used within an APIProvider');
   }
   return client;
-} 
+}
 
 export interface APIConfig {
   baseUrl: string;
