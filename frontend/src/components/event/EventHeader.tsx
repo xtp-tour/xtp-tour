@@ -4,7 +4,7 @@ import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
 
-interface InvitationHeaderProps extends StyleProps {
+interface EventHeaderProps extends StyleProps {
   title: string;
   subtitle?: string;
   timestamp: moment.Moment;
@@ -15,7 +15,7 @@ const formatFullTimestamp = (timestamp: moment.Moment): string => {
   return timestamp.format('MMMM D, YYYY h:mm:ss A');
 };
 
-const InvitationHeader: React.FC<InvitationHeaderProps> = ({
+const EventHeader: React.FC<EventHeaderProps> = ({
   title,
   subtitle,
   colorClass = 'text-primary',
@@ -73,4 +73,4 @@ const InvitationHeader: React.FC<InvitationHeaderProps> = ({
   );
 };
 
-export default InvitationHeader; 
+export default EventHeader; 

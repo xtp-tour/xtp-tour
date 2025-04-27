@@ -3,24 +3,24 @@ import { components } from '../../types/schema';
 
 type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
 
-interface AcceptedUsersProps {
+interface JoinedUsersProps {
   joinRequests: ApiJoinRequest[];
 }
 
-const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ joinRequests }) => {
-  const acceptedUsers = joinRequests.filter(
+const JoinedUsers: React.FC<JoinedUsersProps> = ({ joinRequests }) => {
+  const joinedUsers = joinRequests.filter(
     request => request.status === 'ACCEPTED'
   );
 
-  if (acceptedUsers.length === 0) {
+  if (joinedUsers.length === 0) {
     return null;
   }
 
   return (
     <div className="mt-4">
-      <h3 className="text-lg font-semibold">Accepted Players</h3>
+      <h3 className="text-lg font-semibold">Joined Players</h3>
       <ul className="mt-2 space-y-2">
-        {acceptedUsers.map(user => (
+        {joinedUsers.map(user => (
           <li key={user.id} className="flex items-center">
             <span className="text-gray-700">{user.userId}</span>
             {user.comment && (
@@ -36,4 +36,4 @@ const AcceptedUsers: React.FC<AcceptedUsersProps> = ({ joinRequests }) => {
   );
 };
 
-export default AcceptedUsers; 
+export default JoinedUsers; 

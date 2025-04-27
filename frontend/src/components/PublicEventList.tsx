@@ -2,56 +2,56 @@ import React, { useEffect, useState } from 'react';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
-import BaseInvitationItem from './invitation/BaseInvitationItem';
-import { TimeSlot } from './invitation/types';
-import { AcceptInvitationModal } from './AcceptInvitationModal';
+import BaseEventItem from './event/BaseEventItem';
+import { TimeSlot } from './event/types';
+import { JoinEventModal } from './JoinEventModal';
 import moment from 'moment';
 
 type Event = components['schemas']['ApiEvent'];
 
-const transformInvitation = (invitation: Event): Event => ({
-  ...invitation,
-  timeSlots: invitation.timeSlots.map(ts => ts),
-  createdAt: invitation.createdAt || new Date().toISOString()
+const transformEvent = (event: Event): Event => ({
+  ...event,
+  timeSlots: event.timeSlots.map(ts => ts),
+  createdAt: event.createdAt || new Date().toISOString()
 });
 
-const PublicInvitationList: React.FC = () => {
+const PublicEventList: React.FC = () => {
   const api = useAPI();
   const { isSignedIn } = useUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [invitations, setInvitations] = useState<Event[]>([]);
-  const [selectedInvitation, setSelectedInvitation] = useState<Event | null>(null);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const fetchInvitations = async () => {
+  const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await api.listPublicEvents();
-      const availableInvitations = response.events?.map(transformInvitation) || [];
-      setInvitations(availableInvitations);
+      const availableEvents = response.events?.map(transformEvent) || [];
+      setEvents(availableEvents);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load invitations');
+      setError(err instanceof Error ? err.message : 'Failed to load events');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInvitations();
+    fetchEvents();
   }, [api]);
 
-  const handleJoin = (invitation: Event) => {
-    setSelectedInvitation(invitation);
-    setShowAcceptModal(true);
+  const handleJoin = (event: Event) => {
+    setSelectedEvent(event);
+    setShowJoinModal(true);
   };
 
-  const handleAccepted = () => {
-    setShowAcceptModal(false);
-    setSelectedInvitation(null);
+  const handleJoined = () => {
+    setShowJoinModal(false);
+    setSelectedEvent(null);
     // Refresh the list to show the updated state
-    fetchInvitations();
+    fetchEvents();
   };
 
   if (loading) {
@@ -72,18 +72,18 @@ const PublicInvitationList: React.FC = () => {
     );
   }
 
-  if (invitations.length === 0) {
+  if (events.length === 0) {
     return (
       <div className="mt-4">
-        <p className="text-muted text-center">No available invitations at the moment.</p>
+        <p className="text-muted text-center">No available events at the moment.</p>
       </div>
     );
   }
 
   return (
     <div className="mt-4">
-      {invitations.map(invitation => {
-        const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => ({
+      {events.map(event => {
+        const timeSlots: TimeSlot[] = event.timeSlots.map(slot => ({
           date: moment(slot),
           isAvailable: true,
           isSelected: false
@@ -93,7 +93,7 @@ const PublicInvitationList: React.FC = () => {
           variant: 'outline-primary',
           icon: 'bi-plus-circle',
           label: 'Join',
-          onClick: () => handleJoin(invitation)
+          onClick: () => handleJoin(event)
         } : {
           variant: 'outline-primary',
           icon: 'bi-box-arrow-in-right',
@@ -109,31 +109,31 @@ const PublicInvitationList: React.FC = () => {
         };
 
         return (
-          <BaseInvitationItem
-            key={invitation.id}
-            invitation={invitation}
-            headerTitle={invitation.userId || 'Unknown User'}
+          <BaseEventItem
+            key={event.id}
+            event={event}
+            headerTitle={event.userId || 'Unknown User'}
             headerSubtitle="Looking for players"
             colorClass="text-primary"
             borderColorClass="border-primary"
             timeSlots={timeSlots}
-            timestamp={moment(invitation.createdAt).toDate()}
+            timestamp={moment(event.createdAt)}
             actionButton={actionButton}
           />
         );
       })}
 
-      {selectedInvitation && selectedInvitation.id && (
-        <AcceptInvitationModal
-          invitationId={selectedInvitation.id}
-          hostName={selectedInvitation.userId || 'Unknown User'}
-          show={showAcceptModal}
-          onHide={() => setShowAcceptModal(false)}
-          onAccepted={handleAccepted}
+      {selectedEvent && selectedEvent.id && (
+        <JoinEventModal
+          eventId={selectedEvent.id}
+          hostName={selectedEvent.userId || 'Unknown User'}
+          show={showJoinModal}
+          onHide={() => setShowJoinModal(false)}
+          onJoined={handleJoined}
         />
       )}
     </div>
   );
 };
 
-export default PublicInvitationList; 
+export default PublicEventList; 

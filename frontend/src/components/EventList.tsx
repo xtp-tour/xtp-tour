@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import MyInvitationItem from './MyInvitationItem';
-import AcceptedInvitationItem from './AcceptedInvitationItem';
-import PublicInvitationList from './PublicInvitationList';
+import MyEventItem from './MyEventItem';
+import JoinedEventItem from './JoinedEventItem';
+import PublicEventList from './PublicEventList';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
 
@@ -62,7 +62,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded,
   </div>
 );
 
-const InvitationList: React.FC = () => {
+const EventList: React.FC = () => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +72,9 @@ const InvitationList: React.FC = () => {
 
   // State for section expansion
   const [expandedSections, setExpandedSections] = useState({
-    myInvitations: true,
-    acceptedInvitations: true,
-    availableInvitations: true
+    myEvents: true,
+    joinedEvents: true,
+    availableEvents: true
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -114,11 +114,6 @@ const InvitationList: React.FC = () => {
   const myOpenEvents = myEvents
     .filter(event => event.status === 'OPEN')
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
-  
-  // No longer needed as we're using the dedicated API endpoint
-  // const acceptedEvents = myEvents
-  //  .filter(event => event.joinRequests && event.joinRequests.length > 0)
-  //  .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
     return (
@@ -144,18 +139,18 @@ const InvitationList: React.FC = () => {
         <SectionHeader
           title="Your Events"
           count={myOpenEvents.length}
-          isExpanded={expandedSections.myInvitations}
-          onToggle={() => toggleSection('myInvitations')}
+          isExpanded={expandedSections.myEvents}
+          onToggle={() => toggleSection('myEvents')}
         />
-        {expandedSections.myInvitations && (
+        {expandedSections.myEvents && (
           myOpenEvents.length === 0 ? (
             <p className="text-muted">You haven't created any events yet.</p>
           ) : (
             <div>
               {myOpenEvents.map(event => (
-                <MyInvitationItem 
+                <MyEventItem 
                   key={event.id} 
-                  invitation={event} 
+                  event={event} 
                   onDelete={async (id) => {
                     try {
                       await api.deleteEvent(id);
@@ -173,20 +168,20 @@ const InvitationList: React.FC = () => {
 
       <section className="mb-5">
         <SectionHeader
-          title="Accepted Events"
+          title="Joined Events"
           count={joinedEvents.length}
-          isExpanded={expandedSections.acceptedInvitations}
-          onToggle={() => toggleSection('acceptedInvitations')}
+          isExpanded={expandedSections.joinedEvents}
+          onToggle={() => toggleSection('joinedEvents')}
         />
-        {expandedSections.acceptedInvitations && (
+        {expandedSections.joinedEvents && (
           joinedEvents.length === 0 ? (
-            <p className="text-muted">You haven't accepted any events yet.</p>
+            <p className="text-muted">You haven't joined any events yet.</p>
           ) : (
             <div>
               {joinedEvents.map(event => (
-                <AcceptedInvitationItem 
+                <JoinedEventItem 
                   key={event.id} 
-                  invitation={event} 
+                  event={event} 
                   onCancelled={() => {
                     // Refresh joined events after cancellation
                     api.listJoinedEvents()
@@ -208,13 +203,13 @@ const InvitationList: React.FC = () => {
         <SectionHeader
           title="Available Events to Join"
           count={availableEvents.length}
-          isExpanded={expandedSections.availableInvitations}
-          onToggle={() => toggleSection('availableInvitations')}
+          isExpanded={expandedSections.availableEvents}
+          onToggle={() => toggleSection('availableEvents')}
         />
-        {expandedSections.availableInvitations && <PublicInvitationList />}
+        {expandedSections.availableEvents && <PublicEventList />}
       </section>
     </div>
   );
 };
 
-export default InvitationList;
+export default EventList; 

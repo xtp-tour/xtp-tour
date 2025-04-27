@@ -1,11 +1,11 @@
 import React from 'react';
 import { SECTION_TITLES } from './types';
 
-interface InvitationDescriptionProps {
+interface EventDescriptionProps {
   description?: string;
 }
 
-const InvitationDescription: React.FC<InvitationDescriptionProps> = ({
+const EventDescription: React.FC<EventDescriptionProps> = ({
   description,
 }) => {
   if (!description) {
@@ -26,4 +26,4 @@ const InvitationDescription: React.FC<InvitationDescriptionProps> = ({
   );
 };
 
-export default InvitationDescription; 
+export default EventDescription; 

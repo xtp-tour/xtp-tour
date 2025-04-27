@@ -2,34 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
 import TimeSlotLabels from './TimeSlotLabels';
-import { InvitationFlowDiagram, InvitationStep } from './InvitationFlowDiagram';
-import { TimeSlot } from './invitation/types';
+import { EventFlowDiagram, EventStep } from './EventFlowDiagram';
+import { TimeSlot } from './event/types';
 import moment from 'moment';
 
 interface Props {
-  invitationId: string;
+  eventId: string;
   hostName: string;
   show: boolean;
   onHide: () => void;
-  onAccepted: () => void;
+  onJoined: () => void;
 }
 
-interface AcceptanceOptions {
+interface JoinOptions {
   locations: string[];
   timeSlots: TimeSlot[];
 }
 
-export const AcceptInvitationModal: React.FC<Props> = ({
-  invitationId,
+export const JoinEventModal: React.FC<Props> = ({
+  eventId,
   hostName,
   show,
   onHide,
-  onAccepted
+  onJoined
 }) => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [options, setOptions] = useState<AcceptanceOptions | null>(null);
+  const [options, setOptions] = useState<JoinOptions | null>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeSlot[]>([]);
 
@@ -38,7 +38,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
       try {
         setLoading(true);
         setError(null);
-        const response = await api.getEvent(invitationId);
+        const response = await api.getEvent(eventId);
         if (response) {
           const event = response as Event;
           if (event) {
@@ -67,7 +67,7 @@ export const AcceptInvitationModal: React.FC<Props> = ({
     if (show) {
       fetchOptions();
     }
-  }, [api, invitationId, show]);
+  }, [api, eventId, show]);
 
   const handleLocationChange = (locationId: string, checked: boolean) => {
     setSelectedLocations(prev => 
@@ -100,17 +100,17 @@ export const AcceptInvitationModal: React.FC<Props> = ({
 
       const request: JoinEventRequest = {
         joinRequest: {
-          id: invitationId,
+          id: eventId,
           locations: selectedLocations,
           timeSlots: selectedTimeSlots.map(slot => slot.date.utc().format())
         }
       };
 
-      await api.joinEvent(invitationId, request);
-      onAccepted();
+      await api.joinEvent(eventId, request);
+      onJoined();
       onHide();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept invitation');
+      setError(err instanceof Error ? err.message : 'Failed to join event');
     } finally {
       setLoading(false);
     }
@@ -125,8 +125,8 @@ export const AcceptInvitationModal: React.FC<Props> = ({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
-        <InvitationFlowDiagram
-          currentStep={InvitationStep.Pending}
+        <EventFlowDiagram
+          currentStep={EventStep.Pending}
           hostName={hostName}
           className="mb-4"
         />
@@ -250,7 +250,10 @@ export const AcceptInvitationModal: React.FC<Props> = ({
               Submitting...
             </>
           ) : (
-            'Submit'
+            <>
+              <i className="bi bi-calendar2-check me-2"></i>
+              Join Game Session
+            </>
           )}
         </Button>
       </Modal.Footer>

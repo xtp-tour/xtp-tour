@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import './InvitationFlowDiagram.css';
+import './EventFlowDiagram.css';
 
-export enum InvitationStep {
+export enum EventStep {
   Created = 'CREATED',
   Pending = 'PENDING',
-  Accepted = 'ACCEPTED',
+  Joined = 'JOINED',
   Confirmed = 'CONFIRMED',
   Rejected = 'REJECTED'
 }
 
 interface Props {
-  currentStep: InvitationStep;
+  currentStep: EventStep;
   hostName: string;
   className?: string;
   defaultExpanded?: boolean;
 }
 
-export const InvitationFlowDiagram: React.FC<Props> = ({
+export const EventFlowDiagram: React.FC<Props> = ({
   currentStep,
   hostName,
   className = '',
@@ -26,44 +26,44 @@ export const InvitationFlowDiagram: React.FC<Props> = ({
 
   const steps = [
     {
-      step: InvitationStep.Created,
-      title: 'Invitation Created',
-      description: `${hostName} created an invitation to play`,
+      step: EventStep.Created,
+      title: 'Event Created',
+      description: `${hostName} created an event to play`,
       icon: 'bi-plus-circle'
     },
     {
-      step: InvitationStep.Pending,
+      step: EventStep.Pending,
       title: 'Ready for Your Response',
       description: 'Review and choose your preferred time and place',
       icon: 'bi-clock'
     },
     {
-      step: InvitationStep.Accepted,
+      step: EventStep.Joined,
       title: 'Your Response Sent',
-      description: `You've selected your preferences and accepted the invitation`,
+      description: `You've selected your preferences and joined the event`,
       icon: 'bi-check-circle'
     },
     {
-      step: InvitationStep.Confirmed,
+      step: EventStep.Confirmed,
       title: 'Session Scheduled',
       description: `${hostName} has booked the court and confirmed the session`,
       icon: 'bi-calendar-check'
     }
   ];
 
-  const getStepStatus = (step: InvitationStep) => {
+  const getStepStatus = (step: EventStep) => {
     const stepOrder = {
-      [InvitationStep.Created]: 0,
-      [InvitationStep.Pending]: 1,
-      [InvitationStep.Accepted]: 2,
-      [InvitationStep.Confirmed]: 3,
-      [InvitationStep.Rejected]: -1
+      [EventStep.Created]: 0,
+      [EventStep.Pending]: 1,
+      [EventStep.Joined]: 2,
+      [EventStep.Confirmed]: 3,
+      [EventStep.Rejected]: -1
     };
 
     const currentStepOrder = stepOrder[currentStep];
     const thisStepOrder = stepOrder[step];
 
-    if (currentStep === InvitationStep.Rejected) {
+    if (currentStep === EventStep.Rejected) {
       return 'rejected';
     }
 
@@ -77,7 +77,7 @@ export const InvitationFlowDiagram: React.FC<Props> = ({
   };
 
   return (
-    <div className={`invitation-flow ${className}`}>
+    <div className={`event-flow ${className}`}>
       <div 
         className="flow-header" 
         onClick={() => setIsExpanded(!isExpanded)}
@@ -113,7 +113,7 @@ export const InvitationFlowDiagram: React.FC<Props> = ({
           <div className="next-steps">
             <h6 className="next-steps-title">
               <i className="bi bi-info-circle me-2"></i>
-              What happens after you accept?
+              What happens after you join?
             </h6>
             <ol className="next-steps-list">
               <li>{hostName} will be notified of your preferred options</li>
@@ -122,12 +122,12 @@ export const InvitationFlowDiagram: React.FC<Props> = ({
             </ol>
           </div>
 
-          {currentStep === InvitationStep.Rejected && (
+          {currentStep === EventStep.Rejected && (
             <div className="rejection-overlay">
               <div className="rejection-content">
                 <i className="bi bi-x-circle text-danger"></i>
-                <h6>Invitation Rejected</h6>
-                <p>This invitation is no longer available</p>
+                <h6>Event Rejected</h6>
+                <p>This event is no longer available</p>
               </div>
             </div>
           )}

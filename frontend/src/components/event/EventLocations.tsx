@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProps, SECTION_TITLES } from './types';
 
-interface InvitationLocationsProps extends StyleProps {
+interface EventLocationsProps extends StyleProps {
   locations: string[];
   selectedLocations?: string[];
   onLocationClick?: (location: string) => void;
@@ -37,7 +37,7 @@ const LocationBadge: React.FC<{
   );
 };
 
-const InvitationLocations: React.FC<InvitationLocationsProps> = ({
+const EventLocations: React.FC<EventLocationsProps> = ({
   locations,
   selectedLocations,
   colorClass = 'text-primary',
@@ -62,4 +62,4 @@ const InvitationLocations: React.FC<InvitationLocationsProps> = ({
   </div>
 );
 
-export default InvitationLocations; 
+export default EventLocations; 

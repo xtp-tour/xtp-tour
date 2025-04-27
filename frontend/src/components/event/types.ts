@@ -45,7 +45,7 @@ export const SECTION_TITLES = {
   description: 'Description'
 } as const;
 
-export const getInvitationTypeLabel = (type: ApiEventType): string => {
+export const getEventTypeLabel = (type: ApiEventType): string => {
   switch (type) {
     case 'MATCH':
       return 'Match';
@@ -81,4 +81,4 @@ export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: Api
     isSelected,
     isAvailable
   };
-};
+}; 

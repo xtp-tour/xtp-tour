@@ -2,13 +2,13 @@ import React from 'react';
 import TimeSlotLabels from '../TimeSlotLabels';
 import { TimeSlot, SECTION_TITLES } from './types';
 
-interface InvitationTimeSlotsProps {
+interface EventTimeSlotsProps {
   timeSlots: TimeSlot[];
   hasSelectedTimeSlots?: boolean;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
 }
 
-const InvitationTimeSlots: React.FC<InvitationTimeSlotsProps> = ({
+const EventTimeSlots: React.FC<EventTimeSlotsProps> = ({
   timeSlots,
   hasSelectedTimeSlots,
   onTimeSlotClick,
@@ -24,4 +24,4 @@ const InvitationTimeSlots: React.FC<InvitationTimeSlotsProps> = ({
   </div>
 );
 
-export default InvitationTimeSlots; 
+export default EventTimeSlots; 

@@ -1,13 +1,13 @@
 import React from 'react';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_DESCRIPTIONS, getInvitationTypeLabel, getRequestTypeLabel } from './types';
+import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ApiEventType = ApiEvent['eventType'];
 type ApiSkillLevel = ApiEvent['skillLevel'];
 
-interface InvitationBadgesProps {
-  invitationType: ApiEventType;  
+interface EventBadgesProps {
+  eventType: ApiEventType;  
   expectedPlayers: number;
   skillLevel: ApiSkillLevel;
   sessionDuration: number;
@@ -35,24 +35,24 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
   </span>
 );
 
-const InvitationTypeBadge: React.FC<{ invitationType: ApiEventType }> = ({ invitationType }) => (
+const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => (
   <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-    {getInvitationTypeLabel(invitationType)}
+    {getEventTypeLabel(eventType)}
   </span>
 );
 
-const InvitationBadges: React.FC<InvitationBadgesProps> = ({
-  invitationType,
+const EventBadges: React.FC<EventBadgesProps> = ({
+  eventType,
   expectedPlayers,
   skillLevel,
   sessionDuration,
 }) => (
   <div className="d-flex flex-wrap gap-2 mb-3">
-    <InvitationTypeBadge invitationType={invitationType} />
+    <EventTypeBadge eventType={eventType} />
     <RequestTypeBadge expectedPlayers={expectedPlayers} />    
     <SkillLevelBadge skillLevel={skillLevel} />
     <DurationBadge hours={sessionDuration} />
   </div>
 );
 
-export default InvitationBadges; 
+export default EventBadges; 

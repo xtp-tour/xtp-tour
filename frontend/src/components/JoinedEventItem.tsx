@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
-import BaseInvitationItem from './invitation/BaseInvitationItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation } from './invitation/types';
+import BaseEventItem from './event/BaseEventItem';
+import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import { ApiEvent } from '../types/api';
-
+import moment from 'moment';
 
 interface Props {
-  invitation: ApiEvent;
+  event: ApiEvent;
   onCancelled?: () => void;
 }
 
-const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) => {
+const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const api = useAPI();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -21,33 +21,33 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
     try {
       setCancelling(true);
       setError(null);
-      await api.deleteEvent(invitation.id || '');
+      await api.deleteEvent(event.id || '');
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError('Failed to cancel invitation. Please try again later.');
+        setError('Failed to cancel event. Please try again later.');
       }
     } finally {
       setCancelling(false);
     }
   };
 
-  // Convert invitation time slots to the format expected by BaseInvitationItem
-  const timeSlots: TimeSlot[] = invitation.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, invitation.confirmation));
+  // Convert event time slots to the format expected by BaseEventItem
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation));
 
   return (
     <>
-      <BaseInvitationItem
-        invitation={invitation}
-        headerTitle={invitation.userId || ''}
+      <BaseEventItem
+        event={event}
+        headerTitle={event.userId || ''}
         headerSubtitle="Host"
         colorClass="text-primary"
         borderColorClass="border-primary"
         timeSlots={timeSlots}
-        timestamp={new Date(invitation.createdAt || '')}
+        timestamp={moment(event.createdAt)}
         actionButton={{
           variant: 'outline-danger',
           icon: 'bi-x-circle',
@@ -108,4 +108,4 @@ const AcceptedInvitationItem: React.FC<Props> = ({ invitation, onCancelled }) =>
   );
 };
 
-export default AcceptedInvitationItem; 
+export default JoinedEventItem; 

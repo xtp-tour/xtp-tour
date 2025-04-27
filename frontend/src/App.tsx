@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import InvitationList from "./components/InvitationList";
-import PublicInvitationList from "./components/PublicInvitationList";
+import EventList from "./components/EventList";
+import PublicEventList from "./components/PublicEventList";
 import CreateEvent from "./components/CreateEvent";
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -57,10 +57,10 @@ function App() {
                 <Layout>
                   <SignedIn>
                     <CreateEvent onEventCreated={() => setRefreshKey(prev => prev + 1)} />
-                    <InvitationList key={refreshKey} />                    
+                    <EventList key={refreshKey} />                    
                   </SignedIn>
                   <SignedOut>
-                    <PublicInvitationList />
+                    <PublicEventList />
                   </SignedOut>
                 </Layout>
               } />
