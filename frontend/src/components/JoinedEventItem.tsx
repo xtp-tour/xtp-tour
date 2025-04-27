@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
-import { ApiEvent } from '../types/api';
+import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 
 interface Props {
@@ -16,6 +16,42 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
+
+  // In a real app, we would get the current user ID from authentication
+  // For the mock implementation, 'current_user' is hardcoded in mockApi.ts
+  const CURRENT_USER_ID = 'current_user';
+  
+  // Use this flag to force a test join request for debugging
+  const USE_TEST_REQUEST = true;
+
+  // Debug to check join requests in this event
+  useEffect(() => {
+    console.log('Event ID:', event.id);
+    console.log('Event join requests:', event.joinRequests);
+    
+    if (USE_TEST_REQUEST) {
+      // Create a test join request to check if styling works correctly
+      const testRequest: ApiJoinRequest = {
+        id: 'test-request',
+        userId: CURRENT_USER_ID,
+        locations: event.locations.slice(0, 1), // Take the first location
+        timeSlots: event.timeSlots.slice(0, 1), // Take the first time slot
+        status: 'WAITING',
+        createdAt: new Date().toISOString(),
+      };
+      console.log('Using test request for styling:', testRequest);
+      setUserJoinRequest(testRequest);
+    } else if (event.joinRequests?.length) {
+      const foundRequest = event.joinRequests.find(req => {
+        console.log(`Comparing: ${req.userId} with ${CURRENT_USER_ID}`);
+        return req.userId === CURRENT_USER_ID;
+      });
+      
+      console.log('Found user join request:', foundRequest);
+      setUserJoinRequest(foundRequest || null);
+    }
+  }, [event]);
 
   const handleCancel = async () => {
     try {
@@ -36,7 +72,23 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   };
 
   // Convert event time slots to the format expected by BaseEventItem
-  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation));
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => {
+    // Check if this slot is in the user's selected time slots
+    const isUserSelected = userJoinRequest?.timeSlots?.includes(slot);
+    console.log(`Time slot ${slot} selected: ${isUserSelected}`);
+    
+    // Use the existing function with enhanced logic to consider user's selection
+    return timeSlotFromDateAndConfirmation(
+      slot, 
+      event.confirmation,
+      true,
+      isUserSelected
+    );
+  });
+
+  // Get user selected locations
+  const userSelectedLocations = userJoinRequest?.locations || [];
+  console.log('User selected locations:', userSelectedLocations);
 
   return (
     <>
@@ -48,6 +100,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         borderColorClass="border-primary"
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt)}
+        userSelectedLocations={userSelectedLocations}
         actionButton={{
           variant: 'outline-danger',
           icon: 'bi-x-circle',

@@ -10,6 +10,7 @@ export interface TimeSlot {
   date: moment.Moment;
   isAvailable?: boolean;
   isSelected?: boolean;
+  isUserSelected?: boolean;
 }
 
 export interface ActionButton {
@@ -67,7 +68,12 @@ export const getRequestTypeLabel = (expectedPlayers: number): string => {
   }
 };
 
-export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: ApiConfirmation, isAvailable: boolean = true): TimeSlot => {
+export const timeSlotFromDateAndConfirmation = (
+  date: string, 
+  confirmation?: ApiConfirmation, 
+  isAvailable: boolean = true,
+  isUserSelected?: boolean
+): TimeSlot => {
   // Parse UTC date string into moment object
   const dateObj = moment.utc(date);
   
@@ -79,6 +85,7 @@ export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: Api
   return {
     date: dateObj,
     isSelected,
-    isAvailable
+    isAvailable,
+    isUserSelected
   };
 }; 

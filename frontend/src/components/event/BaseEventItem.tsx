@@ -18,6 +18,7 @@ interface BaseEventItemProps extends StyleProps {
   timeSlots: TimeSlot[];
   timestamp: moment.Moment;
   actionButton: ActionButton;
+  userSelectedLocations?: string[];
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
 }
@@ -31,6 +32,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   timeSlots,
   timestamp,
   actionButton,
+  userSelectedLocations,
   onLocationClick,
   onTimeSlotClick,
 }) => (
@@ -54,6 +56,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
       <EventLocations
         locations={event.locations}
         selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
+        userSelectedLocations={userSelectedLocations}
         colorClass={colorClass}
         borderColorClass={borderColorClass}
         onLocationClick={onLocationClick}

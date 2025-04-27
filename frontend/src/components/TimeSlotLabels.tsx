@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimeSlot } from './invitation/types';
+import { TimeSlot } from './event/types';
 import moment from 'moment';
 
 
@@ -26,31 +26,53 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
       {Object.entries(groupedSlots).map(([dateKey, slots]) => (
         <div key={dateKey} className="time-slot-group">
           <h6 className="d-flex align-items-center mb-3">
-            <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-            <span style={{ color: 'var(--tennis-navy)' }}>
+            <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-accent, #f0c14b)' }}></i>
+            <span style={{ color: 'var(--tennis-navy, #212529)' }}>
               {moment(dateKey).format('ddd, MMM D')}
             </span>
           </h6>
           <div className="d-flex flex-wrap gap-2 ps-4">
             {slots.map((slot, index) => {
-              const style = slot.isSelected
-                ? {
-                    backgroundColor: 'var(--tennis-navy)',
-                    color: 'var(--tennis-white)',
-                    borderColor: 'var(--tennis-navy)'
-                  }
-                : slot.isAvailable === false
-                ? {
-                    backgroundColor: 'var(--tennis-light)',
-                    color: 'var(--tennis-gray)',
-                    borderColor: 'transparent'
-                  }
-                : {
-                    backgroundColor: 'var(--tennis-light)',
-                    color: 'var(--tennis-navy)',
-                    border: '1px solid var(--tennis-navy)',
-                    borderOpacity: '0.25'
-                  };
+              // Style based on slot status with fallback colors
+              let style;
+              let iconColor;
+              
+              if (slot.isUserSelected) {
+                // User selected time slot (highlight with accent color)
+                style = {
+                  backgroundColor: 'var(--tennis-accent, #f0c14b)',
+                  color: 'white',
+                  border: '1px solid var(--tennis-accent, #f0c14b)'
+                };
+                iconColor = 'white';
+              } else if (slot.isSelected) {
+                // Confirmed time slot (navy color)
+                style = {
+                  backgroundColor: 'var(--tennis-navy, #212529)',
+                  color: 'white',
+                  border: '1px solid var(--tennis-navy, #212529)'
+                };
+                iconColor = 'white';
+              } else if (slot.isAvailable === false) {
+                // Unavailable time slot (gray)
+                style = {
+                  backgroundColor: 'var(--tennis-light, #f8f9fa)',
+                  color: 'var(--tennis-gray, #6c757d)',
+                  border: '1px solid transparent'
+                };
+                iconColor = 'var(--tennis-gray, #6c757d)';
+              } else {
+                // Available time slot (outline)
+                style = {
+                  backgroundColor: 'var(--tennis-light, #f8f9fa)',
+                  color: 'var(--tennis-navy, #212529)',
+                  border: '1px solid var(--tennis-navy, #212529)',
+                  borderOpacity: '0.25'
+                };
+                iconColor = 'var(--tennis-navy, #212529)';
+              }
+
+              console.log(`Rendering time slot: ${slot.date.format('h:mm A')} - isUserSelected: ${slot.isUserSelected}`);
 
               return (
                 <div
@@ -63,14 +85,13 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                     cursor: onSelect && slot.isAvailable !== false ? 'pointer' : 'default'
                   }}
                 >
-                  <i className={`bi bi-clock me-1`} style={{ 
-                    color: slot.isSelected 
-                      ? 'var(--tennis-white)' 
-                      : slot.isAvailable === false
-                        ? 'var(--tennis-gray)'
-                        : 'var(--tennis-navy)'
-                  }}></i>
+                  <i className={`bi bi-clock me-1`} style={{ color: iconColor }}></i>
                   {slot.date.format('h:mm A')}
+                  {slot.isUserSelected && (
+                    <span className="ms-1">
+                      <i className="bi bi-check-circle-fill"></i>
+                    </span>
+                  )}
                 </div>
               );
             })}
