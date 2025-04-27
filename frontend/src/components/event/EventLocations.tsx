@@ -15,11 +15,11 @@ const LocationBadge: React.FC<{
   isUserSelected?: boolean;
   onClick?: () => void;
 }> = ({ location, colorClass, borderColorClass, isUserSelected, onClick }) => {
-  // Custom styling for user-selected locations
+  // Custom styling for user-selected locations - use tennis-navy instead of accent
   const style = isUserSelected ? {
-    backgroundColor: 'var(--tennis-accent, #f0c14b)', // Fallback color if variable not defined
+    backgroundColor: 'var(--tennis-navy, #212529)', // Navy color instead of accent
     color: 'white',
-    border: '1px solid var(--tennis-accent, #f0c14b)'
+    border: '1px solid var(--tennis-navy, #212529)'
   } : {
     backgroundColor: 'var(--tennis-light, #f8f9fa)',
     color: 'var(--tennis-navy, #212529)',

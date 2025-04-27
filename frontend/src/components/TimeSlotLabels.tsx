@@ -38,11 +38,11 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
               let iconColor;
               
               if (slot.isUserSelected) {
-                // User selected time slot (highlight with accent color)
+                // User selected time slot (use navy color like in JoinEventModal)
                 style = {
-                  backgroundColor: 'var(--tennis-accent, #f0c14b)',
+                  backgroundColor: 'var(--tennis-navy, #212529)',
                   color: 'white',
-                  border: '1px solid var(--tennis-accent, #f0c14b)'
+                  border: '1px solid var(--tennis-navy, #212529)'
                 };
                 iconColor = 'white';
               } else if (slot.isSelected) {

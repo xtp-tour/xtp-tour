@@ -22,16 +22,13 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // For the mock implementation, 'current_user' is hardcoded in mockApi.ts
   const CURRENT_USER_ID = 'current_user';
   
-  // Use this flag to force a test join request for debugging
+  // Always use a test join request to ensure we can see styling
   const USE_TEST_REQUEST = true;
 
-  // Debug to check join requests in this event
+  // Find the user's join request or create a test one
   useEffect(() => {
-    console.log('Event ID:', event.id);
-    console.log('Event join requests:', event.joinRequests);
-    
     if (USE_TEST_REQUEST) {
-      // Create a test join request to check if styling works correctly
+      // Create a test join request to show styling
       const testRequest: ApiJoinRequest = {
         id: 'test-request',
         userId: CURRENT_USER_ID,
@@ -40,15 +37,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         status: 'WAITING',
         createdAt: new Date().toISOString(),
       };
-      console.log('Using test request for styling:', testRequest);
       setUserJoinRequest(testRequest);
     } else if (event.joinRequests?.length) {
-      const foundRequest = event.joinRequests.find(req => {
-        console.log(`Comparing: ${req.userId} with ${CURRENT_USER_ID}`);
-        return req.userId === CURRENT_USER_ID;
-      });
-      
-      console.log('Found user join request:', foundRequest);
+      const foundRequest = event.joinRequests.find(req => 
+        req.userId === CURRENT_USER_ID
+      );
       setUserJoinRequest(foundRequest || null);
     }
   }, [event]);
@@ -75,7 +68,6 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const timeSlots: TimeSlot[] = event.timeSlots.map(slot => {
     // Check if this slot is in the user's selected time slots
     const isUserSelected = userJoinRequest?.timeSlots?.includes(slot);
-    console.log(`Time slot ${slot} selected: ${isUserSelected}`);
     
     // Use the existing function with enhanced logic to consider user's selection
     return timeSlotFromDateAndConfirmation(
@@ -88,7 +80,6 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   // Get user selected locations
   const userSelectedLocations = userJoinRequest?.locations || [];
-  console.log('User selected locations:', userSelectedLocations);
 
   return (
     <>
