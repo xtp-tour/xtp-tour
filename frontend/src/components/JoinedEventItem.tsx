@@ -108,4 +108,4 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   );
 };
 
-export default JoinedEventItem; 
+export default JoinedEventItem;

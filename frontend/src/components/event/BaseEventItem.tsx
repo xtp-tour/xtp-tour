@@ -74,4 +74,4 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   </div>
 );
 
-export default BaseEventItem; 
+export default BaseEventItem;

@@ -13,7 +13,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
   // Group slots by date using moment
   const groupedSlots = timeSlots.reduce((acc, slot) => {
     const dateKey = slot.date.format('YYYY-MM-DD');
-    
+
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -63,9 +63,9 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                     cursor: onSelect && slot.isAvailable !== false ? 'pointer' : 'default'
                   }}
                 >
-                  <i className={`bi bi-clock me-1`} style={{ 
-                    color: slot.isSelected 
-                      ? 'var(--tennis-white)' 
+                  <i className={`bi bi-clock me-1`} style={{
+                    color: slot.isSelected
+                      ? 'var(--tennis-white)'
                       : slot.isAvailable === false
                         ? 'var(--tennis-gray)'
                         : 'var(--tennis-navy)'
@@ -81,4 +81,4 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
   );
 };
 
-export default TimeSlotLabels; 
+export default TimeSlotLabels;

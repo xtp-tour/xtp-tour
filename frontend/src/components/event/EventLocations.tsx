@@ -62,4 +62,4 @@ const EventLocations: React.FC<EventLocationsProps> = ({
   </div>
 );
 
-export default EventLocations; 
+export default EventLocations;

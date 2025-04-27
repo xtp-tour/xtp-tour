@@ -70,10 +70,10 @@ export const getRequestTypeLabel = (expectedPlayers: number): string => {
 export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: ApiConfirmation, isAvailable: boolean = true): TimeSlot => {
   // Parse UTC date string into moment object
   const dateObj = moment.utc(date);
-  
+
   // Check if the date matches the confirmation datetime
-  const isSelected = confirmation ? 
-    moment.utc(confirmation.datetime).isSame(dateObj) : 
+  const isSelected = confirmation ?
+    moment.utc(confirmation.datetime).isSame(dateObj) :
     false;
 
   return {
@@ -81,4 +81,4 @@ export const timeSlotFromDateAndConfirmation = (date: string, confirmation?: Api
     isSelected,
     isAvailable
   };
-}; 
+};
