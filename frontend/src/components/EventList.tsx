@@ -206,7 +206,20 @@ const EventList: React.FC = () => {
           isExpanded={expandedSections.availableEvents}
           onToggle={() => toggleSection('availableEvents')}
         />
-        {expandedSections.availableEvents && <PublicEventList />}
+        {expandedSections.availableEvents && (
+          <PublicEventList 
+            onEventJoined={() => {
+              // Refresh joined events when a user joins an event
+              api.listJoinedEvents()
+                .then(response => {
+                  setJoinedEvents((response.events || []).map(transformEventData));
+                })
+                .catch(err => {
+                  console.error("Failed to refresh joined events:", err);
+                });
+            }}
+          />
+        )}
       </section>
     </div>
   );

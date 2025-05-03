@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { components } from '../../types/schema';
 import EventHeader from './EventHeader';
 import EventBadges from './EventBadges';
@@ -21,7 +21,19 @@ interface BaseEventItemProps extends StyleProps {
   userSelectedLocations?: string[];
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
+  defaultCollapsed?: boolean;
 }
+
+const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
+  if (timeSlots.length === 0) return '';
+  if (timeSlots.length === 1) {
+    return timeSlots[0].date.format('MMM D, h:mm A');
+  }
+  if (timeSlots.length === 2) {
+    return `${timeSlots[0].date.format('MMM D, h:mm A')} and ${timeSlots[1].date.format('MMM D, h:mm A')}`;
+  }
+  return `${timeSlots[0].date.format('MMM D, h:mm A')}, ${timeSlots[1].date.format('MMM D, h:mm A')}...`;
+};
 
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
   event,
@@ -35,46 +47,58 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   userSelectedLocations,
   onLocationClick,
   onTimeSlotClick,
-}) => (
-  <div className="card mb-3">
-    <EventHeader
-      title={headerTitle}
-      subtitle={headerSubtitle}
-      colorClass={colorClass}
-      timestamp={timestamp}
-      actionButton={actionButton}
-    />
+  defaultCollapsed = false,
+}) => {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-    <div className="card-body">
-      <EventBadges
-        eventType={event.eventType}
-        expectedPlayers={event.expectedPlayers}
-        skillLevel={event.skillLevel}
-        sessionDuration={event.sessionDuration}
-      />
+  return (
+    <div className="card mb-3">
+      <div className="card-header bg-transparent border-0 p-0">
+        <EventHeader
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          colorClass={colorClass}
+          timestamp={timestamp}
+          actionButton={actionButton}
+          isCollapsed={isCollapsed}
+          timeSlotSummary={isCollapsed ? formatTimeSlotSummary(timeSlots) : undefined}
+          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        />
+      </div>
 
-      <EventLocations
-        locations={event.locations}
-        selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
-        userSelectedLocations={userSelectedLocations}
-        colorClass={colorClass}
-        borderColorClass={borderColorClass}
-        onLocationClick={onLocationClick}
-      />
+      {!isCollapsed && (
+        <div className="card-body">
+          <EventBadges
+            eventType={event.eventType}
+            expectedPlayers={event.expectedPlayers}
+            skillLevel={event.skillLevel}
+            sessionDuration={event.sessionDuration}
+          />
 
-      <EventTimeSlots
-        timeSlots={timeSlots}
-        hasSelectedTimeSlots={!!event.confirmation}
-        onTimeSlotClick={onTimeSlotClick}
-      />
+          <EventLocations
+            locations={event.locations}
+            selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
+            userSelectedLocations={userSelectedLocations}
+            colorClass={colorClass}
+            borderColorClass={borderColorClass}
+            onLocationClick={onLocationClick}
+          />
 
-      <EventDescription
-        description={event.description}
-      />
+          <EventTimeSlots
+            timeSlots={timeSlots}
+            hasSelectedTimeSlots={!!event.confirmation}
+            onTimeSlotClick={onTimeSlotClick}
+          />
 
-      <JoinedUsers joinRequests={event.joinRequests || []} />
+          <EventDescription
+            description={event.description}
+          />
+
+          <JoinedUsers joinRequests={event.joinRequests || []} />
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 export default BaseEventItem; 

@@ -20,6 +20,7 @@
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
+    "react-responsive": "^10.0.1",
     "react-router-dom": "^7.3.0",
     "react-timeago": "^8.2.0",
     "use-bootstrap-select": "^2.2.1"

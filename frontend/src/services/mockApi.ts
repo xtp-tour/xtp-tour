@@ -303,6 +303,17 @@ export class MockAPIClient implements APIClient {
     return event;
   }
 
+  async getPublicEvent(id: string): Promise<Event> {
+    await this.delay(500);
+
+    const event = this.events.find(e => e.id === id && e.visibility === 'PUBLIC');
+    if (!event) {
+      throw new MockAPIError('NOT_FOUND', 'Public event not found');
+    }
+
+    return event;
+  }
+
   async listLocations(): Promise<Location[]> {
     await this.checkAuth();
     await this.delay(500);

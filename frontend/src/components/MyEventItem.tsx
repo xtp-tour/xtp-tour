@@ -35,6 +35,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete }) => {
         label: 'Cancel',
         onClick: handleDelete
       }}
+      defaultCollapsed={true}
     />
   );
 };

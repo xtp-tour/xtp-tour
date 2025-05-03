@@ -9,13 +9,17 @@ import moment from 'moment';
 
 type Event = components['schemas']['ApiEvent'];
 
+interface Props {
+  onEventJoined?: () => void;
+}
+
 const transformEvent = (event: Event): Event => ({
   ...event,
   timeSlots: event.timeSlots.map(ts => ts),
   createdAt: event.createdAt || new Date().toISOString()
 });
 
-const PublicEventList: React.FC = () => {
+const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const api = useAPI();
   const { isSignedIn } = useUser();
   const [loading, setLoading] = useState(true);
@@ -52,6 +56,8 @@ const PublicEventList: React.FC = () => {
     setSelectedEvent(null);
     // Refresh the list to show the updated state
     fetchEvents();
+    // Notify parent component
+    onEventJoined?.();
   };
 
   if (loading) {

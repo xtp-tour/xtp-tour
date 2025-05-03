@@ -99,6 +99,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
           onClick: () => setShowConfirmModal(true),
           disabled: cancelling
         }}
+        defaultCollapsed={true}
       />
 
       <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>

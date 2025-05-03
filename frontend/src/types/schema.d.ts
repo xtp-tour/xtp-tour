@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/public/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get public event by id */
+        get: operations["getPublicEventHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{eventId}/confirmation": {
         parameters: {
             query?: never;
@@ -98,7 +115,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get event by id */
-        get: operations["getEventHandler-fm"];
+        get: operations["getMyEventHandler-fm"];
         put?: never;
         post?: never;
         /** Delete event by id */
@@ -356,6 +373,28 @@ export interface operations {
             };
         };
     };
+    "getPublicEventHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiGetEventResponse"];
+                };
+            };
+        };
+    };
     "confirmEvent-fm": {
         parameters: {
             query?: never;
@@ -408,7 +447,7 @@ export interface operations {
             };
         };
     };
-    "getEventHandler-fm": {
+    "getMyEventHandler-fm": {
         parameters: {
             query?: never;
             header?: never;

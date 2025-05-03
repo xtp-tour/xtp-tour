@@ -35,6 +35,7 @@ export interface APIClient {
   createEvent(request: CreateEventRequest): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
   getEvent(id: string): Promise<Event>;
+  getPublicEvent(id: string): Promise<Event>;
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;

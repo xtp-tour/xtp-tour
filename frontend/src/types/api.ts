@@ -1,5 +1,3 @@
-
-
 import { components } from "./schema";
 
 // Get types from schema
@@ -47,9 +45,11 @@ export interface APIClient {
   createEvent(request: CreateEventRequest): Promise<ApiEvent>;
   deleteEvent(id: string): Promise<void>;
   getEvent(id: string): Promise<ApiEvent>;
+  getPublicEvent(id: string): Promise<ApiEvent>;
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<ApiConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
   listPublicEvents(): Promise<ListEventsResponse>;
+  listJoinedEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest>;
 
   // Location endpoints

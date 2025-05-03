@@ -38,7 +38,7 @@ export const JoinEventModal: React.FC<Props> = ({
       try {
         setLoading(true);
         setError(null);
-        const response = await api.getEvent(eventId);
+        const response = await api.getPublicEvent(eventId);
         if (response) {
           const event = response as Event;
           if (event) {
