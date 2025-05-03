@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -52,6 +54,7 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool) *Router {
 
 func (r *Router) init(authConf pkg.AuthConfig) {
 	r.fizz.GET("/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
+	r.fizz.POST("/error", nil, tonic.Handler(r.errorHandler, http.StatusOK))
 
 	api := r.fizz.Group("/api", "API", "API operations")
 	r.fizz.Generator().SetSecuritySchemes(map[string]*openapi.SecuritySchemeOrRef{
@@ -114,6 +117,23 @@ func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
 	}
 
 	return resp, nil
+}
+
+func (r *Router) errorHandler(c *gin.Context) error {
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		slog.Error("Error reading request body for error handler", "error", err)
+		return nil
+	}
+
+	// Try to parse as JSON
+	var jsonBody map[string]interface{}
+	if err := json.Unmarshal(body, &jsonBody); err == nil {
+		slog.Error("Frontend error", "isJson", true, "body", jsonBody)
+	} else {
+		slog.Error("Frontend error", "isJson", false, "body", string(body))
+	}
+	return nil
 }
 
 func (r *Router) listLocationsHandler(c *gin.Context, req *api.ListLocationsRequest) (*api.ListLocationsResponse, error) {
