@@ -22,6 +22,7 @@ interface BaseEventItemProps extends StyleProps {
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
   defaultCollapsed?: boolean;
+  children?: React.ReactNode;
 }
 
 const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
@@ -48,6 +49,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   onLocationClick,
   onTimeSlotClick,
   defaultCollapsed = false,
+  children,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -63,6 +65,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           isCollapsed={isCollapsed}
           timeSlotSummary={isCollapsed ? formatTimeSlotSummary(timeSlots) : undefined}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          joinedCount={event.joinRequests ? event.joinRequests.length : 0}
         />
       </div>
 
@@ -95,6 +98,8 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           />
 
           <JoinedUsers joinRequests={event.joinRequests || []} />
+
+          {children}
         </div>
       )}
     </div>

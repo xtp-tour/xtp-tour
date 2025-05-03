@@ -85,8 +85,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle={event.userId || ''}
-        headerSubtitle="Host"
+        headerTitle={event.userId || ''}        
         colorClass="text-primary"
         borderColorClass="border-primary"
         timeSlots={timeSlots}

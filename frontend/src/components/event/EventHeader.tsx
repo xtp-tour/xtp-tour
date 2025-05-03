@@ -13,6 +13,7 @@ interface EventHeaderProps extends StyleProps {
   isCollapsed?: boolean;
   timeSlotSummary?: string;
   onToggleCollapse?: () => void;
+  joinedCount?: number;
 }
 
 const formatFullTimestamp = (timestamp: moment.Moment): string => {
@@ -20,7 +21,7 @@ const formatFullTimestamp = (timestamp: moment.Moment): string => {
 };
 
 const truncateUsername = (name: string) =>
-  name.length > 20 ? name.slice(0, 20) + '...' : name;
+  name.length > 30 ? name.slice(0, 30) + '...' : name;
 
 const EventHeader: React.FC<EventHeaderProps> = ({
   title,
@@ -31,6 +32,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   isCollapsed = false,
   timeSlotSummary,
   onToggleCollapse,
+  joinedCount,
 }) => {
   // Ensure we have a valid Moment object
   const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
@@ -53,7 +55,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 overlay={<Tooltip id={`username-tooltip-${title}`}>{title}</Tooltip>}
               >
                 <h6
-                  className="mb-0 text-truncate"
+                  className="mb-0 text-truncate d-flex align-items-center"
                   style={{
                     minWidth: 0,
                     maxWidth: '100%',
@@ -69,6 +71,11 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   title={title}
                 >
                   {isMobile ? truncateUsername(title) : title}
+                  {typeof joinedCount === 'number' && (
+                    <span className="badge bg-secondary ms-2" style={{ fontSize: '0.8em' }} title="Players joined">
+                      <i className="bi bi-people me-1"></i>{joinedCount}
+                    </span>
+                  )}
                 </h6>
               </OverlayTrigger>
               {!isCollapsed && (

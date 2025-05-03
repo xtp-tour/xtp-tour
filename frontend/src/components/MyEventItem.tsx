@@ -36,7 +36,33 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete }) => {
         onClick: handleDelete
       }}
       defaultCollapsed={true}
-    />
+    >
+      {event.joinRequests && event.joinRequests.length > 0 && (
+        <div className="mt-4">
+          <h6 className="mb-3 text-muted">Players Who Joined</h6>
+          <div className="table-responsive">
+            <table className="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Locations</th>
+                  <th>Timeslots</th>
+                </tr>
+              </thead>
+              <tbody>
+                {event.joinRequests.map(jr => (
+                  <tr key={jr.id}>
+                    <td>{jr.userId || 'Unknown'}</td>
+                    <td>{(jr.locations || []).join(', ')}</td>
+                    <td>{(jr.timeSlots || []).map(ts => moment(ts).format('MMM D, h:mm A')).join(', ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </BaseEventItem>
   );
 };
 
