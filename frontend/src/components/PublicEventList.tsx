@@ -25,6 +25,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [joinedEventIds, setJoinedEventIds] = useState<Set<string>>(new Set());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
@@ -32,9 +33,13 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.listPublicEvents();
-      const availableEvents = response.events?.map(transformEvent) || [];
+      const [publicRes, joinedRes] = await Promise.all([
+        api.listPublicEvents(),
+        api.listJoinedEvents()
+      ]);
+      const availableEvents = publicRes.events?.map(transformEvent) || [];
       setEvents(availableEvents);
+      setJoinedEventIds(new Set((joinedRes.events || []).map(e => e.id).filter((id): id is string => !!id)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load events');
     } finally {
@@ -95,7 +100,15 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           isSelected: false
         }));
 
-        const actionButton = isSignedIn ? {
+        const alreadyJoined = event.id && joinedEventIds.has(event.id);
+
+        const actionButton = isSignedIn ? alreadyJoined ? {
+          variant: 'outline-secondary',
+          icon: 'bi-check-circle',
+          label: 'Already Joined',
+          onClick: undefined,
+          disabled: true
+        } : {
           variant: 'outline-primary',
           icon: 'bi-plus-circle',
           label: 'Join',
