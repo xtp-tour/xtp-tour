@@ -129,9 +129,15 @@ func (r *Router) errorHandler(c *gin.Context) error {
 	// Try to parse as JSON
 	var jsonBody map[string]interface{}
 	if err := json.Unmarshal(body, &jsonBody); err == nil {
-		slog.Error("Frontend error", "isJson", true, "body", jsonBody)
+		// Create args slice with isJson flag
+		args := []any{"isJson", true}
+		// Add each key-value pair from the JSON
+		for k, v := range jsonBody {
+			args = append(args, k, v)
+		}
+		slog.Error("Frontend error", args...)
 	} else {
-		slog.Error("Frontend error", "isJson", false, "body", string(body))
+		slog.Error("Frontend error", "isJson", false, "error", string(body))
 	}
 	return nil
 }
