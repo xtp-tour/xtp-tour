@@ -85,9 +85,10 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
 	events.GET("/public", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
+	events.GET("/public/:id", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
 	events.GET("/joined", []fizz.OperationOption{fizz.Summary("Get list of events that user joined")}, tonic.Handler(r.listJoinedEventsHandler, http.StatusOK))
 
-	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getEventHandler, http.StatusOK))
+	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
 	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
 	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
@@ -225,7 +226,7 @@ func (r *Router) listJoinedEventsHandler(c *gin.Context, req *api.ListPublicEven
 	}, nil
 }
 
-func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
+func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
@@ -235,7 +236,7 @@ func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api
 		}
 	}
 
-	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
+	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.Id)
 	if err != nil {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
@@ -255,6 +256,29 @@ func (r *Router) getEventHandler(c *gin.Context, req *api.GetEventRequest) (*api
 	}, nil
 }
 
+func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
+	_, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	event, err := r.db.GetPublicEvent(context.Background(), req.Id)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get event",
+		}
+	}
+
+	return &api.GetEventResponse{
+		Event: event,
+	}, nil
+}
+
 func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest) error {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
@@ -265,7 +289,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 		}
 	}
 
-	event, err := r.db.GetEvent(context.Background(), userId.(string), req.Id)
+	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.Id)
 	if err != nil {
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
@@ -351,7 +375,7 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
-	event, err := r.db.GetEvent(context.Background(), userId.(string), req.EventId)
+	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,

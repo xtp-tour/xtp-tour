@@ -139,6 +139,24 @@ func Test_EventAPI(t *testing.T) {
 		}
 	})
 
+	t.Run("GetEventFailsForNonOwner", func(tt *testing.T) {
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			Get(tConfig.ServiceHost + "/api/events/" + eventId)
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("GetPublicEvent", func(tt *testing.T) {
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			Get(tConfig.ServiceHost + "/api/events/public/" + eventId)
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
 	// Join an event
 	t.Run("JoinEvent1", func(tt *testing.T) {
 		if eventId == "" {

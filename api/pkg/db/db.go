@@ -447,8 +447,19 @@ func (db *Db) GetEventTimeSlots(ctx context.Context, eventId string) ([]time.Tim
 	return timeSlots, nil
 }
 
-func (db *Db) GetEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
+func (db *Db) GetMyEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
 	events, err := db.getEventsInternal(ctx, "event_id = ? and user_id = ?", eventId, userId)
+	if err != nil {
+		return nil, err
+	}
+	if len(events) == 0 {
+		return nil, nil
+	}
+	return events[0], nil
+}
+
+func (db *Db) GetPublicEvent(ctx context.Context, eventId string) (*api.Event, error) {
+	events, err := db.getEventsInternal(ctx, "event_id = ? and visibility = ?", eventId, api.EventVisibilityPublic)
 	if err != nil {
 		return nil, err
 	}
