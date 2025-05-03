@@ -39,9 +39,18 @@ export class RealAPIClient {
   }
 
   async deleteEvent(id: string): Promise<void> {
-    await this.fetch(`/api/events/${id}`, {
+    const token = await this.config.getAuthToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+    const response = await fetch(`${this.config.baseUrl}/api/events/${id}`, {
       method: 'DELETE',
+      headers,
     });
+    if (!response.ok) {
+      throw new HTTPError(response.status, await response.text());
+    }
   }
 
   async getEvent(id: string): Promise<ApiEvent> {
