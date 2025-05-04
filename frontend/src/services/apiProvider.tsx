@@ -44,6 +44,9 @@ export interface APIClient {
 
   // Location endpoints
   listLocations(): Promise<Location[]>;
+
+  // Error reporting
+  reportError(error: Error): Promise<void>;
 }
 
 const APIContext = createContext<APIClient | null>(null);

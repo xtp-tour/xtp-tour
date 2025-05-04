@@ -1,14 +1,125 @@
 import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest } from '../types/api';
 
+// Debug information interface
+interface DebugInfo {
+  timestamp: string;
+  userAgent: string;
+  screenSize: {
+    width: number;
+    height: number;
+  };
+  url: string;
+  errorType: string;
+  errorMessage: string;
+  errorStack?: string;
+  apiEndpoint?: string;
+  apiMethod?: string;
+  statusCode?: number;
+  requestData?: unknown;
+  responseData?: string;
+}
+
+// Function to collect anonymous debugging information
+function collectDebugInfo(error: Error, extraInfo?: {
+  apiEndpoint?: string;
+  apiMethod?: string;
+  statusCode?: number;
+  requestData?: unknown;
+  responseData?: string;
+}): DebugInfo {
+  return {
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    screenSize: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    url: window.location.href,
+    errorType: error.name,
+    errorMessage: error.message,
+    errorStack: error.stack,
+    ...extraInfo
+  };
+}
+
+// Silent error reporter that never throws
+class SilentErrorReporter {
+  private static instance: SilentErrorReporter;
+  private reportQueue: DebugInfo[] = [];
+  private isReporting = false;
+  private baseUrl: string;
+
+  private constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  static getInstance(baseUrl: string): SilentErrorReporter {
+    if (!SilentErrorReporter.instance) {
+      SilentErrorReporter.instance = new SilentErrorReporter(baseUrl);
+    }
+    return SilentErrorReporter.instance;
+  }
+
+  private async processQueue() {
+    if (this.isReporting || this.reportQueue.length === 0) return;
+
+    this.isReporting = true;
+    while (this.reportQueue.length > 0) {
+      const debugInfo = this.reportQueue.shift();
+      if (!debugInfo) continue;
+
+      try {
+        await fetch(`${this.baseUrl}/api/error`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(debugInfo),
+        });
+      } catch {
+        // Silently ignore any errors in error reporting
+        // Optionally, we could retry failed reports later
+      }
+    }
+    this.isReporting = false;
+  }
+
+  report(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }) {
+    try {
+      const debugInfo = collectDebugInfo(error, extraInfo);
+      this.reportQueue.push(debugInfo);
+      // Process queue asynchronously
+      setTimeout(() => this.processQueue(), 0);
+    } catch {
+      // Silently ignore any errors in error collection
+    }
+  }
+}
+
 export class HTTPError extends Error implements APIError {
+  public statusCode: number;
+  public responseText: string;
+  
   constructor(public status: number, message: string) {
     super(message);
     this.name = 'HTTPError';
+    this.statusCode = status;
+    this.responseText = message;
   }
 }
 
 export class RealAPIClient {
-  constructor(private config: APIConfig) {}
+  private errorReporter: SilentErrorReporter;
+
+  constructor(private config: APIConfig) {
+    this.errorReporter = SilentErrorReporter.getInstance(config.baseUrl);
+  }
 
   private async fetch<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = await this.config.getAuthToken();
@@ -18,17 +129,47 @@ export class RealAPIClient {
       ...options.headers,
     };
 
-    const response = await fetch(`${this.config.baseUrl}${path}`, {
-      ...options,
-      headers,
-    });
+    let responseText = '';
+    
+    try {
+      const response = await fetch(`${this.config.baseUrl}${path}`, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      throw new HTTPError(response.status, await response.text());
+      responseText = await response.text();
+      
+      if (!response.ok) {
+        const error = new HTTPError(response.status, responseText);
+        this.errorReporter.report(error, {
+          apiEndpoint: path,
+          apiMethod: options.method || 'GET',
+          statusCode: response.status,
+          requestData: options.body ? JSON.parse(options.body as string) : undefined,
+          responseData: responseText
+        });
+        throw error;
+      }
+
+      return responseText ? JSON.parse(responseText) : {};
+    } catch (error) {
+      if (error instanceof HTTPError) {
+        throw error;
+      }
+      
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: path,
+        apiMethod: options.method || 'GET',
+        requestData: options.body ? JSON.parse(options.body as string) : undefined,
+        responseData: responseText
+      });
+      
+      throw new HTTPError(500, 'An unexpected error occurred');
     }
-
-    return response.json();
   }
+
+  // Wrap all API methods with try-catch to ensure errors are reported
 
   async createEvent(request: CreateEventRequest): Promise<ApiEvent> {
     const response = await this.fetch<CreateEventResponse>('/api/events/', {
@@ -39,17 +180,40 @@ export class RealAPIClient {
   }
 
   async deleteEvent(id: string): Promise<void> {
-    const token = await this.config.getAuthToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-    const response = await fetch(`${this.config.baseUrl}/api/events/${id}`, {
-      method: 'DELETE',
-      headers,
-    });
-    if (!response.ok) {
-      throw new HTTPError(response.status, await response.text());
+    try {
+      const token = await this.config.getAuthToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      
+      const response = await fetch(`${this.config.baseUrl}/api/events/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+      
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        const error = new HTTPError(response.status, responseText);
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/${id}`,
+          apiMethod: 'DELETE',
+          statusCode: response.status,
+          responseData: responseText
+        });
+        throw error;
+      }
+    } catch (error) {
+      if (!(error instanceof HTTPError)) {
+        const debugError = error instanceof Error ? error : new Error(String(error));
+        this.errorReporter.report(debugError, {
+          apiEndpoint: `/api/events/${id}`,
+          apiMethod: 'DELETE'
+        });
+        throw new HTTPError(500, 'An unexpected error occurred during deletion');
+      }
+      throw error;
     }
   }
 
@@ -72,7 +236,7 @@ export class RealAPIClient {
   }
 
   async listEvents(): Promise<ListEventsResponse> {
-    return this.fetch<ListEventsResponse>('/api/events/');
+    return await this.fetch<ListEventsResponse>('/api/events/');
   }
 
   async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {
@@ -89,10 +253,20 @@ export class RealAPIClient {
   }
 
   async listPublicEvents(): Promise<ListEventsResponse> {
-    return this.fetch<ListEventsResponse>('/api/events/public');
+    return await this.fetch<ListEventsResponse>('/api/events/public');
   }
 
   async listJoinedEvents(): Promise<ListEventsResponse> {
-    return this.fetch<ListEventsResponse>('/api/events/joined');
+    return await this.fetch<ListEventsResponse>('/api/events/joined');
+  }
+
+  async reportError(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }): Promise<void> {
+    this.errorReporter.report(error, extraInfo);
   }
 }

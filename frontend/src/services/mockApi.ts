@@ -21,10 +21,115 @@ type JoinEventRequest = {
   joinRequest: components['schemas']['ApiJoinRequestData'];
 };
 
+// Debug information interface
+interface DebugInfo {
+  timestamp: string;
+  userAgent: string;
+  screenSize: {
+    width: number;
+    height: number;
+  };
+  url: string;
+  errorType: string;
+  errorMessage: string;
+  errorStack?: string;
+  apiEndpoint?: string;
+  apiMethod?: string;
+  statusCode?: number;
+  requestData?: unknown;
+  responseData?: string;
+}
+
+// Function to collect anonymous debugging information
+function collectDebugInfo(error: Error, extraInfo?: {
+  apiEndpoint?: string;
+  apiMethod?: string;
+  statusCode?: number;
+  requestData?: unknown;
+  responseData?: string;
+}): DebugInfo {
+  return {
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    screenSize: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    url: window.location.href,
+    errorType: error.name,
+    errorMessage: error.message,
+    errorStack: error.stack,
+    ...extraInfo
+  };
+}
+
+// Silent error reporter for mock implementation
+class MockSilentErrorReporter {
+  private static instance: MockSilentErrorReporter;
+  private reportQueue: DebugInfo[] = [];
+  private isReporting = false;
+
+  private constructor() {}
+
+  static getInstance(): MockSilentErrorReporter {
+    if (!MockSilentErrorReporter.instance) {
+      MockSilentErrorReporter.instance = new MockSilentErrorReporter();
+    }
+    return MockSilentErrorReporter.instance;
+  }
+
+  private async processQueue() {
+    if (this.isReporting || this.reportQueue.length === 0) return;
+
+    this.isReporting = true;
+    while (this.reportQueue.length > 0) {
+      const debugInfo = this.reportQueue.shift();
+      if (!debugInfo) continue;
+
+      try {
+        // In mock implementation, just log to console in development
+        if (import.meta.env.DEV) {
+          console.log('Mock error report:', debugInfo);
+        }
+        await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+      } catch {
+        // Silently ignore any errors in error reporting
+      }
+    }
+    this.isReporting = false;
+  }
+
+  report(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }) {
+    try {
+      const debugInfo = collectDebugInfo(error, extraInfo);
+      this.reportQueue.push(debugInfo);
+      // Process queue asynchronously
+      setTimeout(() => this.processQueue(), 0);
+    } catch {
+      // Silently ignore any errors in error collection
+    }
+  }
+}
+
 class MockAPIError extends Error {
-  constructor(public code: string, message: string, public details?: Record<string, unknown>) {
+  public code: string;
+  public details?: Record<string, unknown>;
+  public statusCode: number;
+
+  constructor(code: string, message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'MockAPIError';
+    this.code = code;
+    this.details = details;
+    this.statusCode = code === 'NOT_FOUND' ? 404 : 
+                      code === 'UNAUTHORIZED' ? 401 : 
+                      code === 'FORBIDDEN' ? 403 : 500;
   }
 }
 
@@ -162,6 +267,15 @@ export interface APIClient {
 
   // Location endpoints
   listLocations(): Promise<Location[]>;
+
+  // Error reporting
+  reportError(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }): Promise<void>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -170,11 +284,13 @@ export class MockAPIClient implements APIClient {
   private otherInvitations: Event[];
   private locations: Location[] = [...MOCK_LOCATIONS];
   private events: Event[] = [...MOCK_MY_INVITATIONS, ...MOCK_OTHER_INVITATIONS];
+  private errorReporter: MockSilentErrorReporter;
 
   constructor(config: APIConfig) {
     this.config = config;
     this.myInvitations = [...MOCK_MY_INVITATIONS];
     this.otherInvitations = [...MOCK_OTHER_INVITATIONS];
+    this.errorReporter = MockSilentErrorReporter.getInstance();
   }
 
   private delay(ms: number): Promise<void> {
@@ -191,148 +307,320 @@ export class MockAPIClient implements APIClient {
   private async checkAuth(): Promise<void> {
     const token = await this.config.getAuthToken();
     if (!token) {
-      throw new MockAPIError('UNAUTHORIZED', 'Authentication required');
+      const error = new MockAPIError('UNAUTHORIZED', 'Authentication required');
+      this.errorReporter.report(error, {
+        apiMethod: 'UNKNOWN',
+        statusCode: 401,
+        responseData: JSON.stringify({ error: 'Authentication required' })
+      });
+      throw error;
     }
   }
 
   async createEvent(request: CreateEventRequest): Promise<Event> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    const newEvent: Event = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId: 'current_user',
-      ...request.event,
-      status: 'OPEN',
-      createdAt: moment().toISOString(),
-      joinRequests: []
-    };
+      const newEvent: Event = {
+        id: Math.random().toString(36).substr(2, 9),
+        userId: 'current_user',
+        ...request.event,
+        status: 'OPEN',
+        createdAt: moment().toISOString(),
+        joinRequests: []
+      };
 
-    this.events.push(newEvent);
-    this.saveInvitations();
-    return newEvent;
+      this.events.push(newEvent);
+      this.saveInvitations();
+      return newEvent;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: '/api/events/',
+        apiMethod: 'POST',
+        requestData: request
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
   }
 
   async confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    const event = this.events.find(e => e.id === eventId);
-    if (!event) {
-      throw new MockAPIError('NOT_FOUND', 'Event not found');
+      const event = this.events.find(e => e.id === eventId);
+      if (!event) {
+        const error = new MockAPIError('NOT_FOUND', 'Event not found');
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/${eventId}/confirmation`,
+          apiMethod: 'POST',
+          requestData: request,
+          statusCode: 404,
+          responseData: JSON.stringify({ error: 'Event not found' })
+        });
+        throw error;
+      }
+
+      const confirmation: EventConfirmation = {
+        eventId,
+        datetime: request.datetime,
+        duration: request.duration,
+        location: request.locationId,
+        createdAt: moment().toISOString()
+      };
+
+      event.status = 'CONFIRMED';
+      event.confirmation = confirmation;
+      this.saveInvitations();
+
+      return confirmation;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: `/api/events/${eventId}/confirmation`,
+        apiMethod: 'POST',
+        requestData: request
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
     }
-
-    const confirmation: EventConfirmation = {
-      eventId,
-      datetime: request.datetime,
-      duration: request.duration,
-      location: request.locationId,
-      createdAt: moment().toISOString()
-    };
-
-    event.status = 'CONFIRMED';
-    event.confirmation = confirmation;
-    this.saveInvitations();
-
-    return confirmation;
   }
 
   async listEvents(): Promise<ListEventsResponse> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    return {
-      events: this.events,
-      total: this.events.length
-    };
+      return {
+        events: this.events,
+        total: this.events.length
+      };
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: '/api/events/',
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
   }
 
   async listPublicEvents(): Promise<ListEventsResponse> {
-    await this.delay(500);
+    try {
+      await this.delay(500);
 
-    const publicEvents = this.events.filter(event => event.visibility === 'PUBLIC' && event.status === 'OPEN');
-    return {
-      events: publicEvents,
-      total: publicEvents.length
-    };
+      const publicEvents = this.events.filter(event => event.visibility === 'PUBLIC' && event.status === 'OPEN');
+      return {
+        events: publicEvents,
+        total: publicEvents.length
+      };
+    } catch (error) {
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: '/api/events/public',
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
   }
 
   async joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    const event = this.events.find(e => e.id === eventId);
-    if (!event) {
-      throw new MockAPIError('NOT_FOUND', 'Event not found');
+      const event = this.events.find(e => e.id === eventId);
+      if (!event) {
+        const error = new MockAPIError('NOT_FOUND', 'Event not found');
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/${eventId}/join`,
+          apiMethod: 'POST',
+          requestData: request,
+          statusCode: 404,
+          responseData: JSON.stringify({ error: 'Event not found' })
+        });
+        throw error;
+      }
+
+      const joinRequest: JoinRequest = {
+        id: Math.random().toString(36).substr(2, 9),
+        userId: 'current_user',
+        ...request.joinRequest,
+        status: 'WAITING',
+        createdAt: new Date().toISOString()
+      };
+
+      if (!event.joinRequests) {
+        event.joinRequests = [];
+      }
+      event.joinRequests.push(joinRequest);
+      this.saveInvitations();
+
+      return joinRequest;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: `/api/events/${eventId}/join`,
+        apiMethod: 'POST',
+        requestData: request
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
     }
-
-    const joinRequest: JoinRequest = {
-      id: Math.random().toString(36).substr(2, 9),
-      userId: 'current_user',
-      ...request.joinRequest,
-      status: 'WAITING',
-      createdAt: new Date().toISOString()
-    };
-
-    if (!event.joinRequests) {
-      event.joinRequests = [];
-    }
-    event.joinRequests.push(joinRequest);
-    this.saveInvitations();
-
-    return joinRequest;
   }
 
   async deleteEvent(id: string): Promise<void> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    this.events = this.events.filter(e => e.id !== id);
-    this.saveInvitations();
+      const eventIndex = this.events.findIndex(e => e.id === id);
+      if (eventIndex === -1) {
+        const error = new MockAPIError('NOT_FOUND', 'Event not found');
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/${id}`,
+          apiMethod: 'DELETE',
+          statusCode: 404,
+          responseData: JSON.stringify({ error: 'Event not found' })
+        });
+        throw error;
+      }
+
+      this.events.splice(eventIndex, 1);
+      this.saveInvitations();
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: `/api/events/${id}`,
+        apiMethod: 'DELETE'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
   }
 
   async getEvent(id: string): Promise<Event> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    const event = this.events.find(e => e.id === id);
-    if (!event) {
-      throw new MockAPIError('NOT_FOUND', 'Event not found');
+      const event = this.events.find(e => e.id === id);
+      if (!event) {
+        const error = new MockAPIError('NOT_FOUND', 'Event not found');
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/${id}`,
+          apiMethod: 'GET',
+          statusCode: 404,
+          responseData: JSON.stringify({ error: 'Event not found' })
+        });
+        throw error;
+      }
+
+      return event;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: `/api/events/${id}`,
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
     }
-
-    return event;
   }
 
   async getPublicEvent(id: string): Promise<Event> {
-    await this.delay(500);
+    try {
+      await this.delay(500);
 
-    const event = this.events.find(e => e.id === id && e.visibility === 'PUBLIC');
-    if (!event) {
-      throw new MockAPIError('NOT_FOUND', 'Public event not found');
+      const event = this.events.find(e => e.id === id && e.visibility === 'PUBLIC');
+      if (!event) {
+        const error = new MockAPIError('NOT_FOUND', 'Public event not found');
+        this.errorReporter.report(error, {
+          apiEndpoint: `/api/events/public/${id}`,
+          apiMethod: 'GET',
+          statusCode: 404,
+          responseData: JSON.stringify({ error: 'Public event not found' })
+        });
+        throw error;
+      }
+
+      return event;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: `/api/events/public/${id}`,
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
     }
-
-    return event;
   }
 
   async listLocations(): Promise<Location[]> {
-    await this.checkAuth();
-    await this.delay(500);
-    return this.locations;
+    try {
+      await this.checkAuth();
+      await this.delay(500);
+      return this.locations;
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: '/api/locations/',
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
   }
 
   async listJoinedEvents(): Promise<ListEventsResponse> {
-    await this.checkAuth();
-    await this.delay(500);
+    try {
+      await this.checkAuth();
+      await this.delay(500);
 
-    // Find events where the current user has joined (has a join request)
-    const joinedEvents = this.events.filter(event =>
-      event.userId !== 'current_user' && // Not my own events
-      event.joinRequests?.some(jr => jr.userId === 'current_user')
-    );
+      return {
+        events: this.events.filter(e => e.joinRequests?.some(jr => jr.status === 'ACCEPTED')),
+        total: this.events.filter(e => e.joinRequests?.some(jr => jr.status === 'ACCEPTED')).length
+      };
+    } catch (error) {
+      if (error instanceof MockAPIError) {
+        throw error;
+      }
+      const debugError = error instanceof Error ? error : new Error(String(error));
+      this.errorReporter.report(debugError, {
+        apiEndpoint: '/api/events/joined',
+        apiMethod: 'GET'
+      });
+      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+    }
+  }
 
-    return {
-      events: joinedEvents,
-      total: joinedEvents.length
-    };
+  async reportError(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }): Promise<void> {
+    this.errorReporter.report(error, extraInfo);
   }
 }
