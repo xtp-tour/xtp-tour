@@ -131,13 +131,13 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           <BaseEventItem
             key={event.id}
             event={event}
-            headerTitle={event.userId || 'Unknown User'}
-            headerSubtitle="Looking for players"
+            headerTitle={event.userId || 'Unknown User'}            
             colorClass="text-primary"
             borderColorClass="border-primary"
             timeSlots={timeSlots}
             timestamp={moment(event.createdAt)}
             actionButton={actionButton}
+            defaultCollapsed={true}
           />
         );
       })}

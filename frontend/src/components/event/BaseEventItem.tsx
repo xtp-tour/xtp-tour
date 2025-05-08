@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { components } from '../../types/schema';
 import EventHeader from './EventHeader';
-import EventBadges from './EventBadges';
 import EventLocations from './EventLocations';
 import EventTimeSlots from './EventTimeSlots';
 import EventDescription from './EventDescription';
@@ -14,7 +13,7 @@ type ApiEvent = components['schemas']['ApiEvent'];
 interface BaseEventItemProps extends StyleProps {
   event: ApiEvent;
   headerTitle: string;
-  headerSubtitle?: string;
+  headerSubtitle?: string | React.ReactNode;
   timeSlots: TimeSlot[];
   timestamp: moment.Moment;
   actionButton: ActionButton;
@@ -66,18 +65,12 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           timeSlotSummary={isCollapsed ? formatTimeSlotSummary(timeSlots) : undefined}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           joinedCount={event.joinRequests ? event.joinRequests.length : 0}
+          event={event}
         />
       </div>
 
       {!isCollapsed && (
         <div className="card-body">
-          <EventBadges
-            eventType={event.eventType}
-            expectedPlayers={event.expectedPlayers}
-            skillLevel={event.skillLevel}
-            sessionDuration={event.sessionDuration}
-          />
-
           <EventLocations
             locations={event.locations}
             selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}

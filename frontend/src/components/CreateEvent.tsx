@@ -487,13 +487,14 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
               <div className="mb-3">
                 <label className="form-label">Invitation Type</label>
-                <div className="d-flex gap-4">
+                <div className="d-flex gap-4" role="radiogroup" aria-label="Invitation Type">
                   <div className="form-check d-flex align-items-center">
                     <input
                       type="radio"
                       id="invitationTypeMatch"
                       name="invitationType"
                       className="form-check-input"
+                      value="MATCH"
                       checked={invitationType === 'MATCH'}
                       onChange={handleInvitationTypeChange}
                       required
@@ -516,8 +517,10 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                       id="invitationTypeTraining"
                       name="invitationType"
                       className="form-check-input"
+                      value="TRAINING"
                       checked={invitationType === 'TRAINING'}
                       onChange={handleInvitationTypeChange}
+                      required
                     />
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       Training

@@ -4,16 +4,21 @@ import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { useMediaQuery } from 'react-responsive';
+import { components } from '../../types/schema';
+import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
+
+type ApiEvent = components['schemas']['ApiEvent'];
 
 interface EventHeaderProps extends StyleProps {
   title: string;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
   timestamp: moment.Moment;
   actionButton: ActionButton;
   isCollapsed?: boolean;
   timeSlotSummary?: string;
   onToggleCollapse?: () => void;
   joinedCount?: number;
+  event: ApiEvent;
 }
 
 const formatFullTimestamp = (timestamp: moment.Moment): string => {
@@ -33,6 +38,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   timeSlotSummary,
   onToggleCollapse,
   joinedCount,
+  event,
 }) => {
   // Ensure we have a valid Moment object
   const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
@@ -95,6 +101,24 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               )}
             </div>
             {subtitle && <small className={colorClass}>{subtitle}</small>}
+            <div className="d-flex flex-wrap gap-2 mt-1">
+              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+                {getEventTypeLabel(event.eventType)}
+              </span>
+              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+                {getRequestTypeLabel(event.expectedPlayers)}
+              </span>
+              <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
+                <span>{event.skillLevel}</span>
+                <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
+                  {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
+                </span>
+              </span>
+              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+                <i className="bi bi-stopwatch me-1"></i>
+                {event.sessionDuration} {event.sessionDuration === 1 ? 'hour' : 'hours'}
+              </span>
+            </div>
             {timeSlotSummary && (
               <small className="text-muted text-wrap">
                 <i className="bi bi-calendar-event me-1"></i>
