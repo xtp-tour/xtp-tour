@@ -190,7 +190,7 @@ func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]*api.Event,
 }
 
 func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event, error) {
-	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ?", userId, api.EventVisibilityPublic, api.EventStatusOpen)
+	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ? AND expiration_time > ?", userId, api.EventVisibilityPublic, api.EventStatusOpen, time.Now().UTC())
 }
 
 func (db *Db) GetAcceptedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
@@ -540,22 +540,22 @@ func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) er
 	return nil
 }
 
-func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId string, req *api.JoinRequestData) error {
+func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId string, req *api.JoinRequestData) (joinRequestId string, err error) {
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
 		slog.Error("Failed to begin transaction", "error", err)
-		return err
+		return "", err
 	}
 
 	// Create join request
-	joinRequestId := uuid.New().String()
+	joinRequestId = uuid.New().String()
 	query := `INSERT INTO join_requests (id, event_id, user_id, comment) VALUES (?, ?, ?, ?)`
 	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, eventId, userId, req.Comment})
 	_, err = tx.ExecContext(ctx, query, joinRequestId, eventId, userId, req.Comment)
 	if err != nil {
 		tx.Rollback()
 		slog.Error("Failed to insert join request", "error", err)
-		return err
+		return "", err
 	}
 
 	// Insert locations
@@ -567,7 +567,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 			if err != nil {
 				tx.Rollback()
 				slog.Error("Failed to insert join request location", "error", err)
-				return err
+				return "", err
 			}
 		}
 	}
@@ -581,7 +581,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 			if err != nil {
 				tx.Rollback()
 				slog.Error("Failed to insert join request time slot", "error", err)
-				return err
+				return "", err
 			}
 		}
 	}
@@ -589,10 +589,10 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	err = tx.Commit()
 	if err != nil {
 		slog.Error("Failed to commit transaction", "error", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return joinRequestId, nil
 }
 
 type ValidationError struct {
@@ -717,4 +717,26 @@ func (db *Db) getEventConfirmation(ctx context.Context, eventId string) (*Confir
 	}
 
 	return rows[0], nil
+}
+
+func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestId string) error {
+	query := `DELETE FROM join_requests WHERE id = ? AND user_id = ?`
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, userId})
+	result, err := db.conn.ExecContext(ctx, query, joinRequestId, userId)
+	if err != nil {
+		slog.Error("Failed to delete join request", "error", err, "joinRequestId", joinRequestId, "userId", userId)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		slog.Error("Failed to get rows affected", "error", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return DbObjectNotFoundError{Message: "Join request not found"}
+	}
+
+	return nil
 }

@@ -88,12 +88,13 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
 	events.GET("/public", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
-	events.GET("/public/:id", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
+	events.GET("/public/:eventId", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
 	events.GET("/joined", []fizz.OperationOption{fizz.Summary("Get list of events that user joined")}, tonic.Handler(r.listJoinedEventsHandler, http.StatusOK))
 
-	events.GET("/:id", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
-	events.DELETE("/:id", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
-	events.POST("/:eventId/join", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
+	events.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
+	events.DELETE("/:eventId", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
+	events.POST("/:eventId/joins", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
+	events.DELETE("/:eventId/joins/:joinRequestId", []fizz.OperationOption{fizz.Summary("Cancel join request")}, tonic.Handler(r.cancelJoinRequest, http.StatusOK))
 	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
@@ -262,7 +263,7 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 		}
 	}
 
-	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.Id)
+	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
@@ -292,7 +293,7 @@ func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest)
 		}
 	}
 
-	event, err := r.db.GetPublicEvent(context.Background(), req.Id)
+	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
@@ -315,7 +316,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 		}
 	}
 
-	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.Id)
+	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
@@ -337,7 +338,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 		}
 	}
 
-	err = r.db.DeleteEvent(context.Background(), userId.(string), req.Id)
+	err = r.db.DeleteEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
 			return rest.HttpError{
@@ -346,7 +347,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 			}
 		}
 
-		slog.Error("Failed to delete event", "error", err, "eventId", req.Id, "userId", userId)
+		slog.Error("Failed to delete event", "error", err, "eventId", req.EventId, "userId", userId)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete event",
@@ -366,7 +367,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 		}
 	}
 
-	err := r.db.CreateJoinRequest(context.Background(), req.EventId, userId.(string), &req.JoinRequest)
+	joinRequestId, err := r.db.CreateJoinRequest(context.Background(), req.EventId, userId.(string), &req.JoinRequest)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
 			return nil, rest.HttpError{
@@ -381,6 +382,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 		}
 	}
 
+	req.JoinRequest.Id = joinRequestId
 	return &api.JoinRequestResponse{
 		JoinRequest: api.JoinRequest{
 			JoinRequestData: req.JoinRequest,
@@ -389,6 +391,56 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 			CreatedAt:       api.DtToIso(time.Now()),
 		},
 	}, nil
+}
+
+func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestRequest) error {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Event not found",
+			}
+		}
+
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get event",
+		}
+	}
+
+	if event.Status != api.EventStatusOpen {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Cannot cancel join request for non-open event",
+		}
+	}
+
+	err = r.db.DeleteJoinRequest(context.Background(), userId.(string), req.JoinRequestId)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Join request not found",
+			}
+		}
+		slog.Error("Failed to delete join request", "error", err, "joinRequestId", req.JoinRequestId, "userId", userId)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to delete join request",
+		}
+	}
+
+	return nil
 }
 
 func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest) (*api.EventConfirmationResponse, error) {

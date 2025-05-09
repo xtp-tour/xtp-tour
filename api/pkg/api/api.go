@@ -92,6 +92,11 @@ type EventConfirmationResponse struct {
 	Confirmation Confirmation `json:"confirmation"`
 }
 
+type CancelJoinRequestRequest struct {
+	EventId       string `path:"eventId" validate:"required"`
+	JoinRequestId string `path:"joinRequestId" validate:"required"`
+}
+
 // Confirmation represents a confirmed court reservation
 type Confirmation struct {
 	EventId    string `json:"eventId"`
@@ -135,7 +140,7 @@ type CreateEventResponse struct {
 }
 
 type GetEventRequest struct {
-	Id string `path:"id" validate:"required"`
+	EventId string `path:"eventId" validate:"required"`
 }
 
 type GetEventResponse struct {
@@ -143,7 +148,7 @@ type GetEventResponse struct {
 }
 
 type DeleteEventRequest struct {
-	Id string `path:"id" validate:"required"`
+	EventId string `path:"eventId" validate:"required"`
 }
 
 type JoinRequestRequest struct {
