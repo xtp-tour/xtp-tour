@@ -1,0 +1,9 @@
+ALTER TABLE events
+ADD COLUMN expiration_time DATETIME NULL;
+
+UPDATE events
+SET expiration_time = CURRENT_TIMESTAMP + INTERVAL 24 HOUR
+WHERE expiration_time IS NULL;
+
+ALTER TABLE events
+MODIFY COLUMN expiration_time DATETIME NOT NULL; 

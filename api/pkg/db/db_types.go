@@ -35,6 +35,7 @@ type EventRow struct {
 	Visibility      string    `db:"visibility"`
 	Status          string    `db:"status"`
 	CreatedAt       time.Time `db:"created_at"`
+	ExpirationTime  time.Time `db:"expiration_time"`
 }
 
 type JoinRequestRow struct {

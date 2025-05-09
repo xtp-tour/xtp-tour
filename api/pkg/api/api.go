@@ -113,6 +113,7 @@ type EventData struct {
 	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration"`
 	TimeSlots       []string        `json:"timeSlots" validate:"required,min=1"`
 	Visibility      EventVisibility `json:"visibility" validate:"required" enum:"PUBLIC,PRIVATE"`
+	ExpirationTime  string          `json:"expirationTime" db:"expiration_time"`
 }
 
 // Event represents an internal representation of an event

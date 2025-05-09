@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/num30/config"
@@ -29,6 +30,22 @@ func init() {
 	err := config.NewConfReader("service_test").Read(tConfig)
 	if err != nil {
 		slog.With("error", err).Error("Error reading config")
+	}
+}
+
+// Helper functions for generating relative dates
+func getRelativeDate(days int, hour int) string {
+	t := time.Now().AddDate(0, 0, days)
+	t = time.Date(t.Year(), t.Month(), t.Day(), hour, 0, 0, 0, time.UTC)
+	return t.Format(time.RFC3339)
+}
+
+func getRelativeTimeSlots() []string {
+	return []string{
+		getRelativeDate(2, 14), // 2 days from now at 14:00
+		getRelativeDate(3, 16), // 3 days from now at 16:00
+		getRelativeDate(3, 18), // 3 days from now at 18:00
+		getRelativeDate(4, 18), // 4 days from now at 18:00
 	}
 }
 
@@ -56,7 +73,8 @@ func Test_EventAPI(t *testing.T) {
 	user := "test-user-1"
 	user2 := "test-user-2"
 	user3 := "test-user-3"
-	confirmedDate := "2023-10-17T18:00:00Z"
+	timeSlots := getRelativeTimeSlots()
+	confirmedDate := timeSlots[3] // Using the last time slot as confirmed date
 	confirmedLocation := "matchpoint"
 	confirmedDuration := 60
 	var joinRequestIdToConfirm string
@@ -71,14 +89,9 @@ func Test_EventAPI(t *testing.T) {
 				EventType:       api.ActivityTypeMatch,
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
-				TimeSlots: []string{
-					"2023-10-15T14:00:00Z",
-					"2023-10-16T16:00:00Z",
-					"2023-10-16T18:00:00Z",
-					confirmedDate,
-				},
-				Description: "Test event for integration testing",
-				Visibility:  api.EventVisibilityPublic,
+				TimeSlots:       timeSlots,
+				Description:     "Test event for integration testing",
+				Visibility:      api.EventVisibilityPublic,
 			},
 		}
 
@@ -167,8 +180,8 @@ func Test_EventAPI(t *testing.T) {
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint"},
 				TimeSlots: []string{
-					"2023-10-15T14:00:00Z",
-					"2023-10-16T16:00:00Z",
+					timeSlots[0],
+					timeSlots[1],
 					confirmedDate,
 				},
 				Comment: "Hey, let's play",
@@ -194,9 +207,9 @@ func Test_EventAPI(t *testing.T) {
 			JoinRequest: api.JoinRequestData{
 				Locations: []string{"matchpoint", "spartan-pultuska"},
 				TimeSlots: []string{
-					"2023-10-15T14:00:00Z",
-					"2023-10-16T16:00:00Z",
-					"2023-10-17T19:00:00Z",
+					timeSlots[0],
+					timeSlots[1],
+					getRelativeDate(4, 19), // One hour after confirmed date
 					confirmedDate,
 				},
 				Comment: "Let's play tennis!",
@@ -257,7 +270,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			DateTime:        api.DtToIso(api.ParseDt("2023-10-15T14:00:00Z")),
+			DateTime:        api.DtToIso(api.ParseDt(getRelativeDate(-30, 14))), // 30 days in the past
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -280,7 +293,7 @@ func Test_EventAPI(t *testing.T) {
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "matchpoint",
-			DateTime:        api.DtToIso(api.ParseDt("2023-05-15T14:00:00Z")),
+			DateTime:        api.DtToIso(api.ParseDt(getRelativeDate(-30, 14))), // 30 days in the past
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -296,11 +309,10 @@ func Test_EventAPI(t *testing.T) {
 	})
 
 	t.Run("Confirm event by owner with invalid location", func(tt *testing.T) {
-
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      "location3",
-			DateTime:        "2023-10-15T14:00:00Z",
+			DateTime:        timeSlots[0],
 			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
@@ -316,7 +328,6 @@ func Test_EventAPI(t *testing.T) {
 	})
 
 	t.Run("Confirm event by owner", func(tt *testing.T) {
-
 		confirmation := api.EventConfirmationRequest{
 			EventId:         eventId,
 			LocationId:      confirmedLocation,
@@ -375,7 +386,10 @@ func Test_EventAPI(t *testing.T) {
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
-			assert.Greater(tt, len(response.Events), 1, "No public events found")
+			found := slices.ContainsFunc(response.Events, func(e *api.Event) bool {
+				return e.Id == eventId
+			})
+			assert.False(tt, found, "Confirmed event should not be in the list of public events")
 		}
 	})
 
@@ -397,7 +411,6 @@ func Test_EventAPI(t *testing.T) {
 }
 
 func Test_DeleteEvent(t *testing.T) {
-
 	t.Run("CreateEvent", func(tt *testing.T) {
 		user := "test-user-1"
 		// Create an event
@@ -409,7 +422,7 @@ func Test_DeleteEvent(t *testing.T) {
 				ExpectedPlayers: 2,
 				SessionDuration: 60,
 				TimeSlots: []string{
-					api.DtToIso(api.ParseDt("2023-10-17T19:00:00Z")),
+					getRelativeDate(4, 19), // 4 days from now at 19:00
 				},
 				Visibility: api.EventVisibilityPublic,
 			},
