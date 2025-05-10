@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { components } from '../types/schema';
 import { MockAPIClient } from './mockApi';
