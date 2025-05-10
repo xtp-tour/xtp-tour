@@ -62,3 +62,8 @@ Othe people may join the event and application manages the event joining lifecyc
 // 5. UserC ack transitions into rejected state. 
 // 6. After the game date/time has passed, the event transitions to Completed state.
 // On that step the flow of the invitation is completed.
+
+
+## Commit messages
+
+Commit messages must be concise and not more then 100 characters or 150 characters in exceptional cases
