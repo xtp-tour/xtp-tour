@@ -12,4 +12,8 @@ jobs:
     uses: ./.github/workflows/backend.yaml
   
   frontend:
-    uses: ./.github/workflows/frontend.yaml 
+    uses: ./.github/workflows/frontend.yaml
+    
+  combined:
+    needs: [backend, frontend]
+    uses: ./.github/workflows/combined.yaml 
