@@ -13,6 +13,11 @@ on:
       - '.github/workflows/backend.yaml'
   workflow_dispatch:
 
+# Add permissions needed for GitHub Container Registry
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io/${{ github.repository }}/api
 
