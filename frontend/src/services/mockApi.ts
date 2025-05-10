@@ -235,7 +235,16 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
     status: 'OPEN',
     createdAt: moment().subtract(2, 'hours').toISOString(),
     visibility: 'PUBLIC',
-    joinRequests: []
+    joinRequests: [
+      {
+        id: 'current_user_join_request',
+        userId: 'current_user',
+        locations: ['east_side'],
+        timeSlots: [moment().add(3, 'days').set({ hour: 9, minute: 0 }).toISOString()],
+        status: 'WAITING',
+        createdAt: moment().toISOString()
+      }
+    ]
   },
   {
     id: '4',
@@ -259,11 +268,13 @@ export interface APIClient {
   createEvent(request: CreateEventRequest): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
   getEvent(id: string): Promise<Event>;
+  getPublicEvent(id: string): Promise<Event>;
   confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
   listEvents(): Promise<ListEventsResponse>;
   listPublicEvents(): Promise<ListEventsResponse>;
   listJoinedEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
+  cancelJoinRequest(eventId: string, joinRequestId: string): Promise<void>;
 
   // Location endpoints
   listLocations(): Promise<Location[]>;
@@ -593,25 +604,41 @@ export class MockAPIClient implements APIClient {
   }
 
   async listJoinedEvents(): Promise<ListEventsResponse> {
-    try {
-      await this.checkAuth();
-      await this.delay(500);
+    await this.checkAuth();
+    await this.delay(300);
+    return {
+      events: this.events.filter(event => 
+        event.joinRequests?.some(request => request.userId === 'current_user')
+      ),
+      total: 0
+    };
+  }
 
-      return {
-        events: this.events.filter(e => e.joinRequests?.some(jr => jr.status === 'ACCEPTED')),
-        total: this.events.filter(e => e.joinRequests?.some(jr => jr.status === 'ACCEPTED')).length
-      };
-    } catch (error) {
-      if (error instanceof MockAPIError) {
-        throw error;
-      }
-      const debugError = error instanceof Error ? error : new Error(String(error));
-      this.errorReporter.report(debugError, {
-        apiEndpoint: '/api/events/joined',
-        apiMethod: 'GET'
-      });
-      throw new MockAPIError('INTERNAL_ERROR', 'Internal server error');
+  async cancelJoinRequest(eventId: string, joinRequestId: string): Promise<void> {
+    await this.checkAuth();
+    await this.delay(300);
+
+    const event = this.events.find(e => e.id === eventId);
+    if (!event) {
+      throw new MockAPIError('NOT_FOUND', 'Event not found');
     }
+
+    if (!event.joinRequests) {
+      throw new MockAPIError('NOT_FOUND', 'No join requests found for this event');
+    }
+
+    const joinRequestIndex = event.joinRequests.findIndex(r => r.id === joinRequestId);
+    if (joinRequestIndex === -1) {
+      throw new MockAPIError('NOT_FOUND', 'Join request not found');
+    }
+
+    const joinRequest = event.joinRequests[joinRequestIndex];
+    if (joinRequest.userId !== 'current_user') {
+      throw new MockAPIError('FORBIDDEN', 'Not authorized to cancel this join request');
+    }
+
+    event.joinRequests.splice(joinRequestIndex, 1);
+    this.saveInvitations();
   }
 
   async reportError(error: Error, extraInfo?: {

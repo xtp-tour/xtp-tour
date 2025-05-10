@@ -19,7 +19,8 @@ const LocationBadge: React.FC<{
   const style = isUserSelected ? {
     backgroundColor: 'var(--tennis-navy, #212529)', // Navy color instead of accent
     color: 'white',
-    border: '1px solid var(--tennis-navy, #212529)'
+    transform: 'scale(1.05)',
+    transition: 'transform 0.2s ease'
   } : {
     backgroundColor: 'var(--tennis-light, #f8f9fa)',
     color: 'var(--tennis-navy, #212529)',
@@ -37,7 +38,6 @@ const LocationBadge: React.FC<{
       }}></i>
       {location}
       {onClick && <i className="bi bi-chevron-right ms-1 opacity-75"></i>}
-      {isUserSelected && <i className="bi bi-check-circle-fill ms-1"></i>}
     </div>
   );
 

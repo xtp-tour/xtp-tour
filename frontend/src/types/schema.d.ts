@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/error": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["errorHandler-fm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/": {
         parameters: {
             query?: never;
@@ -22,24 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/joined": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get list of events that user joined */
-        get: operations["listJoinedEventsHandler-fm"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/public": {
+    "/api/events/public/": {
         parameters: {
             query?: never;
             header?: never;
@@ -56,7 +55,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/public/{id}": {
+    "/api/events/public/{eventId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,6 +67,58 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/public/{eventId}/joins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join an event */
+        post: operations["joinEventHandler-fm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/public/{eventId}/joins/{joinRequestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Cancel join request */
+        delete: operations["cancelJoinRequest-fm"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get event by id */
+        get: operations["getMyEventHandler-fm"];
+        put?: never;
+        post?: never;
+        /** Delete event by id */
+        delete: operations["deleteEventHandler-fm"];
         options?: never;
         head?: never;
         patch?: never;
@@ -90,41 +141,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/{eventId}/join": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Join an event */
-        post: operations["joinEventHandler-fm"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get event by id */
-        get: operations["getMyEventHandler-fm"];
-        put?: never;
-        post?: never;
-        /** Delete event by id */
-        delete: operations["deleteEventHandler-fm"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/locations/": {
         parameters: {
             query?: never;
@@ -136,22 +152,6 @@ export interface paths {
         get: operations["listLocationsHandler-fm"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/error": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["errorHandler-fm"];
         delete?: never;
         options?: never;
         head?: never;
@@ -206,6 +206,7 @@ export interface components {
             eventType: "MATCH" | "TRAINING";
             /** Format: int32 */
             expectedPlayers: number;
+            expirationTime?: string;
             id?: string;
             joinRequests?: components["schemas"]["ApiJoinRequest"][];
             locations: string[];
@@ -229,6 +230,7 @@ export interface components {
             eventType: "MATCH" | "TRAINING";
             /** Format: int32 */
             expectedPlayers: number;
+            expirationTime?: string;
             id?: string;
             locations: string[];
             /** Format: int32 */
@@ -305,6 +307,24 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "errorHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "listEventsHandler-fm": {
         parameters: {
             query?: never;
@@ -349,29 +369,11 @@ export interface operations {
             };
         };
     };
-    "listJoinedEventsHandler-fm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiListEventsResponse"];
-                };
-            };
-        };
-    };
     "listPublicEventsHandler-fm": {
         parameters: {
-            query?: never;
+            query?: {
+                joined?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -394,7 +396,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                eventId: string;
             };
             cookie?: never;
         };
@@ -407,32 +409,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiGetEventResponse"];
-                };
-            };
-        };
-    };
-    "confirmEvent-fm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ConfirmEvent-FmInput"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiEventConfirmationResponse"];
                 };
             };
         };
@@ -463,12 +439,33 @@ export interface operations {
             };
         };
     };
+    "cancelJoinRequest-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                joinRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "getMyEventHandler-fm": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                eventId: string;
             };
             cookie?: never;
         };
@@ -490,7 +487,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                eventId: string;
             };
             cookie?: never;
         };
@@ -502,6 +499,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    "confirmEvent-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmEvent-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiEventConfirmationResponse"];
+                };
             };
         };
     };
@@ -522,24 +545,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiListLocationsResponse"];
                 };
-            };
-        };
-    };
-    "errorHandler-fm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

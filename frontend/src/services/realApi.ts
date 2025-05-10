@@ -222,11 +222,6 @@ export class RealAPIClient {
     return response.event!;
   }
 
-  async getPublicEvent(id: string): Promise<ApiEvent> {
-    const response = await this.fetch<GetEventResponse>(`/api/events/public/${id}`);
-    return response.event!;
-  }
-
   async confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<ApiConfirmation> {
     const response = await this.fetch<ConfirmEventResponse>(`/api/events/${eventId}/confirmation`, {
       method: 'POST',
@@ -239,14 +234,6 @@ export class RealAPIClient {
     return await this.fetch<ListEventsResponse>('/api/events/');
   }
 
-  async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {
-    const response = await this.fetch<JoinRequestResponse>(`/api/events/${eventId}/join`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-    return response.joinRequest!;
-  }
-
   async listLocations(): Promise<ApiLocation[]> {
     const response = await this.fetch<ListLocationsResponse>('/api/locations/');
     return response.locations || [];
@@ -256,8 +243,27 @@ export class RealAPIClient {
     return await this.fetch<ListEventsResponse>('/api/events/public');
   }
 
+  async getPublicEvent(id: string): Promise<ApiEvent> {
+    const response = await this.fetch<GetEventResponse>(`/api/events/public/${id}`);
+    return response.event!;
+  }
+
   async listJoinedEvents(): Promise<ListEventsResponse> {
-    return await this.fetch<ListEventsResponse>('/api/events/joined');
+    return await this.fetch<ListEventsResponse>('/api/events/public?joined=true');
+  }
+
+  async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {
+    const response = await this.fetch<JoinRequestResponse>(`/api/events/public/${eventId}/joins`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+    return response.joinRequest!;
+  }
+
+  async cancelJoinRequest(eventId: string, joinRequestId: string): Promise<void> {
+    await this.fetch(`/api/events/public/${eventId}/joins/${joinRequestId}`, {
+      method: 'DELETE'
+    });
   }
 
   async reportError(error: Error, extraInfo?: {

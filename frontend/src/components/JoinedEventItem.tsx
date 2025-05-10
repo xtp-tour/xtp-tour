@@ -5,6 +5,7 @@ import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
+import { useUser } from '@clerk/clerk-react';
 
 interface Props {
   event: ApiEvent;
@@ -13,56 +14,67 @@ interface Props {
 
 const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const api = useAPI();
+  const { user } = useUser();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
 
-  // In a real app, we would get the current user ID from authentication
-  // For the mock implementation, 'current_user' is hardcoded in mockApi.ts
-  const CURRENT_USER_ID = 'current_user';
-  
-  // Always use a test join request to ensure we can see styling
-  const USE_TEST_REQUEST = true;
-
-  // Find the user's join request or create a test one
+  // Find the user's join request
   useEffect(() => {
-    if (USE_TEST_REQUEST) {
-      // Create a test join request to show styling
-      const testRequest: ApiJoinRequest = {
-        id: 'test-request',
-        userId: CURRENT_USER_ID,
-        locations: event.locations.slice(0, 1), // Take the first location
-        timeSlots: event.timeSlots.slice(0, 1), // Take the first time slot
-        status: 'WAITING',
-        createdAt: new Date().toISOString(),
-      };
-      setUserJoinRequest(testRequest);
-    } else if (event.joinRequests?.length) {
+    if (event.joinRequests?.length && user?.id) {
       const foundRequest = event.joinRequests.find(req => 
-        req.userId === CURRENT_USER_ID
+        req.userId === user.id
       );
       setUserJoinRequest(foundRequest || null);
     }
-  }, [event]);
+  }, [event, user?.id]);
 
   const handleCancel = async () => {
+    if (!userJoinRequest?.id) {
+      setError('Join request ID not found');
+      return;
+    }
+
     try {
       setCancelling(true);
       setError(null);
-      await api.deleteEvent(event.id || '');
+      await api.cancelJoinRequest(event.id || '', userJoinRequest.id);
       setShowConfirmModal(false);
       onCancelled?.();
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError('Failed to cancel event. Please try again later.');
+        setError('Failed to cancel join request. Please try again later.');
       }
     } finally {
       setCancelling(false);
     }
   };
+
+  // Get color classes based on event status
+  const getColorClasses = () => {
+    if (event.status === 'CONFIRMED') {
+      return {
+        colorClass: 'text-success',
+        borderColorClass: 'border-success'
+      };
+    }
+    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+      return {
+        colorClass: 'text-danger',
+        borderColorClass: 'border-danger'
+      };
+    }
+    return {
+      colorClass: 'text-primary',
+      borderColorClass: 'border-primary'
+    };
+  };
+
+  // Check if time slots are still available based on event status
+  const isTimeSlotAvailable = event.status === 'OPEN' || event.status === 'ACCEPTED';
 
   // Convert event time slots to the format expected by BaseEventItem
   const timeSlots: TimeSlot[] = event.timeSlots.map(slot => {
@@ -73,7 +85,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     return timeSlotFromDateAndConfirmation(
       slot, 
       event.confirmation,
-      true,
+      isTimeSlotAvailable,
       isUserSelected
     );
   });
@@ -81,13 +93,35 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // Get user selected locations
   const userSelectedLocations = userJoinRequest?.locations || [];
 
+  const { colorClass, borderColorClass } = getColorClasses();
+
+  // Get user's join request status
+  const getJoinRequestStatus = () => {
+    if (!userJoinRequest) return '';
+    switch (userJoinRequest.status) {
+      case 'WAITING':
+        return 'Waiting for host approval';
+      case 'ACCEPTED':
+        return 'Request accepted';
+      case 'REJECTED':
+        return 'Request rejected';
+      case 'CANCELLED':
+        return 'Request cancelled';
+      case 'RESERVATION_FAILED':
+        return 'Reservation failed';
+      default:
+        return '';
+    }
+  };
+
   return (
     <>
       <BaseEventItem
         event={event}
-        headerTitle={event.userId || ''}        
-        colorClass="text-primary"
-        borderColorClass="border-primary"
+        headerTitle={event.userId || ''}
+        headerSubtitle={getJoinRequestStatus()}
+        colorClass={colorClass}
+        borderColorClass={borderColorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt)}
         userSelectedLocations={userSelectedLocations}
@@ -96,7 +130,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
           icon: 'bi-x-circle',
           label: 'Cancel',
           onClick: () => setShowConfirmModal(true),
-          disabled: cancelling
+          disabled: cancelling || event.status !== 'OPEN'
         }}
         defaultCollapsed={true}
       />

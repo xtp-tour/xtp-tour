@@ -51,6 +51,7 @@ export interface APIClient {
   listPublicEvents(): Promise<ListEventsResponse>;
   listJoinedEvents(): Promise<ListEventsResponse>;
   joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest>;
+  cancelJoinRequest(eventId: string, joinRequestId: string): Promise<void>;
 
   // Location endpoints
   listLocations(): Promise<ApiLocation[]>;

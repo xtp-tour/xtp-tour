@@ -42,7 +42,8 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                 style = {
                   backgroundColor: 'var(--tennis-navy, #212529)',
                   color: 'white',
-                  border: '1px solid var(--tennis-navy, #212529)'
+                  transform: 'scale(1.05)',
+                  transition: 'transform 0.2s ease'
                 };
                 iconColor = 'white';
               } else if (slot.isSelected) {
@@ -87,11 +88,6 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                 >
                   <i className={`bi bi-clock me-1`} style={{ color: iconColor }}></i>
                   {slot.date.format('h:mm A')}
-                  {slot.isUserSelected && (
-                    <span className="ms-1">
-                      <i className="bi bi-check-circle-fill"></i>
-                    </span>
-                  )}
                 </div>
               );
             })}
