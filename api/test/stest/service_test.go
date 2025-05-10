@@ -191,7 +191,7 @@ func Test_EventAPI(t *testing.T) {
 		r, err := restClient.R().
 			SetHeader("Authentication", user2).
 			SetBody(joinRequestData).
-			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/joins")
+			Post(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
@@ -219,7 +219,7 @@ func Test_EventAPI(t *testing.T) {
 		r, err := restClient.R().
 			SetHeader("Authentication", user3).
 			SetBody(joinRequestData).
-			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/joins")
+			Post(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
@@ -231,7 +231,7 @@ func Test_EventAPI(t *testing.T) {
 		r, err := restClient.R().
 			SetHeader("Authentication", user2).
 			SetResult(&response).
-			Get(tConfig.ServiceHost + "/api/events/joined")
+			Get(tConfig.ServiceHost + "/api/events/public?joined=true")
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			assert.Greater(tt, len(response.Events), 0, "No events found")
@@ -534,7 +534,7 @@ func Test_CancelJoinRequest(t *testing.T) {
 			SetHeader("Authentication", usrJoiner).
 			SetBody(joinRequestData).
 			SetResult(&response).
-			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/joins")
+			Post(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
@@ -549,7 +549,7 @@ func Test_CancelJoinRequest(t *testing.T) {
 	t.Run("CancelNonExistentJoinRequest", func(tt *testing.T) {
 		r, err := restClient.R().
 			SetHeader("Authentication", usrJoiner).
-			Delete(tConfig.ServiceHost + "/api/events/" + eventId + "/joins/non-existent-id")
+			Delete(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins/non-existent-id")
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
@@ -565,7 +565,7 @@ func Test_CancelJoinRequest(t *testing.T) {
 
 		r, err := restClient.R().
 			SetHeader("Authentication", usrOwner).
-			Delete(tConfig.ServiceHost + "/api/events/" + eventId + "/joins/" + joinRequestId)
+			Delete(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins/" + joinRequestId)
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
@@ -581,7 +581,7 @@ func Test_CancelJoinRequest(t *testing.T) {
 
 		r, err := restClient.R().
 			SetHeader("Authentication", usrJoiner).
-			Delete(tConfig.ServiceHost + "/api/events/" + eventId + "/joins/" + joinRequestId)
+			Delete(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins/" + joinRequestId)
 
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
