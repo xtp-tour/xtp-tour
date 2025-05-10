@@ -75,9 +75,10 @@ type JoinRequestData struct {
 // JoinRequest represents a player's acceptance of an event
 type JoinRequest struct {
 	JoinRequestData
-	UserId    string            `json:"userId"`
-	Status    JoinRequestStatus `json:"status" enum:"WAITING,ACCEPTED,REJECTED,CANCELLED,RESERVATION_FAILED"`
-	CreatedAt string            `json:"createdAt" format:"date"`
+	UserId     string            `json:"userId"`
+	Status     JoinRequestStatus `json:"status" enum:"WAITING,ACCEPTED,REJECTED,CANCELLED,RESERVATION_FAILED"`
+	CreatedAt  string            `json:"createdAt" format:"date"`
+	IsRejected bool              `json:"isRejected"`
 }
 
 type EventConfirmationRequest struct {

@@ -740,3 +740,73 @@ func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestI
 
 	return nil
 }
+
+func (db *Db) GetJoinRequest(ctx context.Context, joinRequestId string) (*api.JoinRequest, error) {
+	query := `
+		SELECT 
+			jr.id,
+			jr.event_id,
+			jr.user_id,
+			jr.comment,
+			jr.created_at,
+			jr.is_rejected,
+			GROUP_CONCAT(DISTINCT jrl.location_id) as locations,
+			GROUP_CONCAT(DISTINCT jrts.dt) as time_slots
+		FROM join_requests jr
+		LEFT JOIN join_request_locations jrl ON jr.id = jrl.join_request_id
+		LEFT JOIN join_request_time_slots jrts ON jr.id = jrts.join_request_id
+		WHERE jr.id = ?
+		GROUP BY jr.id, jr.event_id, jr.user_id, jr.comment, jr.created_at, jr.is_rejected`
+
+	slog.Debug("Executing SQL query", "query", query, "params", joinRequestId)
+
+	var result struct {
+		ID         string         `db:"id"`
+		EventID    string         `db:"event_id"`
+		UserID     string         `db:"user_id"`
+		Comment    string         `db:"comment"`
+		CreatedAt  time.Time      `db:"created_at"`
+		IsRejected bool           `db:"is_rejected"`
+		Locations  sql.NullString `db:"locations"`
+		TimeSlots  sql.NullString `db:"time_slots"`
+	}
+
+	err := db.conn.GetContext(ctx, &result, query, joinRequestId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, DbObjectNotFoundError{Message: "Join request not found"}
+		}
+		slog.Error("Failed to get join request", "error", err, "joinRequestId", joinRequestId)
+		return nil, err
+	}
+
+	joinRequest := &api.JoinRequest{
+		JoinRequestData: api.JoinRequestData{
+			Id:      result.ID,
+			Comment: result.Comment,
+		},
+		UserId:     result.UserID,
+		CreatedAt:  api.DtToIso(result.CreatedAt),
+		IsRejected: result.IsRejected,
+	}
+
+	// Parse locations
+	if result.Locations.Valid {
+		joinRequest.Locations = strings.Split(result.Locations.String, ",")
+	}
+
+	// Parse time slots
+	if result.TimeSlots.Valid {
+		slots := strings.Split(result.TimeSlots.String, ",")
+		timeSlots := make([]time.Time, 0, len(slots))
+		for _, slot := range slots {
+			dt, err := time.Parse("2006-01-02 15:04:05", slot)
+			if err == nil {
+				timeSlots = append(timeSlots, dt)
+			}
+		}
+		joinRequest.TimeSlots = api.DtToIsoArray(timeSlots)
+	}
+
+	return joinRequest, nil
+}

@@ -221,7 +221,7 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 
 	// list of events that user joined
 	if req.Joined {
-		return r.getJoinedEvents(c, userId, req)
+		return r.getJoinedEvents(userId)
 	}
 
 	events, err := r.db.GetPublicEvents(context.Background(), userId)
@@ -238,7 +238,7 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 	}, nil
 }
 
-func (r *Router) getJoinedEvents(c *gin.Context, userId string, req *api.ListPublicEventsRequest) (*api.ListEventsResponse, error) {
+func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error) {
 	events, err := r.db.GetJoinedEvents(context.Background(), userId)
 	if err != nil {
 		return nil, rest.HttpError{
@@ -256,8 +256,16 @@ func (r *Router) getJoinedEvents(c *gin.Context, userId string, req *api.ListPub
 		}
 
 		event.JoinRequests = make([]*api.JoinRequest, len(event.JoinRequests))
+		myReq, err = r.db.GetJoinRequest(context.Background(), myReq.Id)
+		if err != nil {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusInternalServerError,
+				Message:  "Failed to get join request",
+			}
+		}
 		event.JoinRequests[0] = myReq
-		for i := range event.JoinRequests {
+
+		for i := 1; i < len(event.JoinRequests); i++ {
 			event.JoinRequests[i] = &api.JoinRequest{
 				UserId: fmt.Sprintf("masked-user-id-%d", i),
 			}
