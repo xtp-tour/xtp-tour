@@ -219,6 +219,21 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 		userId = userIdVal.(string)
 	}
 
+	// list of events that user joined
+	if req.Joined {
+		events, err := r.db.GetJoinedEvents(context.Background(), userId)
+		if err != nil {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusInternalServerError,
+				Message:  "Failed to get events",
+			}
+		}
+		return &api.ListEventsResponse{
+			Events: events,
+			Total:  len(events),
+		}, nil
+	}
+
 	events, err := r.db.GetPublicEvents(context.Background(), userId)
 	if err != nil {
 		return nil, rest.HttpError{
@@ -227,27 +242,6 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 		}
 	}
 
-	return &api.ListEventsResponse{
-		Events: events,
-		Total:  len(events),
-	}, nil
-}
-
-func (r *Router) listJoinedEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListEventsResponse, error) {
-	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
-	if !ok {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusUnauthorized,
-			Message:  "User ID not found",
-		}
-	}
-	events, err := r.db.GetAcceptedEvents(context.Background(), userId.(string))
-	if err != nil {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusInternalServerError,
-			Message:  "Failed to get events",
-		}
-	}
 	return &api.ListEventsResponse{
 		Events: events,
 		Total:  len(events),

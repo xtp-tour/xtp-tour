@@ -193,7 +193,7 @@ func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event,
 	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ? AND expiration_time > ?", userId, api.EventVisibilityPublic, api.EventStatusOpen, time.Now().UTC())
 }
 
-func (db *Db) GetAcceptedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
+func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
 	query := `SELECT event_id FROM join_requests j
 		inner join events e on j.event_id = e.id
 	WHERE j.user_id = ?`
