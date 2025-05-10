@@ -28,12 +28,11 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/jmoiron/sqlx v1.4.0 // indirect
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
