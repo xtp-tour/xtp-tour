@@ -1,0 +1,15 @@
+name: Main CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    uses: ./.github/workflows/backend.yaml
+  
+  frontend:
+    uses: ./.github/workflows/frontend.yaml 
