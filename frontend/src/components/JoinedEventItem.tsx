@@ -114,6 +114,29 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     }
   };
 
+  // Get action button based on event status
+  const getActionButton = () => {
+    // No action button for confirmed events
+    if (event.status === 'CONFIRMED') {
+      return {
+        variant: 'outline-secondary',
+        icon: 'bi-check-circle-fill',
+        label: 'Confirmed',
+        onClick: () => {},
+        disabled: true,
+        hidden: true
+      };
+    }
+
+    return {
+      variant: 'outline-danger',
+      icon: 'bi-x-circle',
+      label: 'Cancel',
+      onClick: () => setShowConfirmModal(true),
+      disabled: cancelling || event.status !== 'OPEN'
+    };
+  };
+
   return (
     <>
       <BaseEventItem
@@ -125,13 +148,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt)}
         userSelectedLocations={userSelectedLocations}
-        actionButton={{
-          variant: 'outline-danger',
-          icon: 'bi-x-circle',
-          label: 'Cancel',
-          onClick: () => setShowConfirmModal(true),
-          disabled: cancelling || event.status !== 'OPEN'
-        }}
+        actionButton={getActionButton()}
         defaultCollapsed={true}
       />
 

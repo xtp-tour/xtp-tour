@@ -25,6 +25,10 @@ const formatFullTimestamp = (timestamp: moment.Moment): string => {
   return timestamp.format('MMMM D, YYYY [at] h:mm A');
 };
 
+const formatConfirmedDateTime = (datetime: string): string => {
+  return moment(datetime).format('ddd, MMM D @ h:mm A');
+};
+
 const truncateUsername = (name: string) =>
   name.length > 30 ? name.slice(0, 30) + '...' : name;
 
@@ -43,6 +47,9 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   // Ensure we have a valid Moment object
   const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
   const isMobile = useMediaQuery({ maxWidth: 575 });
+  
+  // Check if the event is confirmed
+  const isConfirmed = event.status === 'CONFIRMED';
   
   return (
     <div className="card-header bg-white p-2">
@@ -77,6 +84,11 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   title={title}
                 >
                   {isMobile ? truncateUsername(title) : title}
+                  {isConfirmed && (
+                    <span className="badge bg-success ms-2">
+                      <i className="bi bi-check-circle me-1"></i>Confirmed
+                    </span>
+                  )}
                   {typeof joinedCount === 'number' && (
                     <span className="badge bg-secondary ms-2" style={{ fontSize: '0.8em' }} title="Players joined">
                       <i className="bi bi-people me-1"></i>{joinedCount}
@@ -101,6 +113,17 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               )}
             </div>
             {subtitle && <small className={colorClass}>{subtitle}</small>}
+            {isConfirmed && event.confirmation && (
+              <div className="mt-1">
+                <small className="text-success">
+                  <i className="bi bi-calendar-check me-1"></i>
+                  {formatConfirmedDateTime(event.confirmation.datetime || '')}
+                  <span className="mx-2">•</span>
+                  <i className="bi bi-geo-alt me-1"></i>
+                  {event.confirmation.location}
+                </small>
+              </div>
+            )}
             <div className="d-flex flex-wrap gap-2 mt-1">
               <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
                 {getEventTypeLabel(event.eventType)}
@@ -119,7 +142,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 {event.sessionDuration} {event.sessionDuration === 1 ? 'hour' : 'hours'}
               </span>
             </div>
-            {timeSlotSummary && (
+            {timeSlotSummary && !isConfirmed && (
               <small className="text-muted text-wrap">
                 <i className="bi bi-calendar-event me-1"></i>
                 {timeSlotSummary}
@@ -129,7 +152,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
         </div>
         {/* Right: Chevron and action button (desktop only) */}
         <div className="d-none d-sm-flex align-items-center gap-2 flex-shrink-0">
-          {actionButton.customButton || (
+          {actionButton.customButton || (!actionButton.hidden && (
             <Button
               variant={actionButton.variant}
               onClick={actionButton.onClick}
@@ -140,7 +163,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               <i className={`bi ${actionButton.icon} me-1`}></i>
               {actionButton.label}
             </Button>
-          )}
+          ))}
           <button
             type="button"
             className={`btn btn-link p-0 border-0 shadow-none d-flex align-items-center ${colorClass}`}
@@ -166,7 +189,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
       </div>
       {/* Action button for mobile only, full width */}
       <div className="d-flex d-sm-none mt-2">
-        {actionButton.customButton || (
+        {actionButton.customButton || (!actionButton.hidden && (
           <Button
             variant={actionButton.variant}
             onClick={actionButton.onClick}
@@ -177,7 +200,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             <i className={`bi ${actionButton.icon} me-1`}></i>
             {actionButton.label}
           </Button>
-        )}
+        ))}
       </div>
     </div>
   );
