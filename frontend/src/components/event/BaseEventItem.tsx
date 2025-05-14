@@ -7,6 +7,8 @@ import EventDescription from './EventDescription';
 import JoinedUsers from './JoinedUsers';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 import moment from 'moment';
+import TimeAgo from 'react-timeago';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -35,6 +37,10 @@ const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
   return `${timeSlots[0].date.format('MMM D, h:mm A')}, ${timeSlots[1].date.format('MMM D, h:mm A')}...`;
 };
 
+const formatFullTimestamp = (timestamp: moment.Moment): string => {
+  return timestamp.format('MMMM D, YYYY [at] h:mm A');
+};
+
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
   event,
   headerTitle,
@@ -51,9 +57,10 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   children,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
 
   return (
-    <div className="card mb-3">
+    <div className="card mb-3 overflow-hidden">
       <div className="card-header bg-transparent border-0 p-0">
         <EventHeader
           title={headerTitle}
@@ -62,7 +69,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           timestamp={timestamp}
           actionButton={actionButton}
           isCollapsed={isCollapsed}
-          timeSlotSummary={isCollapsed ? formatTimeSlotSummary(timeSlots) : undefined}
+          timeSlotSummary={formatTimeSlotSummary(timeSlots)}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           joinedCount={event.joinRequests ? event.joinRequests.length : 0}
           event={event}
@@ -70,7 +77,24 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
       </div>
 
       {!isCollapsed && (
-        <div className="card-body">
+        <div className="card-body pt-2">
+          {/* Created At Timestamp */}
+          <div className="mb-3">
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id={`timestamp-tooltip-${momentTimestamp.valueOf()}`}>
+                  {formatFullTimestamp(momentTimestamp)}
+                </Tooltip>
+              }
+            >
+              <div className="d-flex align-items-center small text-muted">
+                <i className="bi bi-clock-history me-2"></i>
+                <span>Created <TimeAgo date={momentTimestamp.toDate()} /></span>
+              </div>
+            </OverlayTrigger>
+          </div>
+
           <EventLocations
             locations={event.locations}
             selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
