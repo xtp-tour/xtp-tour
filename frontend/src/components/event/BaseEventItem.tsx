@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
 import { components } from '../../types/schema';
 import EventHeader from './EventHeader';
-import EventLocations from './EventLocations';
-import EventTimeSlots from './EventTimeSlots';
-import EventDescription from './EventDescription';
-import JoinedUsers from './JoinedUsers';
+import DefaultEventBody from './DefaultEventBody';
+import ConfirmedEventBody from './ConfirmedEventBody';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 import moment from 'moment';
-import TimeAgo from 'react-timeago';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -23,6 +19,7 @@ interface BaseEventItemProps extends StyleProps {
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
   defaultCollapsed?: boolean;
+  isMyEvent?: boolean;
   children?: React.ReactNode;
 }
 
@@ -35,10 +32,6 @@ const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
     return `${timeSlots[0].date.format('MMM D, h:mm A')} and ${timeSlots[1].date.format('MMM D, h:mm A')}`;
   }
   return `${timeSlots[0].date.format('MMM D, h:mm A')}, ${timeSlots[1].date.format('MMM D, h:mm A')}...`;
-};
-
-const formatFullTimestamp = (timestamp: moment.Moment): string => {
-  return timestamp.format('MMMM D, YYYY [at] h:mm A');
 };
 
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
@@ -54,10 +47,17 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   onLocationClick,
   onTimeSlotClick,
   defaultCollapsed = false,
+  isMyEvent = false,
   children,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
-  const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
+  const isConfirmed = event.status === 'CONFIRMED';
+  
+  // Update color classes for confirmed events
+  if (isConfirmed) {
+    colorClass = 'text-success';
+    borderColorClass = 'border-success';
+  }
 
   return (
     <div className="card mb-3 overflow-hidden">
@@ -77,47 +77,30 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
       </div>
 
       {!isCollapsed && (
-        <div className="card-body pt-2">
-          {/* Created At Timestamp */}
-          <div className="mb-3">
-            <OverlayTrigger
-              placement="bottom"
-              overlay={
-                <Tooltip id={`timestamp-tooltip-${momentTimestamp.valueOf()}`}>
-                  {formatFullTimestamp(momentTimestamp)}
-                </Tooltip>
-              }
-            >
-              <div className="d-flex align-items-center small text-muted">
-                <i className="bi bi-clock-history me-2"></i>
-                <span>Created <TimeAgo date={momentTimestamp.toDate()} /></span>
-              </div>
-            </OverlayTrigger>
-          </div>
-
-          <EventLocations
-            locations={event.locations}
-            selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
-            userSelectedLocations={userSelectedLocations}
+        isConfirmed ? (
+          <ConfirmedEventBody
+            event={event}
+            colorClass={colorClass}
+            timeSlots={timeSlots}
+            timestamp={timestamp}
+          >
+            {children}
+          </ConfirmedEventBody>
+        ) : (
+          <DefaultEventBody
+            event={event}
             colorClass={colorClass}
             borderColorClass={borderColorClass}
-            onLocationClick={onLocationClick}
-          />
-
-          <EventTimeSlots
             timeSlots={timeSlots}
-            hasSelectedTimeSlots={!!event.confirmation}
+            timestamp={timestamp}
+            userSelectedLocations={userSelectedLocations}
+            onLocationClick={onLocationClick}
             onTimeSlotClick={onTimeSlotClick}
-          />
-
-          <EventDescription
-            description={event.description}
-          />
-
-          <JoinedUsers joinRequests={event.joinRequests || []} />
-
-          {children}
-        </div>
+            isMyEvent={isMyEvent}
+          >
+            {children}
+          </DefaultEventBody>
+        )
       )}
     </div>
   );
