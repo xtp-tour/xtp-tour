@@ -111,8 +111,7 @@ const EventList: React.FC = () => {
   }, [api]);
 
   // Filter events based on their status and ownership
-  const myOpenEvents = myEvents
-    .filter(event => event.status === 'OPEN')
+  const myOpenEvents = myEvents    
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
@@ -158,7 +157,17 @@ const EventList: React.FC = () => {
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to delete event');
                     }
-                  }} 
+                  }}
+                  onEventUpdated={() => {
+                    // Refresh all event lists when an event is confirmed
+                    api.listEvents()
+                      .then(response => {
+                        setMyEvents((response.events || []).map(transformEventData));
+                      })
+                      .catch(err => {
+                        console.error("Failed to refresh events:", err);
+                      });
+                  }}
                 />
               ))}
             </div>

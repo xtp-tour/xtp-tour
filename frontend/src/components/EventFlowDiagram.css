@@ -203,4 +203,25 @@
 
 .next-steps-list li:last-child {
   margin-bottom: 0;
+}
+
+/* Button styling to prevent focus/active state color changes */
+.btn-no-state-change:focus,
+.btn-no-state-change:active,
+.btn-no-state-change:hover,
+.btn-no-state-change:active:focus {
+  background-color: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: #6c757d !important;
+}
+
+.btn-no-state-change.btn-outline-danger:focus,
+.btn-no-state-change.btn-outline-danger:active,
+.btn-no-state-change.btn-outline-danger:hover,
+.btn-no-state-change.btn-outline-danger:active:focus {
+  background-color: transparent !important;
+  color: #dc3545 !important;
+  border-color: #dc3545 !important;
 } 

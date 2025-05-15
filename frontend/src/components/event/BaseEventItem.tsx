@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { components } from '../../types/schema';
 import EventHeader from './EventHeader';
-import EventLocations from './EventLocations';
-import EventTimeSlots from './EventTimeSlots';
-import EventDescription from './EventDescription';
-import JoinedUsers from './JoinedUsers';
+import DefaultEventBody from './DefaultEventBody';
+import ConfirmedEventBody from './ConfirmedEventBody';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 import moment from 'moment';
 
@@ -21,6 +19,7 @@ interface BaseEventItemProps extends StyleProps {
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
   defaultCollapsed?: boolean;
+  isMyEvent?: boolean;
   children?: React.ReactNode;
 }
 
@@ -48,12 +47,20 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   onLocationClick,
   onTimeSlotClick,
   defaultCollapsed = false,
+  isMyEvent = false,
   children,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const isConfirmed = event.status === 'CONFIRMED';
+  
+  // Update color classes for confirmed events
+  if (isConfirmed) {
+    colorClass = 'text-success';
+    borderColorClass = 'border-success';
+  }
 
   return (
-    <div className="card mb-3">
+    <div className="card mb-3 overflow-hidden">
       <div className="card-header bg-transparent border-0 p-0">
         <EventHeader
           title={headerTitle}
@@ -62,7 +69,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           timestamp={timestamp}
           actionButton={actionButton}
           isCollapsed={isCollapsed}
-          timeSlotSummary={isCollapsed ? formatTimeSlotSummary(timeSlots) : undefined}
+          timeSlotSummary={formatTimeSlotSummary(timeSlots)}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
           joinedCount={event.joinRequests ? event.joinRequests.length : 0}
           event={event}
@@ -70,30 +77,30 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
       </div>
 
       {!isCollapsed && (
-        <div className="card-body">
-          <EventLocations
-            locations={event.locations}
-            selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
-            userSelectedLocations={userSelectedLocations}
+        isConfirmed ? (
+          <ConfirmedEventBody
+            event={event}
+            colorClass={colorClass}
+            timeSlots={timeSlots}
+            timestamp={timestamp}
+          >
+            {children}
+          </ConfirmedEventBody>
+        ) : (
+          <DefaultEventBody
+            event={event}
             colorClass={colorClass}
             borderColorClass={borderColorClass}
-            onLocationClick={onLocationClick}
-          />
-
-          <EventTimeSlots
             timeSlots={timeSlots}
-            hasSelectedTimeSlots={!!event.confirmation}
+            timestamp={timestamp}
+            userSelectedLocations={userSelectedLocations}
+            onLocationClick={onLocationClick}
             onTimeSlotClick={onTimeSlotClick}
-          />
-
-          <EventDescription
-            description={event.description}
-          />
-
-          <JoinedUsers joinRequests={event.joinRequests || []} />
-
-          {children}
-        </div>
+            isMyEvent={isMyEvent}
+          >
+            {children}
+          </DefaultEventBody>
+        )
       )}
     </div>
   );

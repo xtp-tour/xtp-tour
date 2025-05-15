@@ -19,6 +19,7 @@ export interface ActionButton {
   label: string;
   onClick?: () => void;
   disabled?: boolean;
+  hidden?: boolean;
   customButton?: React.ReactNode;
 }
 

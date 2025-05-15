@@ -368,7 +368,7 @@ func Test_EventAPI(t *testing.T) {
 
 			haveAcceptedReq := false
 			for _, r := range response.Event.JoinRequests {
-				if r.Status == api.JoinRequestStatusAccepted && r.Id == joinRequestIdToConfirm {
+				if r.IsAccepted != nil && *r.IsAccepted {
 					haveAcceptedReq = true
 					break
 				}

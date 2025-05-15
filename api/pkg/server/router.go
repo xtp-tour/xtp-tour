@@ -120,16 +120,15 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
+	events.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
+	events.DELETE("/:eventId", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
+	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
 
 	public := events.Group("/public", "Public events", "Public events and their operations")
 	public.GET("/", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
 	public.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
 	public.POST("/:eventId/joins", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
 	public.DELETE("/:eventId/joins/:joinRequestId", []fizz.OperationOption{fizz.Summary("Cancel join request")}, tonic.Handler(r.cancelJoinRequest, http.StatusOK))
-
-	events.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
-	events.DELETE("/:eventId", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
-	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
@@ -240,6 +239,22 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 		}
 	}
 
+	eventIds := make([]string, len(events))
+	for i, event := range events {
+		eventIds[i] = event.Id
+	}
+	joinRequests, err := r.db.GetJoinRequests(context.Background(), eventIds...)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get join requests",
+		}
+	}
+
+	for _, event := range events {
+		event.JoinRequests = joinRequests[event.Id]
+	}
+
 	return &api.ListEventsResponse{
 		Events: events,
 	}, nil
@@ -335,6 +350,16 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 			Message:  "Event not found",
 		}
 	}
+
+	joinRequests, err := r.db.GetJoinRequests(context.Background(), event.Id)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get join requests",
+		}
+	}
+
+	event.JoinRequests = joinRequests[event.Id]
 
 	return &api.GetEventResponse{
 		Event: event,
@@ -445,7 +470,6 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 		JoinRequest: api.JoinRequest{
 			JoinRequestData: req.JoinRequest,
 			UserId:          userId.(string),
-			Status:          api.JoinRequestStatusWaiting,
 			CreatedAt:       api.DtToIso(time.Now()),
 		},
 	}, nil

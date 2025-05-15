@@ -9,7 +9,7 @@ interface JoinedUsersProps {
 
 const JoinedUsers: React.FC<JoinedUsersProps> = ({ joinRequests }) => {
   const joinedUsers = joinRequests.filter(
-    request => request.status === 'ACCEPTED'
+    request => request.isRejected === false
   );
 
   if (joinedUsers.length === 0) {

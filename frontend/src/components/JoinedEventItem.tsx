@@ -98,20 +98,37 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // Get user's join request status
   const getJoinRequestStatus = () => {
     if (!userJoinRequest) return '';
-    switch (userJoinRequest.status) {
-      case 'WAITING':
-        return 'Waiting for host approval';
-      case 'ACCEPTED':
-        return 'Request accepted';
-      case 'REJECTED':
-        return 'Request rejected';
-      case 'CANCELLED':
-        return 'Request cancelled';
-      case 'RESERVATION_FAILED':
-        return 'Reservation failed';
-      default:
-        return '';
+    
+    if (userJoinRequest.isRejected === true) {
+      return 'Request rejected';
+    } else if (userJoinRequest.isRejected === false) {
+      return 'Request accepted';
+    } else {
+      return 'Waiting for host approval';
     }
+  };
+
+  // Get action button based on event status
+  const getActionButton = () => {
+    // No action button for confirmed events
+    if (event.status === 'CONFIRMED') {
+      return {
+        variant: 'outline-secondary',
+        icon: 'bi-check-circle-fill',
+        label: 'Confirmed',
+        onClick: () => {},
+        disabled: true,
+        hidden: true
+      };
+    }
+
+    return {
+      variant: 'outline-danger',
+      icon: 'bi-x-circle',
+      label: 'Cancel',
+      onClick: () => setShowConfirmModal(true),
+      disabled: cancelling || event.status !== 'OPEN'
+    };
   };
 
   return (
@@ -125,13 +142,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt)}
         userSelectedLocations={userSelectedLocations}
-        actionButton={{
-          variant: 'outline-danger',
-          icon: 'bi-x-circle',
-          label: 'Cancel',
-          onClick: () => setShowConfirmModal(true),
-          disabled: cancelling || event.status !== 'OPEN'
-        }}
+        actionButton={getActionButton()}
         defaultCollapsed={true}
       />
 

@@ -186,17 +186,19 @@ const MOCK_MY_INVITATIONS: Event[] = [
       {
         id: '1',
         userId: 'other_user',
+        eventId: '1',
         locations: ['central_park'],
         timeSlots: [moment().add(1, 'day').set({ hour: 10, minute: 0 }).toISOString()],
-        status: 'WAITING',
+        isRejected: null,
         createdAt: moment().toISOString()
       },
       {
         id: '2',
         userId: 'john_doe',
+        eventId: '1',
         locations: ['riverside'],
         timeSlots: [moment().add(1, 'day').set({ hour: 14, minute: 0 }).toISOString()],
-        status: 'WAITING',
+        isRejected: null,
         createdAt: moment().toISOString()
       },
     ]
@@ -239,9 +241,10 @@ const MOCK_OTHER_INVITATIONS: Event[] = [
       {
         id: 'current_user_join_request',
         userId: 'current_user',
+        eventId: '3',
         locations: ['east_side'],
         timeSlots: [moment().add(3, 'days').set({ hour: 9, minute: 0 }).toISOString()],
-        status: 'WAITING',
+        isRejected: null,
         createdAt: moment().toISOString()
       }
     ]
@@ -466,8 +469,9 @@ export class MockAPIClient implements APIClient {
       const joinRequest: JoinRequest = {
         id: Math.random().toString(36).substr(2, 9),
         userId: 'current_user',
+        eventId,
         ...request.joinRequest,
-        status: 'WAITING',
+        isRejected: null,
         createdAt: new Date().toISOString()
       };
 

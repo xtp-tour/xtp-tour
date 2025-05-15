@@ -2,10 +2,10 @@ import React from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
-import TimeAgo from 'react-timeago';
 import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
+import '../EventFlowDiagram.css'; // Import CSS with button styles
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -21,17 +21,27 @@ interface EventHeaderProps extends StyleProps {
   event: ApiEvent;
 }
 
-const formatFullTimestamp = (timestamp: moment.Moment): string => {
-  return timestamp.format('MMMM D, YYYY [at] h:mm A');
+const formatConfirmedDateTime = (datetime: string): string => {
+  return moment(datetime).format('ddd, MMM D @ h:mm A');
 };
 
 const truncateUsername = (name: string) =>
-  name.length > 30 ? name.slice(0, 30) + '...' : name;
+  name.length > 20 ? name.slice(0, 20) + '...' : name;
+
+// Add CSS for the consistent button styling
+const buttonStyle = {
+  minHeight: '38px',
+  outline: 'none',
+  boxShadow: 'none',
+  backgroundColor: 'transparent',
+  transition: 'none'
+};
 
 const EventHeader: React.FC<EventHeaderProps> = ({
   title,
   subtitle,
   colorClass = 'text-primary',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   timestamp,
   actionButton,
   isCollapsed = false,
@@ -40,9 +50,10 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   joinedCount,
   event,
 }) => {
-  // Ensure we have a valid Moment object
-  const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
   const isMobile = useMediaQuery({ maxWidth: 575 });
+  
+  // Check if the event is confirmed
+  const isConfirmed = event.status === 'CONFIRMED';
   
   return (
     <div className="card-header bg-white p-2">
@@ -77,6 +88,11 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   title={title}
                 >
                   {isMobile ? truncateUsername(title) : title}
+                  {isConfirmed && (
+                    <span className="badge bg-success ms-2">
+                      <i className="bi bi-check-circle me-1"></i>Confirmed
+                    </span>
+                  )}
                   {typeof joinedCount === 'number' && (
                     <span className="badge bg-secondary ms-2" style={{ fontSize: '0.8em' }} title="Players joined">
                       <i className="bi bi-people me-1"></i>{joinedCount}
@@ -84,52 +100,56 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   )}
                 </h6>
               </OverlayTrigger>
-              {!isCollapsed && (
-                <OverlayTrigger
-                  placement="bottom"
-                  overlay={
-                    <Tooltip id={`timestamp-tooltip-${momentTimestamp.valueOf()}`}>
-                      {formatFullTimestamp(momentTimestamp)}
-                    </Tooltip>
-                  }
-                >
-                  <small className="text-muted">
-                    <i className="bi bi-clock-history me-1"></i>
-                    <TimeAgo date={momentTimestamp.toDate()} />
-                  </small>
-                </OverlayTrigger>
-              )}
             </div>
             {subtitle && <small className={colorClass}>{subtitle}</small>}
-            <div className="d-flex flex-wrap gap-2 mt-1">
-              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-                {getEventTypeLabel(event.eventType)}
-              </span>
-              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
-                {getRequestTypeLabel(event.expectedPlayers)}
-              </span>
-              <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
-                <span>{event.skillLevel}</span>
-                <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
-                  {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
-                </span>
-              </span>
-              <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
-                <i className="bi bi-stopwatch me-1"></i>
-                {event.sessionDuration} {event.sessionDuration === 1 ? 'hour' : 'hours'}
-              </span>
-            </div>
-            {timeSlotSummary && (
+            {isConfirmed && event.confirmation && (
+              <div className="mt-1">
+                <small className="text-success text-wrap d-block">
+                  <div className="d-flex flex-wrap">
+                    <div className="me-2">
+                      <i className="bi bi-calendar-check me-1"></i>
+                      {formatConfirmedDateTime(event.confirmation.datetime || '')}
+                    </div>
+                    <div>
+                      <i className="bi bi-geo-alt me-1"></i>
+                      <span className="text-break">{event.confirmation.location}</span>
+                    </div>
+                  </div>
+                </small>
+              </div>
+            )}
+            {/* Always show time slots in header regardless of collapsed state */}
+            {timeSlotSummary && !isConfirmed && (
               <small className="text-muted text-wrap">
                 <i className="bi bi-calendar-event me-1"></i>
                 {timeSlotSummary}
               </small>
             )}
+            <div className="d-flex flex-wrap gap-1 mt-1">
+              <div className="d-flex flex-wrap gap-1" style={{ maxWidth: '100%' }}>
+                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+                  {getEventTypeLabel(event.eventType)}
+                </span>
+                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+                  {getRequestTypeLabel(event.expectedPlayers)}
+                </span>
+                <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
+                  <span>{event.skillLevel}</span>
+                  <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
+                    {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
+                  </span>
+                </span>
+                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+                  <i className="bi bi-stopwatch me-1"></i>
+                  {event.sessionDuration} {event.sessionDuration === 1 ? 'hour' : 'hours'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         {/* Right: Chevron and action button (desktop only) */}
         <div className="d-none d-sm-flex align-items-center gap-2 flex-shrink-0">
-          {actionButton.customButton || (
+          {actionButton.customButton || (!actionButton.hidden && (
             <Button
               variant={actionButton.variant}
               onClick={actionButton.onClick}
@@ -140,24 +160,11 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               <i className={`bi ${actionButton.icon} me-1`}></i>
               {actionButton.label}
             </Button>
-          )}
+          ))}
           <button
             type="button"
-            className={`btn btn-link p-0 border-0 shadow-none d-flex align-items-center ${colorClass}`}
-            style={{ fontSize: 24 }}
-            aria-label={isCollapsed ? 'Expand event' : 'Collapse event'}
-            onClick={onToggleCollapse}
-          >
-            <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'}`}></i>
-          </button>
-        </div>
-        {/* Chevron only for mobile */}
-        <div className="d-flex d-sm-none align-items-center gap-2 flex-shrink-0">
-          <button
-            type="button"
-            className={`btn btn-link p-0 border-0 shadow-none d-flex align-items-center ${colorClass}`}
-            style={{ fontSize: 24 }}
-            aria-label={isCollapsed ? 'Expand event' : 'Collapse event'}
+            className="btn btn-outline-secondary btn-sm border-0"
+            aria-label={isCollapsed ? 'Show details' : 'Hide details'}
             onClick={onToggleCollapse}
           >
             <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'}`}></i>
@@ -166,18 +173,31 @@ const EventHeader: React.FC<EventHeaderProps> = ({
       </div>
       {/* Action button for mobile only, full width */}
       <div className="d-flex d-sm-none mt-2">
-        {actionButton.customButton || (
+        {actionButton.customButton || (!actionButton.hidden && (
           <Button
             variant={actionButton.variant}
             onClick={actionButton.onClick}
-            className="w-100 btn-sm"
-            style={{ minWidth: 90 }}
+            className="w-100 d-flex justify-content-center align-items-center btn-no-state-change"
+            style={{ ...buttonStyle, minHeight: '38px' }}
             disabled={actionButton.disabled}
           >
             <i className={`bi ${actionButton.icon} me-1`}></i>
             {actionButton.label}
           </Button>
-        )}
+        ))}
+      </div>
+      
+      {/* Full-width expand/collapse button for mobile */}
+      <div className="d-sm-none mt-2">
+        <Button
+          variant="outline-secondary"
+          className="w-100 d-flex justify-content-center align-items-center btn-no-state-change"
+          style={buttonStyle}
+          onClick={onToggleCollapse}
+        >
+          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`}></i>
+          {isCollapsed ? 'Show Details' : 'Hide Details'}
+        </Button>
       </div>
     </div>
   );
