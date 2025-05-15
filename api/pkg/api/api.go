@@ -70,15 +70,15 @@ type JoinRequestData struct {
 	Locations []string `json:"locations" validate:"required,min=1"`
 	TimeSlots []string `json:"timeSlots" validate:"required,min=1"`
 	Comment   string   `json:"comment,omitempty"`
+	EventId   string   `json:"eventId,omitempty"`
 }
 
 // JoinRequest represents a player's acceptance of an event
 type JoinRequest struct {
 	JoinRequestData
-	UserId     string            `json:"userId"`
-	Status     JoinRequestStatus `json:"status" enum:"WAITING,ACCEPTED,REJECTED,CANCELLED,RESERVATION_FAILED"`
-	CreatedAt  string            `json:"createdAt" format:"date"`
-	IsRejected bool              `json:"isRejected"`
+	UserId     string `json:"userId"`
+	CreatedAt  string `json:"createdAt" format:"date"`
+	IsAccepted *bool  `json:"isRejected,omitempty"`
 }
 
 type EventConfirmationRequest struct {

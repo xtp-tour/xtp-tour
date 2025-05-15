@@ -39,12 +39,13 @@ type EventRow struct {
 }
 
 type JoinRequestRow struct {
-	Id        string    `db:"id"`
-	EventId   string    `db:"event_id"`
-	UserId    string    `db:"user_id"`
-	Status    string    `db:"status"`
-	Comment   string    `db:"comment"`
-	CreatedAt time.Time `db:"created_at"`
+	Id             string    `db:"id"`
+	EventId        string    `db:"event_id"`
+	UserId         string    `db:"user_id"`
+	Status         string    `db:"status"`
+	Comment        string    `db:"comment"`
+	CreatedAt      time.Time `db:"created_at"`
+	ConfirmationId string    `db:"confirmation_id"`
 }
 
 type ConfirmationRow struct {

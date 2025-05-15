@@ -470,7 +470,6 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 		JoinRequest: api.JoinRequest{
 			JoinRequestData: req.JoinRequest,
 			UserId:          userId.(string),
-			Status:          api.JoinRequestStatusWaiting,
 			CreatedAt:       api.DtToIso(time.Now()),
 		},
 	}, nil
