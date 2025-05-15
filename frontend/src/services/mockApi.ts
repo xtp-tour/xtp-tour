@@ -1,6 +1,7 @@
 import { APIConfig, ListEventsResponse } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
+import { formatLocalToUtc } from '../utils/dateUtils';
 
 // Define types based on the schema
 type Event = components['schemas']['ApiEvent'];
@@ -175,8 +176,9 @@ const MOCK_MY_INVITATIONS: Event[] = [
     expectedPlayers: 2,
     sessionDuration: 2,
     timeSlots: [
-      moment().add(1, 'day').set({ hour: 10, minute: 0 }).toISOString(),
-      moment().add(1, 'day').set({ hour: 14, minute: 0 }).toISOString()
+      // UTC ISO 8601 formatted timestamps
+      moment().add(1, 'day').set({ hour: 10, minute: 0 }).utc().toISOString(),
+      moment().add(1, 'day').set({ hour: 14, minute: 0 }).utc().toISOString()
     ],
     description: 'Accepted Invitation. Looking for a friendly match, prefer baseline rallies',
     status: 'OPEN',
@@ -188,7 +190,7 @@ const MOCK_MY_INVITATIONS: Event[] = [
         userId: 'other_user',
         eventId: '1',
         locations: ['central_park'],
-        timeSlots: [moment().add(1, 'day').set({ hour: 10, minute: 0 }).toISOString()],
+        timeSlots: [moment().add(1, 'day').set({ hour: 10, minute: 0 }).utc().toISOString()], // UTC format
         isRejected: null,
         createdAt: moment().toISOString()
       },
@@ -383,9 +385,8 @@ export class MockAPIClient implements APIClient {
       const confirmation: EventConfirmation = {
         eventId,
         datetime: request.datetime,
-        duration: request.duration,
         location: request.locationId,
-        createdAt: moment().toISOString()
+        createdAt: formatLocalToUtc(new Date()) // Explicitly convert to UTC ISO format
       };
 
       event.status = 'CONFIRMED';

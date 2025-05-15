@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
-import moment from 'moment';
+import { formatTimeSlot } from '../utils/dateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
@@ -90,8 +90,8 @@ export const ConfirmEventModal: React.FC<Props> = ({
 
     // Fill the map with user availabilities
     event.joinRequests.forEach(request => {
-      // Include requests with empty status or status WAITING or ACCEPTED
-      if (request.status === 'WAITING' || request.status === 'ACCEPTED' || !request.status) {
+      // Include requests that are not rejected
+      if (request.isRejected !== true) {
         if (request.locations && request.locations.length > 0) {
           request.locations.forEach(locationId => {
             if (request.timeSlots && request.timeSlots.length > 0) {
@@ -238,7 +238,6 @@ export const ConfirmEventModal: React.FC<Props> = ({
 
       const request: ConfirmEventRequest = {
         datetime: selectedDateTime,
-        duration: event.sessionDuration || 0,
         locationId: selectedLocation,
         joinRequestsIds: selectedJoinRequests
       };
@@ -286,11 +285,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
     return availableTimeSlots.length;
   };
 
-  // Format time slot for display
-  const formatTimeSlot = (dateTimeString: string) => {
-    const dateTime = moment(dateTimeString);
-    return dateTime.format('ddd, MMM D @ h:mm A');
-  };
+  // Using utility function to format time slot (converts UTC to local)
 
   return (
     <Modal show={show} onHide={onHide} size="lg">

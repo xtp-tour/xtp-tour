@@ -179,19 +179,29 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ApiConfirmation: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
             createdAt?: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description Confirmed date and time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
             datetime?: string;
-            /** Format: int32 */
-            duration?: number;
             eventId?: string;
             location?: string;
         };
         ApiCoordinates: {
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Latitude coordinate
+             */
             latitude?: number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description Longitude coordinate
+             */
             longitude?: number;
         };
         ApiCreateEventResponse: {
@@ -199,23 +209,31 @@ export interface components {
         };
         ApiEvent: {
             confirmation?: components["schemas"]["ApiConfirmation"];
-            /** Format: date */
+            /**
+             * Format: date
+             * @description Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
             createdAt?: string;
             description?: string;
             /** @enum {string} */
             eventType: "MATCH" | "TRAINING";
             /** Format: int32 */
             expectedPlayers: number;
+            /** @description Expiration time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             expirationTime?: string;
             id?: string;
             joinRequests?: components["schemas"]["ApiJoinRequest"][];
             locations: string[];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Session duration in minutes
+             */
             sessionDuration: number;
             /** @enum {string} */
             skillLevel: "ANY" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
             status?: "OPEN" | "ACCEPTED" | "CONFIRMED" | "CANCELLED" | "RESERVATION_FAILED" | "COMPLETED";
+            /** @description Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             timeSlots: string[];
             userId?: string;
             /** @enum {string} */
@@ -230,13 +248,18 @@ export interface components {
             eventType: "MATCH" | "TRAINING";
             /** Format: int32 */
             expectedPlayers: number;
+            /** @description Expiration time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             expirationTime?: string;
             id?: string;
             locations: string[];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description Session duration in minutes
+             */
             sessionDuration: number;
             /** @enum {string} */
             skillLevel: "ANY" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+            /** @description Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             timeSlots: string[];
             userId?: string;
             /** @enum {string} */
@@ -252,12 +275,16 @@ export interface components {
         };
         ApiJoinRequest: {
             comment?: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
             createdAt?: string;
             eventId?: string;
             id?: string;
             isRejected?: boolean | null;
             locations: string[];
+            /** @description Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             timeSlots: string[];
             userId?: string;
         };
@@ -266,6 +293,7 @@ export interface components {
             eventId?: string;
             id?: string;
             locations: string[];
+            /** @description Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             timeSlots: string[];
         };
         ApiJoinRequestResponse: {
@@ -286,10 +314,11 @@ export interface components {
             name?: string;
         };
         "ConfirmEvent-FmInput": {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description Event date and time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
             datetime: string;
-            /** Format: int32 */
-            duration: number;
             joinRequestsIds: string[];
             locationId: string;
         };

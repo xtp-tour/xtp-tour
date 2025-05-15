@@ -6,6 +6,7 @@ import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
 import '../EventFlowDiagram.css'; // Import CSS with button styles
+import { formatDuration } from '../../utils/dateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -141,7 +142,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 </span>
                 <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
                   <i className="bi bi-stopwatch me-1"></i>
-                  {event.sessionDuration} {event.sessionDuration === 1 ? 'hour' : 'hours'}
+                  {formatDuration(event.sessionDuration)}
                 </span>
               </div>
             </div>

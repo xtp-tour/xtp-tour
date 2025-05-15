@@ -6,6 +6,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
 import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
+import { formatDuration } from '../utils/dateUtils';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -19,13 +20,13 @@ interface DateTimeSlot {
 }
 
 const MATCH_DURATION_OPTIONS = [
-  { value: '1', label: '1 hour' },
-  { value: '1.5', label: '1½ hours' },
-  { value: '2', label: '2 hours' },
-  { value: '2.5', label: '2½ hours' },
-  { value: '3', label: '3 hours' },
-  { value: '3.5', label: '3½ hours' },
-  { value: '4', label: '4 hours' },
+  { value: '1', label: formatDuration(60) },
+  { value: '1.5', label: formatDuration(90) },
+  { value: '2', label: formatDuration(120) },
+  { value: '2.5', label: formatDuration(150) },
+  { value: '3', label: formatDuration(180) },
+  { value: '3.5', label: formatDuration(210) },
+  { value: '4', label: formatDuration(240) },
 ];
 
 const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
