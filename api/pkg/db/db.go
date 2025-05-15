@@ -28,7 +28,6 @@ type Db struct {
 
 // GetDB returns a singleton database connection
 func GetDB(config *pkg.DbConfig) (*Db, error) {
-	var err error
 	var db *Db
 
 	once.Do(func() {
@@ -57,10 +56,6 @@ func GetDB(config *pkg.DbConfig) (*Db, error) {
 		slog.Info("Database connection established")
 		db = &Db{conn: dbConn}
 	})
-
-	if err != nil {
-		return nil, err
-	}
 
 	return db, nil
 }
@@ -249,7 +244,7 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 			LEFT JOIN confirmations c ON e.id = c.event_id
 			GROUP BY e.id, e.user_id, e.skill_level, e.description, e.event_type,
 				e.expected_players, e.session_duration, e.visibility, e.status, e.created_at,
-				e.expiration_time, c.location_id, c.dt, c.duration
+				e.expiration_time, c.location_id, c.dt
 		)
 		SELECT * FROM event_data 
 	`

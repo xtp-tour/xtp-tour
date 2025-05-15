@@ -36,8 +36,7 @@ CREATE TABLE IF NOT EXISTS confirmations (
     id VARCHAR(36) PRIMARY KEY,
     event_id VARCHAR(36) NOT NULL,
     location_id VARCHAR(36) NOT NULL,
-    dt DATETIME NOT NULL,
-    duration INT NOT NULL,
+    dt DATETIME NOT NULL,    
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
     FOREIGN KEY (location_id) REFERENCES facilities(id) ON DELETE CASCADE
