@@ -242,8 +242,7 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 				GROUP_CONCAT(DISTINCT el.location_id) as locations,
 				GROUP_CONCAT(DISTINCT ets.dt) as time_slots,
 				c.location_id as confirmed_location,
-				c.dt as confirmed_dt,
-				c.duration as confirmed_duration
+				c.dt as confirmed_dt
 			FROM events e
 			LEFT JOIN event_locations el ON e.id = el.event_id
 			LEFT JOIN event_time_slots ets ON e.id = ets.event_id
@@ -304,14 +303,13 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 			timeSlotsStr    sql.NullString
 			confirmedLoc    sql.NullString
 			confirmedDt     sql.NullTime
-			confirmedDur    sql.NullInt64
 		)
 
 		err := rows.Scan(
 			&eventId, &userId, &skillLevel, &description, &eventType,
 			&expectedPlayers, &sessionDuration, &visibility, &status,
 			&createdAt, &expirationTime, &locationsStr, &timeSlotsStr,
-			&confirmedLoc, &confirmedDt, &confirmedDur,
+			&confirmedLoc, &confirmedDt,
 		)
 		if err != nil {
 			slog.Error("Failed to scan event row", "error", err)
@@ -338,12 +336,11 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 
 		// Parse confirmation
 		var confirmation *api.Confirmation
-		if confirmedLoc.Valid && confirmedDt.Valid && confirmedDur.Valid {
+		if confirmedLoc.Valid && confirmedDt.Valid {
 			confirmation = &api.Confirmation{
 				EventId:    eventId,
 				LocationId: confirmedLoc.String,
 				Datetime:   api.DtToIso(confirmedDt.Time),
-				Duration:   int(confirmedDur.Int64),
 				CreatedAt:  api.DtToIso(time.Now()),
 			}
 		}
@@ -538,9 +535,9 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 	// Create confirmation
 	confirmationId := uuid.New().String()
-	query := `INSERT INTO confirmations (id, event_id, location_id, dt, duration) VALUES (?, ?, ?, ?, ?)`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime), req.Duration})
-	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime), req.Duration)
+	query := `INSERT INTO confirmations (id, event_id, location_id, dt) VALUES (?, ?, ?, ?)`
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime)})
+	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime))
 	if err != nil {
 		tx.Rollback()
 		slog.Error("Failed to create confirmation", "error", err)
@@ -584,7 +581,6 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 		EventId:    eventId,
 		LocationId: req.LocationId,
 		Datetime:   req.DateTime,
-		Duration:   req.Duration,
 		CreatedAt:  api.DtToIso(time.Now()),
 	}
 
@@ -606,48 +602,6 @@ func (db *Db) GetEventOwner(ctx context.Context, eventId string) (string, error)
 	}
 	return userId, nil
 }
-
-//func (db *Db) getJoinRequests(ctx context.Context, eventId string) ([]*api.JoinRequest, error) {
-// 	query := `SELECT id, event_id, user_id, status, comment, created_at, confirmation_id FROM join_requests WHERE event_id = ?`
-// 	slog.Debug("Executing SQL query", "query", query, "params", eventId)
-// 	var rows []*JoinRequestRow
-// 	err := db.conn.SelectContext(ctx, &rows, query, eventId)
-// 	if err != nil {
-// 		slog.Error("Failed to get join requests", "error", err, "eventId", eventId)
-// 		return nil, err
-// 	}
-
-// 	joinRequests := make([]*api.JoinRequest, len(rows))
-// 	for i, row := range rows {
-// 		joinRequests[i] = &api.JoinRequest{
-// 			JoinRequestData: api.JoinRequestData{
-// 				Id:      row.Id,
-// 				Comment: row.Comment,
-// 			},
-// 			UserId: row.UserId,
-// 			Status: api.JoinRequestStatus(row.Status),
-// 		}
-// 	}
-
-// 	return joinRequests, nil
-// }
-
-// func (db *Db) getEventConfirmation(ctx context.Context, eventId string) (*ConfirmationRow, error) {
-// 	query := `SELECT id, event_id, location_id, dt, duration FROM confirmations WHERE event_id = ?`
-// 	slog.Debug("Executing SQL query", "query", query, "params", eventId)
-// 	var rows []*ConfirmationRow
-// 	err := db.conn.SelectContext(ctx, &rows, query, eventId)
-// 	if err != nil {
-// 		slog.Error("Failed to get event confirmation", "error", err, "eventId", eventId)
-// 		return nil, err
-// 	}
-
-// 	if len(rows) == 0 {
-// 		return nil, nil
-// 	}
-
-// 	return rows[0], nil
-// }
 
 func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestId string) error {
 	query := `DELETE FROM join_requests WHERE id = ? AND user_id = ?`

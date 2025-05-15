@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS events (
     description TEXT,
     event_type ENUM('MATCH', 'TRAINING') NOT NULL,
     expected_players INT NOT NULL,
-    session_duration INT NOT NULL,
+    session_duration INT NOT NULL, -- in minutes
     status ENUM('OPEN', 'ACCEPTED', 'CONFIRMED', 'CANCELLED', 'RESERVATION_FAILED', 'COMPLETED') NOT NULL DEFAULT 'OPEN',
     visibility ENUM('PUBLIC', 'PRIVATE') NOT NULL DEFAULT 'PUBLIC',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

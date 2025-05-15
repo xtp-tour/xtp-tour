@@ -68,7 +68,7 @@ const (
 type JoinRequestData struct {
 	Id        string   `json:"id,omitempty"`
 	Locations []string `json:"locations" validate:"required,min=1"`
-	TimeSlots []string `json:"timeSlots" validate:"required,min=1"`
+	TimeSlots []string `json:"timeSlots" validate:"required,min=1" description:"Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	Comment   string   `json:"comment,omitempty"`
 	EventId   string   `json:"eventId,omitempty"`
 }
@@ -77,15 +77,14 @@ type JoinRequestData struct {
 type JoinRequest struct {
 	JoinRequestData
 	UserId     string `json:"userId"`
-	CreatedAt  string `json:"createdAt" format:"date"`
+	CreatedAt  string `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	IsAccepted *bool  `json:"isRejected,omitempty"`
 }
 
 type EventConfirmationRequest struct {
 	EventId         string   `path:"eventId" validate:"required"`
 	LocationId      string   `json:"locationId" validate:"required"`
-	DateTime        string   `json:"datetime" validate:"required" format:"date"`
-	Duration        int      `json:"duration" validate:"required"`
+	DateTime        string   `json:"datetime" validate:"required" format:"date" description:"Event date and time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	JoinRequestsIds []string `json:"joinRequestsIds" validate:"required"`
 }
 
@@ -102,9 +101,8 @@ type CancelJoinRequestRequest struct {
 type Confirmation struct {
 	EventId    string `json:"eventId"`
 	LocationId string `json:"location"`
-	Datetime   string `json:"datetime" format:"date"`
-	Duration   int    `json:"duration"`
-	CreatedAt  string `json:"createdAt" format:"date"`
+	Datetime   string `json:"datetime" format:"date" description:"Confirmed date and time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
+	CreatedAt  string `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 }
 
 // EventData represents user's input for an event
@@ -116,17 +114,17 @@ type EventData struct {
 	Description     string          `json:"description,omitempty" `
 	EventType       EventType       `json:"eventType" validate:"required" db:"event_type" enum:"MATCH,TRAINING"`
 	ExpectedPlayers int             `json:"expectedPlayers" validate:"required" db:"expected_players"`
-	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration"`
-	TimeSlots       []string        `json:"timeSlots" validate:"required,min=1"`
+	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration" description:"Session duration in minutes"` // in minutes
+	TimeSlots       []string        `json:"timeSlots" validate:"required,min=1" description:"Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	Visibility      EventVisibility `json:"visibility" validate:"required" enum:"PUBLIC,PRIVATE"`
-	ExpirationTime  string          `json:"expirationTime" db:"expiration_time"`
+	ExpirationTime  string          `json:"expirationTime" db:"expiration_time" description:"Expiration time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 }
 
 // Event represents an internal representation of an event
 type Event struct {
 	EventData
 	Status       EventStatus    `json:"status" enum:"OPEN,ACCEPTED,CONFIRMED,CANCELLED,RESERVATION_FAILED,COMPLETED"`
-	CreatedAt    string         `json:"createdAt" format:"date"`
+	CreatedAt    string         `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	JoinRequests []*JoinRequest `json:"joinRequests"`
 	Confirmation *Confirmation  `json:"confirmation,omitempty"`
 }
@@ -172,8 +170,8 @@ type ListEventsResponse struct {
 // Locations
 
 type Coordinates struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude" description:"Latitude coordinate"`
+	Longitude float64 `json:"longitude" description:"Longitude coordinate"`
 }
 
 type Location struct {

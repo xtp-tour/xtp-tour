@@ -31,7 +31,7 @@ type EventRow struct {
 	Description     string    `db:"description"`
 	EventType       string    `db:"event_type"`
 	ExpectedPlayers int       `db:"expected_players"`
-	SessionDuration int       `db:"session_duration"`
+	SessionDuration int       `db:"session_duration"` // in minutes
 	Visibility      string    `db:"visibility"`
 	Status          string    `db:"status"`
 	CreatedAt       time.Time `db:"created_at"`
@@ -53,7 +53,6 @@ type ConfirmationRow struct {
 	EventId    string    `db:"event_id"`
 	LocationId string    `db:"location_id"`
 	Dt         time.Time `db:"dt"`
-	Duration   int       `db:"duration"`
 	CreatedAt  time.Time `db:"created_at"`
 }
 
@@ -62,7 +61,6 @@ func (row *ConfirmationRow) ToApi() *api.Confirmation {
 		EventId:    row.EventId,
 		LocationId: row.LocationId,
 		Datetime:   api.DtToIso(row.Dt),
-		Duration:   row.Duration,
 		CreatedAt:  api.DtToIso(row.CreatedAt),
 	}
 }

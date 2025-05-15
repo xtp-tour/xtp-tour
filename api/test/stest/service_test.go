@@ -76,7 +76,6 @@ func Test_EventAPI(t *testing.T) {
 	timeSlots := getRelativeTimeSlots()
 	confirmedDate := timeSlots[3] // Using the last time slot as confirmed date
 	confirmedLocation := "matchpoint"
-	confirmedDuration := 60
 	var joinRequestIdToConfirm string
 	var eventId string
 
@@ -271,7 +270,6 @@ func Test_EventAPI(t *testing.T) {
 			EventId:         eventId,
 			LocationId:      "matchpoint",
 			DateTime:        api.DtToIso(api.ParseDt(getRelativeDate(-30, 14))), // 30 days in the past
-			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
@@ -294,7 +292,6 @@ func Test_EventAPI(t *testing.T) {
 			EventId:         eventId,
 			LocationId:      "matchpoint",
 			DateTime:        api.DtToIso(api.ParseDt(getRelativeDate(-30, 14))), // 30 days in the past
-			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
@@ -313,7 +310,6 @@ func Test_EventAPI(t *testing.T) {
 			EventId:         eventId,
 			LocationId:      "location3",
 			DateTime:        timeSlots[0],
-			Duration:        60,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
@@ -332,7 +328,6 @@ func Test_EventAPI(t *testing.T) {
 			EventId:         eventId,
 			LocationId:      confirmedLocation,
 			DateTime:        confirmedDate,
-			Duration:        confirmedDuration,
 			JoinRequestsIds: []string{joinRequestIdToConfirm},
 		}
 
@@ -364,7 +359,6 @@ func Test_EventAPI(t *testing.T) {
 			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status, "Event should be confirmed")
 			assert.Equal(tt, confirmedLocation, response.Event.Confirmation.LocationId, "Confirmed location should match")
 			assert.Equal(tt, confirmedDate, response.Event.Confirmation.Datetime, "Confirmed date should match")
-			assert.Equal(tt, confirmedDuration, response.Event.Confirmation.Duration, "Confirmed duration should match")
 
 			haveAcceptedReq := false
 			for _, r := range response.Event.JoinRequests {
