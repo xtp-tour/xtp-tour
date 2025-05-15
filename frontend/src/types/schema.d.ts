@@ -254,15 +254,16 @@ export interface components {
             comment?: string;
             /** Format: date */
             createdAt?: string;
+            eventId?: string;
             id?: string;
+            isRejected?: boolean | null;
             locations: string[];
-            /** @enum {string} */
-            status?: "WAITING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "RESERVATION_FAILED";
             timeSlots: string[];
             userId?: string;
         };
         ApiJoinRequestData: {
             comment?: string;
+            eventId?: string;
             id?: string;
             locations: string[];
             timeSlots: string[];

@@ -98,19 +98,13 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // Get user's join request status
   const getJoinRequestStatus = () => {
     if (!userJoinRequest) return '';
-    switch (userJoinRequest.status) {
-      case 'WAITING':
-        return 'Waiting for host approval';
-      case 'ACCEPTED':
-        return 'Request accepted';
-      case 'REJECTED':
-        return 'Request rejected';
-      case 'CANCELLED':
-        return 'Request cancelled';
-      case 'RESERVATION_FAILED':
-        return 'Reservation failed';
-      default:
-        return '';
+    
+    if (userJoinRequest.isRejected === true) {
+      return 'Request rejected';
+    } else if (userJoinRequest.isRejected === false) {
+      return 'Request accepted';
+    } else {
+      return 'Waiting for host approval';
     }
   };
 

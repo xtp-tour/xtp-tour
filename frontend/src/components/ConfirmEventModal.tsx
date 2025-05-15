@@ -257,15 +257,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
     if (!event || !event.joinRequests) return [];
     
     const validRequests = event.joinRequests.filter(request => {
-      // Include requests with empty status or status WAITING or ACCEPTED
-      return request.status === 'WAITING' || 
-             request.status === 'ACCEPTED' || 
-             !request.status; // Include requests with undefined or empty status
+      // Include requests that are not rejected (either null or false)
+      return request.isRejected !== true;
     });
     
     // Log availability for debugging
     validRequests.forEach(request => {
-      console.log(`User ${request.userId} has status:`, request.status);
+      console.log(`User ${request.userId} has isRejected:`, request.isRejected);
       console.log(`User ${request.userId} has availability:`, userHasAvailability(request.userId || ''));
       if (request.locations) {
         console.log(`User ${request.userId} locations:`, request.locations);

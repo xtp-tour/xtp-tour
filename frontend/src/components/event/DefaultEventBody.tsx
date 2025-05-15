@@ -99,16 +99,12 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                   <tr key={jr.id}>
                     <td>{jr.userId || 'Unknown'}</td>
                     <td>
-                      {jr.status === 'ACCEPTED' ? (
+                      {jr.isRejected === false ? (
                         <span className="badge bg-success">Accepted</span>
-                      ) : jr.status === 'WAITING' ? (
-                        <span className="badge bg-warning text-dark">Waiting</span>
-                      ) : jr.status === 'REJECTED' ? (
+                      ) : jr.isRejected === true ? (
                         <span className="badge bg-danger">Rejected</span>
-                      ) : jr.status === 'CANCELLED' ? (
-                        <span className="badge bg-secondary">Cancelled</span>
                       ) : (
-                        <span className="badge bg-light text-dark">{jr.status}</span>
+                        <span className="badge bg-warning text-dark">Waiting</span>
                       )}
                     </td>
                     <td>{(jr.locations || []).join(', ')}</td>

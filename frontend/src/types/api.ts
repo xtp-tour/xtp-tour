@@ -7,7 +7,6 @@ export type ApiEventStatus = ApiEvent['status'];
 export type ApiSkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 export type ApiEventType = components['schemas']['ApiEventData']['eventType'];
 export type ApiVisibility = components['schemas']['ApiEventData']['visibility'];
-export type ApiJoinRequestStatus = components['schemas']['ApiJoinRequest']['status'];
 export type ApiLocation = components['schemas']['ApiLocation'];
 export type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
 
