@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, UpdateProfileRequest, GetUserProfileResponse } from '../types/api';
 
 // Debug information interface
 interface DebugInfo {
@@ -274,5 +274,16 @@ export class RealAPIClient {
     responseData?: string;
   }): Promise<void> {
     this.errorReporter.report(error, extraInfo);
+  }
+
+  async getUserProfile(): Promise<GetUserProfileResponse> {
+    return await this.fetch<GetUserProfileResponse>('/api/profile');
+  }
+
+  async updateProfile(request: UpdateProfileRequest): Promise<void> {
+    await this.fetch('/api/profile', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
   }
 }

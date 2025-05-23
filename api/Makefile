@@ -7,6 +7,10 @@ build: servicetest.build
 migrate:
 	go run ./... migrate
 
+dbreset:
+	mysql -h 127.0.0.1 -P 33306 -u root --password="password" -e "DROP DATABASE xtp_tour;"
+	go run ./... migrate
+
 test:
 	go test -v ./...
 

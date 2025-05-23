@@ -39,6 +39,23 @@ export interface APIConfig {
   getAuthToken(): Promise<string | undefined>;
 }
 
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  username?: string;
+  ntrpLevel: number;
+  preferredCity: string;
+}
+
+export interface GetUserProfileResponse {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  ntrpLevel?: number;
+  preferredCity?: string;
+  profileComplete: boolean;
+}
+
 export interface APIClient {
   // Event endpoints
   createEvent(request: CreateEventRequest): Promise<ApiEvent>;
@@ -54,4 +71,8 @@ export interface APIClient {
 
   // Location endpoints
   listLocations(): Promise<ApiLocation[]>;
+
+  // Profile endpoints
+  getUserProfile(): Promise<GetUserProfileResponse>;
+  updateProfile(request: UpdateProfileRequest): Promise<void>;
 }

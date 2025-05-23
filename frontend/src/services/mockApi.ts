@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse } from '../types/api';
+import { APIConfig, ListEventsResponse, UpdateProfileRequest, GetUserProfileResponse } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -292,6 +292,10 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
+
+  // Profile endpoints
+  getUserProfile(): Promise<GetUserProfileResponse>;
+  updateProfile(request: UpdateProfileRequest): Promise<void>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -654,5 +658,21 @@ export class MockAPIClient implements APIClient {
     responseData?: string;
   }): Promise<void> {
     this.errorReporter.report(error, extraInfo);
+  }
+
+  async getUserProfile(): Promise<GetUserProfileResponse> {
+    await this.checkAuth();
+    await this.delay(300);
+    // Mock implementation - return empty profile that's not complete
+    return {
+      profileComplete: false
+    };
+  }
+
+  async updateProfile(request: UpdateProfileRequest): Promise<void> {
+    await this.checkAuth();
+    await this.delay(500);
+    // Mock implementation - just simulate success
+    console.log('Mock: Profile updated', request);
   }
 }
