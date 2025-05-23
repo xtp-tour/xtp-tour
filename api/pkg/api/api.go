@@ -108,16 +108,16 @@ type Confirmation struct {
 // EventData represents user's input for an event
 type EventData struct {
 	Id              string          `json:"id"`
-	UserId          string          `json:"userId" db:"user_id"`
-	Locations       []string        `json:"locations" validate:"required,min=1" db:"locations"`
-	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" db:"skill_level" enum:"ANY,BEGINNER,INTERMEDIATE,ADVANCED"`
+	UserId          string          `json:"userId"`
+	Locations       []string        `json:"locations" validate:"required,min=1"`
+	SkillLevel      SkillLevel      `json:"skillLevel" validate:"required" enum:"ANY,BEGINNER,INTERMEDIATE,ADVANCED"`
 	Description     string          `json:"description,omitempty" `
-	EventType       EventType       `json:"eventType" validate:"required" db:"event_type" enum:"MATCH,TRAINING"`
-	ExpectedPlayers int             `json:"expectedPlayers" validate:"required" db:"expected_players"`
-	SessionDuration int             `json:"sessionDuration" validate:"required" db:"session_duration" description:"Session duration in minutes"` // in minutes
+	EventType       EventType       `json:"eventType" validate:"required" enum:"MATCH,TRAINING"`
+	ExpectedPlayers int             `json:"expectedPlayers" validate:"required"`
+	SessionDuration int             `json:"sessionDuration" validate:"required" description:"Session duration in minutes"` // in minutes
 	TimeSlots       []string        `json:"timeSlots" validate:"required,min=1" description:"Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	Visibility      EventVisibility `json:"visibility" validate:"required" enum:"PUBLIC,PRIVATE"`
-	ExpirationTime  string          `json:"expirationTime" db:"expiration_time" description:"Expiration time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
+	ExpirationTime  string          `json:"expirationTime" description:"Expiration time in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 }
 
 // Event represents an internal representation of an event
@@ -194,4 +194,45 @@ type GetLocationRequest struct {
 
 type ListPublicEventsRequest struct {
 	Joined bool `query:"joined"`
+}
+
+type GetUserProfileRequest struct {
+	UserId string `path:"user" validate:"required"`
+}
+
+type GetMyProfileRequest struct {
+	// No parameters needed - user ID comes from auth context
+}
+
+type GetUserProfileResponse struct {
+	Profile *UserProfileData `json:"profile"`
+}
+
+type CreateUserProfileRequest struct {
+	FirstName     string  `json:"firstName"`
+	LastName      string  `json:"lastName"`
+	Username      string  `json:"username"`
+	NTRPLevel     float64 `json:"ntrpLevel"`
+	PreferredCity string  `json:"preferredCity"`
+}
+
+type CreateUserProfileResponse struct {
+	Profile *UserProfileData `json:"profile"`
+}
+
+type UpdateUserProfileRequest struct {
+	UserProfileData
+}
+
+type UpdateUserProfileResponse struct {
+	Profile *UserProfileData `json:"profile"`
+}
+
+type UserProfileData struct {
+	UserId        string  `json:"userId"`
+	FirstName     string  `json:"firstName"`
+	LastName      string  `json:"lastName"`
+	Username      string  `json:"username"`
+	NTRPLevel     float64 `json:"ntrpLevel"`
+	PreferredCity string  `json:"preferredCity"`
 }

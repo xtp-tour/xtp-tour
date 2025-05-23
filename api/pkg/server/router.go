@@ -117,6 +117,12 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 
 	authMiddleware := auth.CreateAuthMiddleware(authConf)
 
+	profiles := api.Group("/profiles", "Profiles", "Profiles operations", authMiddleware)
+	profiles.GET("/me", []fizz.OperationOption{fizz.Summary("Get user profile")}, tonic.Handler(r.getMyProfileHandler, http.StatusOK))
+	profiles.GET("/:user", []fizz.OperationOption{fizz.Summary("Get user profile")}, tonic.Handler(r.getUserProfileHandler, http.StatusOK))
+	profiles.POST("/", []fizz.OperationOption{fizz.Summary("Create user profile")}, tonic.Handler(r.createUserProfileHandler, http.StatusOK))
+	profiles.PUT("/me", []fizz.OperationOption{fizz.Summary("Update user profile")}, tonic.Handler(r.updateUserProfileHandler, http.StatusOK))
+
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
@@ -581,5 +587,103 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 
 	return &api.EventConfirmationResponse{
 		Confirmation: *confirmation,
+	}, nil
+}
+
+// Profiles
+func (r *Router) getMyProfileHandler(c *gin.Context, req *api.GetMyProfileRequest) (*api.GetUserProfileResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	return r.getUserProfile(c, userId.(string))
+}
+
+func (r *Router) getUserProfileHandler(c *gin.Context, req *api.GetUserProfileRequest) (*api.GetUserProfileResponse, error) {
+	return r.getUserProfile(c, req.UserId)
+}
+
+func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProfileResponse, error) {
+	profile, err := r.db.GetUserProfile(c, userId)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Profile not found",
+			}
+		}
+
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get profile",
+		}
+	}
+
+	return &api.GetUserProfileResponse{
+		Profile: &api.UserProfileData{
+			UserId:        userId,
+			FirstName:     profile.FirstName,
+			LastName:      profile.LastName,
+			Username:      profile.Username,
+			NTRPLevel:     profile.NTRPLevel,
+			PreferredCity: profile.PreferredCity,
+		},
+	}, nil
+}
+
+func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserProfileRequest) (*api.CreateUserProfileResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	profile, err := r.db.CreateUserProfile(c, userId.(string), req)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create profile",
+		}
+	}
+
+	return &api.CreateUserProfileResponse{
+		Profile: profile,
+	}, nil
+}
+
+func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserProfileRequest) (*api.UpdateUserProfileResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	profile, err := r.db.UpdateUserProfile(context.Background(), userId.(string), &req.UserProfileData)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Profile not found",
+			}
+		}
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to update profile",
+		}
+	}
+
+	return &api.UpdateUserProfileResponse{
+		Profile: profile,
 	}, nil
 }

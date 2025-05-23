@@ -470,6 +470,261 @@ func Test_LocationsAPI(t *testing.T) {
 	})
 }
 
+// Test Profile API endpoints
+func Test_ProfileAPI(t *testing.T) {
+	timestamp := time.Now().UnixNano()
+	testUser := fmt.Sprintf("test-%d", timestamp%1000000) // Keep it short for VARCHAR(36)
+	anotherUser := fmt.Sprintf("user-%d", timestamp%1000000)
+
+	// Test getting profile when it doesn't exist
+	t.Run("GetNonExistentProfile", func(tt *testing.T) {
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			Get(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	// Create a profile
+	t.Run("CreateProfile", func(tt *testing.T) {
+		profileData := api.CreateUserProfileRequest{
+
+			FirstName:     "John",
+			LastName:      "Doe",
+			Username:      fmt.Sprintf("johndoe%d", timestamp),
+			NTRPLevel:     4.5,
+			PreferredCity: "Warsaw",
+		}
+
+		var response api.CreateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetBody(profileData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/profiles/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, "John", response.Profile.FirstName)
+				assert.Equal(tt, "Doe", response.Profile.LastName)
+				assert.Equal(tt, fmt.Sprintf("johndoe%d", timestamp), response.Profile.Username)
+				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
+				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
+			}
+		}
+	})
+
+	// Get own profile
+	t.Run("GetOwnProfile", func(tt *testing.T) {
+		var response api.GetUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, "John", response.Profile.FirstName)
+				assert.Equal(tt, "Doe", response.Profile.LastName)
+				assert.Equal(tt, fmt.Sprintf("johndoe%d", timestamp), response.Profile.Username)
+				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
+				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
+			}
+		}
+	})
+
+	// Update profile
+	t.Run("UpdateProfile", func(tt *testing.T) {
+		profileData := api.UpdateUserProfileRequest{
+			UserProfileData: api.UserProfileData{
+				FirstName:     "Jane",
+				LastName:      "Smith",
+				Username:      fmt.Sprintf("janesmith%d", timestamp),
+				NTRPLevel:     3.5,
+				PreferredCity: "Krakow",
+			},
+		}
+
+		var response api.UpdateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetBody(profileData).
+			SetResult(&response).
+			Put(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, "Jane", response.Profile.FirstName)
+				assert.Equal(tt, "Smith", response.Profile.LastName)
+				assert.Equal(tt, fmt.Sprintf("janesmith%d", timestamp), response.Profile.Username)
+				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
+				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
+			}
+		}
+	})
+
+	// Verify profile was updated
+	t.Run("GetUpdatedProfile", func(tt *testing.T) {
+		var response api.GetUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, "Jane", response.Profile.FirstName)
+				assert.Equal(tt, "Smith", response.Profile.LastName)
+				assert.Equal(tt, fmt.Sprintf("janesmith%d", timestamp), response.Profile.Username)
+				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
+				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
+			}
+		}
+	})
+
+	// Create another user's profile for testing profile lookup
+	t.Run("CreateAnotherUserProfile", func(tt *testing.T) {
+		profileData := api.CreateUserProfileRequest{
+
+			FirstName:     "Bob",
+			LastName:      "Johnson",
+			Username:      fmt.Sprintf("bobjohnson%d", timestamp),
+			NTRPLevel:     5.0,
+			PreferredCity: "Gdansk",
+		}
+
+		var response api.CreateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", anotherUser).
+			SetBody(profileData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/profiles/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, anotherUser, response.Profile.UserId)
+				assert.Equal(tt, "Bob", response.Profile.FirstName)
+			}
+		}
+	})
+
+	// Get another user's profile by user ID
+	t.Run("GetOtherUserProfile", func(tt *testing.T) {
+		var response api.GetUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/profiles/" + anotherUser)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, anotherUser, response.Profile.UserId)
+				assert.Equal(tt, "Bob", response.Profile.FirstName)
+				assert.Equal(tt, "Johnson", response.Profile.LastName)
+				assert.Equal(tt, fmt.Sprintf("bobjohnson%d", timestamp), response.Profile.Username)
+				assert.Equal(tt, 5.0, response.Profile.NTRPLevel)
+				assert.Equal(tt, "Gdansk", response.Profile.PreferredCity)
+			}
+		}
+	})
+
+	// Test getting profile of non-existent user
+	t.Run("GetNonExistentUserProfile", func(tt *testing.T) {
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			Get(tConfig.ServiceHost + "/api/profiles/non-existent-user")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	// Test updating profile with invalid NTRP level
+	t.Run("UpdateProfileInvalidNTRP", func(tt *testing.T) {
+		profileData := api.UpdateUserProfileRequest{
+			UserProfileData: api.UserProfileData{
+				FirstName:     "Invalid",
+				LastName:      "NTRP",
+				Username:      fmt.Sprintf("invalidntrp%d", timestamp),
+				NTRPLevel:     10.0, // Invalid - NTRP should be 1.0-7.0
+				PreferredCity: "Test City",
+			},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", testUser).
+			SetBody(profileData).
+			Put(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			// Database constraint should reject invalid NTRP level (10.0 is outside 1.0-7.0 range)
+			assert.Equal(tt, http.StatusInternalServerError, r.StatusCode(),
+				"Invalid NTRP level should result in database constraint error. Response body: %s", string(r.Body()))
+		}
+	})
+
+	// Test updating profile of non-existent user
+	t.Run("UpdateNonExistentUserProfile", func(tt *testing.T) {
+		profileData := api.UpdateUserProfileRequest{
+			UserProfileData: api.UserProfileData{
+				FirstName:     "Non",
+				LastName:      "Existent",
+				Username:      fmt.Sprintf("nonexistent%d", timestamp),
+				NTRPLevel:     3.0,
+				PreferredCity: "No City",
+			},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", "non-existent-user-123").
+			SetBody(profileData).
+			Put(tConfig.ServiceHost + "/api/profiles/me")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusNotFound, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+		}
+	})
+
+	// Test creating profile with minimal data (within valid constraints)
+	t.Run("CreateProfileMinimalData", func(tt *testing.T) {
+		testUserMinimal := fmt.Sprintf("min-%d", timestamp%1000000)
+		profileData := api.CreateUserProfileRequest{
+
+			FirstName:     "",
+			LastName:      "",
+			Username:      fmt.Sprintf("min%d", timestamp%1000000), // Minimal but unique username
+			NTRPLevel:     1.0,                                     // Minimum valid NTRP level
+			PreferredCity: "",
+		}
+
+		var response api.CreateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", testUserMinimal).
+			SetBody(profileData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/profiles/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Profile) {
+				assert.Equal(tt, testUserMinimal, response.Profile.UserId)
+			}
+		}
+	})
+}
+
 func Test_CancelJoinRequest(t *testing.T) {
 	usrOwner := "join-event-owner"
 	usrJoiner := "join-event-joiner"
