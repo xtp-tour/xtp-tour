@@ -54,3 +54,5 @@ ehthumbs.db
 Thumbs.db
 api/bin
 .tmp
+
+frontend/coverage
