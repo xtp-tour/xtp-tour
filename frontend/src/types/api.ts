@@ -9,6 +9,7 @@ export type ApiEventType = components['schemas']['ApiEventData']['eventType'];
 export type ApiVisibility = components['schemas']['ApiEventData']['visibility'];
 export type ApiLocation = components['schemas']['ApiLocation'];
 export type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
+export type ApiUserProfileData = components['schemas']['ApiUserProfileData'];
 
 // Response types
 export type ListEventsResponse = components['schemas']['ApiListEventsResponse'];
@@ -17,6 +18,9 @@ export type GetEventResponse = components['schemas']['ApiGetEventResponse'];
 export type ConfirmEventResponse = components['schemas']['ApiEventConfirmationResponse'];
 export type JoinRequestResponse = components['schemas']['ApiJoinRequestResponse'];
 export type ListLocationsResponse = components['schemas']['ApiListLocationsResponse'];
+export type GetUserProfileResponse = components['schemas']['ApiGetUserProfileResponse'];
+export type CreateUserProfileResponse = components['schemas']['ApiCreateUserProfileResponse'];
+export type UpdateUserProfileResponse = components['schemas']['ApiUpdateUserProfileResponse'];
 
 // Request types
 export type CreateEventRequest = {
@@ -29,6 +33,9 @@ export type JoinEventRequest = {
   joinRequest: components['schemas']['ApiJoinRequestData'];
 };
 
+export type CreateUserProfileRequest = components['schemas']['CreateUserProfileHandler-FmInput'];
+export type UpdateUserProfileRequest = components['schemas']['UpdateUserProfileHandler-FmInput'];
+
 export interface APIError {
   message: string;
   status: number;
@@ -39,21 +46,13 @@ export interface APIConfig {
   getAuthToken(): Promise<string | undefined>;
 }
 
+// Legacy types for backward compatibility - these will be removed once all components are updated
 export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
   username?: string;
   ntrpLevel: number;
   preferredCity: string;
-}
-
-export interface GetUserProfileResponse {
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  ntrpLevel?: number;
-  preferredCity?: string;
-  profileComplete: boolean;
 }
 
 export interface APIClient {
@@ -74,5 +73,10 @@ export interface APIClient {
 
   // Profile endpoints
   getUserProfile(): Promise<GetUserProfileResponse>;
+  getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse>;
+  createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
+  updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
+  
+  // Legacy profile methods for backward compatibility
   updateProfile(request: UpdateProfileRequest): Promise<void>;
 }

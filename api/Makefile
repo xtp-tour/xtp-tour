@@ -43,3 +43,25 @@ servicetest.run:
 servicetest.build:
 	env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
 
+str:
+	@bash -c '\
+	set -e; \
+	cleanup() { \
+		echo "Cleaning up..."; \
+		kill $$SERVER_PID 2>/dev/null || true; \
+		docker stop xtp-tour-stest-db 2>/dev/null || true; \
+		docker rm xtp-tour-stest-db 2>/dev/null || true; \
+	}; \
+	trap cleanup EXIT; \
+	echo "Starting database container..."; \
+	docker run -d --name xtp-tour-stest-db -p 53306:3306 -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=xtp_tour mysql:9.3.0; \
+	echo "Running migrations..."; \
+	go run cmd/server/main.go migrate; \
+	echo "Starting server in background..."; \
+	AUTH_TYPE=debug LOG_LEVEL=debug DB_PORT=53306 SERVICE_PORT=58080 METRICS_PORT=51025 go run cmd/server/main.go & \
+	SERVER_PID=$$!; \
+	echo "Waiting for server to start..."; \
+	sleep 2; \
+	echo "Running service tests..."; \
+	SERVICE_HOST=http://localhost:58080 METRICS_HOST=http://localhost:51025 go test ./test/stest -tags servicetest -v -count=1; \
+	'

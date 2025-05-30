@@ -158,6 +158,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profiles/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create user profile */
+        post: operations["createUserProfileHandler-fm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profiles/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user profile */
+        get: operations["getMyProfileHandler-fm"];
+        /** Update user profile */
+        put: operations["updateUserProfileHandler-fm"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profiles/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user profile */
+        get: operations["getUserProfileHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ping": {
         parameters: {
             query?: never;
@@ -206,6 +258,9 @@ export interface components {
         };
         ApiCreateEventResponse: {
             event?: components["schemas"]["ApiEvent"];
+        };
+        ApiCreateUserProfileResponse: {
+            profile?: components["schemas"]["ApiUserProfileData"];
         };
         ApiEvent: {
             confirmation?: components["schemas"]["ApiConfirmation"];
@@ -268,6 +323,9 @@ export interface components {
         ApiGetEventResponse: {
             event?: components["schemas"]["ApiEvent"];
         };
+        ApiGetUserProfileResponse: {
+            profile?: components["schemas"]["ApiUserProfileData"];
+        };
         ApiHealthResponse: {
             message?: string;
             service?: string;
@@ -313,6 +371,18 @@ export interface components {
             id?: string;
             name?: string;
         };
+        ApiUpdateUserProfileResponse: {
+            profile?: components["schemas"]["ApiUserProfileData"];
+        };
+        ApiUserProfileData: {
+            firstName?: string;
+            lastName?: string;
+            /** Format: double */
+            ntrpLevel?: number;
+            preferredCity?: string;
+            userId?: string;
+            username?: string;
+        };
         "ConfirmEvent-FmInput": {
             /**
              * Format: date
@@ -325,8 +395,25 @@ export interface components {
         "CreateEventHandler-FmInput": {
             event: components["schemas"]["ApiEventData"];
         };
+        "CreateUserProfileHandler-FmInput": {
+            firstName?: string;
+            lastName?: string;
+            /** Format: double */
+            ntrpLevel?: number;
+            preferredCity?: string;
+            username?: string;
+        };
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
+        };
+        "UpdateUserProfileHandler-FmInput": {
+            firstName?: string;
+            lastName?: string;
+            /** Format: double */
+            ntrpLevel?: number;
+            preferredCity?: string;
+            userId?: string;
+            username?: string;
         };
     };
     responses: never;
@@ -574,6 +661,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiListLocationsResponse"];
+                };
+            };
+        };
+    };
+    "createUserProfileHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateUserProfileHandler-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiCreateUserProfileResponse"];
+                };
+            };
+        };
+    };
+    "getMyProfileHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiGetUserProfileResponse"];
+                };
+            };
+        };
+    };
+    "updateUserProfileHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserProfileHandler-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiUpdateUserProfileResponse"];
+                };
+            };
+        };
+    };
+    "getUserProfileHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiGetUserProfileResponse"];
                 };
             };
         };
