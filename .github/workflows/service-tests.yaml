@@ -77,7 +77,7 @@ jobs:
           echo "Waiting for server to start..."
           sleep 3
           # Check if server is responding
-          curl -f http://localhost:58080/health || (echo "Server health check failed" && exit 1)
+          curl -f http://localhost:58080/ping || (echo "Server health check failed" && exit 1)
 
       - name: Run service tests
         env:
