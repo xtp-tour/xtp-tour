@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse } from '../types/api';
+import { APIConfig, ListEventsResponse, UpdateProfileRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -292,6 +292,13 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
+
+  // Profile endpoints
+  getUserProfile(): Promise<GetUserProfileResponse>;
+  getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse>;
+  createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
+  updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
+  updateProfile(request: UpdateProfileRequest): Promise<void>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -654,5 +661,66 @@ export class MockAPIClient implements APIClient {
     responseData?: string;
   }): Promise<void> {
     this.errorReporter.report(error, extraInfo);
+  }
+
+  async getUserProfile(): Promise<GetUserProfileResponse> {
+    await this.checkAuth();
+    await this.delay(300);
+    // Mock implementation - simulate profile doesn't exist
+    return {
+      profile: undefined
+    };
+  }
+
+  async getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse> {
+    await this.delay(300);
+    // Mock implementation - return mock profile data
+    return {
+      profile: {
+        userId: userId,
+        firstName: `User`,
+        lastName: `${userId.slice(-4)}`,
+        ntrpLevel: 3.0,
+        preferredCity: 'Mock City'
+      }
+    };
+  }
+
+  async createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse> {
+    await this.checkAuth();
+    await this.delay(500);
+    // Mock implementation - simulate successful profile creation
+    return {
+      profile: {
+        userId: 'current_user',
+        firstName: request.firstName,
+        lastName: request.lastName,
+        ntrpLevel: request.ntrpLevel,
+        preferredCity: request.preferredCity
+      }
+    };
+  }
+
+  async updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> {
+    await this.checkAuth();
+    await this.delay(500);
+    // Mock implementation - simulate successful profile update
+    return {
+      profile: {
+        userId: 'current_user',
+        firstName: request.firstName,
+        lastName: request.lastName,
+        ntrpLevel: request.ntrpLevel,
+        preferredCity: request.preferredCity
+      }
+    };
+  }
+
+  // Legacy method for backward compatibility
+  async updateProfile(request: UpdateProfileRequest): Promise<void> {
+    await this.checkAuth();
+    await this.delay(500);
+    // Mock implementation - just simulate success
+    console.log('Mock: Profile updated', request);
   }
 }

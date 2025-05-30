@@ -3,6 +3,11 @@ CREATE TABLE IF NOT EXISTS users (
     phone_number VARCHAR(15) NOT NULL,
     country VARCHAR(3) NOT NULL,
     external_id VARCHAR(255),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),    
+    profile_picture_url VARCHAR(512),
+    ntrp_level DECIMAL(2,1) CHECK (ntrp_level >= 1.0 AND ntrp_level <= 7.0),
+    preferred_city VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -7,17 +7,11 @@ import { Tooltip, Toast } from 'bootstrap';
 import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDuration } from '../utils/dateUtils';
+import { generateTimeSlots, DateTimeSlot } from '../utils/timeSlotUtils';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
 type SingleDoubleType = 'SINGLE' | 'DOUBLES';
-
-interface DateTimeSlot {
-  id: number;
-  date: string;
-  timeFrom: string;
-  timeTo: string;
-}
 
 const MATCH_DURATION_OPTIONS = [
   { value: '1', label: formatDuration(60) },
@@ -43,10 +37,6 @@ const calculateEndTime = (startTime: string, duration: string): string => {
   const endMinutes = totalMinutes % 60;
   
   return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-};
-
-const formatDateTime = (date: string, time: string): string => {
-  return `${date}T${time}:00.000Z`;
 };
 
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
@@ -286,19 +276,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     }
 
     try {
-      const timeSlots: string[] = [];
-      for (const slot of dateSlots) {
-        const cur = new Date(formatDateTime(slot.date, slot.timeFrom));
-        const durationMins  = (parseFloat(sessionDuration)/0.5)*30;
-
-        const end = new Date(formatDateTime(slot.date, slot.timeTo));
-        end.setMinutes(end.getMinutes() - durationMins);
-        
-        while (cur <= end) {
-          timeSlots.push(cur.toISOString());
-          cur.setMinutes(cur.getMinutes() + 30);
-        }            
-      }
+      const timeSlots = generateTimeSlots(dateSlots, parseFloat(sessionDuration));
 
       const request: CreateEventRequest = {
         event: {

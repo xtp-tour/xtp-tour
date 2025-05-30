@@ -1,5 +1,6 @@
 import React from 'react';
 import { components } from '../../types/schema';
+import UserDisplay from '../UserDisplay';
 
 type ApiJoinRequest = components['schemas']['ApiJoinRequest'];
 
@@ -22,7 +23,11 @@ const JoinedUsers: React.FC<JoinedUsersProps> = ({ joinRequests }) => {
       <ul className="mt-2 space-y-2">
         {joinedUsers.map(user => (
           <li key={user.id} className="flex items-center">
-            <span className="text-gray-700">{user.userId}</span>
+            <UserDisplay 
+              userId={user.userId || ''} 
+              className="text-gray-700"
+              fallback="Unknown Player"
+            />
             {user.comment && (
               <span className="ml-2 text-sm text-gray-500">
                 <i className="bi bi-chat-dots mr-1"></i>

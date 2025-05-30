@@ -3,6 +3,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { components } from '../types/schema';
 import { MockAPIClient } from './mockApi';
 import { RealAPIClient } from './realApi';
+import { APIClient, APIConfig } from '../types/api';
 
 // Define types based on the schema
 export type Event = components['schemas']['ApiEvent'];
@@ -24,31 +25,6 @@ export type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
 export type JoinEventRequest = {
   joinRequest: components['schemas']['ApiJoinRequestData'];
 };
-
-export interface APIConfig {
-  baseUrl: string;
-  getAuthToken(): Promise<string | undefined>;
-}
-
-export interface APIClient {
-  // Event endpoints
-  createEvent(request: CreateEventRequest): Promise<Event>;
-  deleteEvent(id: string): Promise<void>;
-  getEvent(id: string): Promise<Event>;
-  getPublicEvent(id: string): Promise<Event>;
-  confirmEvent(eventId: string, request: ConfirmEventRequest): Promise<EventConfirmation>;
-  listEvents(): Promise<ListEventsResponse>;
-  joinEvent(eventId: string, request: JoinEventRequest): Promise<JoinRequest>;
-  listPublicEvents(): Promise<ListEventsResponse>;
-  listJoinedEvents(): Promise<ListEventsResponse>;
-  cancelJoinRequest(eventId: string, joinRequestId: string): Promise<void>;
-
-  // Location endpoints
-  listLocations(): Promise<Location[]>;
-
-  // Error reporting
-  reportError(error: Error): Promise<void>;
-}
 
 const APIContext = createContext<APIClient | null>(null);
 
@@ -89,9 +65,4 @@ export function useAPI(): APIClient {
     throw new Error('useAPI must be used within an APIProvider');
   }
   return client;
-}
-
-export interface APIConfig {
-  baseUrl: string;
-  getAuthToken(): Promise<string | undefined>;
 }

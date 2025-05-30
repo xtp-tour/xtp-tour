@@ -1,74 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { SignInButton, useUser } from '@clerk/clerk-react';
+import React, { useState, useEffect } from 'react';
 import { useAPI } from '../services/apiProvider';
-import { components } from '../types/schema';
-import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot } from './event/types';
+import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
+import BaseEventItem from './event/BaseEventItem';
+import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
-
-type Event = components['schemas']['ApiEvent'];
+import UserDisplay from './UserDisplay';
 
 interface Props {
   onEventJoined?: () => void;
 }
 
-const transformEvent = (event: Event): Event => ({
-  ...event,
-  timeSlots: event.timeSlots.map(ts => ts),
-  createdAt: event.createdAt || new Date().toISOString()
-});
-
 const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const api = useAPI();
-  const { isSignedIn } = useUser();
+  const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [joinedEventIds, setJoinedEventIds] = useState<Set<string>>(new Set());
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const fetchEvents = async () => {
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const [publicRes, joinedRes] = await Promise.all([
-        api.listPublicEvents(),
-        api.listJoinedEvents()
-      ]);
-      const availableEvents = publicRes.events?.map(transformEvent) || [];
-      setEvents(availableEvents);
-      setJoinedEventIds(new Set((joinedRes.events || []).map(e => e.id).filter((id): id is string => !!id)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load events');
+      const response = await api.listPublicEvents();
+      setEvents(response.events || []);
+    } catch {
+      setError('Failed to load events');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, [api]);
-
-  const handleJoin = (event: Event) => {
+  const handleJoinEvent = (event: ApiEvent) => {
     setSelectedEvent(event);
     setShowJoinModal(true);
   };
 
   const handleJoined = () => {
     setShowJoinModal(false);
-    setSelectedEvent(null);
-    // Refresh the list to show the updated state
-    fetchEvents();
-    // Notify parent component
-    onEventJoined?.();
+    loadEvents(); // Refresh the list
+    if (onEventJoined) {
+      onEventJoined();
+    }
   };
 
   if (loading) {
     return (
-      <div className="mt-4 text-center">
-        <div className="spinner-border text-primary" role="status">
+      <div className="text-center">
+        <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -76,67 +59,56 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   }
 
   if (error) {
-    return (
-      <div className="mt-4 alert alert-danger" role="alert">
-        {error}
-      </div>
-    );
+    return <div className="alert alert-danger">{error}</div>;
   }
 
   if (events.length === 0) {
     return (
-      <div className="mt-4">
-        <p className="text-muted text-center">No available events at the moment.</p>
+      <div className="text-center text-muted py-5">
+        <i className="bi bi-calendar-x fs-1 mb-3"></i>
+        <h5>No public events available</h5>
+        <p>Check back later for new events!</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-4">
+    <div>
+      <h3 className="mb-4">Available Events</h3>
       {events.map(event => {
-        const timeSlots: TimeSlot[] = event.timeSlots.map(slot => ({
-          date: moment(slot),
-          isAvailable: true,
-          isSelected: false
-        }));
+        // Convert event time slots to the format expected by BaseEventItem
+        const timeSlots: TimeSlot[] = event.timeSlots.map(slot => 
+          timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
+        );
 
-        const alreadyJoined = event.id && joinedEventIds.has(event.id);
-
-        const actionButton = isSignedIn ? alreadyJoined ? {
-          variant: 'outline-secondary',
-          icon: 'bi-check-circle',
-          label: 'Already Joined',
-          onClick: undefined,
-          disabled: true
-        } : {
+        // Get action button for joining
+        const getActionButton = () => ({
           variant: 'outline-primary',
           icon: 'bi-plus-circle',
-          label: 'Join',
-          onClick: () => handleJoin(event)
-        } : {
-          variant: 'outline-primary',
-          icon: 'bi-box-arrow-in-right',
-          label: 'Sign in to respond',
-          customButton: (
-            <SignInButton mode="modal">
-              <button className="btn btn-outline-primary" style={{ minWidth: '100px' }}>
-                <i className="bi bi-box-arrow-in-right me-2"></i>
-                Sign in to respond
-              </button>
-            </SignInButton>
-          )
-        };
+          label: 'Join Event',
+          onClick: () => handleJoinEvent(event)
+        });
 
         return (
           <BaseEventItem
             key={event.id}
             event={event}
-            headerTitle={event.userId || 'Unknown User'}            
+            headerTitle="Public Event"
+            headerSubtitle={
+              <div className="d-flex align-items-center">
+                <span className="me-2">
+                  Host: <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                </span>
+                <span className="badge bg-secondary">
+                  {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
+                </span>
+              </div>
+            }
             colorClass="text-primary"
             borderColorClass="border-primary"
             timeSlots={timeSlots}
             timestamp={moment(event.createdAt)}
-            actionButton={actionButton}
+            actionButton={getActionButton()}
             defaultCollapsed={true}
           />
         );

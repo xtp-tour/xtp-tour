@@ -4,6 +4,7 @@ import EventLocations from './EventLocations';
 import EventTimeSlots from './EventTimeSlots';
 import EventDescription from './EventDescription';
 import JoinedUsers from './JoinedUsers';
+import UserDisplay from '../UserDisplay';
 import { StyleProps, TimeSlot } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
@@ -97,7 +98,12 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
               <tbody>
                 {event.joinRequests.map(jr => (
                   <tr key={jr.id}>
-                    <td>{jr.userId || 'Unknown'}</td>
+                    <td>
+                      <UserDisplay 
+                        userId={jr.userId || ''} 
+                        fallback="Unknown User"
+                      />
+                    </td>
                     <td>
                       {jr.isRejected === false ? (
                         <span className="badge bg-success">Accepted</span>

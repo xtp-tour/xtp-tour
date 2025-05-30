@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import EventList from "./components/EventList";
 import PublicEventList from "./components/PublicEventList";
 import CreateEvent from "./components/CreateEvent";
+import { ProfileSetup } from './components/ProfileSetup';
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -44,9 +45,22 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-function App() {
-  const [refreshKey, setRefreshKey] = useState(0);
+const AuthenticatedContent = () => {
+  const [profileComplete, setProfileComplete] = useState(false);
 
+  if (!profileComplete) {
+    return <ProfileSetup onComplete={() => setProfileComplete(true)} />;
+  }
+
+  return (
+    <>
+      <CreateEvent onEventCreated={() => {}} />
+      <EventList />
+    </>
+  );
+};
+
+function App() {
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <APIProvider useMock={false}>
@@ -56,8 +70,7 @@ function App() {
               <Route path="/" element={
                 <Layout>
                   <SignedIn>
-                    <CreateEvent onEventCreated={() => setRefreshKey(prev => prev + 1)} />
-                    <EventList key={refreshKey} />                    
+                    <AuthenticatedContent />
                   </SignedIn>
                   <SignedOut>
                     <PublicEventList />

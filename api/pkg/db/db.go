@@ -773,3 +773,72 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 
 	return joinRequest, nil
 }
+
+func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfileData, error) {
+	query := `SELECT uid, first_name, last_name, ntrp_level, preferred_city FROM users WHERE uid = ?`
+	slog.Debug("Executing SQL query", "query", query, "params", userId)
+
+	row := db.conn.QueryRowContext(ctx, query, userId)
+
+	var profile api.UserProfileData
+	err := row.Scan(
+		&profile.UserId,
+		&profile.FirstName,
+		&profile.LastName,
+		&profile.NTRPLevel,
+		&profile.PreferredCity,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, DbObjectNotFoundError{Message: "Profile not found"}
+		}
+		slog.Error("Failed to get user profile", "error", err, "userId", userId)
+		return nil, err
+	}
+	return &profile, nil
+}
+
+func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api.CreateUserProfileRequest) (*api.UserProfileData, error) {
+	query := `INSERT INTO users (uid, first_name, last_name, ntrp_level, preferred_city) 
+		VALUES (?, ?, ?, ?, ?)`
+
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity})
+	_, err := db.conn.ExecContext(ctx, query, userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity)
+	if err != nil {
+		slog.Error("Failed to create user profile", "error", err, "userId", userId)
+		return nil, err
+	}
+
+	// Set the userId and return the profile
+	return &api.UserProfileData{
+		UserId:        userId,
+		FirstName:     profile.FirstName,
+		LastName:      profile.LastName,
+		NTRPLevel:     profile.NTRPLevel,
+		PreferredCity: profile.PreferredCity,
+	}, nil
+}
+
+func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api.UserProfileData) (*api.UserProfileData, error) {
+	query := `UPDATE users SET first_name = ?, last_name = ?, ntrp_level = ?, preferred_city = ? WHERE uid = ?`
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId})
+	result, err := db.conn.ExecContext(ctx, query, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId)
+	if err != nil {
+		slog.Error("Failed to update user profile", "error", err, "userId", userId)
+		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		slog.Error("Failed to get rows affected", "error", err)
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		return nil, DbObjectNotFoundError{Message: "Profile not found"}
+	}
+
+	// Set the userId and return the profile
+	profile.UserId = userId
+	return profile, nil
+}

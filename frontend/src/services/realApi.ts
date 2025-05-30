@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, UpdateProfileRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
 
 // Debug information interface
 interface DebugInfo {
@@ -274,5 +274,40 @@ export class RealAPIClient {
     responseData?: string;
   }): Promise<void> {
     this.errorReporter.report(error, extraInfo);
+  }
+
+  async getUserProfile(): Promise<GetUserProfileResponse> {
+    return await this.fetch<GetUserProfileResponse>('/api/profiles/me');
+  }
+
+  async getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse> {
+    return await this.fetch<GetUserProfileResponse>(`/api/profiles/${userId}`);
+  }
+
+  async createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse> {
+    return await this.fetch<CreateUserProfileResponse>('/api/profiles/', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> {
+    return await this.fetch<UpdateUserProfileResponse>('/api/profiles/me', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
+  }
+
+  // Legacy method for backward compatibility - will be removed once all components are updated
+  async updateProfile(request: UpdateProfileRequest): Promise<void> {
+    // Convert legacy request to new format
+    const updateRequest: UpdateUserProfileRequest = {
+      firstName: request.firstName,
+      lastName: request.lastName,
+      ntrpLevel: request.ntrpLevel,
+      preferredCity: request.preferredCity,
+    };
+    
+    await this.updateUserProfile(updateRequest);
   }
 }

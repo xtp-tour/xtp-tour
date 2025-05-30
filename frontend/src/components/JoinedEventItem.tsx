@@ -6,6 +6,7 @@ import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
+import UserDisplay from './UserDisplay';
 
 interface Props {
   event: ApiEvent;
@@ -135,8 +136,17 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle={event.userId || ''}
-        headerSubtitle={getJoinRequestStatus()}
+        headerTitle="Joined Event"
+        headerSubtitle={
+          <div className="d-flex align-items-center flex-column align-items-start">
+            <div>
+              Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
+            </div>
+            <div className="text-muted small">
+              {getJoinRequestStatus()}
+            </div>
+          </div>
+        }
         colorClass={colorClass}
         borderColorClass={borderColorClass}
         timeSlots={timeSlots}
