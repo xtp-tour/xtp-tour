@@ -680,7 +680,6 @@ export class MockAPIClient implements APIClient {
         userId: userId,
         firstName: `User`,
         lastName: `${userId.slice(-4)}`,
-        username: `user_${userId.slice(-4)}`,
         ntrpLevel: 3.0,
         preferredCity: 'Mock City'
       }
@@ -696,7 +695,6 @@ export class MockAPIClient implements APIClient {
         userId: 'current_user',
         firstName: request.firstName,
         lastName: request.lastName,
-        username: request.username,
         ntrpLevel: request.ntrpLevel,
         preferredCity: request.preferredCity
       }
@@ -712,7 +710,6 @@ export class MockAPIClient implements APIClient {
         userId: 'current_user',
         firstName: request.firstName,
         lastName: request.lastName,
-        username: request.username,
         ntrpLevel: request.ntrpLevel,
         preferredCity: request.preferredCity
       }

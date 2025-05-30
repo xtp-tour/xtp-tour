@@ -629,7 +629,6 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 			UserId:        userId,
 			FirstName:     profile.FirstName,
 			LastName:      profile.LastName,
-			Username:      profile.Username,
 			NTRPLevel:     profile.NTRPLevel,
 			PreferredCity: profile.PreferredCity,
 		},

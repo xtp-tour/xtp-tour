@@ -304,7 +304,6 @@ export class RealAPIClient {
     const updateRequest: UpdateUserProfileRequest = {
       firstName: request.firstName,
       lastName: request.lastName,
-      username: request.username,
       ntrpLevel: request.ntrpLevel,
       preferredCity: request.preferredCity,
     };

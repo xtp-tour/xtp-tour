@@ -493,7 +493,6 @@ func Test_ProfileAPI(t *testing.T) {
 
 			FirstName:     "John",
 			LastName:      "Doe",
-			Username:      fmt.Sprintf("johndoe%d", timestamp),
 			NTRPLevel:     4.5,
 			PreferredCity: "Warsaw",
 		}
@@ -511,7 +510,6 @@ func Test_ProfileAPI(t *testing.T) {
 				assert.Equal(tt, testUser, response.Profile.UserId)
 				assert.Equal(tt, "John", response.Profile.FirstName)
 				assert.Equal(tt, "Doe", response.Profile.LastName)
-				assert.Equal(tt, fmt.Sprintf("johndoe%d", timestamp), response.Profile.Username)
 				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
 				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
 			}
@@ -532,7 +530,6 @@ func Test_ProfileAPI(t *testing.T) {
 				assert.Equal(tt, testUser, response.Profile.UserId)
 				assert.Equal(tt, "John", response.Profile.FirstName)
 				assert.Equal(tt, "Doe", response.Profile.LastName)
-				assert.Equal(tt, fmt.Sprintf("johndoe%d", timestamp), response.Profile.Username)
 				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
 				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
 			}
@@ -545,7 +542,6 @@ func Test_ProfileAPI(t *testing.T) {
 			UserProfileData: api.UserProfileData{
 				FirstName:     "Jane",
 				LastName:      "Smith",
-				Username:      fmt.Sprintf("janesmith%d", timestamp),
 				NTRPLevel:     3.5,
 				PreferredCity: "Krakow",
 			},
@@ -564,7 +560,6 @@ func Test_ProfileAPI(t *testing.T) {
 				assert.Equal(tt, testUser, response.Profile.UserId)
 				assert.Equal(tt, "Jane", response.Profile.FirstName)
 				assert.Equal(tt, "Smith", response.Profile.LastName)
-				assert.Equal(tt, fmt.Sprintf("janesmith%d", timestamp), response.Profile.Username)
 				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
 				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
 			}
@@ -585,7 +580,6 @@ func Test_ProfileAPI(t *testing.T) {
 				assert.Equal(tt, testUser, response.Profile.UserId)
 				assert.Equal(tt, "Jane", response.Profile.FirstName)
 				assert.Equal(tt, "Smith", response.Profile.LastName)
-				assert.Equal(tt, fmt.Sprintf("janesmith%d", timestamp), response.Profile.Username)
 				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
 				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
 			}
@@ -598,7 +592,6 @@ func Test_ProfileAPI(t *testing.T) {
 
 			FirstName:     "Bob",
 			LastName:      "Johnson",
-			Username:      fmt.Sprintf("bobjohnson%d", timestamp),
 			NTRPLevel:     5.0,
 			PreferredCity: "Gdansk",
 		}
@@ -633,7 +626,6 @@ func Test_ProfileAPI(t *testing.T) {
 				assert.Equal(tt, anotherUser, response.Profile.UserId)
 				assert.Equal(tt, "Bob", response.Profile.FirstName)
 				assert.Equal(tt, "Johnson", response.Profile.LastName)
-				assert.Equal(tt, fmt.Sprintf("bobjohnson%d", timestamp), response.Profile.Username)
 				assert.Equal(tt, 5.0, response.Profile.NTRPLevel)
 				assert.Equal(tt, "Gdansk", response.Profile.PreferredCity)
 			}
@@ -657,7 +649,6 @@ func Test_ProfileAPI(t *testing.T) {
 			UserProfileData: api.UserProfileData{
 				FirstName:     "Invalid",
 				LastName:      "NTRP",
-				Username:      fmt.Sprintf("invalidntrp%d", timestamp),
 				NTRPLevel:     10.0, // Invalid - NTRP should be 1.0-7.0
 				PreferredCity: "Test City",
 			},
@@ -681,7 +672,6 @@ func Test_ProfileAPI(t *testing.T) {
 			UserProfileData: api.UserProfileData{
 				FirstName:     "Non",
 				LastName:      "Existent",
-				Username:      fmt.Sprintf("nonexistent%d", timestamp),
 				NTRPLevel:     3.0,
 				PreferredCity: "No City",
 			},
@@ -704,8 +694,7 @@ func Test_ProfileAPI(t *testing.T) {
 
 			FirstName:     "",
 			LastName:      "",
-			Username:      fmt.Sprintf("min%d", timestamp%1000000), // Minimal but unique username
-			NTRPLevel:     1.0,                                     // Minimum valid NTRP level
+			NTRPLevel:     1.0, // Minimum valid NTRP level
 			PreferredCity: "",
 		}
 

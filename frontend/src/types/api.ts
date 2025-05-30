@@ -50,7 +50,6 @@ export interface APIConfig {
 export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
-  username?: string;
   ntrpLevel: number;
   preferredCity: string;
 }

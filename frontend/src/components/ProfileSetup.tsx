@@ -33,7 +33,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    username: '',
     ntrpLevel: '',
     preferredCity: '',
   });
@@ -62,7 +61,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             ...prev,
             firstName: profile.firstName || user?.firstName || '',
             lastName: profile.lastName || user?.lastName || '',
-            username: profile.username || '',
             ntrpLevel: profile.ntrpLevel?.toString() || '',
             preferredCity: profile.preferredCity || '',
           }));
@@ -106,7 +104,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         await api.updateUserProfile({
           firstName: formData.firstName,
           lastName: formData.lastName,
-          username: formData.username || undefined,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           preferredCity: formData.preferredCity,
         });
@@ -115,7 +112,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         await api.createUserProfile({
           firstName: formData.firstName,
           lastName: formData.lastName,
-          username: formData.username || undefined,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           preferredCity: formData.preferredCity,
         });
@@ -179,20 +175,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                     onChange={handleChange}
                     required
                   />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Username (Optional)</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Choose a username (optional)"
-                  />
-                  <Form.Text className="text-muted">
-                    If not provided, your first and last name will be used for display
-                  </Form.Text>
                 </Form.Group>
 
                 <Form.Group className="mb-3">

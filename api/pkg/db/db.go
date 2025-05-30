@@ -775,7 +775,7 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 }
 
 func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfileData, error) {
-	query := `SELECT uid, first_name, last_name, username, ntrp_level, preferred_city FROM users WHERE uid = ?`
+	query := `SELECT uid, first_name, last_name, ntrp_level, preferred_city FROM users WHERE uid = ?`
 	slog.Debug("Executing SQL query", "query", query, "params", userId)
 
 	row := db.conn.QueryRowContext(ctx, query, userId)
@@ -785,7 +785,6 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		&profile.UserId,
 		&profile.FirstName,
 		&profile.LastName,
-		&profile.Username,
 		&profile.NTRPLevel,
 		&profile.PreferredCity,
 	)
@@ -800,11 +799,11 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 }
 
 func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api.CreateUserProfileRequest) (*api.UserProfileData, error) {
-	query := `INSERT INTO users (uid, first_name, last_name, username, ntrp_level, preferred_city) 
-		VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO users (uid, first_name, last_name, ntrp_level, preferred_city) 
+		VALUES (?, ?, ?, ?, ?)`
 
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{userId, profile.FirstName, profile.LastName, profile.Username, profile.NTRPLevel, profile.PreferredCity})
-	_, err := db.conn.ExecContext(ctx, query, userId, profile.FirstName, profile.LastName, profile.Username, profile.NTRPLevel, profile.PreferredCity)
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity})
+	_, err := db.conn.ExecContext(ctx, query, userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity)
 	if err != nil {
 		slog.Error("Failed to create user profile", "error", err, "userId", userId)
 		return nil, err
@@ -815,16 +814,15 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 		UserId:        userId,
 		FirstName:     profile.FirstName,
 		LastName:      profile.LastName,
-		Username:      profile.Username,
 		NTRPLevel:     profile.NTRPLevel,
 		PreferredCity: profile.PreferredCity,
 	}, nil
 }
 
 func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api.UserProfileData) (*api.UserProfileData, error) {
-	query := `UPDATE users SET first_name = ?, last_name = ?, username = ?, ntrp_level = ?, preferred_city = ? WHERE uid = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{profile.FirstName, profile.LastName, profile.Username, profile.NTRPLevel, profile.PreferredCity, userId})
-	result, err := db.conn.ExecContext(ctx, query, profile.FirstName, profile.LastName, profile.Username, profile.NTRPLevel, profile.PreferredCity, userId)
+	query := `UPDATE users SET first_name = ?, last_name = ?, ntrp_level = ?, preferred_city = ? WHERE uid = ?`
+	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId})
+	result, err := db.conn.ExecContext(ctx, query, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId)
 	if err != nil {
 		slog.Error("Failed to update user profile", "error", err, "userId", userId)
 		return nil, err

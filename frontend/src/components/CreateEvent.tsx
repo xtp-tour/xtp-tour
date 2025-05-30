@@ -288,16 +288,21 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     try {
       const timeSlots: string[] = [];
       for (const slot of dateSlots) {
-        const cur = new Date(formatDateTime(slot.date, slot.timeFrom));
-        const durationMins  = (parseFloat(sessionDuration)/0.5)*30;
-
-        const end = new Date(formatDateTime(slot.date, slot.timeTo));
-        end.setMinutes(end.getMinutes() - durationMins);
+        const sessionDurationMinutes = parseFloat(sessionDuration) * 60; // Convert hours to minutes
         
-        while (cur <= end) {
+        const startTime = new Date(formatDateTime(slot.date, slot.timeFrom));
+        const endTime = new Date(formatDateTime(slot.date, slot.timeTo));
+        
+        // Generate time slots every 30 minutes from start time
+        // Each slot represents a potential session start time
+        // Stop generating slots when there isn't enough time left for a full session
+        const cur = new Date(startTime);
+        const lastPossibleStart = new Date(endTime.getTime() - sessionDurationMinutes * 60 * 1000);
+        
+        while (cur <= lastPossibleStart) {
           timeSlots.push(cur.toISOString());
-          cur.setMinutes(cur.getMinutes() + 30);
-        }            
+          cur.setMinutes(cur.getMinutes() + 30); // 30-minute intervals
+        }
       }
 
       const request: CreateEventRequest = {

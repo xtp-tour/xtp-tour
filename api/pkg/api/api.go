@@ -211,7 +211,6 @@ type GetUserProfileResponse struct {
 type CreateUserProfileRequest struct {
 	FirstName     string  `json:"firstName"`
 	LastName      string  `json:"lastName"`
-	Username      string  `json:"username"`
 	NTRPLevel     float64 `json:"ntrpLevel"`
 	PreferredCity string  `json:"preferredCity"`
 }
@@ -232,7 +231,6 @@ type UserProfileData struct {
 	UserId        string  `json:"userId"`
 	FirstName     string  `json:"firstName"`
 	LastName      string  `json:"lastName"`
-	Username      string  `json:"username"`
 	NTRPLevel     float64 `json:"ntrpLevel"`
 	PreferredCity string  `json:"preferredCity"`
 }

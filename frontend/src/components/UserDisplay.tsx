@@ -51,12 +51,7 @@ export const UserDisplay: React.FC<UserDisplayProps> = ({
       return fallback;
     }
 
-    // If user has a username, use it
-    if (profile.username) {
-      return profile.username;
-    }
-
-    // Otherwise, use first name + last name
+    // Use first name + last name
     if (profile.firstName && profile.lastName) {
       return `${profile.firstName} ${profile.lastName}`;
     }
@@ -64,6 +59,11 @@ export const UserDisplay: React.FC<UserDisplayProps> = ({
     // Fallback to just first name if available
     if (profile.firstName) {
       return profile.firstName;
+    }
+
+    // Fallback to just last name if available
+    if (profile.lastName) {
+      return profile.lastName;
     }
 
     return fallback;
