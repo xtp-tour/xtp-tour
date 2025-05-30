@@ -7,6 +7,11 @@ interface ProfileSetupProps {
   onComplete: () => void;
 }
 
+interface APIError {
+  status?: number;
+  message?: string;
+}
+
 const NTRP_LEVELS = [
   { value: 1.0, label: '1.0 - Beginner' },
   { value: 1.5, label: '1.5 - Advanced Beginner' },
@@ -35,27 +40,45 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [profileExists, setProfileExists] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const profile = await api.getUserProfile();
-        if (profile.profileComplete) {
-          onComplete();
-          return;
+        const response = await api.getUserProfile();
+        if (response.profile) {
+          // Profile exists, check if it's complete
+          const profile = response.profile;
+          const isComplete = profile.firstName && profile.lastName && profile.ntrpLevel && profile.preferredCity;
+          
+          if (isComplete) {
+            onComplete();
+            return;
+          }
+          
+          // Profile exists but is incomplete, pre-populate form
+          setProfileExists(true);
+          setFormData(prev => ({
+            ...prev,
+            firstName: profile.firstName || user?.firstName || '',
+            lastName: profile.lastName || user?.lastName || '',
+            username: profile.username || '',
+            ntrpLevel: profile.ntrpLevel?.toString() || '',
+            preferredCity: profile.preferredCity || '',
+          }));
+        } else {
+          // No profile exists, we'll create one
+          setProfileExists(false);
         }
-        
-        // Pre-populate form with existing data
-        setFormData(prev => ({
-          ...prev,
-          firstName: profile.firstName || user?.firstName || '',
-          lastName: profile.lastName || user?.lastName || '',
-          username: profile.username || '',
-          ntrpLevel: profile.ntrpLevel?.toString() || '',
-          preferredCity: profile.preferredCity || '',
-        }));
-      } catch {
-        // If profile loading fails, continue with empty form
+      } catch (error: unknown) {
+        // If we get a 404, it means profile doesn't exist yet
+        const apiError = error as APIError;
+        if (apiError.status === 404) {
+          setProfileExists(false);
+        } else {
+          console.error('Error loading profile:', error);
+          setProfileExists(false);
+        }
       } finally {
         setInitialLoading(false);
       }
@@ -78,16 +101,29 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     setLoading(true);
 
     try {
-      await api.updateProfile({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        username: formData.username,
-        ntrpLevel: parseFloat(formData.ntrpLevel),
-        preferredCity: formData.preferredCity,
-      });
+      if (profileExists) {
+        // Update existing profile
+        await api.updateUserProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username || undefined,
+          ntrpLevel: parseFloat(formData.ntrpLevel),
+          preferredCity: formData.preferredCity,
+        });
+      } else {
+        // Create new profile
+        await api.createUserProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username || undefined,
+          ntrpLevel: parseFloat(formData.ntrpLevel),
+          preferredCity: formData.preferredCity,
+        });
+      }
       onComplete();
-    } catch {
-      setError('Failed to update profile. Please try again.');
+    } catch (error: unknown) {
+      console.error('Error saving profile:', error);
+      setError('Failed to save profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -118,7 +154,9 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <Col md={8} lg={6}>
           <div className="card shadow">
             <div className="card-body p-4">
-              <h2 className="text-center mb-4">Complete Your Profile</h2>
+              <h2 className="text-center mb-4">
+                {profileExists ? 'Complete Your Profile' : 'Create Your Profile'}
+              </h2>
               {error && <div className="alert alert-danger">{error}</div>}
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">
@@ -153,7 +191,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                     placeholder="Choose a username (optional)"
                   />
                   <Form.Text className="text-muted">
-                    If not provided, your first and last name will be used
+                    If not provided, your first and last name will be used for display
                   </Form.Text>
                 </Form.Group>
 
@@ -192,7 +230,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   className="w-100"
                   disabled={loading}
                 >
-                  {loading ? 'Saving...' : 'Complete Profile'}
+                  {loading ? 'Saving...' : (profileExists ? 'Update Profile' : 'Create Profile')}
                 </Button>
               </Form>
             </div>

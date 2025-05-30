@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo } from 'react';
 import { useAPI } from '../services/apiProvider';
-import type { APIClient } from '../services/mockApi';
+import type { APIClient } from '../types/api';
 
 interface Props {
   children: React.ReactNode;

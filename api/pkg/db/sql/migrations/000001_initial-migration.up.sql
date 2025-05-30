@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     external_id VARCHAR(255),
     first_name VARCHAR(100),
     last_name VARCHAR(100),
-    username VARCHAR(50) UNIQUE,
+    username VARCHAR(50),
     profile_picture_url VARCHAR(512),
     ntrp_level DECIMAL(2,1) CHECK (ntrp_level >= 1.0 AND ntrp_level <= 7.0),
     preferred_city VARCHAR(255),

@@ -13,7 +13,6 @@ type ApiEvent = components['schemas']['ApiEvent'];
 interface EventHeaderProps extends StyleProps {
   title: string;
   subtitle?: string | React.ReactNode;
-  timestamp: moment.Moment;
   actionButton: ActionButton;
   isCollapsed?: boolean;
   timeSlotSummary?: string;
@@ -42,8 +41,6 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   title,
   subtitle,
   colorClass = 'text-primary',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  timestamp,
   actionButton,
   isCollapsed = false,
   timeSlotSummary,

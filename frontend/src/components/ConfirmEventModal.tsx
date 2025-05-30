@@ -3,6 +3,7 @@ import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
 import { formatTimeSlot } from '../utils/dateUtils';
+import UserDisplay from './UserDisplay';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
@@ -347,7 +348,10 @@ export const ConfirmEventModal: React.FC<Props> = ({
                         >
                           <div className="d-flex align-items-center justify-content-between">
                             <div>
-                              <strong>{request.userId}</strong>
+                              <UserDisplay 
+                                userId={request.userId || ''} 
+                                fallback="Unknown Player"
+                              />
                               {request.comment && (
                                 <p className="text-muted mb-0 small">
                                   <i className="bi bi-chat-dots me-1"></i>

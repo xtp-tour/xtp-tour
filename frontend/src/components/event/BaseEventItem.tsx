@@ -66,7 +66,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           title={headerTitle}
           subtitle={headerSubtitle}
           colorClass={colorClass}
-          timestamp={timestamp}
           actionButton={actionButton}
           isCollapsed={isCollapsed}
           timeSlotSummary={formatTimeSlotSummary(timeSlots)}

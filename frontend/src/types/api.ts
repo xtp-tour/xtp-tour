@@ -77,6 +77,15 @@ export interface APIClient {
   createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
   
+  // Error reporting
+  reportError(error: Error, extraInfo?: {
+    apiEndpoint?: string;
+    apiMethod?: string;
+    statusCode?: number;
+    requestData?: unknown;
+    responseData?: string;
+  }): Promise<void>;
+  
   // Legacy profile methods for backward compatibility
   updateProfile(request: UpdateProfileRequest): Promise<void>;
 }
