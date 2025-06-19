@@ -43,6 +43,10 @@ servicetest.run:
 servicetest.build:
 	env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
 
+run-deploy:
+	docker compose -f docker-compose.yaml -f docker-compose.deploy.yml up
+
+
 str:
 	@bash -c '\
 	set -e; \
