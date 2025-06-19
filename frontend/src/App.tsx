@@ -3,6 +3,7 @@ import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserBut
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import EventList from "./components/EventList";
 import PublicEventList from "./components/PublicEventList";
+import PublicEventPage from "./components/PublicEventPage";
 import CreateEvent from "./components/CreateEvent";
 import { ProfileSetup } from './components/ProfileSetup';
 import { APIProvider } from './services/apiProvider';
@@ -77,6 +78,7 @@ function App() {
                   </SignedOut>
                 </Layout>
               } />
+              <Route path="/event/:eventId" element={<PublicEventPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

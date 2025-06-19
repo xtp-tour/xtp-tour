@@ -2,10 +2,24 @@
 
 Xtp tour frontend is a applications for tennis player to find and one time or regular hitting partner.
 
+## Features
 
+### Public Event Sharing
+Users can share their tennis events via unique URLs that can be posted on social networks and messengers. Each public event has a unique link in the format `/event/{eventId}` that allows anyone to view the event details and join if they're signed in.
 
+**Key features:**
+- Unique shareable URLs for each public event
+- Click-to-copy share functionality with toast notifications
+- Responsive design that works on mobile and desktop
+- Support for both signed-in and anonymous users viewing events
+- Easy navigation back to the main events list
 
-
+**How to use:**
+1. Create a public event in the app
+2. Click the share button (📤) on any public event in the list
+3. The event URL will be copied to your clipboard
+4. Share the URL with friends via social media, messaging apps, etc.
+5. Anyone with the link can view the event details and join if they're signed in
 
 Currently, two official plugins are available:
 

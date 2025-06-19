@@ -6,6 +6,7 @@ import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
 import UserDisplay from './UserDisplay';
+import Toast from './Toast';
 
 interface Props {
   onEventJoined?: () => void;
@@ -18,6 +19,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -73,9 +75,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   }
 
   return (
-    <div>
-      <h3 className="mb-4">Available Events</h3>
-      {events.map(event => {
+    <div>      {events.map(event => {
         // Convert event time slots to the format expected by BaseEventItem
         const timeSlots: TimeSlot[] = event.timeSlots.map(slot => 
           timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
@@ -90,27 +90,53 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         });
 
         return (
-          <BaseEventItem
-            key={event.id}
-            event={event}
-            headerTitle="Public Event"
-            headerSubtitle={
-              <div className="d-flex align-items-center">
-                <span className="me-2">
-                  Host: <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                </span>
-                <span className="badge bg-secondary">
-                  {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
-                </span>
-              </div>
-            }
-            colorClass="text-primary"
-            borderColorClass="border-primary"
-            timeSlots={timeSlots}
-            timestamp={moment(event.createdAt)}
-            actionButton={getActionButton()}
-            defaultCollapsed={true}
-          />
+          <div key={event.id} className="position-relative">
+            <div 
+              className="cursor-pointer"
+              onClick={(e) => {
+                // Don't navigate if clicking on the action button
+                if ((e.target as HTMLElement).closest('.btn')) {
+                  return;
+                }
+                window.location.href = `/event/${event.id}`;
+              }}
+            >
+              <BaseEventItem
+                event={event}
+                headerTitle="Public Event"
+                headerSubtitle={
+                  <div className="d-flex align-items-center">
+                    <span className="me-2">
+                      Host: <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                    </span>
+                    <span className="badge bg-secondary">
+                      {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
+                    </span>
+                  </div>
+                }
+                colorClass="text-primary"
+                borderColorClass="border-primary"
+                timeSlots={timeSlots}
+                timestamp={moment(event.createdAt)}
+                actionButton={getActionButton()}
+                defaultCollapsed={true}
+              />
+            </div>
+            <div className="position-absolute top-0 end-0 p-2">
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const eventUrl = `${window.location.origin}/event/${event.id}`;
+                  navigator.clipboard.writeText(eventUrl);
+                  setShowToast(true);
+                }}
+                title="Share event"
+              >
+                <i className="bi bi-share"></i>
+              </button>
+            </div>
+          </div>
         );
       })}
 
@@ -123,6 +149,13 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           onJoined={handleJoined}
         />
       )}
+
+      <Toast
+        message="Event link copied to clipboard!"
+        show={showToast}
+        onHide={() => setShowToast(false)}
+        type="success"
+      />
     </div>
   );
 };

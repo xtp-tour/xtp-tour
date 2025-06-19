@@ -7,6 +7,7 @@ import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
 import UserDisplay from './UserDisplay';
+import Toast from './Toast';
 
 interface Props {
   event: ApiEvent;
@@ -20,6 +21,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   // Find the user's join request
   useEffect(() => {
@@ -132,29 +134,47 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     };
   };
 
+  const handleShareEvent = () => {
+    const eventUrl = `${window.location.origin}/event/${event.id}`;
+    navigator.clipboard.writeText(eventUrl);
+    setShowToast(true);
+  };
+
   return (
     <>
-      <BaseEventItem
-        event={event}
-        headerTitle="Joined Event"
-        headerSubtitle={
-          <div className="d-flex align-items-center flex-column align-items-start">
-            <div>
-              Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
+      <div className="position-relative">
+        <BaseEventItem
+          event={event}
+          headerTitle="Joined Event"
+          headerSubtitle={
+            <div className="d-flex align-items-center flex-column align-items-start">
+              <div>
+                Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
+              </div>
+              <div className="text-muted small">
+                {getJoinRequestStatus()}
+              </div>
             </div>
-            <div className="text-muted small">
-              {getJoinRequestStatus()}
-            </div>
-          </div>
-        }
-        colorClass={colorClass}
-        borderColorClass={borderColorClass}
-        timeSlots={timeSlots}
-        timestamp={moment(event.createdAt)}
-        userSelectedLocations={userSelectedLocations}
-        actionButton={getActionButton()}
-        defaultCollapsed={true}
-      />
+          }
+          colorClass={colorClass}
+          borderColorClass={borderColorClass}
+          timeSlots={timeSlots}
+          timestamp={moment(event.createdAt)}
+          userSelectedLocations={userSelectedLocations}
+          actionButton={getActionButton()}
+          defaultCollapsed={true}
+        />
+        {/* Share button positioned absolutely in the top-right corner */}
+        <div className="position-absolute top-0 end-0 p-2">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleShareEvent}
+            title="Share event"
+          >
+            <i className="bi bi-share"></i>
+          </button>
+        </div>
+      </div>
 
       <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
         <Modal.Header closeButton className="border-0 pb-0">
@@ -203,6 +223,14 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
           </button>
         </Modal.Footer>
       </Modal>
+
+      {/* Toast notification for sharing */}
+      <Toast
+        message="Event link copied to clipboard!"
+        show={showToast}
+        onHide={() => setShowToast(false)}
+        type="success"
+      />
     </>
   );
 };

@@ -46,7 +46,7 @@ servicetest.build:
 run-deploy:
 	docker compose -f docker-compose.yaml -f docker-compose.deploy.yml up
 
-
+# runs service tests against local database
 str:
 	@bash -c '\
 	set -e; \

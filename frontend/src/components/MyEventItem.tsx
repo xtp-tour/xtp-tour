@@ -5,6 +5,7 @@ import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
 import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
+import Toast from './Toast';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -18,6 +19,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   // Convert event time slots to the format expected by BaseEventItem
   const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation, true));  
@@ -44,6 +46,12 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     if (onEventUpdated) {
       onEventUpdated();
     }
+  };
+
+  const handleShareEvent = () => {
+    const eventUrl = `${window.location.origin}/event/${event.id}`;
+    navigator.clipboard.writeText(eventUrl);
+    setShowToast(true);
   };
 
   // Determine if the event can be confirmed
@@ -109,17 +117,29 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
 
   return (
     <>
-      <BaseEventItem
-        event={event}
-        headerTitle="Your Event"
-        colorClass={colorClass}
-        borderColorClass={borderColorClass}
-        timeSlots={timeSlots}
-        timestamp={moment(event.createdAt || '')}
-        actionButton={getActionButton()}
-        defaultCollapsed={true}
-        isMyEvent={true}
-      />
+      <div className="position-relative">
+        <BaseEventItem
+          event={event}
+          headerTitle="Your Event"
+          colorClass={colorClass}
+          borderColorClass={borderColorClass}
+          timeSlots={timeSlots}
+          timestamp={moment(event.createdAt || '')}
+          actionButton={getActionButton()}
+          defaultCollapsed={true}
+          isMyEvent={true}
+        />
+        {/* Share button positioned absolutely in the top-right corner */}
+        <div className="position-absolute top-0 end-0 p-2">
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleShareEvent}
+            title="Share event"
+          >
+            <i className="bi bi-share"></i>
+          </button>
+        </div>
+      </div>
 
       {/* Cancel Event Modal */}
       <CancelEventModal
@@ -136,6 +156,14 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         show={showConfirmModal}
         onHide={() => setShowConfirmModal(false)}
         onConfirmed={handleEventConfirmed}
+      />
+
+      {/* Toast notification for sharing */}
+      <Toast
+        message="Event link copied to clipboard!"
+        show={showToast}
+        onHide={() => setShowToast(false)}
+        type="success"
       />
     </>
   );
