@@ -9,7 +9,9 @@ Users can share their tennis events via unique URLs that can be posted on social
 
 **Key features:**
 - Unique shareable URLs for each public event
+- **Anonymous viewing**: Anyone can view shared events without signing in
 - Click-to-copy share functionality with toast notifications
+- Social media sharing to Facebook, Twitter, WhatsApp, and Telegram
 - Responsive design that works on mobile and desktop
 - Support for both signed-in and anonymous users viewing events
 - Easy navigation back to the main events list
@@ -19,7 +21,8 @@ Users can share their tennis events via unique URLs that can be posted on social
 2. Click the share button (📤) on any public event in the list
 3. The event URL will be copied to your clipboard
 4. Share the URL with friends via social media, messaging apps, etc.
-5. Anyone with the link can view the event details and join if they're signed in
+5. **Anyone with the link can view the event details** - no sign-in required
+6. To join the event, users need to sign in to the app
 
 Currently, two official plugins are available:
 

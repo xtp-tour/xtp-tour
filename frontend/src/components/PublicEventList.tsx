@@ -7,6 +7,7 @@ import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
 import UserDisplay from './UserDisplay';
 import Toast from './Toast';
+import { useUser } from '@clerk/clerk-react';
 
 interface Props {
   onEventJoined?: () => void;
@@ -14,12 +15,15 @@ interface Props {
 
 const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const api = useAPI();
+  const { isSignedIn, user } = useUser();
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareEventId, setShareEventId] = useState<string>('');
 
   useEffect(() => {
     loadEvents();
@@ -82,20 +86,60 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         );
 
         // Get action button for joining
-        const getActionButton = () => ({
-          variant: 'outline-primary',
-          icon: 'bi-plus-circle',
-          label: 'Join Event',
-          onClick: () => handleJoinEvent(event)
-        });
+        const getActionButton = () => {
+          if (!isSignedIn) {
+            return {
+              variant: 'outline-secondary',
+              icon: 'bi-person-plus',
+              label: 'Sign in to Join',
+              onClick: () => {
+                // This will be handled by the SignInButton in the header
+              }
+            };
+          }
+
+          // Check if user is the event owner
+          const isOwner = user?.id === event.userId;
+          
+          // Check if event is open for joining
+          const isEventOpen = event.status === 'OPEN';
+
+          // Check if user has already joined the event
+          const hasAlreadyJoined = event.joinRequests?.some(
+            req => req.userId === user?.id && req.isRejected !== true
+          );
+
+          // Hide button if user owns the event, event is not open, or user has already joined
+          if (isOwner || !isEventOpen || hasAlreadyJoined) {
+            return {
+              variant: 'outline-primary',
+              icon: 'bi-plus-circle',
+              label: hasAlreadyJoined ? 'Already Joined' : 'Join Event',
+              onClick: () => {},
+              hidden: true
+            };
+          }
+          
+          return {
+            variant: 'outline-primary',
+            icon: 'bi-plus-circle',
+            label: 'Join Event',
+            onClick: () => handleJoinEvent(event)
+          };
+        };
+
+        // Simple user display for anonymous users
+        const SimpleUserDisplay = ({ userId }: { userId: string }) => (
+          <span className="text-muted">User {userId.slice(0, 8)}...</span>
+        );
 
         return (
-          <div key={event.id} className="position-relative">
+          <div key={event.id} className="position-relative mb-3">
             <div 
-              className="cursor-pointer"
+              className="text-decoration-none"
               onClick={(e) => {
-                // Don't navigate if clicking on the action button
-                if ((e.target as HTMLElement).closest('.btn')) {
+                // Don't navigate if clicking on the action button or dropdown
+                if ((e.target as HTMLElement).closest('.btn, .dropdown-menu, .dropdown-item')) {
                   return;
                 }
                 window.location.href = `/event/${event.id}`;
@@ -107,7 +151,11 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
                 headerSubtitle={
                   <div className="d-flex align-items-center">
                     <span className="me-2">
-                      Host: <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                      Host: {isSignedIn ? (
+                        <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                      ) : (
+                        <SimpleUserDisplay userId={event.userId || ''} />
+                      )}
                     </span>
                     <span className="badge bg-secondary">
                       {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
@@ -122,14 +170,15 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
                 defaultCollapsed={true}
               />
             </div>
-            <div className="position-absolute top-0 end-0 p-2">
+            <div className="position-absolute top-0 end-0 p-2" style={{ zIndex: 1060 }}>
               <button
                 className="btn btn-sm btn-outline-secondary"
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const eventUrl = `${window.location.origin}/event/${event.id}`;
-                  navigator.clipboard.writeText(eventUrl);
-                  setShowToast(true);
+                  e.preventDefault();
+                  setShareEventId(event.id || '');
+                  setShowShareModal(true);
                 }}
                 title="Share event"
               >
@@ -140,7 +189,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         );
       })}
 
-      {selectedEvent && selectedEvent.id && (
+      {selectedEvent && selectedEvent.id && isSignedIn && (
         <JoinEventModal
           eventId={selectedEvent.id}
           hostName={selectedEvent.userId || 'Unknown User'}
@@ -156,6 +205,82 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         onHide={() => setShowToast(false)}
         type="success"
       />
+
+      {/* Share Modal */}
+      <div className={`modal fade ${showShareModal ? 'show' : ''}`} style={{ display: showShareModal ? 'block' : 'none' }} tabIndex={-1}>
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Share Event</h5>
+              <button type="button" className="btn-close" onClick={() => setShowShareModal(false)}></button>
+            </div>
+            <div className="modal-body">
+              <div className="d-grid gap-2">
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    const eventUrl = `${window.location.origin}/event/${shareEventId}`;
+                    navigator.clipboard.writeText(eventUrl);
+                    setShowToast(true);
+                    setShowShareModal(false);
+                  }}
+                >
+                  <i className="bi bi-clipboard me-2"></i>
+                  Copy Link
+                </button>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+                    setShowShareModal(false);
+                  }}
+                >
+                  <i className="bi bi-facebook me-2"></i>
+                  Facebook
+                </button>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
+                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+                    setShowShareModal(false);
+                  }}
+                >
+                  <i className="bi bi-twitter me-2"></i>
+                  Twitter
+                </button>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
+                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+                    setShowShareModal(false);
+                  }}
+                >
+                  <i className="bi bi-whatsapp me-2"></i>
+                  WhatsApp
+                </button>
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
+                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+                    setShowShareModal(false);
+                  }}
+                >
+                  <i className="bi bi-telegram me-2"></i>
+                  Telegram
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {showShareModal && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 };

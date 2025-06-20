@@ -7,13 +7,14 @@ import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
 import UserDisplay from './UserDisplay';
-import { SignedOut, SignInButton } from '@clerk/clerk-react';
+import { SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 
 const PublicEventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const api = useAPI();
+  const { isSignedIn, user } = useUser();
   const [event, setEvent] = useState<ApiEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,12 +93,52 @@ const PublicEventPage: React.FC = () => {
   );
 
   // Get action button for joining
-  const getActionButton = () => ({
-    variant: 'outline-primary',
-    icon: 'bi-plus-circle',
-    label: 'Join Event',
-    onClick: handleJoinEvent
-  });
+  const getActionButton = () => {
+    if (!isSignedIn) {
+      return {
+        variant: 'outline-secondary',
+        icon: 'bi-person-plus',
+        label: 'Sign in to Join',
+        onClick: () => {
+          // This will be handled by the SignInButton in the header
+        }
+      };
+    }
+
+    // Check if user is the event owner
+    const isOwner = user?.id === event?.userId;
+    
+    // Check if event is open for joining
+    const isEventOpen = event?.status === 'OPEN';
+
+    // Check if user has already joined the event
+    const hasAlreadyJoined = event?.joinRequests?.some(
+      req => req.userId === user?.id && req.isRejected !== true
+    );
+
+    // Hide button if user owns the event, event is not open, or user has already joined
+    if (isOwner || !isEventOpen || hasAlreadyJoined) {
+      return {
+        variant: 'outline-primary',
+        icon: 'bi-plus-circle',
+        label: hasAlreadyJoined ? 'Already Joined' : 'Join Event',
+        onClick: () => {},
+        hidden: true
+      };
+    }
+    
+    return {
+      variant: 'outline-primary',
+      icon: 'bi-plus-circle',
+      label: 'Join Event',
+      onClick: handleJoinEvent
+    };
+  };
+
+  // Simple user display for anonymous users
+  const SimpleUserDisplay = ({ userId }: { userId: string }) => (
+    <span className="text-muted">User {userId.slice(0, 8)}...</span>
+  );
 
   return (
     <div className="min-vh-100 bg-light">
@@ -116,7 +157,13 @@ const PublicEventPage: React.FC = () => {
                 <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>
                   Tennis Event
                 </h1>
-                <p className="text-muted mb-0">Shared by <UserDisplay userId={event.userId || ''} fallback="Unknown User" /></p>
+                <p className="text-muted mb-0">
+                  Shared by {isSignedIn ? (
+                    <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                  ) : (
+                    <SimpleUserDisplay userId={event.userId || ''} />
+                  )}
+                </p>
               </div>
             </div>
             <div>
@@ -141,7 +188,11 @@ const PublicEventPage: React.FC = () => {
                 headerSubtitle={
                   <div className="d-flex align-items-center">
                     <span className="me-2">
-                      Host: <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                      Host: {isSignedIn ? (
+                        <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                      ) : (
+                        <SimpleUserDisplay userId={event.userId || ''} />
+                      )}
                     </span>
                     <span className="badge bg-secondary">
                       {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
@@ -161,7 +212,7 @@ const PublicEventPage: React.FC = () => {
                 <p className="text-muted mb-3">
                   Share this link with friends to invite them to join this tennis event!
                 </p>
-                <div className="input-group">
+                <div className="input-group mb-3">
                   <input
                     type="text"
                     className="form-control"
@@ -179,12 +230,61 @@ const PublicEventPage: React.FC = () => {
                     <i className="bi bi-clipboard"></i>
                   </button>
                 </div>
+                
+                <div className="d-flex gap-2 flex-wrap">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const url = encodeURIComponent(window.location.href);
+                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+                    }}
+                  >
+                    <i className="bi bi-facebook me-2"></i>
+                    Facebook
+                  </button>
+                  
+                  <button
+                    className="btn btn-info"
+                    onClick={() => {
+                      const url = encodeURIComponent(window.location.href);
+                      const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+                    }}
+                  >
+                    <i className="bi bi-twitter me-2"></i>
+                    Twitter
+                  </button>
+                  
+                  <button
+                    className="btn btn-success"
+                    onClick={() => {
+                      const url = encodeURIComponent(window.location.href);
+                      const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                      window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+                    }}
+                  >
+                    <i className="bi bi-whatsapp me-2"></i>
+                    WhatsApp
+                  </button>
+                  
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const url = encodeURIComponent(window.location.href);
+                      const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
+                      window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+                    }}
+                  >
+                    <i className="bi bi-telegram me-2"></i>
+                    Telegram
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </main>
 
-        {event.id && (
+        {event.id && isSignedIn && (
           <JoinEventModal
             eventId={event.id}
             hostName={event.userId || 'Unknown User'}

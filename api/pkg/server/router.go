@@ -130,9 +130,11 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.DELETE("/:eventId", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
 
+	// those does not require auth
+	api.GET("/events/public", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
+	api.GET("/events/public/:eventId", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
+
 	public := events.Group("/public", "Public events", "Public events and their operations")
-	public.GET("/", []fizz.OperationOption{fizz.Summary("Get list of public events")}, tonic.Handler(r.listPublicEventsHandler, http.StatusOK))
-	public.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get public event by id")}, tonic.Handler(r.getPublicEventHandler, http.StatusOK))
 	public.POST("/:eventId/joins", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
 	public.DELETE("/:eventId/joins/:joinRequestId", []fizz.OperationOption{fizz.Summary("Cancel join request")}, tonic.Handler(r.cancelJoinRequest, http.StatusOK))
 
@@ -373,14 +375,6 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 }
 
 func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
-	_, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
-	if !ok {
-		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
-			HttpCode: http.StatusUnauthorized,
-			Message:  "User ID not found",
-		}
-	}
 
 	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {

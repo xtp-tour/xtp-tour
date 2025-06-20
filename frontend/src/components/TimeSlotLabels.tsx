@@ -42,8 +42,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                 style = {
                   backgroundColor: 'var(--tennis-navy, #212529)',
                   color: 'white',
-                  transform: 'scale(1.05)',
-                  transition: 'transform 0.2s ease'
+                  transform: 'scale(1.05)'
                 };
                 iconColor = 'white';
               } else if (slot.isSelected) {

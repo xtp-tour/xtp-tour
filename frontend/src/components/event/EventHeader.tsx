@@ -5,7 +5,6 @@ import moment from 'moment';
 import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
-import '../EventFlowDiagram.css'; // Import CSS with button styles
 import { formatDuration } from '../../utils/dateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -33,8 +32,7 @@ const buttonStyle = {
   minHeight: '38px',
   outline: 'none',
   boxShadow: 'none',
-  backgroundColor: 'transparent',
-  transition: 'none'
+  backgroundColor: 'transparent'
 };
 
 const EventHeader: React.FC<EventHeaderProps> = ({
@@ -175,7 +173,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
           <Button
             variant={actionButton.variant}
             onClick={actionButton.onClick}
-            className="w-100 d-flex justify-content-center align-items-center btn-no-state-change"
+            className="w-100 d-flex justify-content-center align-items-center"
             style={{ ...buttonStyle, minHeight: '38px' }}
             disabled={actionButton.disabled}
           >
@@ -189,7 +187,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
       <div className="d-sm-none mt-2">
         <Button
           variant="outline-secondary"
-          className="w-100 d-flex justify-content-center align-items-center btn-no-state-change"
+          className="w-100 d-flex justify-content-center align-items-center"
           style={buttonStyle}
           onClick={onToggleCollapse}
         >
