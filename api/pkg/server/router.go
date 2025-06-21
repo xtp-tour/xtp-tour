@@ -126,6 +126,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
 	events.GET("/", []fizz.OperationOption{fizz.Summary("Get list of events that belong to the user")}, tonic.Handler(r.listEventsHandler, http.StatusOK))
+	events.GET("/joined", []fizz.OperationOption{fizz.Summary("Get list of events that the user joined")}, tonic.Handler(r.listJoinedEventsHandler, http.StatusOK))
 	events.GET("/:eventId", []fizz.OperationOption{fizz.Summary("Get event by id")}, tonic.Handler(r.getMyEventHandler, http.StatusOK))
 	events.DELETE("/:eventId", []fizz.OperationOption{fizz.Summary("Delete event by id")}, tonic.Handler(r.deleteEventHandler, http.StatusOK))
 	events.POST("/:eventId/confirmation", []fizz.OperationOption{fizz.Summary("Confirm event")}, tonic.Handler(r.confirmEvent, http.StatusOK))
@@ -268,16 +269,23 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 	}, nil
 }
 
+func (r *Router) listJoinedEventsHandler(c *gin.Context, req *api.ListJoinedEventsRequest) (*api.ListEventsResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	return r.getJoinedEvents(userId.(string))
+}
+
 func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEventsRequest) (*api.ListEventsResponse, error) {
 	// Get user ID if available
 	var userId string
 	if userIdVal, ok := c.Get(auth.USER_ID_CONTEXT_KEY); ok {
 		userId = userIdVal.(string)
-	}
-
-	// list of events that user joined
-	if req.Joined {
-		return r.getJoinedEvents(userId)
 	}
 
 	events, err := r.db.GetPublicEvents(context.Background(), userId)
@@ -305,6 +313,7 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 
 	for _, event := range events {
 		var myReq *api.JoinRequest
+		// multiple players can join. we want to show only current user's join request
 		for _, r := range event.JoinRequests {
 			if r.UserId == userId {
 				myReq = r

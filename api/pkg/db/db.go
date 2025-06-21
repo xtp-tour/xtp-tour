@@ -190,8 +190,8 @@ func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event,
 
 func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
 	query := `SELECT event_id FROM join_requests j
-		inner join events e on j.event_id = e.id
-	WHERE j.user_id = ?`
+					INNER JOIN events e on j.event_id = e.id
+				WHERE j.user_id = ?`
 	slog.Debug("Executing SQL query", "query", query, "params", userId)
 	rows, err := db.conn.QueryContext(ctx, query, userId)
 	if err != nil {

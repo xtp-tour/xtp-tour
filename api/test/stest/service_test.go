@@ -230,7 +230,7 @@ func Test_EventAPI(t *testing.T) {
 		r, err := restClient.R().
 			SetHeader("Authentication", user2).
 			SetResult(&response).
-			Get(tConfig.ServiceHost + "/api/events/public?joined=true")
+			Get(tConfig.ServiceHost + "/api/events/joined")
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			assert.Greater(tt, len(response.Events), 0, "No events found")

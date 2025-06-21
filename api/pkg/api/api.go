@@ -193,7 +193,9 @@ type GetLocationRequest struct {
 }
 
 type ListPublicEventsRequest struct {
-	Joined bool `query:"joined"`
+}
+
+type ListJoinedEventsRequest struct {
 }
 
 type GetUserProfileRequest struct {
