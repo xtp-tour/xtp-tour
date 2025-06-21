@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import MyEventItem from './MyEventItem';
 import JoinedEventItem from './JoinedEventItem';
 import PublicEventList from './PublicEventList';
@@ -15,6 +15,10 @@ interface DisplayEvent extends Event {
     isSelected: boolean;
   }>;
   _displayCreatedAt: Date;
+}
+
+export interface EventListRef {
+  refreshEvents: () => Promise<void>;
 }
 
 const transformEventData = (event: Event): DisplayEvent => {
@@ -62,7 +66,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded,
   </div>
 );
 
-const EventList: React.FC = () => {
+const EventList = forwardRef<EventListRef>((props, ref) => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,29 +88,33 @@ const EventList: React.FC = () => {
     }));
   };
 
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [myEventsResponse, joinedEventsResponse, availableEventsResponse] = await Promise.all([
+        api.listEvents(),
+        api.listJoinedEvents(),
+        api.listPublicEvents()
+      ]);
+
+      setMyEvents((myEventsResponse.events || []).map(transformEventData));
+      setJoinedEvents((joinedEventsResponse.events || []).map(transformEventData));
+      setAvailableEvents((availableEventsResponse.events || [])
+        .map(transformEventData)
+        .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load events');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    refreshEvents: fetchEvents
+  }));
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const [myEventsResponse, joinedEventsResponse, availableEventsResponse] = await Promise.all([
-          api.listEvents(),
-          api.listJoinedEvents(),
-          api.listPublicEvents()
-        ]);
-
-        setMyEvents((myEventsResponse.events || []).map(transformEventData));
-        setJoinedEvents((joinedEventsResponse.events || []).map(transformEventData));
-        setAvailableEvents((availableEventsResponse.events || [])
-          .map(transformEventData)
-          .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load events');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchEvents();
   }, [api]);
 
@@ -232,6 +240,6 @@ const EventList: React.FC = () => {
       </section>
     </div>
   );
-};
+});
 
 export default EventList; 

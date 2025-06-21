@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import EventList from "./components/EventList";
+import EventList, { EventListRef } from "./components/EventList";
 import PublicEventList from "./components/PublicEventList";
 import PublicEventPage from "./components/PublicEventPage";
 import CreateEvent from "./components/CreateEvent";
@@ -20,7 +20,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center">
             <i className="bi bi-trophy-fill tennis-accent me-2 fs-3"></i>
-            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Tennis Hitting Partner Finder</h1>
+            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Set Match</h1>
           </div>
           <div>
             <SignedOut>
@@ -48,6 +48,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
 const AuthenticatedContent = () => {
   const [profileComplete, setProfileComplete] = useState(false);
+  const eventListRef = useRef<EventListRef>(null);
 
   if (!profileComplete) {
     return <ProfileSetup onComplete={() => setProfileComplete(true)} />;
@@ -55,8 +56,10 @@ const AuthenticatedContent = () => {
 
   return (
     <>
-      <CreateEvent onEventCreated={() => {}} />
-      <EventList />
+      <CreateEvent onEventCreated={async () => {
+        await eventListRef.current?.refreshEvents();
+      }} />
+      <EventList ref={eventListRef} />
     </>
   );
 };
