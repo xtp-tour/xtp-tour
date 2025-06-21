@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimeSlot } from './event/types';
+import { TimeSlot } from './types';
 import moment from 'moment';
 
 

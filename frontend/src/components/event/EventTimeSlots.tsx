@@ -1,5 +1,5 @@
 import React from 'react';
-import TimeSlotLabels from '../TimeSlotLabels';
+import TimeSlotLabels from './TimeSlotLabels';
 import { TimeSlot, SECTION_TITLES } from './types';
 
 interface EventTimeSlotsProps {

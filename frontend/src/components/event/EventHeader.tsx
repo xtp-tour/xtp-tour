@@ -13,11 +13,10 @@ interface EventHeaderProps extends StyleProps {
   title: string;
   subtitle?: string | React.ReactNode;
   actionButton: ActionButton;
-  isCollapsed?: boolean;
   timeSlotSummary?: string;
-  onToggleCollapse?: () => void;
   joinedCount?: number;
   event: ApiEvent;
+  shareButton?: React.ReactNode;
 }
 
 const formatConfirmedDateTime = (datetime: string): string => {
@@ -40,11 +39,10 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   subtitle,
   colorClass = 'text-primary',
   actionButton,
-  isCollapsed = false,
   timeSlotSummary,
-  onToggleCollapse,
   joinedCount,
   event,
+  shareButton,
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 575 });
   
@@ -143,7 +141,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             </div>
           </div>
         </div>
-        {/* Right: Chevron and action button (desktop only) */}
+        {/* Right: Action button and share button (desktop only) */}
         <div className="d-none d-sm-flex align-items-center gap-2 flex-shrink-0">
           {actionButton.customButton || (!actionButton.hidden && (
             <Button
@@ -157,19 +155,23 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               {actionButton.label}
             </Button>
           ))}
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm border-0"
-            aria-label={isCollapsed ? 'Show details' : 'Hide details'}
-            onClick={onToggleCollapse}
-          >
-            <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'}`}></i>
-          </button>
+          {shareButton}
         </div>
       </div>
-      {/* Action button for mobile only, full width */}
-      <div className="d-flex d-sm-none mt-2">
-        {actionButton.customButton || (!actionButton.hidden && (
+      {/* Mobile layout */}
+      <div className="d-sm-none">
+        {/* Share button for mobile - top right */}
+        {shareButton && (
+          <div className="d-flex justify-content-end mb-2">
+            {shareButton}
+          </div>
+        )}
+        {/* Action button for mobile - full width */}
+        {actionButton.customButton ? (
+          <div className="w-100">
+            {actionButton.customButton}
+          </div>
+        ) : (!actionButton.hidden && (
           <Button
             variant={actionButton.variant}
             onClick={actionButton.onClick}
@@ -181,19 +183,6 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             {actionButton.label}
           </Button>
         ))}
-      </div>
-      
-      {/* Full-width expand/collapse button for mobile */}
-      <div className="d-sm-none mt-2">
-        <Button
-          variant="outline-secondary"
-          className="w-100 d-flex justify-content-center align-items-center"
-          style={buttonStyle}
-          onClick={onToggleCollapse}
-        >
-          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`}></i>
-          {isCollapsed ? 'Show Details' : 'Hide Details'}
-        </Button>
       </div>
     </div>
   );

@@ -140,41 +140,42 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     setShowToast(true);
   };
 
+  const getShareButton = () => {
+    return (
+      <button
+        className="btn btn-sm btn-outline-secondary"
+        onClick={handleShareEvent}
+        title="Share event"
+      >
+        <i className="bi bi-share"></i>
+      </button>
+    );
+  };
+
   return (
     <>
-      <div className="position-relative">
-        <BaseEventItem
-          event={event}
-          headerTitle="Joined Event"
-          headerSubtitle={
-            <div className="d-flex align-items-center flex-column align-items-start">
-              <div>
-                Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
-              </div>
-              <div className="text-muted small">
-                {getJoinRequestStatus()}
-              </div>
+      <BaseEventItem
+        event={event}
+        headerTitle="Joined Event"
+        headerSubtitle={
+          <div className="d-flex align-items-center flex-column align-items-start">
+            <div>
+              Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
             </div>
-          }
-          colorClass={colorClass}
-          borderColorClass={borderColorClass}
-          timeSlots={timeSlots}
-          timestamp={moment(event.createdAt)}
-          userSelectedLocations={userSelectedLocations}
-          actionButton={getActionButton()}
-          defaultCollapsed={true}
-        />
-        {/* Share button positioned absolutely in the top-right corner */}
-        <div className="position-absolute top-0 end-0 p-2">
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleShareEvent}
-            title="Share event"
-          >
-            <i className="bi bi-share"></i>
-          </button>
-        </div>
-      </div>
+            <div className="text-muted small">
+              {getJoinRequestStatus()}
+            </div>
+          </div>
+        }
+        colorClass={colorClass}
+        borderColorClass={borderColorClass}
+        timeSlots={timeSlots}
+        timestamp={moment(event.createdAt)}
+        userSelectedLocations={userSelectedLocations}
+        actionButton={getActionButton()}
+        shareButton={getShareButton()}
+        defaultCollapsed={true}
+      />
 
       <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
         <Modal.Header closeButton className="border-0 pb-0">
@@ -198,13 +199,15 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         </Modal.Body>
         <Modal.Footer className="border-0">
           <button
-            className="btn btn-link text-decoration-none"
+            type="button"
+            className="btn btn-secondary"
             onClick={() => setShowConfirmModal(false)}
             disabled={cancelling}
           >
-            Keep Session
+            Keep Participation
           </button>
           <button
+            type="button"
             className="btn btn-danger"
             onClick={handleCancel}
             disabled={cancelling}
@@ -215,16 +218,12 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
                 Cancelling...
               </>
             ) : (
-              <>
-                <i className="bi bi-x-circle me-2"></i>
-                Yes, Cancel Session
-              </>
+              'Cancel Participation'
             )}
           </button>
         </Modal.Footer>
       </Modal>
 
-      {/* Toast notification for sharing */}
       <Toast
         message="Event link copied to clipboard!"
         show={showToast}

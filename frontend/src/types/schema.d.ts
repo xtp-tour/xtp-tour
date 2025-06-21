@@ -38,7 +38,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/events/public/": {
+    "/api/events/joined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get list of events that the user joined */
+        get: operations["listJoinedEventsHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/public": {
         parameters: {
             query?: never;
             header?: never;
@@ -381,7 +398,6 @@ export interface components {
             ntrpLevel?: number;
             preferredCity?: string;
             userId?: string;
-            username?: string;
         };
         "ConfirmEvent-FmInput": {
             /**
@@ -401,7 +417,6 @@ export interface components {
             /** Format: double */
             ntrpLevel?: number;
             preferredCity?: string;
-            username?: string;
         };
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
@@ -413,7 +428,6 @@ export interface components {
             ntrpLevel?: number;
             preferredCity?: string;
             userId?: string;
-            username?: string;
         };
     };
     responses: never;
@@ -486,11 +500,29 @@ export interface operations {
             };
         };
     };
+    "listJoinedEventsHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiListEventsResponse"];
+                };
+            };
+        };
+    };
     "listPublicEventsHandler-fm": {
         parameters: {
-            query?: {
-                joined?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;

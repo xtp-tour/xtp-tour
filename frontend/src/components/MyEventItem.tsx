@@ -62,7 +62,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
            event.joinRequests.length > 0;
   };
 
-  // Get action button based on event status
+  // Get action button
   const getActionButton = () => {
     // No action button for confirmed events
     if (event.status === 'CONFIRMED') {
@@ -93,6 +93,18 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     };
   };
 
+  const getShareButton = () => {
+    return (
+      <button
+        className="btn btn-sm btn-outline-secondary"
+        onClick={handleShareEvent}
+        title="Share event"
+      >
+        <i className="bi bi-share"></i>
+      </button>
+    );
+  };
+
   // Get color based on event status
   const getStatusColors = () => {
     if (event.status === 'CONFIRMED') {
@@ -117,29 +129,18 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
 
   return (
     <>
-      <div className="position-relative">
-        <BaseEventItem
-          event={event}
-          headerTitle="Your Event"
-          colorClass={colorClass}
-          borderColorClass={borderColorClass}
-          timeSlots={timeSlots}
-          timestamp={moment(event.createdAt || '')}
-          actionButton={getActionButton()}
-          defaultCollapsed={true}
-          isMyEvent={true}
-        />
-        {/* Share button positioned absolutely in the top-right corner */}
-        <div className="position-absolute top-0 end-0 p-2">
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleShareEvent}
-            title="Share event"
-          >
-            <i className="bi bi-share"></i>
-          </button>
-        </div>
-      </div>
+      <BaseEventItem
+        event={event}
+        headerTitle="Your Event"
+        colorClass={colorClass}
+        borderColorClass={borderColorClass}
+        timeSlots={timeSlots}
+        timestamp={moment(event.createdAt || '')}
+        actionButton={getActionButton()}
+        shareButton={getShareButton()}
+        defaultCollapsed={true}
+        isMyEvent={true}
+      />
 
       {/* Cancel Event Modal */}
       <CancelEventModal

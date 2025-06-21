@@ -249,7 +249,7 @@ export class RealAPIClient {
   }
 
   async listJoinedEvents(): Promise<ListEventsResponse> {
-    return await this.fetch<ListEventsResponse>('/api/events/public?joined=true');
+    return await this.fetch<ListEventsResponse>('/api/events/joined');
   }
 
   async joinEvent(eventId: string, request: JoinEventRequest): Promise<ApiJoinRequest> {

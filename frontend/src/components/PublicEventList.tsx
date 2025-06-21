@@ -7,6 +7,7 @@ import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import moment from 'moment';
 import UserDisplay from './UserDisplay';
 import Toast from './Toast';
+import ShareEventModal from './ShareEventModal';
 import { useUser } from '@clerk/clerk-react';
 
 interface Props {
@@ -85,6 +86,27 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
         );
 
+        // Handle share functionality
+        const handleShareEvent = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setShareEventId(event.id || '');
+          setShowShareModal(true);
+        };
+
+        // Get share button
+        const getShareButton = () => {
+          return (
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={handleShareEvent}
+              title="Share event"
+            >
+              <i className="bi bi-share"></i>
+            </button>
+          );
+        };
+
         // Get action button for joining
         const getActionButton = () => {
           if (!isSignedIn) {
@@ -104,9 +126,9 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           // Check if event is open for joining
           const isEventOpen = event.status === 'OPEN';
 
-          // Check if user has already joined the event
+          // Check if user has already joined the event (only count explicitly accepted requests)
           const hasAlreadyJoined = event.joinRequests?.some(
-            req => req.userId === user?.id && req.isRejected !== true
+            req => req.userId === user?.id && req.isRejected === false
           );
 
           // Hide button if user owns the event, event is not open, or user has already joined
@@ -134,57 +156,32 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         );
 
         return (
-          <div key={event.id} className="position-relative mb-3">
-            <div 
-              className="text-decoration-none"
-              onClick={(e) => {
-                // Don't navigate if clicking on the action button or dropdown
-                if ((e.target as HTMLElement).closest('.btn, .dropdown-menu, .dropdown-item')) {
-                  return;
-                }
-                window.location.href = `/event/${event.id}`;
-              }}
-            >
-              <BaseEventItem
-                event={event}
-                headerTitle="Public Event"
-                headerSubtitle={
-                  <div className="d-flex align-items-center">
-                    <span className="me-2">
-                      Host: {isSignedIn ? (
-                        <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                      ) : (
-                        <SimpleUserDisplay userId={event.userId || ''} />
-                      )}
-                    </span>
-                    <span className="badge bg-secondary">
-                      {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
-                    </span>
-                  </div>
-                }
-                colorClass="text-primary"
-                borderColorClass="border-primary"
-                timeSlots={timeSlots}
-                timestamp={moment(event.createdAt)}
-                actionButton={getActionButton()}
-                defaultCollapsed={true}
-              />
-            </div>
-            <div className="position-absolute top-0 end-0 p-2" style={{ zIndex: 1060 }}>
-              <button
-                className="btn btn-sm btn-outline-secondary"
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShareEventId(event.id || '');
-                  setShowShareModal(true);
-                }}
-                title="Share event"
-              >
-                <i className="bi bi-share"></i>
-              </button>
-            </div>
+          <div key={event.id} className="mb-3">
+            <BaseEventItem
+              event={event}
+              headerTitle="Public Event"
+              headerSubtitle={
+                <div className="d-flex align-items-center">
+                  <span className="me-2">
+                    Host: {isSignedIn ? (
+                      <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                    ) : (
+                      <SimpleUserDisplay userId={event.userId || ''} />
+                    )}
+                  </span>
+                  <span className="badge bg-secondary">
+                    {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
+                  </span>
+                </div>
+              }
+              colorClass="text-primary"
+              borderColorClass="border-primary"
+              timeSlots={timeSlots}
+              timestamp={moment(event.createdAt)}
+              actionButton={getActionButton()}
+              shareButton={getShareButton()}
+              defaultCollapsed={true}
+            />
           </div>
         );
       })}
@@ -206,83 +203,14 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
         type="success"
       />
 
-      {/* Share Modal */}
-      <div className={`modal fade ${showShareModal ? 'show' : ''}`} style={{ display: showShareModal ? 'block' : 'none' }} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Share Event</h5>
-              <button type="button" className="btn-close" onClick={() => setShowShareModal(false)}></button>
-            </div>
-            <div className="modal-body">
-              <div className="d-grid gap-2">
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    const eventUrl = `${window.location.origin}/event/${shareEventId}`;
-                    navigator.clipboard.writeText(eventUrl);
-                    setShowToast(true);
-                    setShowShareModal(false);
-                  }}
-                >
-                  <i className="bi bi-clipboard me-2"></i>
-                  Copy Link
-                </button>
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
-                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-                    setShowShareModal(false);
-                  }}
-                >
-                  <i className="bi bi-facebook me-2"></i>
-                  Facebook
-                </button>
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
-                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
-                    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-                    setShowShareModal(false);
-                  }}
-                >
-                  <i className="bi bi-twitter me-2"></i>
-                  Twitter
-                </button>
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
-                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
-                    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
-                    setShowShareModal(false);
-                  }}
-                >
-                  <i className="bi bi-whatsapp me-2"></i>
-                  WhatsApp
-                </button>
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    const url = encodeURIComponent(`${window.location.origin}/event/${shareEventId}`);
-                    const text = encodeURIComponent(`Join me for a tennis event! 🎾`);
-                    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
-                    setShowShareModal(false);
-                  }}
-                >
-                  <i className="bi bi-telegram me-2"></i>
-                  Telegram
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {showShareModal && <div className="modal-backdrop fade show"></div>}
+      <ShareEventModal
+        show={showShareModal}
+        onHide={() => setShowShareModal(false)}
+        eventId={shareEventId}
+        onShared={() => setShowToast(true)}
+      />
     </div>
   );
 };
 
-export default PublicEventList; 
+export default PublicEventList;

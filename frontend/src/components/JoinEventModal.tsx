@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
-import TimeSlotLabels from './TimeSlotLabels';
+import TimeSlotLabels from './event/TimeSlotLabels';
 import { EventFlowDiagram, EventStep } from './EventFlowDiagram';
 import { TimeSlot } from './event/types';
 import moment from 'moment';
