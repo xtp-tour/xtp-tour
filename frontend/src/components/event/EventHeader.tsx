@@ -6,6 +6,7 @@ import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
 import { formatDuration } from '../../utils/dateUtils';
+import { LocationBadge } from './EventBadges';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -98,26 +99,48 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             {subtitle && <small className={colorClass}>{subtitle}</small>}
             {isConfirmed && event.confirmation && (
               <div className="mt-1">
-                <small className="text-success text-wrap d-block">
-                  <div className="d-flex flex-wrap">
-                    <div className="me-2">
-                      <i className="bi bi-calendar-check me-1"></i>
-                      {formatConfirmedDateTime(event.confirmation.datetime || '')}
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <small className="text-muted text-wrap">
+                    <div className="d-flex flex-wrap">
+                      <div className="me-2">
+                        <i className="bi bi-calendar-check me-1"></i>
+                        {formatConfirmedDateTime(event.confirmation.datetime || '')}
+                      </div>
+                      <div>
+                        <LocationBadge location={event.confirmation.location} />
+                      </div>
                     </div>
-                    <div>
-                      <i className="bi bi-geo-alt me-1"></i>
-                      <span className="text-break">{event.confirmation.location}</span>
-                    </div>
-                  </div>
-                </small>
+                  </small>
+                  <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+                    <i className="bi bi-stopwatch me-1"></i>
+                    {formatDuration(event.sessionDuration)}
+                  </span>
+                </div>
               </div>
             )}
             {/* Always show time slots in header regardless of collapsed state */}
             {timeSlotSummary && !isConfirmed && (
-              <small className="text-muted text-wrap">
-                <i className="bi bi-calendar-event me-1"></i>
-                {timeSlotSummary}
-              </small>
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <small className="text-muted text-wrap">
+                  <i className="bi bi-calendar-event me-1"></i>
+                  {timeSlotSummary}
+                </small>
+                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+                  <i className="bi bi-stopwatch me-1"></i>
+                  {formatDuration(event.sessionDuration)}
+                </span>
+              </div>
+            )}
+            {/* Location badges right after date/time - only for non-confirmed events */}
+            {!isConfirmed && event.locations && event.locations.length > 0 && (
+              <div className="d-flex flex-wrap gap-1 mt-1">
+                {event.locations.map((location, index) => (
+                  <LocationBadge 
+                    key={`location-${index}`} 
+                    location={location} 
+                  />
+                ))}
+              </div>
             )}
             <div className="d-flex flex-wrap gap-1 mt-1">
               <div className="d-flex flex-wrap gap-1" style={{ maxWidth: '100%' }}>
@@ -132,10 +155,6 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
                     {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
                   </span>
-                </span>
-                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
-                  <i className="bi bi-stopwatch me-1"></i>
-                  {formatDuration(event.sessionDuration)}
                 </span>
               </div>
             </div>

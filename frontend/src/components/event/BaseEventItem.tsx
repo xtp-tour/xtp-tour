@@ -55,10 +55,10 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const isConfirmed = event.status === 'CONFIRMED';
   
-  // Update color classes for confirmed events
+  // Update color classes for confirmed events - use navy instead of green
   if (isConfirmed) {
-    colorClass = 'text-success';
-    borderColorClass = 'border-success';
+    colorClass = 'text-primary';
+    borderColorClass = 'border-primary';
   }
 
   return (

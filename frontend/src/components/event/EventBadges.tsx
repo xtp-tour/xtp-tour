@@ -41,6 +41,44 @@ const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) =>
   </span>
 );
 
+const LocationBadge: React.FC<{ 
+  location: string;
+  isSelected?: boolean;
+  onClick?: () => void;
+}> = ({ location, isSelected, onClick }) => {
+  const badge = (
+    <span 
+      className="badge d-inline-flex align-items-center" 
+      style={{ 
+        backgroundColor: isSelected ? 'var(--tennis-navy)' : 'var(--tennis-accent)', 
+        color: isSelected ? 'white' : 'var(--tennis-navy)',
+        padding: '0.35em 0.65em',
+        fontSize: '0.75rem',
+        cursor: onClick ? 'pointer' : undefined
+      }}
+    >
+      <i className="bi bi-geo-alt me-1"></i>
+      {location}
+      {onClick && <i className="bi bi-chevron-right ms-1 opacity-75"></i>}
+    </span>
+  );
+  
+  return onClick ? (
+    <a
+      href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      className="text-decoration-none"
+    >
+      {badge}
+    </a>
+  ) : (
+    badge
+  );
+};
+
 const EventBadges: React.FC<EventBadgesProps> = ({
   eventType,
   expectedPlayers,
@@ -55,4 +93,5 @@ const EventBadges: React.FC<EventBadgesProps> = ({
   </div>
 );
 
-export default EventBadges; 
+export default EventBadges;
+export { LocationBadge, EventTypeBadge, RequestTypeBadge, SkillLevelBadge, DurationBadge }; 

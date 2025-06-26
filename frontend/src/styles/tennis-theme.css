@@ -1,15 +1,40 @@
 :root {
-  /* Tennis-themed color palette */
-  --tennis-navy: #1B365D;       /* Classic tennis navy as primary color */
-  --tennis-accent: #CFE025;     /* Tennis ball yellow-green */
-  --tennis-clay: #E35C34;       /* Clay court terracotta */
-  --tennis-blue: #4A90E2;       /* Australian Open court blue */
-  --tennis-white: #FFFFFF;      /* Clean white like court lines */
-  --tennis-light: #F8F9FB;      /* Light background color */
-  --tennis-gray: #6C757D;       /* Neutral gray for text */
+  /* Minimal Tennis Color Palette */
+  
+  /* Primary Brand Color */
+  --tennis-navy: #1B365D;       /* Main brand color - keep as is */
+  --tennis-navy-light: #2A4B7C; /* Lighter navy for hover states */
+  --tennis-navy-dark: #142847;  /* Darker navy for active states */
+  
+  /* Navy Tints for Labels/Badges */
+  --navy-tint: #E8F0F7;         /* Light navy background for badges */
+  --navy-soft: #4A5568;         /* Soft navy text color for badges */
+  
+  /* Badge Colors - Using correct navy tints */
+  --tennis-badge: var(--navy-soft);      /* Soft navy for badge text */
+  --tennis-badge-bg: var(--navy-tint);   /* Light navy for badge backgrounds */
+  
+  /* Confirmation Color - Green ONLY for confirmations */
+  --tennis-confirmed: #28A745;   /* Green specifically for "Confirmed" status */
+  
+  /* Neutral Colors */
+  --tennis-white: #FFFFFF;      /* Pure white */
+  --tennis-light: #F8F9FA;      /* Light gray background */
+  --tennis-gray: #6C757D;       /* Text gray */
+  --tennis-border: #DEE2E6;     /* Border gray */
+  
+  /* Status Colors - Use Bootstrap defaults */
+  --tennis-danger: #DC3545;     /* Red for errors/cancel */
+  --tennis-warning: #FFC107;    /* Amber for warnings */
+  
+  /* Legacy Support - Point old variables to navy tints */
+  --tennis-accent: var(--navy-tint);     /* Now points to navy tint background */
+  --tennis-blue: var(--navy-soft);       /* Navy soft for badge text */
+  --tennis-green: var(--tennis-confirmed); /* Green only for confirmations */
+  --tennis-clay: var(--tennis-danger);   /* Use standard danger color */
 }
 
-/* Override Bootstrap theme colors */
+/* Bootstrap Primary Color Override */
 .btn-primary {
   background-color: var(--tennis-navy) !important;
   border-color: var(--tennis-navy) !important;
@@ -17,8 +42,13 @@
 }
 
 .btn-primary:hover {
-  background-color: #142847 !important;
-  border-color: #142847 !important;
+  background-color: var(--tennis-navy-light) !important;
+  border-color: var(--tennis-navy-light) !important;
+}
+
+.btn-primary:active {
+  background-color: var(--tennis-navy-dark) !important;
+  border-color: var(--tennis-navy-dark) !important;
 }
 
 .btn-outline-primary {
@@ -28,9 +58,11 @@
 
 .btn-outline-primary:hover {
   background-color: var(--tennis-navy) !important;
+  border-color: var(--tennis-navy) !important;
   color: var(--tennis-white) !important;
 }
 
+/* Text Colors */
 .text-primary {
   color: var(--tennis-navy) !important;
 }
@@ -39,94 +71,83 @@
   border-color: var(--tennis-navy) !important;
 }
 
+/* Success Button - Green ONLY for confirmations */
+.btn-success {
+  background-color: var(--tennis-confirmed) !important;
+  border-color: var(--tennis-confirmed) !important;
+}
+
+.btn-outline-success {
+  color: var(--tennis-confirmed) !important;
+  border-color: var(--tennis-confirmed) !important;
+}
+
+.btn-outline-success:hover {
+  background-color: var(--tennis-confirmed) !important;
+  border-color: var(--tennis-confirmed) !important;
+}
+
+.text-success {
+  color: var(--tennis-confirmed) !important;
+}
+
+.border-success {
+  border-color: var(--tennis-confirmed) !important;
+}
+
+/* Light Background */
 .bg-light {
   background-color: var(--tennis-light) !important;
 }
 
-/* Card styling */
+/* Card Styling */
 .card {
-  border-color: #E9ECEF;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: var(--tennis-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
-  border-bottom-color: #E9ECEF;
+  border-bottom-color: var(--tennis-border);
+  background-color: var(--tennis-white);
 }
 
-/* Custom tennis-themed classes */
-.tennis-accent {
-  color: var(--tennis-accent);
+/* Form Controls */
+.form-control:focus {
+  border-color: var(--tennis-navy);
+  box-shadow: 0 0 0 0.25rem rgba(27, 54, 93, 0.25);
 }
 
-.tennis-clay {
-  color: var(--tennis-clay);
+/* Links */
+a {
+  color: var(--tennis-navy);
 }
 
-.tennis-blue {
-  color: var(--tennis-blue);
+a:hover {
+  color: var(--tennis-navy-light);
 }
 
-/* Spinner override */
+/* Spinner */
 .spinner-border.text-primary {
   color: var(--tennis-navy) !important;
 }
 
-/* Alert customization */
-.alert-danger {
-  background-color: #FFF5F5;
-  border-color: var(--tennis-clay);
-  color: var(--tennis-clay);
+/* Badge Utilities - Using correct navy tints */
+.badge-default,
+.event-label {
+  background: var(--navy-tint) !important;
+  color: var(--navy-soft) !important;
 }
 
-/* Bootstrap-select customization */
-.bootstrap-select .dropdown-toggle {
-  border-color: var(--tennis-navy) !important;
-  color: var(--tennis-navy) !important;
-  background-color: var(--tennis-white) !important;
+/* Location badge styles are now handled by LocationBadge component */
+
+.badge-navy-tint {
+  background-color: var(--tennis-badge-bg);
+  color: var(--tennis-badge);
 }
 
-.bootstrap-select .dropdown-toggle:hover,
-.bootstrap-select .dropdown-toggle:focus,
-.bootstrap-select.show .dropdown-toggle {
-  background-color: var(--tennis-light) !important;
-  border-color: var(--tennis-navy) !important;
-  box-shadow: 0 0 0 0.25rem rgba(27, 54, 93, 0.25) !important;
+.badge-confirmed {
+  background-color: var(--tennis-confirmed);
+  color: var(--tennis-white);
 }
 
-.bootstrap-select .dropdown-menu {
-  border-color: var(--tennis-navy) !important;
-}
-
-.bootstrap-select .dropdown-item.active,
-.bootstrap-select .dropdown-item:active,
-.bootstrap-select .dropdown-item:focus {
-  background-color: var(--tennis-navy) !important;
-  color: var(--tennis-white) !important;
-}
-
-.bootstrap-select .bs-searchbox .form-control:focus {
-  border-color: var(--tennis-navy) !important;
-  box-shadow: 0 0 0 0.25rem rgba(27, 54, 93, 0.25) !important;
-}
-
-.bootstrap-select .filter-option {
-  color: var(--tennis-navy) !important;
-}
-
-.bootstrap-select .dropdown-toggle .filter-option-inner-inner {
-  color: var(--tennis-navy) !important;
-}
-
-.bootstrap-select .bs-actionsbox .actions-btn {
-  border-color: var(--tennis-navy) !important;
-  color: var(--tennis-navy) !important;
-}
-
-.bootstrap-select .bs-actionsbox .actions-btn:hover {
-  background-color: var(--tennis-navy) !important;
-  color: var(--tennis-white) !important;
-}
-
-.bootstrap-select.show-tick .dropdown-menu .selected span.check-mark {
-  color: var(--tennis-navy) !important;
-} 
+ 

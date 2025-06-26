@@ -26,7 +26,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
       {Object.entries(groupedSlots).map(([dateKey, slots]) => (
         <div key={dateKey} className="time-slot-group">
           <h6 className="d-flex align-items-center mb-3">
-            <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-accent, #f0c14b)' }}></i>
+            <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-sage)' }}></i>
             <span style={{ color: 'var(--tennis-navy, #212529)' }}>
               {moment(dateKey).format('ddd, MMM D')}
             </span>

@@ -12,7 +12,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
-interface DefaultEventBodyProps extends StyleProps {
+interface DefaultEventBodyProps {
   event: ApiEvent;
   timeSlots: TimeSlot[];
   timestamp: moment.Moment;
@@ -64,8 +64,6 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
         locations={event.locations}
         selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
         userSelectedLocations={userSelectedLocations}
-        colorClass={colorClass}
-        borderColorClass={borderColorClass}
         onLocationClick={onLocationClick}
       />
 

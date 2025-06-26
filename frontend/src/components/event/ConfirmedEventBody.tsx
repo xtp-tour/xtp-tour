@@ -6,6 +6,7 @@ import { StyleProps, TimeSlot } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { LocationBadge } from './EventBadges';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -26,7 +27,7 @@ const formatConfirmedDateTime = (datetime: string): string => {
 
 const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
   event,
-  colorClass = 'text-success',
+  colorClass = 'text-primary',
   timestamp,
   children,
 }) => {
@@ -74,7 +75,9 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
               <div className="mb-2">
                 <i className={`bi bi-geo-alt ${colorClass} me-2`}></i>
                 <span className="fw-medium">Location:</span>
-                <span className="ms-2">{event.confirmation.location}</span>
+                <span className="ms-2">
+                  <LocationBadge location={event.confirmation.location || ''} />
+                </span>
               </div>
               
               <div>
