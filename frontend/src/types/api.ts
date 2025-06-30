@@ -76,6 +76,9 @@ export interface APIClient {
   createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
   
+  // Health check endpoint
+  ping(): Promise<{ service?: string; status?: string; message?: string }>;
+  
   // Error reporting
   reportError(error: Error, extraInfo?: {
     apiEndpoint?: string;

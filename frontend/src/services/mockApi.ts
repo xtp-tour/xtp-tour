@@ -299,6 +299,7 @@ export interface APIClient {
   createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
   updateProfile(request: UpdateProfileRequest): Promise<void>;
+  ping(): Promise<{ service?: string; status?: string; message?: string }>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -718,9 +719,15 @@ export class MockAPIClient implements APIClient {
 
   // Legacy method for backward compatibility
   async updateProfile(request: UpdateProfileRequest): Promise<void> {
-    await this.checkAuth();
-    await this.delay(500);
-    // Mock implementation - just simulate success
-    console.log('Mock: Profile updated', request);
+    await this.updateUserProfile(request);
+  }
+
+  async ping(): Promise<{ service?: string; status?: string; message?: string }> {
+    await this.delay(200);
+    return {
+      service: "mock-xtp-tour@1.0.0",
+      status: "OK",
+      message: "Mock API is running"
+    };
   }
 }

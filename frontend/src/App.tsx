@@ -8,6 +8,7 @@ import CreateEvent from "./components/CreateEvent";
 import { ProfileSetup } from './components/ProfileSetup';
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import Health from './components/Health';
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error('Missing Clerk Publishable Key');
@@ -64,30 +65,78 @@ const AuthenticatedContent = () => {
   );
 };
 
+const AuthenticatedRoutes = () => (
+  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    <APIProvider useMock={false}>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={
+            <Layout>
+              <SignedIn>
+                <AuthenticatedContent />
+              </SignedIn>
+              <SignedOut>
+                <PublicEventList />
+              </SignedOut>
+            </Layout>
+          } />
+          <Route path="/event/:eventId" element={<PublicEventPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ErrorBoundary>
+    </APIProvider>
+  </ClerkProvider>
+);
+
+// Simple error boundary for health route that doesn't use API
+class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Health page error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="alert alert-danger m-3" role="alert">
+          <h4 className="alert-heading">Something went wrong</h4>
+          <p>Please try refreshing the page.</p>
+          <button 
+            className="btn btn-outline-danger" 
+            onClick={() => window.location.reload()}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      <APIProvider useMock={false}>
-        <ErrorBoundary>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={
-                <Layout>
-                  <SignedIn>
-                    <AuthenticatedContent />
-                  </SignedIn>
-                  <SignedOut>
-                    <PublicEventList />
-                  </SignedOut>
-                </Layout>
-              } />
-              <Route path="/event/:eventId" element={<PublicEventPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </ErrorBoundary>
-      </APIProvider>
-    </ClerkProvider>
+    <BrowserRouter>
+      <Routes>
+        {/* Health route - completely standalone */}
+        <Route path="/health" element={
+          <SimpleErrorBoundary>
+            <Health />
+          </SimpleErrorBoundary>
+        } />
+        
+        {/* All other routes wrapped in ClerkProvider */}
+        <Route path="*" element={<AuthenticatedRoutes />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

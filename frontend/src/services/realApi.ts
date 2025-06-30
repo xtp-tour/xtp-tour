@@ -300,14 +300,10 @@ export class RealAPIClient {
 
   // Legacy method for backward compatibility - will be removed once all components are updated
   async updateProfile(request: UpdateProfileRequest): Promise<void> {
-    // Convert legacy request to new format
-    const updateRequest: UpdateUserProfileRequest = {
-      firstName: request.firstName,
-      lastName: request.lastName,
-      ntrpLevel: request.ntrpLevel,
-      preferredCity: request.preferredCity,
-    };
-    
-    await this.updateUserProfile(updateRequest);
+    await this.updateUserProfile(request);
+  }
+
+  async ping(): Promise<{ service?: string; status?: string; message?: string }> {
+    return this.fetch<{ service?: string; status?: string; message?: string }>('/ping');
   }
 }
