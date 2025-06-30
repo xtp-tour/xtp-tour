@@ -51,7 +51,7 @@ func getRelativeTimeSlots() []string {
 
 func Test_Ping(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
-		r, err := restClient.R().Get(tConfig.ServiceHost + "/ping")
+		r, err := restClient.R().Get(tConfig.ServiceHost + "/api/ping")
 		assert.NoError(t, err)
 		assert.Equal(t, r.StatusCode(), http.StatusOK)
 	})

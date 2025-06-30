@@ -86,7 +86,7 @@ func (r *Router) setupFrontendStaticFiles(frontendPath string) {
 }
 
 func (r *Router) init(authConf pkg.AuthConfig) {
-	r.fizz.GET("/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
+	r.fizz.GET("/api/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
 	r.fizz.POST("/api/error", nil, tonic.Handler(r.errorHandler, http.StatusOK))
 
 	api := r.fizz.Group("/api", "API", "API operations")
