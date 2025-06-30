@@ -106,9 +106,11 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                         <i className="bi bi-calendar-check me-1"></i>
                         {formatConfirmedDateTime(event.confirmation.datetime || '')}
                       </div>
-                      <div>
-                        <LocationBadge location={event.confirmation.location} />
-                      </div>
+                      {event.confirmation.location && (
+                        <div>
+                          <LocationBadge location={event.confirmation.location} />
+                        </div>
+                      )}
                     </div>
                   </small>
                   <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>

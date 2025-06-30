@@ -96,7 +96,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // Get user selected locations
   const userSelectedLocations = userJoinRequest?.locations || [];
 
-  const { colorClass, borderColorClass } = getColorClasses();
+  const { colorClass } = getColorClasses();
 
   // Get user's join request status
   const getJoinRequestStatus = () => {
@@ -168,7 +168,6 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
           </div>
         }
         colorClass={colorClass}
-        borderColorClass={borderColorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt)}
         userSelectedLocations={userSelectedLocations}

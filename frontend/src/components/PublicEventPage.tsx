@@ -198,10 +198,9 @@ const PublicEventPage: React.FC = () => {
                       {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
                     </span>
                   </div>
-                }
-                colorClass="text-primary"
-                borderColorClass="border-primary"
-                timeSlots={timeSlots}
+                                  }
+                  colorClass="text-primary"
+                  timeSlots={timeSlots}
                 timestamp={moment(event.createdAt)}
                 actionButton={getActionButton()}
                 defaultCollapsed={false}

@@ -25,7 +25,6 @@ export interface ActionButton {
 
 export interface StyleProps {
   colorClass?: string;
-  borderColorClass?: string;
 }
 
 export const SKILL_LEVEL_DESCRIPTIONS = {

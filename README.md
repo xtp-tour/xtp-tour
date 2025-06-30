@@ -2,19 +2,7 @@
 
 Tennis hitting partner finder
 
-## Combined Docker Container
 
-The project provides a combined Docker container that includes both the frontend and backend components in a single image. This simplifies deployment and ensures that the frontend and backend work together seamlessly.
-
-### Building the combined container
-
-```bash
-# Build the combined image
-docker build -t xtp-tour .
-
-# Run the container
-docker run -p 8080:8080 --name xtp-tour-app xtp-tour
-```
 
 ### Environment Variables
 

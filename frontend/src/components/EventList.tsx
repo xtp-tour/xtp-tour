@@ -66,7 +66,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded,
   </div>
 );
 
-const EventList = forwardRef<EventListRef>((props, ref) => {
+const EventList = forwardRef<EventListRef>((_, ref) => {
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

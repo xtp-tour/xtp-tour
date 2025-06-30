@@ -5,7 +5,7 @@ import EventTimeSlots from './EventTimeSlots';
 import EventDescription from './EventDescription';
 import JoinedUsers from './JoinedUsers';
 import UserDisplay from '../UserDisplay';
-import { StyleProps, TimeSlot } from './types';
+import { TimeSlot } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -29,8 +29,6 @@ const formatFullTimestamp = (timestamp: moment.Moment): string => {
 
 const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
   event,
-  colorClass = 'text-primary',
-  borderColorClass = 'border-primary',
   timeSlots,
   timestamp,
   userSelectedLocations,

@@ -125,7 +125,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     };
   };
 
-  const { colorClass, borderColorClass } = getStatusColors();
+  const { colorClass } = getStatusColors();
 
   return (
     <>
@@ -133,7 +133,6 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         event={event}
         headerTitle="Your Event"
         colorClass={colorClass}
-        borderColorClass={borderColorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt || '')}
         actionButton={getActionButton()}

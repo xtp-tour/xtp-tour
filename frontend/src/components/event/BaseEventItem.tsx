@@ -40,7 +40,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   headerTitle,
   headerSubtitle,
   colorClass = 'text-primary',
-  borderColorClass = 'border-primary',
   timeSlots,
   timestamp,
   actionButton,
@@ -58,7 +57,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   // Update color classes for confirmed events - use navy instead of green
   if (isConfirmed) {
     colorClass = 'text-primary';
-    borderColorClass = 'border-primary';
   }
 
   return (
@@ -89,8 +87,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
         ) : (
           <DefaultEventBody
             event={event}
-            colorClass={colorClass}
-            borderColorClass={borderColorClass}
             timeSlots={timeSlots}
             timestamp={timestamp}
             userSelectedLocations={userSelectedLocations}
