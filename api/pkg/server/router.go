@@ -7,10 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
-	"path/filepath"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -53,36 +50,7 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool) *Router {
 	}
 	r.init(config.AuthConfig)
 
-	// Check if frontend path is set in environment
-	frontendPath := os.Getenv("FRONTEND_PATH")
-	if frontendPath != "" {
-		slog.Info("Frontend static files will be served from", "path", frontendPath)
-		r.setupFrontendStaticFiles(frontendPath)
-	}
-
 	return r
-}
-
-// setupFrontendStaticFiles configures the router to serve frontend static files
-func (r *Router) setupFrontendStaticFiles(frontendPath string) {
-	engine := r.fizz.Engine()
-
-	// Serve static files
-	engine.Static("/assets", filepath.Join(frontendPath, "assets"))
-
-	// For any other routes, serve the index.html file for SPA routing
-	engine.NoRoute(func(c *gin.Context) {
-		// Skip API paths
-		path := c.Request.URL.Path
-		if strings.HasPrefix(path, "/api") {
-			c.Next()
-			return
-		}
-
-		// Serve index.html for all other routes
-		indexPath := filepath.Join(frontendPath, "index.html")
-		c.File(indexPath)
-	})
 }
 
 func (r *Router) init(authConf pkg.AuthConfig) {
