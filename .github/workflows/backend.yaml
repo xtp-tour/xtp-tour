@@ -3,9 +3,6 @@ name: Backend CI/CD
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'api/**'
-      - '.github/workflows/backend.yaml'
   pull_request:
     branches: [ main ]
     paths:
