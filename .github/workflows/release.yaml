@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: write
-  packages: read
+  packages: write
 
 jobs:
   release:
@@ -179,6 +179,9 @@ jobs:
 
   build-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     defaults:
       run:
         working-directory: ./api
