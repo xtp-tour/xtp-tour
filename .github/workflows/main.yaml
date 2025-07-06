@@ -16,4 +16,5 @@ jobs:
     
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend]
     uses: ./.github/workflows/release.yaml 
