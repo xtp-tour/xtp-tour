@@ -64,3 +64,8 @@ func (row *ConfirmationRow) ToApi() *api.Confirmation {
 		CreatedAt:  api.DtToIso(row.CreatedAt),
 	}
 }
+
+type NotificationSettings struct {
+	Email       string
+	PhoneNumber string
+}

@@ -23,10 +23,16 @@ import (
 	"github.com/wI2L/fizz/openapi"
 )
 
+type Notifier interface {
+	EventConfirmed(logCtx *slog.Logger, joinRequsestIds []string, dateTime string, locationId string, hostUserId string)
+	UserJoined(logCtx slog.Logger, joinRequest api.JoinRequestData)
+}
+
 type Router struct {
-	fizz *fizz.Fizz
-	port int
-	db   *db.Db
+	fizz     *fizz.Fizz
+	port     int
+	db       *db.Db
+	notifier Notifier
 }
 
 func (r *Router) Run() {
@@ -37,16 +43,17 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool) *Router {
+func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier Notifier) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
 	slog.Info("Auth config type", "type", config.AuthConfig.Type)
 
 	f := rest.NewFizzRouter(config, debugMode)
 
 	r := &Router{
-		fizz: f,
-		port: config.Port,
-		db:   dbConn,
+		fizz:     f,
+		port:     config.Port,
+		db:       dbConn,
+		notifier: notifier,
 	}
 	r.init(config.AuthConfig)
 
@@ -443,6 +450,11 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 	}
 
 	req.JoinRequest.Id = joinRequestId
+
+	// Notify about user joining
+	logCtx := *slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", joinRequestId)
+	go r.notifier.UserJoined(logCtx, req.JoinRequest)
+
 	return &api.JoinRequestResponse{
 		JoinRequest: api.JoinRequest{
 			JoinRequestData: req.JoinRequest,
@@ -512,8 +524,11 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
+	logCtx := slog.With("userId", userId)
+
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
+		logCtx.Error("error to get event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -549,12 +564,14 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 				Message:  validationErr.Message,
 			}
 		}
-		slog.Error("Failed to confirm event", "error", err)
+		logCtx.Error("Failed to confirm event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to confirm event",
 		}
 	}
+
+	go r.notifier.EventConfirmed(logCtx, req.JoinRequestsIds, req.DateTime, req.LocationId, userId.(string))
 
 	return &api.EventConfirmationResponse{
 		Confirmation: *confirmation,

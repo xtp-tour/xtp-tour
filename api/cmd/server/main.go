@@ -9,6 +9,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
+	"github.com/xtp-tour/xtp-tour/api/pkg/notifications"
 
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg/server"
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
-	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode)
+	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifications.NewAllPurposeNotifier(dbConn))
 	r.Run()
 }
 

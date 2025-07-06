@@ -720,6 +720,64 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 	return result, nil
 }
 
+func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]string, error) {
+	if len(userIds) == 0 {
+		return make(map[string]string), nil
+	}
+
+	query := `
+		SELECT uid, CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name
+		FROM users 
+		WHERE uid IN (?)
+	`
+
+	query, args, err := sqlx.In(query, userIds)
+	if err != nil {
+		slog.Error("Failed to prepare query with IN clause", "error", err)
+		return nil, err
+	}
+	query = db.conn.Rebind(query)
+
+	slog.Debug("Executing SQL query for user names", "query", query, "params", args)
+
+	rows, err := db.conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		slog.Error("Failed to get user names", "error", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]string)
+	for rows.Next() {
+		var uid, fullName string
+		if err := rows.Scan(&uid, &fullName); err != nil {
+			slog.Error("Failed to scan user name row", "error", err)
+			return nil, err
+		}
+		result[uid] = strings.TrimSpace(fullName)
+	}
+
+	return result, nil
+}
+
+func (db *Db) GetFacilityName(ctx context.Context, facilityId string) (string, error) {
+	query := `SELECT name FROM facilities WHERE id = ?`
+
+	slog.Debug("Executing SQL query for facility name", "query", query, "params", facilityId)
+
+	var name string
+	err := db.conn.GetContext(ctx, &name, query, facilityId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", DbObjectNotFoundError{Message: "Facility not found"}
+		}
+		slog.Error("Failed to get facility name", "error", err, "facilityId", facilityId)
+		return "", err
+	}
+
+	return name, nil
+}
+
 // scanJoinRequest scans a single row from the query result into a JoinRequest object
 func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 	var (
@@ -841,4 +899,52 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 	// Set the userId and return the profile
 	profile.UserId = userId
 	return profile, nil
+}
+
+func (db *Db) GetUserNotificationSettings(userIds []string) (map[string]NotificationSettings, error) {
+	if len(userIds) == 0 {
+		return make(map[string]NotificationSettings), nil
+	}
+
+	query := `
+		SELECT 
+			u.uid,
+			u.phone_number,
+			COALESCE(JSON_UNQUOTE(JSON_EXTRACT(up.notifications, '$.email')), '') as email
+		FROM users u
+		LEFT JOIN user_pref up ON u.uid = up.uid
+		WHERE u.uid IN (?)
+	`
+
+	query, args, err := sqlx.In(query, userIds)
+	if err != nil {
+		slog.Error("Failed to prepare query with IN clause", "error", err)
+		return nil, err
+	}
+	query = db.conn.Rebind(query)
+
+	slog.Debug("Executing SQL query for notification settings", "query", query, "params", args)
+
+	rows, err := db.conn.Query(query, args...)
+	if err != nil {
+		slog.Error("Failed to get user notification settings", "error", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]NotificationSettings)
+	for rows.Next() {
+		var uid, phoneNumber, email string
+		if err := rows.Scan(&uid, &phoneNumber, &email); err != nil {
+			slog.Error("Failed to scan notification settings row", "error", err)
+			return nil, err
+		}
+
+		result[uid] = NotificationSettings{
+			Email:       email,
+			PhoneNumber: phoneNumber,
+		}
+	}
+
+	return result, nil
 }

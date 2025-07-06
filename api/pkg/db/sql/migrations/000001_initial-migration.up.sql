@@ -17,6 +17,8 @@ CREATE TABLE user_pref (
     language VARCHAR(5) NOT NULL,
     country VARCHAR(3) NOT NULL,
     city VARCHAR(255),
+    notifications JSON NOT NULL,
+    CHECK (JSON_VALID(`notifications`)),
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
 );
 
@@ -29,7 +31,7 @@ CREATE TABLE facilities (
     google_maps_link VARCHAR(1024),
     website VARCHAR(512),
     country VARCHAR(3) NOT NULL,
-    location POINT NOT NULL SRID 4326,
+    location POINT NOT NULL,
     SPATIAL INDEX idx_location (location)
 );
 
