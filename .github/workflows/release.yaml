@@ -1,0 +1,189 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-frontend, build-backend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION=$(date +'%Y%m%d')-$(git rev-parse --short HEAD)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend-dist
+
+      - name: Create frontend archive
+        run: |
+          cd frontend-dist
+          tar -czf ../frontend-${{ steps.version.outputs.version }}.tar.gz .
+          cd ..
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull and save Docker image
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          docker save ghcr.io/${{ github.repository }}/api:${{ github.sha }} | gzip > backend-${{ steps.version.outputs.version }}.tar.gz
+
+      - name: Create Release Notes
+        run: |
+          cat > release-notes.md << EOF
+          # Release ${{ steps.version.outputs.version }}
+          
+          ## What's included
+          - **Frontend**: Built React application (frontend-${{ steps.version.outputs.version }}.tar.gz)
+          - **Backend**: Docker image (backend-${{ steps.version.outputs.version }}.tar.gz)
+          - **Docker Image**: Available at \`ghcr.io/${{ github.repository }}/api:${{ github.sha }}\`
+          
+          ## How to use
+          
+          ### Frontend
+          1. Download and extract \`frontend-${{ steps.version.outputs.version }}.tar.gz\`
+          2. Serve the files using any static file server
+          
+          ### Backend
+          1. **Option 1**: Use Docker image directly:
+             \`\`\`bash
+             docker run -p 8080:8080 ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+             \`\`\`
+          
+          2. **Option 2**: Download and load the image:
+             \`\`\`bash
+             # Download backend-${{ steps.version.outputs.version }}.tar.gz
+             gunzip backend-${{ steps.version.outputs.version }}.tar.gz
+             docker load < backend-${{ steps.version.outputs.version }}.tar
+             docker run -p 8080:8080 ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+             \`\`\`
+          
+          ## Build Information
+          - **Commit**: ${{ github.sha }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Build Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          files: |
+            frontend-${{ steps.version.outputs.version }}.tar.gz
+            backend-${{ steps.version.outputs.version }}.tar.gz
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
+  build-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
+          check-latest: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/api
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            latest
+
+      - name: Build and push API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }} 

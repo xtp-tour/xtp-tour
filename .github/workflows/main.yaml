@@ -14,6 +14,6 @@ jobs:
   frontend:
     uses: ./.github/workflows/frontend.yaml
     
-  combined:
-    needs: [backend, frontend]
-    uses: ./.github/workflows/combined.yaml 
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/release.yaml 
