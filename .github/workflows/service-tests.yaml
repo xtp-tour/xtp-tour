@@ -2,10 +2,7 @@ name: Service Tests
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'api/**'
-      - '.github/workflows/service-tests.yaml'
+    branches: [ main ]    
   pull_request:
     branches: [ main ]
     paths:
