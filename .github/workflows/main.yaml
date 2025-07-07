@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   backend:
     uses: ./.github/workflows/backend.yaml
@@ -16,5 +20,124 @@ jobs:
     
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     needs: [backend, frontend]
-    uses: ./.github/workflows/release.yaml 
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION=$(date +'%Y%m%d')-$(git rev-parse --short HEAD)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend-dist
+
+      - name: Create frontend archive
+        run: |
+          cd frontend-dist
+          tar -czf ../frontend-${{ steps.version.outputs.version }}.tar.gz .
+          tar -czf ../frontend-latest.tar.gz .
+          cd ..
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull and save Docker image
+        run: |
+          docker pull ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          docker save ghcr.io/${{ github.repository }}/api:${{ github.sha }} | gzip > backend-${{ steps.version.outputs.version }}.tar.gz
+          docker save ghcr.io/${{ github.repository }}/api:${{ github.sha }} | gzip > backend-latest.tar.gz
+
+      - name: Create Release Notes
+        run: |
+          cat > release-notes.md << EOF
+          # Release ${{ steps.version.outputs.version }}
+          
+          ## What's included
+          - **Frontend**: Built React application
+            - Versioned: \`frontend-${{ steps.version.outputs.version }}.tar.gz\`
+            - Latest: \`frontend-latest.tar.gz\` (stable URL)
+          - **Backend**: Docker image
+            - Versioned: \`backend-${{ steps.version.outputs.version }}.tar.gz\`
+            - Latest: \`backend-latest.tar.gz\` (stable URL)
+          - **Docker Image**: Available at \`ghcr.io/${{ github.repository }}/api:${{ github.sha }}\`
+          
+          ## How to use
+          
+          ### Frontend
+          1. **Latest version**: Download and extract \`frontend-latest.tar.gz\`
+          2. **Specific version**: Download and extract \`frontend-${{ steps.version.outputs.version }}.tar.gz\`
+          3. Serve the files using any static file server
+          
+          ### Backend
+          1. **Option 1**: Use Docker image directly:
+             \`\`\`bash
+             docker run -p 8080:8080 ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+             \`\`\`
+          
+          2. **Option 2**: Download and load the image:
+             \`\`\`bash
+             # For latest version
+             curl -L -o backend-latest.tar.gz "https://github.com/${{ github.repository }}/releases/download/latest/backend-latest.tar.gz"
+             gunzip backend-latest.tar.gz
+             docker load < backend-latest.tar
+             docker run -p 8080:8080 ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+             \`\`\`
+          
+          ## Build Information
+          - **Commit**: ${{ github.sha }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Build Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+
+      - name: Create Versioned Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          files: |
+            frontend-${{ steps.version.outputs.version }}.tar.gz
+            backend-${{ steps.version.outputs.version }}.tar.gz
+            frontend-latest.tar.gz
+            backend-latest.tar.gz
+
+      - name: Create/Update Latest Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: Latest Release
+          body: |
+            # Latest Release
+            
+            This is always the most recent build from the main branch.
+            
+            **Latest Version**: v${{ steps.version.outputs.version }}
+            **Commit**: ${{ github.sha }}
+            **Build Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            
+            ## Downloads
+            - [frontend-latest.tar.gz](https://github.com/${{ github.repository }}/releases/download/latest/frontend-latest.tar.gz) - Frontend application
+            - [backend-latest.tar.gz](https://github.com/${{ github.repository }}/releases/download/latest/backend-latest.tar.gz) - Backend Docker image
+            
+            ## Docker Image
+            ```bash
+            docker run -p 8080:8080 ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+            ```
+          draft: false
+          prerelease: false
+          files: |
+            frontend-latest.tar.gz
+            backend-latest.tar.gz 
