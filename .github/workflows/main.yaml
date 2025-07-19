@@ -13,8 +13,8 @@ permissions:
 
 jobs:
   backend:
-    uses: ./.github/workflows/backend.yaml
+    uses: xtp-tour/xtp-tour/.github/workflows/backend.yaml
   
   frontend:
-    uses: ./.github/workflows/frontend.yaml
+    uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml
     

@@ -1,14 +1,14 @@
 name: Frontend CI/CD
 
 on:
-  push:
-    branches: [ main ]   
+  
   pull_request:
     branches: [ main ]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yaml'
   workflow_dispatch:
+  workflow_call:
 
 env:
   NODE_VERSION: 20
