@@ -1,0 +1,75 @@
+name: Deploy Dispatch
+
+on:
+  workflow_run:
+    workflows: ["Main"]
+    types:
+      - completed
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend-artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Get Docker image tags
+        id: docker-tags
+        run: |
+          # Get the commit SHA from the workflow run
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          SHORT_SHA=$(echo $COMMIT_SHA | cut -c1-7)
+          
+          # Set the Docker image tags as outputs
+          echo "api_image=ghcr.io/${{ github.repository }}/api:$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "api_test_image=ghcr.io/${{ github.repository }}/api:$COMMIT_SHA-test" >> $GITHUB_OUTPUT
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Verify artifacts and images
+        run: |
+          echo "Frontend artifacts:"
+          ls -la ./frontend-artifacts/ || echo "No frontend artifacts found"
+          
+          echo "Docker images that should be available:"
+          echo "API Image: ${{ steps.docker-tags.outputs.api_image }}"
+          echo "API Test Image: ${{ steps.docker-tags.outputs.api_test_image }}"
+          echo "Commit SHA: ${{ steps.docker-tags.outputs.commit_sha }}"
+
+      - name: Trigger deployment
+        run: |
+          gh api repos/xtp-tour/xtp-tour-deploy/dispatches \
+            --method POST \
+            --field event_type=deploy \
+            --field client_payload[repository]="${{ github.repository }}" \
+            --field client_payload[ref]="${{ github.event.workflow_run.head_branch }}" \
+            --field client_payload[sha]="${{ github.event.workflow_run.head_sha }}" \
+            --field client_payload[workflow_run_id]="${{ github.event.workflow_run.id }}" \
+            --field client_payload[api_image]="${{ steps.docker-tags.outputs.api_image }}" \
+            --field client_payload[api_test_image]="${{ steps.docker-tags.outputs.api_test_image }}" \
+            --field client_payload[frontend_artifacts_available]="true"
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
+
+      - name: Upload artifacts for deployment repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifacts-${{ steps.docker-tags.outputs.short_sha }}
+          path: ./frontend-artifacts
+          retention-days: 7
