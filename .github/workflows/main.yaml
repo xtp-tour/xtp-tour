@@ -2,9 +2,7 @@ name: Main CI/CD
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ main ]  
   workflow_dispatch:
 
 permissions:
@@ -13,8 +11,8 @@ permissions:
 
 jobs:
   backend:
-    uses: xtp-tour/xtp-tour/.github/workflows/backend.yaml
+    uses: xtp-tour/xtp-tour/.github/workflows/backend.yaml@main 
   
   frontend:
-    uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml
+    uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml@main 
     
