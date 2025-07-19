@@ -30,5 +30,5 @@ jobs:
             --field client_payload[ref]="$GITHUB_REF" \
             --field client_payload[sha]="$GITHUB_SHA"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
     
