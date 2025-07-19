@@ -16,3 +16,19 @@ jobs:
   frontend:
     uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml@main 
     
+  trigger-deploy:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Trigger deployment
+        run: |
+          gh api repos/xtp-tour/xtp-tour-deploy/dispatches \
+            --method POST \
+            --field event_type=deploy \
+            --field client_payload[repository]="$GITHUB_REPOSITORY" \
+            --field client_payload[ref]="$GITHUB_REF" \
+            --field client_payload[sha]="$GITHUB_SHA"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
