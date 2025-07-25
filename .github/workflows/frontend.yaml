@@ -57,6 +57,8 @@ jobs:
         run: pnpm test
 
       - name: Build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
         run: pnpm build
 
       - name: Upload build artifacts
