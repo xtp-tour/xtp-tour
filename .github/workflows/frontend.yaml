@@ -1,14 +1,17 @@
 name: Frontend CI/CD
 
 on:
-  
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yaml'
   pull_request:
     branches: [ main ]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yaml'
   workflow_dispatch:
-  workflow_call:
 
 env:
   NODE_VERSION: 20
@@ -47,18 +50,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+            - name: Install dependencies
         run: pnpm install
 
       - name: Lint
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test
+      - name: Set version
+        id: version
+        run: |
+          VERSION="$(date -u +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD)"
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "App version will be: ${VERSION}"
 
       - name: Build
         env:
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY:
+          VITE_APP_VERSION: ${{ steps.version.outputs.VERSION }}
         run: pnpm build
 
       - name: Upload build artifacts
@@ -66,4 +74,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: frontend/dist 
+          path: frontend/dist

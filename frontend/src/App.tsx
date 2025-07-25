@@ -42,6 +42,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <main>
           {children}
         </main>
+        <footer className="mt-5 pt-3 border-top">
+          <div className="text-center">
+            <small className="text-muted">
+              Set Match v{__APP_VERSION__}
+            </small>
+          </div>
+        </footer>
       </div>
     </div>
   );
@@ -109,8 +116,8 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
         <div className="alert alert-danger m-3" role="alert">
           <h4 className="alert-heading">Something went wrong</h4>
           <p>Please try refreshing the page.</p>
-          <button 
-            className="btn btn-outline-danger" 
+          <button
+            className="btn btn-outline-danger"
             onClick={() => window.location.reload()}
           >
             Reload Page
@@ -132,7 +139,7 @@ function App() {
             <Health />
           </SimpleErrorBoundary>
         } />
-        
+
         {/* All other routes wrapped in ClerkProvider */}
         <Route path="*" element={<AuthenticatedRoutes />} />
       </Routes>
