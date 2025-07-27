@@ -12,6 +12,7 @@ on:
       - 'frontend/**'
       - '.github/workflows/frontend.yaml'
   workflow_dispatch:
+  workflow_call:
 
 env:
   NODE_VERSION: 20
