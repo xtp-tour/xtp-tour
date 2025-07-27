@@ -2,6 +2,9 @@ import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
 import './LandingPage.css';
 
+// Check if Clerk is available
+const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
 const LandingPage: React.FC = () => {
   const flowSteps = [
     {
@@ -42,18 +45,33 @@ const LandingPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="d-flex justify-content-center gap-3 mb-5">
-          <SignUpButton mode="modal">
-            <button className="btn btn-primary btn-lg px-4">
+          {isClerkAvailable ? (
+            <SignUpButton mode="modal">
+              <button className="btn btn-primary btn-lg px-4">
+                <i className="bi bi-person-plus me-2"></i>
+                Get Started
+              </button>
+            </SignUpButton>
+          ) : (
+            <button className="btn btn-primary btn-lg px-4" disabled>
               <i className="bi bi-person-plus me-2"></i>
               Get Started
             </button>
-          </SignUpButton>
-          <SignInButton mode="modal">
-            <button className="btn btn-outline-primary btn-lg px-4">
+          )}
+
+          {isClerkAvailable ? (
+            <SignInButton mode="modal">
+              <button className="btn btn-outline-primary btn-lg px-4">
+                <i className="bi bi-box-arrow-in-right me-2"></i>
+                Sign In
+              </button>
+            </SignInButton>
+          ) : (
+            <button className="btn btn-outline-primary btn-lg px-4" disabled>
               <i className="bi bi-box-arrow-in-right me-2"></i>
               Sign In
             </button>
-          </SignInButton>
+          )}
         </div>
       </div>
 
@@ -116,11 +134,17 @@ const LandingPage: React.FC = () => {
         <div className="cta-section text-center mt-5 p-4 bg-light rounded">
           <h3 className="mb-3" style={{ color: 'var(--tennis-navy)' }}>Ready to Play?</h3>
           <p className="text-muted mb-4">Join our community of tennis enthusiasts and never play alone again.</p>
-          <SignUpButton mode="modal">
-            <button className="btn btn-primary btn-lg">
+          {isClerkAvailable ? (
+            <SignUpButton mode="modal">
+              <button className="btn btn-primary btn-lg">
+                Start Playing Today
+              </button>
+            </SignUpButton>
+          ) : (
+            <button className="btn btn-primary btn-lg" disabled>
               Start Playing Today
             </button>
-          </SignUpButton>
+          )}
         </div>
       </div>
     </div>
