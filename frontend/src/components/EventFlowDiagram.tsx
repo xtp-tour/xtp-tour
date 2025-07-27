@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
+import { EventStep } from '../types/eventTypes';
 import './EventFlowDiagram.css';
-
-export enum EventStep {
-  Created = 'CREATED',
-  Pending = 'PENDING',
-  Joined = 'JOINED',
-  Confirmed = 'CONFIRMED',
-  Rejected = 'REJECTED'
-}
 
 interface Props {
   currentStep: EventStep;
@@ -78,8 +71,8 @@ export const EventFlowDiagram: React.FC<Props> = ({
 
   return (
     <div className={`event-flow ${className}`}>
-      <div 
-        className="flow-header" 
+      <div
+        className="flow-header"
         onClick={() => setIsExpanded(!isExpanded)}
         role="button"
       >
@@ -88,7 +81,7 @@ export const EventFlowDiagram: React.FC<Props> = ({
           How it works
         </h6>
       </div>
-      
+
       {isExpanded && (
         <div className="flow-content mt-3">
           <div className="flow-steps mb-4">
@@ -135,4 +128,4 @@ export const EventFlowDiagram: React.FC<Props> = ({
       )}
     </div>
   );
-}; 
+};

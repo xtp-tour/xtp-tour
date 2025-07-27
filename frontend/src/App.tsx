@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import EventList, { EventListRef } from "./components/EventList";
-import PublicEventList from "./components/PublicEventList";
 import PublicEventPage from "./components/PublicEventPage";
 import CreateEvent from "./components/CreateEvent";
 import { ProfileSetup } from './components/ProfileSetup';

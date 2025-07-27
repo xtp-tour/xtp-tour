@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
 import TimeSlotLabels from './event/TimeSlotLabels';
-import { EventFlowDiagram, EventStep } from './EventFlowDiagram';
+import { EventFlowDiagram } from './EventFlowDiagram';
+import { EventStep } from '../types/eventTypes';
 import { TimeSlot } from './event/types';
 import moment from 'moment';
 
@@ -70,8 +71,8 @@ export const JoinEventModal: React.FC<Props> = ({
   }, [api, eventId, show]);
 
   const handleLocationChange = (locationId: string, checked: boolean) => {
-    setSelectedLocations(prev => 
-      checked 
+    setSelectedLocations(prev =>
+      checked
         ? [...prev, locationId]
         : prev.filter(id => id !== locationId)
     );
@@ -132,8 +133,8 @@ export const JoinEventModal: React.FC<Props> = ({
         />
 
         {error && (
-          <Alert variant="danger" className="mb-3" style={{ 
-            backgroundColor: '#FFF5F5', 
+          <Alert variant="danger" className="mb-3" style={{
+            backgroundColor: '#FFF5F5',
             borderColor: 'var(--tennis-clay)',
             color: 'var(--tennis-clay)'
           }}>
@@ -168,8 +169,8 @@ export const JoinEventModal: React.FC<Props> = ({
                             : 'text-dark border border-opacity-25'
                         }`}
                         style={{
-                          backgroundColor: selectedLocations.includes(locationId) 
-                            ? 'var(--tennis-navy)' 
+                          backgroundColor: selectedLocations.includes(locationId)
+                            ? 'var(--tennis-navy)'
                             : 'var(--tennis-light)',
                           borderColor: selectedLocations.includes(locationId)
                             ? 'var(--tennis-navy)'
@@ -183,13 +184,13 @@ export const JoinEventModal: React.FC<Props> = ({
                         role="button"
                       >
                         <i className={`bi bi-geo-alt me-1 ${
-                          selectedLocations.includes(locationId) 
-                            ? 'text-white' 
+                          selectedLocations.includes(locationId)
+                            ? 'text-white'
                             : ''
-                        }`} style={{ 
-                          color: selectedLocations.includes(locationId) 
-                            ? 'var(--tennis-white)' 
-                            : 'var(--tennis-navy)' 
+                        }`} style={{
+                          color: selectedLocations.includes(locationId)
+                            ? 'var(--tennis-white)'
+                            : 'var(--tennis-navy)'
                         }}></i>
                         {locationId}
                       </div>
@@ -229,9 +230,9 @@ export const JoinEventModal: React.FC<Props> = ({
         ) : null}
       </Modal.Body>
       <Modal.Footer className="border-0 pt-2">
-        <Button 
-          variant="link" 
-          onClick={onHide} 
+        <Button
+          variant="link"
+          onClick={onHide}
           disabled={loading}
           className="text-decoration-none"
           style={{ color: 'var(--tennis-gray)' }}
@@ -259,4 +260,4 @@ export const JoinEventModal: React.FC<Props> = ({
       </Modal.Footer>
     </Modal>
   );
-}; 
+};

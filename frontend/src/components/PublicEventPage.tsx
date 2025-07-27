@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAPI } from '../services/apiProvider';
 import { ApiEvent } from '../types/api';
@@ -21,15 +21,9 @@ const PublicEventPage: React.FC = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  useEffect(() => {
-    if (eventId) {
-      loadEvent();
-    }
-  }, [eventId]);
-
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     if (!eventId) return;
-    
+
     try {
       setLoading(true);
       const eventData = await api.getPublicEvent(eventId);
@@ -39,7 +33,13 @@ const PublicEventPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId, api]);
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent();
+    }
+  }, [eventId, loadEvent]);
 
   const handleJoinEvent = () => {
     setShowJoinModal(true);
@@ -88,7 +88,7 @@ const PublicEventPage: React.FC = () => {
   }
 
   // Convert event time slots to the format expected by BaseEventItem
-  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => 
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot =>
     timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
   );
 
@@ -107,7 +107,7 @@ const PublicEventPage: React.FC = () => {
 
     // Check if user is the event owner
     const isOwner = user?.id === event?.userId;
-    
+
     // Check if event is open for joining
     const isEventOpen = event?.status === 'OPEN';
 
@@ -126,7 +126,7 @@ const PublicEventPage: React.FC = () => {
         hidden: true
       };
     }
-    
+
     return {
       variant: 'outline-primary',
       icon: 'bi-plus-circle',
@@ -146,8 +146,8 @@ const PublicEventPage: React.FC = () => {
         <header className="pb-3 mb-4 border-bottom">
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center">
-              <button 
-                className="btn btn-outline-secondary me-3" 
+              <button
+                className="btn btn-outline-secondary me-3"
                 onClick={handleBackToList}
                 style={{ minWidth: 'auto' }}
               >
@@ -229,7 +229,7 @@ const PublicEventPage: React.FC = () => {
                     <i className="bi bi-clipboard"></i>
                   </button>
                 </div>
-                
+
                 <div className="d-flex gap-2 flex-wrap">
                   <button
                     className="btn btn-primary"
@@ -241,7 +241,7 @@ const PublicEventPage: React.FC = () => {
                     <i className="bi bi-facebook me-2"></i>
                     Facebook
                   </button>
-                  
+
                   <button
                     className="btn btn-info"
                     onClick={() => {
@@ -253,7 +253,7 @@ const PublicEventPage: React.FC = () => {
                     <i className="bi bi-twitter me-2"></i>
                     Twitter
                   </button>
-                  
+
                   <button
                     className="btn btn-success"
                     onClick={() => {
@@ -265,7 +265,7 @@ const PublicEventPage: React.FC = () => {
                     <i className="bi bi-whatsapp me-2"></i>
                     WhatsApp
                   </button>
-                  
+
                   <button
                     className="btn btn-primary"
                     onClick={() => {
@@ -304,4 +304,4 @@ const PublicEventPage: React.FC = () => {
   );
 };
 
-export default PublicEventPage; 
+export default PublicEventPage;

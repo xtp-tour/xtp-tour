@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import MyEventItem from './MyEventItem';
 import JoinedEventItem from './JoinedEventItem';
 import PublicEventList from './PublicEventList';
@@ -27,8 +27,8 @@ const transformEventData = (event: Event): DisplayEvent => {
     date: new Date(ts),
     time: ts,
     isAvailable: true,
-    isSelected: event.confirmation ? 
-      new Date(event.confirmation.datetime || '').getTime() === new Date(ts).getTime() : 
+    isSelected: event.confirmation ?
+      new Date(event.confirmation.datetime || '').getTime() === new Date(ts).getTime() :
       false
   }));
 
@@ -49,14 +49,14 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded, onToggle }) => (
-  <div 
+  <div
     className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom cursor-pointer"
     onClick={onToggle}
     style={{ cursor: 'pointer', borderBottomColor: 'var(--tennis-light)' }}
   >
     <div className="d-flex align-items-center gap-2">
       <h2 className="h4 mb-0" style={{ color: 'var(--tennis-navy)' }}>{title}</h2>
-      <span className="badge rounded-pill" style={{ 
+      <span className="badge rounded-pill" style={{
         backgroundColor: 'var(--tennis-accent)',
         color: 'var(--tennis-navy)',
         minWidth: '24px'
@@ -71,7 +71,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [myEvents, setMyEvents] = useState<DisplayEvent[]>([]);
-  const [joinedEvents, setJoinedEvents] = useState<DisplayEvent[]>([]); 
+  const [joinedEvents, setJoinedEvents] = useState<DisplayEvent[]>([]);
   const [availableEvents, setAvailableEvents] = useState<DisplayEvent[]>([]);
 
   // State for section expansion
@@ -88,7 +88,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
     }));
   };
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -108,7 +108,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
 
   useImperativeHandle(ref, () => ({
     refreshEvents: fetchEvents
@@ -116,10 +116,10 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
   useEffect(() => {
     fetchEvents();
-  }, [api]);
+  }, [fetchEvents]);
 
   // Filter events based on their status and ownership
-  const myOpenEvents = myEvents    
+  const myOpenEvents = myEvents
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
@@ -155,9 +155,9 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
           ) : (
             <div>
               {myOpenEvents.map(event => (
-                <MyEventItem 
-                  key={event.id} 
-                  event={event} 
+                <MyEventItem
+                  key={event.id}
+                  event={event}
                   onDelete={async (id) => {
                     try {
                       await api.deleteEvent(id);
@@ -196,9 +196,9 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
           ) : (
             <div>
               {joinedEvents.map(event => (
-                <JoinedEventItem 
-                  key={event.id} 
-                  event={event} 
+                <JoinedEventItem
+                  key={event.id}
+                  event={event}
                   onCancelled={() => {
                     // Refresh joined events after cancellation
                     api.listJoinedEvents()
@@ -224,7 +224,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
           onToggle={() => toggleSection('availableEvents')}
         />
         {expandedSections.availableEvents && (
-          <PublicEventList 
+          <PublicEventList
             onEventJoined={() => {
               // Refresh joined events when a user joins an event
               api.listJoinedEvents()
@@ -242,4 +242,4 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
   );
 });
 
-export default EventList; 
+export default EventList;

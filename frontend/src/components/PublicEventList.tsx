@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAPI } from '../services/apiProvider';
 import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
@@ -26,11 +26,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareEventId, setShareEventId] = useState<string>('');
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.listPublicEvents();
@@ -40,7 +36,11 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   const handleJoinEvent = (event: ApiEvent) => {
     setSelectedEvent(event);
@@ -82,7 +82,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
   return (
     <div>      {events.map(event => {
         // Convert event time slots to the format expected by BaseEventItem
-        const timeSlots: TimeSlot[] = event.timeSlots.map(slot => 
+        const timeSlots: TimeSlot[] = event.timeSlots.map(slot =>
           timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
         );
 
@@ -122,7 +122,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
 
           // Check if user is the event owner
           const isOwner = user?.id === event.userId;
-          
+
           // Check if event is open for joining
           const isEventOpen = event.status === 'OPEN';
 
@@ -141,7 +141,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
               hidden: true
             };
           }
-          
+
           return {
             variant: 'outline-primary',
             icon: 'bi-plus-circle',
