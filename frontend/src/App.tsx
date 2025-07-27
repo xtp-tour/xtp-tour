@@ -6,6 +6,7 @@ import PublicEventList from "./components/PublicEventList";
 import PublicEventPage from "./components/PublicEventPage";
 import CreateEvent from "./components/CreateEvent";
 import { ProfileSetup } from './components/ProfileSetup';
+import LandingPage from './components/LandingPage';
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
@@ -83,7 +84,7 @@ const AuthenticatedRoutes = () => (
                 <AuthenticatedContent />
               </SignedIn>
               <SignedOut>
-                <PublicEventList />
+                <LandingPage />
               </SignedOut>
             </Layout>
           } />

@@ -1,0 +1,187 @@
+.landing-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.hero-section {
+  padding: 3rem 0;
+}
+
+.hero-icon {
+  margin-bottom: 1.5rem;
+}
+
+/* Flow container styling - adapted from EventFlowDiagram */
+.flow-container {
+  background-color: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.flow-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+.flow-step {
+  flex: 1;
+  text-align: center;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.step-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 3px solid #0d6efd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.step-icon i {
+  font-size: 1.5rem;
+  color: #0d6efd;
+  transition: all 0.3s ease;
+}
+
+.step-content {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.step-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.step-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.flow-connector {
+  flex: 0.5;
+  height: 3px;
+  background: linear-gradient(90deg, #0d6efd, #6c757d);
+  margin-top: 2rem;
+  position: relative;
+  border-radius: 2px;
+}
+
+/* Features section */
+.features {
+  padding: 2rem 0;
+}
+
+.feature-icon {
+  margin-bottom: 1rem;
+}
+
+.features h5 {
+  color: var(--tennis-navy);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Call to action section */
+.cta-section {
+  border: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Tennis accent color utility */
+.tennis-accent {
+  color: #ff6b35 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .landing-page {
+    padding: 1rem;
+  }
+
+  .hero-section {
+    padding: 2rem 0;
+  }
+
+  .hero-icon i {
+    font-size: 3rem !important;
+  }
+
+  .display-4 {
+    font-size: 2rem !important;
+  }
+
+  .flow-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .flow-steps {
+    flex-direction: column;
+  }
+
+  .flow-step {
+    padding: 1.5rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .flow-connector {
+    width: 3px;
+    height: 2rem;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #0d6efd, #6c757d);
+  }
+
+  .step-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-width: 2px;
+  }
+
+  .step-icon i {
+    font-size: 1.25rem;
+  }
+
+  .features .col-md-4 {
+    margin-bottom: 2rem;
+  }
+
+  .d-flex.gap-3 {
+    flex-direction: column;
+    gap: 1rem !important;
+  }
+
+  .btn-lg {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .flow-container {
+    margin: 1rem -1rem;
+    border-radius: 0;
+  }
+
+  .step-title {
+    font-size: 1rem;
+  }
+
+  .step-description {
+    font-size: 0.85rem;
+  }
+}
