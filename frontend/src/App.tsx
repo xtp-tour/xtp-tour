@@ -10,9 +10,8 @@ import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 
-if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-  throw new Error('Missing Clerk Publishable Key');
-}
+// Check if Clerk is available
+const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -24,19 +23,42 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Set Match</h1>
           </div>
           <div>
-            <SignedOut>
-              <div className="d-flex gap-2">
-                <SignInButton mode="modal">
-                  <button className="btn btn-outline-primary" style={{ minWidth: '100px' }}>Sign in</button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="btn btn-primary" style={{ minWidth: '100px' }}>Sign up</button>
-                </SignUpButton>
+            {isClerkAvailable ? (
+              <>
+                <SignedOut>
+                  <div className="d-flex gap-2">
+                    <SignInButton mode="modal">
+                      <button className="btn btn-outline-primary" style={{ minWidth: '100px' }}>Sign in</button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className="btn btn-primary" style={{ minWidth: '100px' }}>Sign up</button>
+                    </SignUpButton>
+                  </div>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </>
+            ) : (
+                            <div className="d-flex gap-2">
+                <button
+                  className="btn btn-outline-primary"
+                  style={{ minWidth: '100px', opacity: 0.6 }}
+                  disabled
+                  title="Coming in next couple of weeks"
+                >
+                  Sign in
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ minWidth: '100px', opacity: 0.6 }}
+                  disabled
+                  title="Coming in next couple of weeks"
+                >
+                  Sign up
+                </button>
               </div>
-            </SignedOut>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+            )}
           </div>
         </header>
         <main>
@@ -72,19 +94,25 @@ const AuthenticatedContent = () => {
   );
 };
 
-const AuthenticatedRoutes = () => (
-  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+const AuthenticatedRoutes = () => {
+  const routeContent = (
     <APIProvider useMock={false}>
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={
             <Layout>
-              <SignedIn>
-                <AuthenticatedContent />
-              </SignedIn>
-              <SignedOut>
+              {isClerkAvailable ? (
+                <>
+                  <SignedIn>
+                    <AuthenticatedContent />
+                  </SignedIn>
+                  <SignedOut>
+                    <LandingPage />
+                  </SignedOut>
+                </>
+              ) : (
                 <LandingPage />
-              </SignedOut>
+              )}
             </Layout>
           } />
           <Route path="/event/:eventId" element={<PublicEventPage />} />
@@ -92,8 +120,16 @@ const AuthenticatedRoutes = () => (
         </Routes>
       </ErrorBoundary>
     </APIProvider>
-  </ClerkProvider>
-);
+  );
+
+  return isClerkAvailable ? (
+    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+      {routeContent}
+    </ClerkProvider>
+  ) : (
+    routeContent
+  );
+};
 
 // Simple error boundary for health route that doesn't use API
 class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
@@ -129,8 +165,8 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
   }
 }
 
-function App() {
-  return (
+  function App() {
+    return (
     <BrowserRouter>
       <Routes>
         {/* Health route - completely standalone */}

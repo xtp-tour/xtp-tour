@@ -45,15 +45,20 @@ const LandingPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="d-flex justify-content-center gap-3 mb-5">
-          {isClerkAvailable ? (
+                    {isClerkAvailable ? (
             <SignUpButton mode="modal">
               <button className="btn btn-primary btn-lg px-4">
                 <i className="bi bi-person-plus me-2"></i>
                 Get Started
               </button>
             </SignUpButton>
-          ) : (
-            <button className="btn btn-primary btn-lg px-4" disabled>
+                    ) : (
+            <button
+              className="btn btn-primary btn-lg px-4"
+              disabled
+              style={{ opacity: 0.6 }}
+              title="Coming in next couple of weeks"
+            >
               <i className="bi bi-person-plus me-2"></i>
               Get Started
             </button>
@@ -67,7 +72,12 @@ const LandingPage: React.FC = () => {
               </button>
             </SignInButton>
           ) : (
-            <button className="btn btn-outline-primary btn-lg px-4" disabled>
+            <button
+              className="btn btn-outline-primary btn-lg px-4"
+              disabled
+              style={{ opacity: 0.6 }}
+              title="Coming in next couple of weeks"
+            >
               <i className="bi bi-box-arrow-in-right me-2"></i>
               Sign In
             </button>
@@ -140,8 +150,13 @@ const LandingPage: React.FC = () => {
                 Start Playing Today
               </button>
             </SignUpButton>
-          ) : (
-            <button className="btn btn-primary btn-lg" disabled>
+                    ) : (
+            <button
+              className="btn btn-primary btn-lg"
+              disabled
+              style={{ opacity: 0.6 }}
+              title="Coming in next couple of weeks"
+            >
               Start Playing Today
             </button>
           )}

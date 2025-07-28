@@ -5,6 +5,9 @@ import { MockAPIClient } from './mockApi';
 import { RealAPIClient } from './realApi';
 import { APIClient, APIConfig } from '../types/api';
 
+// Check if Clerk is available
+const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
 // Define types based on the schema
 export type Event = components['schemas']['ApiEvent'];
 export type EventConfirmation = components['schemas']['ApiConfirmation'];
@@ -34,7 +37,8 @@ interface APIProviderProps {
   baseUrl?: string;
 }
 
-export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProviderProps) {
+// Internal provider that uses Clerk
+function APIProviderWithAuth({ children, useMock = true, baseUrl = '' }: APIProviderProps) {
   const { getToken } = useAuth();
 
   const client = useMemo(() => {
@@ -56,6 +60,43 @@ export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProvi
     <APIContext.Provider value={client}>
       {children}
     </APIContext.Provider>
+  );
+}
+
+// Fallback provider without auth
+function APIProviderFallback({ children, baseUrl = '' }: { children: ReactNode; baseUrl?: string }) {
+  const client = useMemo(() => {
+    const config: APIConfig = {
+      baseUrl,
+      async getAuthToken() {
+        return undefined; // No auth for fallback
+      }
+    };
+    return new MockAPIClient(config);
+  }, [baseUrl]);
+
+  return (
+    <APIContext.Provider value={client}>
+      {children}
+    </APIContext.Provider>
+  );
+}
+
+// Main exported provider
+export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProviderProps) {
+  // If Clerk is not available, always use mock
+  if (!isClerkAvailable) {
+    return <APIProviderFallback baseUrl={baseUrl}>{children}</APIProviderFallback>;
+  }
+
+  // Force mock when Clerk is not available
+  const shouldUseMock = useMock || !isClerkAvailable;
+
+  // Use auth-enabled provider when Clerk is available
+  return (
+    <APIProviderWithAuth useMock={shouldUseMock} baseUrl={baseUrl}>
+      {children}
+    </APIProviderWithAuth>
   );
 }
 
