@@ -2,7 +2,7 @@ name: Main
 
 on:
   push:
-    branches: [ main ]  
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -11,11 +11,13 @@ permissions:
 
 jobs:
   backend:
-    uses: xtp-tour/xtp-tour/.github/workflows/backend.yaml@main 
-  
+    uses: xtp-tour/xtp-tour/.github/workflows/backend.yaml@main
+    secrets: inherit
+
   frontend:
-    uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml@main 
-    
+    uses: xtp-tour/xtp-tour/.github/workflows/frontend.yaml@main
+    secrets: inherit
+
   trigger-deploy:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
@@ -31,4 +33,3 @@ jobs:
             --field client_payload[sha]="$GITHUB_SHA"
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-    
