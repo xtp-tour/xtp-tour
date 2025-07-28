@@ -70,6 +70,7 @@ jobs:
       - name: Build
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_API_BASE_URL: https://api.setmatch.xyz
           VITE_APP_VERSION: ${{ steps.version.outputs.VERSION }}
         run: pnpm build
 

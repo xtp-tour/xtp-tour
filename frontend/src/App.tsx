@@ -100,7 +100,7 @@ const AuthenticatedContent = () => {
 
 const AuthenticatedRoutes = () => {
   const routeContent = (
-    <APIProvider useMock={false}>
+    <APIProvider useMock={false} baseUrl={import.meta.env.VITE_API_BASE_URL || ''}>
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={
