@@ -69,7 +69,7 @@ jobs:
 
       - name: Build
         env:
-          VITE_CLERK_PUBLISHABLE_KEY:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_APP_VERSION: ${{ steps.version.outputs.VERSION }}
         run: pnpm build
 
