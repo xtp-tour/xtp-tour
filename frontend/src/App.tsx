@@ -13,6 +13,10 @@ import Health from './components/Health';
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+if (!isClerkAvailable) {
+  console.log('Clerk is not available');
+}
+
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-vh-100 bg-light">
