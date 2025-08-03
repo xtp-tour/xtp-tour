@@ -13,18 +13,18 @@ interface APIError {
 }
 
 const NTRP_LEVELS = [
-  { value: 1.0, label: '1.0 - Beginner' },
-  { value: 1.5, label: '1.5 - Advanced Beginner' },
-  { value: 2.0, label: '2.0 - Beginner' },
-  { value: 2.5, label: '2.5 - Advanced Beginner' },
-  { value: 3.0, label: '3.0 - Intermediate' },
-  { value: 3.5, label: '3.5 - Advanced Intermediate' },
-  { value: 4.0, label: '4.0 - Advanced' },
-  { value: 4.5, label: '4.5 - Advanced' },
-  { value: 5.0, label: '5.0 - Expert' },
-  { value: 5.5, label: '5.5 - Expert' },
-  { value: 6.0, label: '6.0 - Expert' },
-  { value: 7.0, label: '7.0 - Professional' },
+  { value: 1.0, label: '1.0 - New Player: Just starting to learn tennis' },
+  { value: 1.5, label: '1.5 - Beginner: Limited experience, working on getting ball in play' },
+  { value: 2.0, label: '2.0 - Novice: Needs court experience, obvious stroke weaknesses' },
+  { value: 2.5, label: '2.5 - Advanced Novice: Learning ball judgment, can sustain slow rallies' },
+  { value: 3.0, label: '3.0 - Intermediate: Fairly consistent on medium-paced shots' },
+  { value: 3.5, label: '3.5 - Advanced Intermediate: Improved stroke dependability with directional control' },
+  { value: 4.0, label: '4.0 - Advanced: Dependable strokes with depth and directional control' },
+  { value: 4.5, label: '4.5 - Expert: Beginning to master power and spins, sound footwork' },
+  { value: 5.0, label: '5.0 - Elite: Good shot anticipation, can structure game around strengths' },
+  { value: 5.5, label: '5.5 - Elite+: Developed power/consistency as major weapon' },
+  { value: 6.0, label: '6.0 - Tournament: Intensive training, sectional/national ranking' },
+  { value: 7.0, label: '7.0 - Professional: World-class player' },
 ];
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
@@ -179,6 +179,17 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
 
                 <Form.Group className="mb-3">
                   <Form.Label>NTRP Level</Form.Label>
+                  <Form.Text className="text-muted d-block mb-2">
+                    The National Tennis Rating Program (NTRP) helps match players of similar skill levels. 
+                    <a 
+                      href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ms-1"
+                    >
+                      Learn more about NTRP ratings →
+                    </a>
+                  </Form.Text>
                   <Form.Select
                     name="ntrpLevel"
                     value={formData.ntrpLevel}

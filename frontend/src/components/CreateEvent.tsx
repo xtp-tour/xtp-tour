@@ -24,10 +24,10 @@ const MATCH_DURATION_OPTIONS = [
 ];
 
 const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
-  'INTERMEDIATE': 'NTRP 3.5–5.0',
-  'BEGINNER': 'NTRP < 3.5',
-  'ADVANCED': 'NTRP > 5.0',
-  'ANY': 'Any NTRP'
+  'INTERMEDIATE': 'NTRP 3.5–5.0 - Consistent players with developed strokes and strategy',
+  'BEGINNER': 'NTRP < 3.5 - New to intermediate players learning fundamentals',
+  'ADVANCED': 'NTRP > 5.0 - Elite players with tournament experience and advanced skills',
+  'ANY': 'Any NTRP - Open to all skill levels'
 };
 
 const calculateEndTime = (startTime: string, duration: string): string => {
@@ -430,6 +430,17 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
               <div className="mb-3">
                 <label htmlFor="skillLevel" className="form-label">Opponent Skill Level</label>
+                <div className="text-muted small mb-2">
+                  Choose the NTRP skill level range for your tennis match. 
+                  <a 
+                    href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ms-1"
+                  >
+                    What's my NTRP level? →
+                  </a>
+                </div>
                 <select 
                   className="form-select" 
                   id="skillLevel" 
