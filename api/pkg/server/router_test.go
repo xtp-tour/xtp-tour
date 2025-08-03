@@ -9,7 +9,7 @@ func init() {
 }
 
 var defaultHttpConfig = &pkg.HttpConfig{
-	Cors: cors.Config{
+	Cors: &cors.Config{
 		AllowAllOrigins: true,
 	},
 }
