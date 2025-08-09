@@ -13,4 +13,5 @@ alwaysApply: true
 - pay attention to dependencies in [package.json](mdc:package.json)
 - Makefile [Makefile](mdc:Makefile)
 - On dev environment there is a  user:  
-    - "user2@example.com" Password "biAShy=8&Q,%g~T" 
+    - email: "user2@example.com" Password "biAShy=8&Q,%g~T" 
+    - email: "test3@example.com" Password "aZKymXAlzB1Cp8"
