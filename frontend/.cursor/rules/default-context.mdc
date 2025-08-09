@@ -12,3 +12,5 @@ alwaysApply: true
 - use native bootstrap classes and avoid custom CSS
 - pay attention to dependencies in [package.json](mdc:package.json)
 - Makefile [Makefile](mdc:Makefile)
+- On dev environment there is a  user:  
+    - "user2@example.com" Password "biAShy=8&Q,%g~T" 
