@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
@@ -98,16 +98,16 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   const { colorClass } = getColorClasses();
 
-  // Get user's join request status
+  // Get user's join request status with badge info
   const getJoinRequestStatus = () => {
-    if (!userJoinRequest) return '';
+    if (!userJoinRequest) return { text: '', variant: 'bg-secondary' };
     
     if (userJoinRequest.isRejected === true) {
-      return 'Request rejected';
+      return { text: 'Request rejected', variant: 'bg-danger' };
     } else if (userJoinRequest.isRejected === false) {
-      return 'Request accepted';
+      return { text: 'Request accepted', variant: 'bg-success' };
     } else {
-      return 'Waiting for host approval';
+      return { text: 'Waiting for host approval', variant: 'bg-warning text-dark' };
     }
   };
 
@@ -156,15 +156,15 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle="Joined Event"
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
         headerSubtitle={
-          <div className="d-flex align-items-center flex-column align-items-start">
-            <div>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <span>
               Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
-            </div>
-            <div className="text-muted small">
-              {getJoinRequestStatus()}
-            </div>
+            </span>
+            <span className={`badge ${getJoinRequestStatus().variant}`}>
+              {getJoinRequestStatus().text}
+            </span>
           </div>
         }
         colorClass={colorClass}

@@ -4,7 +4,7 @@ import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
 import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
+import { SKILL_LEVEL_DESCRIPTIONS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
 import { LocationBadge } from './EventBadges';
 
@@ -27,13 +27,27 @@ const formatConfirmedDateTime = (datetime: string): string => {
 const truncateUsername = (name: string) =>
   name.length > 20 ? name.slice(0, 20) + '...' : name;
 
-// Add CSS for the consistent button styling
-const buttonStyle = {
-  minHeight: '38px',
-  outline: 'none',
-  boxShadow: 'none',
-  backgroundColor: 'transparent'
+// Get status badge info based on event status
+const getStatusBadge = (event: ApiEvent) => {
+  switch (event.status) {
+    case 'OPEN':
+      return { text: 'Open', variant: 'text-bg-primary' };
+    case 'ACCEPTED':
+      return { text: 'Awaiting confirmation', variant: 'text-bg-warning' };
+    case 'CONFIRMED':
+      return { text: 'Confirmed', variant: 'text-bg-success' };
+    case 'RESERVATION_FAILED':
+      return { text: 'Reservation failed', variant: 'text-bg-danger' };
+    case 'CANCELLED':
+      return { text: 'Cancelled', variant: 'text-bg-secondary' };
+    case 'COMPLETED':
+      return { text: 'Completed', variant: 'text-bg-secondary' };
+    default:
+      return { text: event.status, variant: 'text-bg-secondary' };
+  }
 };
+
+
 
 const EventHeader: React.FC<EventHeaderProps> = ({
   title,
@@ -49,6 +63,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   
   // Check if the event is confirmed
   const isConfirmed = event.status === 'CONFIRMED';
+  const statusBadge = getStatusBadge(event);
   
   return (
     <div className="card-header bg-white p-2">
@@ -83,14 +98,14 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   title={title}
                 >
                   {isMobile ? truncateUsername(title) : title}
-                  {isConfirmed && (
-                    <span className="badge bg-success ms-2">
-                      <i className="bi bi-check-circle me-1"></i>Confirmed
-                    </span>
-                  )}
+                  <span className={`badge ${statusBadge.variant} ms-2`} style={{ fontSize: '0.7em' }}>
+                    {statusBadge.text}
+                  </span>
                   {typeof joinedCount === 'number' && (
-                    <span className="badge bg-secondary ms-2" style={{ fontSize: '0.8em' }} title="Players joined">
-                      <i className="bi bi-people me-1"></i>{joinedCount}
+                    <span className="badge bg-secondary ms-2" style={{ fontSize: '0.8em' }} 
+                          title={`${joinedCount} ${joinedCount === 1 ? 'ack' : 'acks'}`}
+                          aria-label={`${joinedCount} ${joinedCount === 1 ? 'ack' : 'acks'}`}>
+                      <i className="bi bi-people me-1"></i>{joinedCount} {joinedCount === 1 ? 'ack' : 'acks'}
                     </span>
                   )}
                 </h6>
@@ -144,66 +159,60 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 ))}
               </div>
             )}
+            {/* Skill level badge */}
             <div className="d-flex flex-wrap gap-1 mt-1">
-              <div className="d-flex flex-wrap gap-1" style={{ maxWidth: '100%' }}>
-                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-                  {getEventTypeLabel(event.eventType)}
+              <span className="badge text-bg-dark d-inline-flex align-items-center gap-1" style={{ 
+                height: '24px', 
+                padding: '0.25rem 0.5rem', 
+                fontSize: '0.75rem'
+              }}>
+                <span>{event.skillLevel}</span>
+                <span className="badge bg-light text-dark" style={{ fontSize: '0.65em' }}>
+                  {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
                 </span>
-                <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
-                  {getRequestTypeLabel(event.expectedPlayers)}
-                </span>
-                <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
-                  <span>{event.skillLevel}</span>
-                  <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
-                    {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
-                  </span>
-                </span>
-              </div>
+              </span>
             </div>
           </div>
         </div>
-        {/* Right: Action button and share button (desktop only) */}
-        <div className="d-none d-sm-flex align-items-center gap-2 flex-shrink-0">
+        {/* Right: Compact action bar (desktop only) */}
+        <div className="d-none d-sm-flex align-items-center gap-1 flex-shrink-0">
+          {shareButton}
           {actionButton.customButton || (!actionButton.hidden && (
             <Button
               variant={actionButton.variant}
               onClick={actionButton.onClick}
               className="text-nowrap btn-sm"
-              style={{ minWidth: 90, maxWidth: 180 }}
+              style={{ minHeight: '32px', fontSize: '0.8rem' }}
               disabled={actionButton.disabled}
+              title={actionButton.label}
             >
               <i className={`bi ${actionButton.icon} me-1`}></i>
               {actionButton.label}
             </Button>
           ))}
-          {shareButton}
         </div>
       </div>
-      {/* Mobile layout */}
+      {/* Mobile action bar */}
       <div className="d-sm-none">
-        {/* Share button for mobile - top right */}
-        {shareButton && (
-          <div className="d-flex justify-content-end mb-2">
-            {shareButton}
+        <div className="d-flex justify-content-between align-items-center gap-2 mt-2">
+          {/* Action button for mobile - compact */}
+          <div className="flex-grow-1">
+            {actionButton.customButton || (!actionButton.hidden && (
+              <Button
+                variant={actionButton.variant}
+                onClick={actionButton.onClick}
+                className="w-100 d-flex justify-content-center align-items-center btn-sm"
+                style={{ minHeight: '36px', fontSize: '0.85rem' }}
+                disabled={actionButton.disabled}
+              >
+                <i className={`bi ${actionButton.icon} me-1`}></i>
+                {actionButton.label}
+              </Button>
+            ))}
           </div>
-        )}
-        {/* Action button for mobile - full width */}
-        {actionButton.customButton ? (
-          <div className="w-100">
-            {actionButton.customButton}
-          </div>
-        ) : (!actionButton.hidden && (
-          <Button
-            variant={actionButton.variant}
-            onClick={actionButton.onClick}
-            className="w-100 d-flex justify-content-center align-items-center"
-            style={{ ...buttonStyle, minHeight: '38px' }}
-            disabled={actionButton.disabled}
-          >
-            <i className={`bi ${actionButton.icon} me-1`}></i>
-            {actionButton.label}
-          </Button>
-        ))}
+          {/* Share button for mobile */}
+          {shareButton}
+        </div>
       </div>
     </div>
   );

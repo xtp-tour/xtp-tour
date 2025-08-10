@@ -266,7 +266,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
           eventType: invitationType,
           description: description.trim() || undefined,
           expectedPlayers: requestType === 'SINGLE' ? 2 : 4,
-          sessionDuration: parseFloat(sessionDuration),
+          sessionDuration: parseFloat(sessionDuration) * 60, // Convert hours to minutes
           skillLevel,
           visibility: 'PUBLIC',
           locations: selectedLocations,

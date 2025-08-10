@@ -68,6 +68,27 @@ export const getRequestTypeLabel = (expectedPlayers: number): string => {
   }
 };
 
+export const getEventTitle = (eventType: ApiEventType, expectedPlayers: number): string => {
+  switch (eventType) {
+    case 'TRAINING':
+      if (expectedPlayers === 2) {
+        return 'Training 1 on 1';
+      } else {
+        return 'Group Training';
+      }
+    case 'MATCH':
+      if (expectedPlayers === 2) {
+        return 'Match Singles';
+      } else if (expectedPlayers === 4) {
+        return 'Match Doubles';
+      } else {
+        return 'Unorthodox Match';
+      }
+    default:
+      return `${getEventTypeLabel(eventType)} Event`;
+  }
+};
+
 export const timeSlotFromDateAndConfirmation = (
   date: string, 
   confirmation?: ApiConfirmation, 

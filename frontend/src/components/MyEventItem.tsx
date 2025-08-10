@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { components } from '../types/schema';
 import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import moment from 'moment';
 import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
@@ -99,6 +99,8 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         className="btn btn-sm btn-outline-secondary"
         onClick={handleShareEvent}
         title="Share event"
+        aria-label="Share event"
+        style={{ minHeight: '32px', minWidth: '32px' }}
       >
         <i className="bi bi-share"></i>
       </button>
@@ -131,7 +133,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle="Your Event"
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
         colorClass={colorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt || '')}

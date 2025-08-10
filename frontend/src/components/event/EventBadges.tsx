@@ -1,14 +1,13 @@
 import React from 'react';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_DESCRIPTIONS, getEventTypeLabel, getRequestTypeLabel } from './types';
+import { SKILL_LEVEL_DESCRIPTIONS } from './types';
+import { formatDuration } from '../../utils/dateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ApiEventType = ApiEvent['eventType'];
 type ApiSkillLevel = ApiEvent['skillLevel'];
 
 interface EventBadgesProps {
-  eventType: ApiEventType;  
-  expectedPlayers: number;
   skillLevel: ApiSkillLevel;
   sessionDuration: number;
 }
@@ -22,24 +21,44 @@ const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }
   </span>
 );
 
-const DurationBadge: React.FC<{ hours: number }> = ({ hours }) => (
+const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (
   <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
     <i className="bi bi-stopwatch me-1"></i>
-    {hours} {hours === 1 ? 'hour' : 'hours'}
+    {formatDuration(minutes)}
   </span>
 );
 
-const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlayers }) => (
-  <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
-    {getRequestTypeLabel(expectedPlayers)}
-  </span>
-);
+const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlayers }) => {
+  const getRequestTypeLabel = (players: number): string => {
+    switch (players) {
+      case 2: return 'Singles';
+      case 4: return 'Doubles';
+      default: return `${players} Players`;
+    }
+  };
+  
+  return (
+    <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+      {getRequestTypeLabel(expectedPlayers)}
+    </span>
+  );
+};
 
-const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => (
-  <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-    {getEventTypeLabel(eventType)}
-  </span>
-);
+const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => {
+  const getEventTypeLabel = (type: ApiEventType): string => {
+    switch (type) {
+      case 'MATCH': return 'Match';
+      case 'TRAINING': return 'Training';
+      default: return type;
+    }
+  };
+  
+  return (
+    <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+      {getEventTypeLabel(eventType)}
+    </span>
+  );
+};
 
 const LocationBadge: React.FC<{ 
   location: string;
@@ -80,16 +99,12 @@ const LocationBadge: React.FC<{
 };
 
 const EventBadges: React.FC<EventBadgesProps> = ({
-  eventType,
-  expectedPlayers,
   skillLevel,
   sessionDuration,
 }) => (
   <div className="d-flex flex-wrap gap-2 mb-3">
-    <EventTypeBadge eventType={eventType} />
-    <RequestTypeBadge expectedPlayers={expectedPlayers} />    
     <SkillLevelBadge skillLevel={skillLevel} />
-    <DurationBadge hours={sessionDuration} />
+    <DurationBadge minutes={sessionDuration} />
   </div>
 );
 

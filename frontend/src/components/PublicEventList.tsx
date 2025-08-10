@@ -3,7 +3,7 @@ import { useAPI } from '../services/apiProvider';
 import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import moment from 'moment';
 import UserDisplay from './UserDisplay';
 import Toast from './Toast';
@@ -159,10 +159,10 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           <div key={event.id} className="mb-3">
             <BaseEventItem
               event={event}
-              headerTitle="Public Event"
+              headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
               headerSubtitle={
-                <div className="d-flex align-items-center">
-                  <span className="me-2">
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <span>
                     Host: {isSignedIn ? (
                       <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
                     ) : (
@@ -170,10 +170,13 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
                     )}
                   </span>
                   <span className="badge bg-secondary">
-                    {event.joinRequests?.filter(req => req.isRejected === false).length || 0} joined
+                    {(() => {
+                      const count = event.joinRequests?.filter(req => req.isRejected === false).length || 0;
+                      return `${count} ${count === 1 ? 'ack' : 'acks'}`;
+                    })()}
                   </span>
                 </div>
-                              }
+              }
                 colorClass="text-primary"
                 timeSlots={timeSlots}
               timestamp={moment(event.createdAt)}

@@ -26,13 +26,26 @@ interface BaseEventItemProps extends StyleProps {
 
 const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
   if (timeSlots.length === 0) return '';
+  
+  const firstSlot = timeSlots[0];
+  
   if (timeSlots.length === 1) {
-    return timeSlots[0].date.format('MMM D, h:mm A');
+    return firstSlot.date.format('ddd, MMM D • h:mm A');
   }
+  
   if (timeSlots.length === 2) {
-    return `${timeSlots[0].date.format('MMM D, h:mm A')} and ${timeSlots[1].date.format('MMM D, h:mm A')}`;
+    const firstDate = firstSlot.date;
+    const secondDate = timeSlots[1].date;
+    
+    // Check if both slots are on the same day
+    if (firstDate.isSame(secondDate, 'day')) {
+      return `${firstDate.format('ddd, MMM D')} • ${firstDate.format('h:mm A')}–${secondDate.format('h:mm A')}`;
+    } else {
+      return `${firstDate.format('ddd, MMM D • h:mm A')} and ${secondDate.format('ddd, MMM D • h:mm A')}`;
+    }
   }
-  return `${timeSlots[0].date.format('MMM D, h:mm A')}, ${timeSlots[1].date.format('MMM D, h:mm A')}...`;
+  
+  return `${firstSlot.date.format('ddd, MMM D • h:mm A')}, ${timeSlots[1].date.format('ddd, MMM D • h:mm A')}...`;
 };
 
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
@@ -107,15 +120,17 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           style={{ 
             borderTop: '1px solid #dee2e6',
             padding: '8px 16px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            minHeight: '44px'
           }}
-          aria-label={isCollapsed ? 'Show details' : 'Hide details'}
+          aria-label={isCollapsed ? 'Show event details' : 'Hide event details'}
+          aria-expanded={!isCollapsed}
           onClick={(e) => {
             setIsCollapsed(!isCollapsed);
             e.currentTarget.blur();
           }}
         >
-          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`}></i>
+          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`} aria-hidden="true"></i>
           <span>{isCollapsed ? 'Show Details' : 'Hide Details'}</span>
         </button>
       </div>
