@@ -186,21 +186,13 @@ const PublicEventPage: React.FC = () => {
                 event={event}
                 headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
                 headerSubtitle={
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <span>
-                      Host: {isSignedIn ? (
-                        <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                      ) : (
-                        <SimpleUserDisplay userId={event.userId || ''} />
-                      )}
-                    </span>
-                    <span className="badge bg-secondary">
-                      {(() => {
-                        const count = event.joinRequests?.filter(req => req.isRejected === false).length || 0;
-                        return `${count} ${count === 1 ? 'ack' : 'acks'}`;
-                      })()}
-                    </span>
-                  </div>
+                  <span>
+                    Host: {isSignedIn ? (
+                      <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
+                    ) : (
+                      <SimpleUserDisplay userId={event.userId || ''} />
+                    )}
+                  </span>
                 }
                   colorClass="text-primary"
                   timeSlots={timeSlots}
