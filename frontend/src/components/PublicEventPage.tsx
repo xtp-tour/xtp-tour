@@ -6,9 +6,9 @@ import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import moment from 'moment';
-import UserDisplay from './UserDisplay';
 import { SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
+import HostDisplay from './HostDisplay';
 
 const PublicEventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -135,11 +135,6 @@ const PublicEventPage: React.FC = () => {
     };
   };
 
-  // Simple user display for anonymous users
-  const SimpleUserDisplay = ({ userId }: { userId: string }) => (
-    <span className="text-muted">User {userId.slice(0, 8)}...</span>
-  );
-
   return (
     <div className="min-vh-100 bg-light">
       <div className="container py-4">
@@ -158,11 +153,12 @@ const PublicEventPage: React.FC = () => {
                   Tennis Event
                 </h1>
                 <p className="text-muted mb-0">
-                  Shared by {isSignedIn ? (
-                    <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                  ) : (
-                    <SimpleUserDisplay userId={event.userId || ''} />
-                  )}
+                  <HostDisplay 
+                    userId={event.userId || ''} 
+                    fallback="Unknown User" 
+                    showAsPlainText={!isSignedIn}
+                    className="text-muted"
+                  />
                 </p>
               </div>
             </div>
@@ -186,13 +182,11 @@ const PublicEventPage: React.FC = () => {
                 event={event}
                 headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
                 headerSubtitle={
-                  <span>
-                    Host: {isSignedIn ? (
-                      <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                    ) : (
-                      <SimpleUserDisplay userId={event.userId || ''} />
-                    )}
-                  </span>
+                  <HostDisplay 
+                    userId={event.userId || ''} 
+                    fallback="Unknown User" 
+                    showAsPlainText={!isSignedIn}
+                  />
                 }
                   colorClass="text-primary"
                   timeSlots={timeSlots}

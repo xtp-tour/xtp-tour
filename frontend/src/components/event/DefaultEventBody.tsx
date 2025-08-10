@@ -9,6 +9,7 @@ import { TimeSlot } from './types';
 import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { BADGE_STYLES } from '../../styles/badgeStyles';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -102,11 +103,11 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                     </td>
                     <td>
                       {jr.isRejected === false ? (
-                        <span className="badge bg-success">Accepted</span>
+                        <span className="badge bg-success" style={BADGE_STYLES}>Accepted</span>
                       ) : jr.isRejected === true ? (
-                        <span className="badge bg-danger">Rejected</span>
+                        <span className="badge bg-danger" style={BADGE_STYLES}>Rejected</span>
                       ) : (
-                        <span className="badge bg-warning text-dark">Waiting</span>
+                        <span className="badge bg-warning text-dark" style={BADGE_STYLES}>Waiting</span>
                       )}
                     </td>
                     <td>{(jr.locations || []).join(', ')}</td>

@@ -2,6 +2,7 @@ import React from 'react';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
+import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ApiEventType = ApiEvent['eventType'];
@@ -13,16 +14,16 @@ interface EventBadgesProps {
 }
 
 const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }) => (
-  <span className="badge d-inline-flex align-items-center gap-1" style={{ backgroundColor: 'var(--tennis-blue)' }}>
+  <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-blue)' }}>
     <span>{skillLevel}</span>
-    <span className="badge bg-light" style={{ fontSize: '0.75em', color: 'var(--tennis-blue)' }}>
+    <span className="badge bg-light" style={{ ...NESTED_BADGE_STYLES, color: 'var(--tennis-blue)' }}>
       {SKILL_LEVEL_DESCRIPTIONS[skillLevel]}
     </span>
   </span>
 );
 
 const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (
-  <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-navy)' }}>
+  <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-navy)' }}>
     <i className="bi bi-stopwatch me-1"></i>
     {formatDuration(minutes)}
   </span>
@@ -38,7 +39,7 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
   };
   
   return (
-    <span className="badge d-inline-flex align-items-center" style={{ backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
+    <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
       {getRequestTypeLabel(expectedPlayers)}
     </span>
   );
@@ -54,7 +55,7 @@ const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) =>
   };
   
   return (
-    <span className="badge d-inline-flex align-items-center " style={{ backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
+    <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
       {getEventTypeLabel(eventType)}
     </span>
   );
@@ -67,12 +68,11 @@ const LocationBadge: React.FC<{
 }> = ({ location, isSelected, onClick }) => {
   const badge = (
     <span 
-      className="badge d-inline-flex align-items-center" 
+      className="badge" 
       style={{ 
+        ...BADGE_STYLES,
         backgroundColor: isSelected ? 'var(--tennis-navy)' : 'var(--tennis-accent)', 
         color: isSelected ? 'white' : 'var(--tennis-navy)',
-        padding: '0.35em 0.65em',
-        fontSize: '0.75rem',
         cursor: onClick ? 'pointer' : undefined
       }}
     >

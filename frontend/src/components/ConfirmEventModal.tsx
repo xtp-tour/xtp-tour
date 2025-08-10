@@ -4,6 +4,7 @@ import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
 import { formatTimeSlot } from '../utils/dateUtils';
 import UserDisplay from './UserDisplay';
+import { BADGE_STYLES } from '../styles/badgeStyles';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ConfirmEventRequest = components['schemas']['ConfirmEvent-FmInput'];
@@ -400,12 +401,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
                       {availableLocations.map(locationId => (
                         <div
                           key={locationId}
-                          className={`badge p-2 ${
+                          className={`badge ${
                             selectedLocation === locationId
                               ? 'text-white'
                               : 'text-dark border border-opacity-25'
                           }`}
                           style={{
+                            ...BADGE_STYLES,
                             backgroundColor: selectedLocation === locationId 
                               ? 'var(--tennis-navy)' 
                               : 'var(--tennis-light)',
@@ -461,12 +463,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
                       {availableTimeSlots.map(timeSlot => (
                         <div
                           key={timeSlot}
-                          className={`badge p-2 ${
+                          className={`badge ${
                             selectedDateTime === timeSlot
                               ? 'text-white'
                               : 'text-dark border border-opacity-25'
                           }`}
                           style={{
+                            ...BADGE_STYLES,
                             backgroundColor: selectedDateTime === timeSlot 
                               ? 'var(--tennis-navy)' 
                               : 'var(--tennis-light)',

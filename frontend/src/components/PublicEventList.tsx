@@ -5,10 +5,11 @@ import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import moment from 'moment';
-import UserDisplay from './UserDisplay';
 import Toast from './Toast';
 import ShareEventModal from './ShareEventModal';
 import { useUser } from '@clerk/clerk-react';
+import ShareButton from './ShareButton';
+import HostDisplay from './HostDisplay';
 
 interface Props {
   onEventJoined?: () => void;
@@ -96,15 +97,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
 
         // Get share button
         const getShareButton = () => {
-          return (
-            <button
-              className="btn btn-sm btn-outline-secondary"
-              onClick={handleShareEvent}
-              title="Share event"
-            >
-              <i className="bi bi-share"></i>
-            </button>
-          );
+          return <ShareButton onClick={handleShareEvent} />;
         };
 
         // Get action button for joining
@@ -150,24 +143,17 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           };
         };
 
-        // Simple user display for anonymous users
-        const SimpleUserDisplay = ({ userId }: { userId: string }) => (
-          <span className="text-muted">User {userId.slice(0, 8)}...</span>
-        );
-
         return (
           <div key={event.id} className="mb-3">
             <BaseEventItem
               event={event}
               headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
               headerSubtitle={
-                <span>
-                  Host: {isSignedIn ? (
-                    <UserDisplay userId={event.userId || ''} fallback="Unknown User" />
-                  ) : (
-                    <SimpleUserDisplay userId={event.userId || ''} />
-                  )}
-                </span>
+                <HostDisplay 
+                  userId={event.userId || ''} 
+                  fallback="Unknown User" 
+                  showAsPlainText={!isSignedIn}
+                />
               }
                 colorClass="text-primary"
                 timeSlots={timeSlots}

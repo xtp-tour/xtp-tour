@@ -6,6 +6,8 @@ import moment from 'moment';
 import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
 import Toast from './Toast';
+import ShareButton from './ShareButton';
+import { useShareEvent } from '../hooks/useShareEvent';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -20,6 +22,11 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  
+  const { shareEvent } = useShareEvent({
+    eventId: event.id || '',
+    onSuccess: () => setShowToast(true)
+  });
 
   // Convert event time slots to the format expected by BaseEventItem
   const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation, true));  
@@ -46,12 +53,6 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     if (onEventUpdated) {
       onEventUpdated();
     }
-  };
-
-  const handleShareEvent = () => {
-    const eventUrl = `${window.location.origin}/event/${event.id}`;
-    navigator.clipboard.writeText(eventUrl);
-    setShowToast(true);
   };
 
   // Determine if the event can be confirmed
@@ -94,17 +95,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
   };
 
   const getShareButton = () => {
-    return (
-      <button
-        className="btn btn-sm btn-outline-secondary"
-        onClick={handleShareEvent}
-        title="Share event"
-        aria-label="Share event"
-        style={{ minHeight: '32px', minWidth: '32px' }}
-      >
-        <i className="bi bi-share"></i>
-      </button>
-    );
+    return <ShareButton onClick={shareEvent} />;
   };
 
   // Get color based on event status

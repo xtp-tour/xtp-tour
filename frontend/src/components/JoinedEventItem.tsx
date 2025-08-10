@@ -6,8 +6,11 @@ import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './even
 import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
-import UserDisplay from './UserDisplay';
 import Toast from './Toast';
+import ShareButton from './ShareButton';
+import { useShareEvent } from '../hooks/useShareEvent';
+import { BADGE_STYLES } from '../styles/badgeStyles';
+import HostDisplay from './HostDisplay';
 
 interface Props {
   event: ApiEvent;
@@ -22,6 +25,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const [error, setError] = useState<string | null>(null);
   const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
   const [showToast, setShowToast] = useState(false);
+  
+  const { shareEvent } = useShareEvent({
+    eventId: event.id || '',
+    onSuccess: () => setShowToast(true)
+  });
 
   // Find the user's join request
   useEffect(() => {
@@ -111,6 +119,8 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     }
   };
 
+  const joinRequestStatus = getJoinRequestStatus();
+
   // Get action button based on event status
   const getActionButton = () => {
     // No action button for confirmed events
@@ -134,22 +144,8 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     };
   };
 
-  const handleShareEvent = () => {
-    const eventUrl = `${window.location.origin}/event/${event.id}`;
-    navigator.clipboard.writeText(eventUrl);
-    setShowToast(true);
-  };
-
   const getShareButton = () => {
-    return (
-      <button
-        className="btn btn-sm btn-outline-secondary"
-        onClick={handleShareEvent}
-        title="Share event"
-      >
-        <i className="bi bi-share"></i>
-      </button>
-    );
+    return <ShareButton onClick={shareEvent} />;
   };
 
   return (
@@ -159,11 +155,9 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
         headerSubtitle={
           <div className="d-flex align-items-center gap-2 flex-wrap">
-            <span>
-              Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
-            </span>
-            <span className={`badge ${getJoinRequestStatus().variant}`}>
-              {getJoinRequestStatus().text}
+            <HostDisplay userId={event.userId || ''} fallback="Unknown Host" />
+            <span className={`badge ${joinRequestStatus.variant}`} style={BADGE_STYLES}>
+              {joinRequestStatus.text}
             </span>
           </div>
         }
