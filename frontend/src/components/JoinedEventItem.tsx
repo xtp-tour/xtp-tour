@@ -108,18 +108,31 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   // Get user's join request status with badge info
   const getJoinRequestStatus = () => {
-    if (!userJoinRequest) return { text: '', variant: 'bg-secondary' };
+    if (!userJoinRequest) return { text: '', variant: 'text-bg-secondary' };
     
     if (userJoinRequest.isRejected === true) {
-      return { text: 'Request rejected', variant: 'bg-danger' };
+      return { text: 'Request rejected', variant: 'text-bg-danger' };
     } else if (userJoinRequest.isRejected === false) {
-      return { text: 'Request accepted', variant: 'bg-success' };
+      return { text: 'Request accepted', variant: 'text-bg-success' };
     } else {
-      return { text: 'Waiting for host approval', variant: 'bg-warning text-dark' };
+      return { text: 'Waiting for host approval', variant: 'text-bg-warning' };
     }
   };
 
   const joinRequestStatus = getJoinRequestStatus();
+
+  // Determine which status to show - prioritize event status for confirmed/completed events
+  const getDisplayStatus = () => {
+    if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+      // Show event status for final states
+      return null; // Let EventHeader handle the status display
+    } else {
+      // Show join request status for ongoing events
+      return joinRequestStatus;
+    }
+  };
+
+  const displayStatus = getDisplayStatus();
 
   // Get action button based on event status
   const getActionButton = () => {
@@ -156,9 +169,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         headerSubtitle={
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <HostDisplay userId={event.userId || ''} fallback="Unknown Host" />
-            <span className={`badge ${joinRequestStatus.variant}`} style={BADGE_STYLES}>
-              {joinRequestStatus.text}
-            </span>
+            {displayStatus && (
+              <span className={`badge ${displayStatus.variant}`} style={BADGE_STYLES}>
+                {displayStatus.text}
+              </span>
+            )}
           </div>
         }
         colorClass={colorClass}

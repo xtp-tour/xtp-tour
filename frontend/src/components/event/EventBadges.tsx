@@ -1,4 +1,5 @@
 import React from 'react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
@@ -45,15 +46,16 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
   );
 };
 
+// Utility function to get event type label
+export const getEventTypeLabel = (type: ApiEventType): string => {
+  switch (type) {
+    case 'MATCH': return 'Match';
+    case 'TRAINING': return 'Training';
+    default: return type;
+  }
+};
+
 const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => {
-  const getEventTypeLabel = (type: ApiEventType): string => {
-    switch (type) {
-      case 'MATCH': return 'Match';
-      case 'TRAINING': return 'Training';
-      default: return type;
-    }
-  };
-  
   return (
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
       {getEventTypeLabel(eventType)}
@@ -66,6 +68,11 @@ const LocationBadge: React.FC<{
   isSelected?: boolean;
   onClick?: () => void;
 }> = ({ location, isSelected, onClick }) => {
+  // Truncate location name if too long
+  const maxLength = 20;
+  const displayLocation = location.length > maxLength ? `${location.slice(0, maxLength)}...` : location;
+  const showTooltip = location.length > maxLength;
+
   const badge = (
     <span 
       className="badge" 
@@ -73,14 +80,33 @@ const LocationBadge: React.FC<{
         ...BADGE_STYLES,
         backgroundColor: isSelected ? 'var(--tennis-navy)' : 'var(--tennis-accent)', 
         color: isSelected ? 'white' : 'var(--tennis-navy)',
-        cursor: onClick ? 'pointer' : undefined
+        cursor: onClick ? 'pointer' : undefined,
+        maxWidth: '200px'
       }}
     >
-      <i className="bi bi-geo-alt me-1"></i>
-      {location}
-      {onClick && <i className="bi bi-chevron-right ms-1 opacity-75"></i>}
+      <i className="bi bi-geo-alt me-1 flex-shrink-0"></i>
+      <span 
+        className="text-truncate" 
+        style={{ 
+          minWidth: 0,
+          maxWidth: '150px',
+          display: 'inline-block'
+        }}
+      >
+        {displayLocation}
+      </span>
+      {onClick && <i className="bi bi-chevron-right ms-1 opacity-75 flex-shrink-0"></i>}
     </span>
   );
+
+  const badgeWithTooltip = showTooltip ? (
+    <OverlayTrigger
+      placement="top"
+      overlay={<Tooltip id={`location-tooltip-${location}`}>{location}</Tooltip>}
+    >
+      {badge}
+    </OverlayTrigger>
+  ) : badge;
   
   return onClick ? (
     <a
@@ -91,10 +117,10 @@ const LocationBadge: React.FC<{
       }}
       className="text-decoration-none"
     >
-      {badge}
+      {badgeWithTooltip}
     </a>
   ) : (
-    badge
+    badgeWithTooltip
   );
 };
 

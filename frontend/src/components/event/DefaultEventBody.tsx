@@ -103,11 +103,11 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                     </td>
                     <td>
                       {jr.isRejected === false ? (
-                        <span className="badge bg-success" style={BADGE_STYLES}>Accepted</span>
+                        <span className="badge text-bg-success" style={BADGE_STYLES}>Accepted</span>
                       ) : jr.isRejected === true ? (
-                        <span className="badge bg-danger" style={BADGE_STYLES}>Rejected</span>
+                        <span className="badge text-bg-danger" style={BADGE_STYLES}>Rejected</span>
                       ) : (
-                        <span className="badge bg-warning text-dark" style={BADGE_STYLES}>Waiting</span>
+                        <span className="badge text-bg-warning" style={BADGE_STYLES}>Waiting</span>
                       )}
                     </td>
                     <td>{(jr.locations || []).join(', ')}</td>

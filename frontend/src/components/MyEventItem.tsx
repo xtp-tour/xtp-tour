@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { components } from '../types/schema';
 import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
+import { getEventTypeLabel } from './event/EventBadges';
 import moment from 'moment';
 import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
@@ -124,7 +125,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
+        headerTitle={getEventTypeLabel(event.eventType)}
         colorClass={colorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt || '')}

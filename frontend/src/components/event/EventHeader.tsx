@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
-import { useMediaQuery } from 'react-responsive';
 import { components } from '../../types/schema';
 import { SKILL_LEVEL_DESCRIPTIONS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
@@ -24,9 +23,6 @@ interface EventHeaderProps extends StyleProps {
 const formatConfirmedDateTime = (datetime: string): string => {
   return moment(datetime).format('ddd, MMM D @ h:mm A');
 };
-
-const truncateUsername = (name: string) =>
-  name.length > 20 ? name.slice(0, 20) + '...' : name;
 
 // Get status badge info based on event status
 const getStatusBadge = (event: ApiEvent) => {
@@ -60,8 +56,6 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   event,
   shareButton,
 }) => {
-  const isMobile = useMediaQuery({ maxWidth: 575 });
-  
   // Check if the event is confirmed
   const isConfirmed = event.status === 'CONFIRMED';
   const statusBadge = getStatusBadge(event);
@@ -94,12 +88,12 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                     }}
                     title={title}
                   >
-                    {isMobile ? truncateUsername(title) : title}
+                    {title}
                     <span className={`badge ${statusBadge.variant} ms-2`} style={BADGE_STYLES}>
                       {statusBadge.text}
                     </span>
                     {typeof joinedCount === 'number' && (
-                      <span className="badge bg-secondary ms-2" style={BADGE_STYLES} 
+                      <span className="badge text-bg-secondary ms-2" style={BADGE_STYLES} 
                             title={`${joinedCount} ${joinedCount === 1 ? 'ack' : 'acks'}`}
                             aria-label={`${joinedCount} ${joinedCount === 1 ? 'ack' : 'acks'}`}>
                         <i className="bi bi-people me-1"></i>{joinedCount} {joinedCount === 1 ? 'ack' : 'acks'}
