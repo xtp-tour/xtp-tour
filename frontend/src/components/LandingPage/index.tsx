@@ -8,24 +8,29 @@ const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const LandingPage: React.FC = () => {
   const flowSteps = [
     {
-      icon: 'bi-plus-circle',
+      icon: 'bi-calendar-plus',
       title: 'Create Event',
-      description: 'Share your preferred times and courts for a tennis session'
+      description: 'Set your preferred date, time, and location for a tennis session'
     },
     {
-      icon: 'bi-search',
-      title: 'Find Partner',
-      description: 'Other players browse and join events that match their schedule'
+      icon: 'bi-share',
+      title: 'Share with Friends',
+      description: 'Share your event via social media or make it public for everyone to discover'
     },
     {
-      icon: 'bi-calendar-check',
-      title: 'Get Matched',
-      description: 'Host confirms the session and books the court'
+      icon: 'bi-person-plus',
+      title: 'Players Request to Join',
+      description: 'Tennis players browse and request to join your event'
     },
     {
-      icon: 'bi-trophy',
-      title: 'Play Tennis',
-      description: 'Meet up and enjoy your game together'
+      icon: 'bi-people',
+      title: 'Select Players',
+      description: 'Choose who gets to play from those who requested to join'
+    },
+    {
+      icon: 'bi-check-circle',
+      title: 'Book & Play',
+      description: 'Confirm the court booking and enjoy your tennis game together'
     }
   ];
 
@@ -37,10 +42,10 @@ const LandingPage: React.FC = () => {
           <i className="bi bi-trophy-fill tennis-accent" style={{ fontSize: '4rem' }}></i>
         </div>
         <h1 className="display-4 mb-3" style={{ color: 'var(--tennis-navy)' }}>
-          Find Your Tennis Partner
+          Organize Your Tennis Events
         </h1>
         <p className="lead text-muted mb-4">
-          Connect with tennis players in your area. Schedule sessions, share courts, and improve your game together.
+          Create tennis events, invite friends, and build your tennis community. Share your court time and make every game happen.
         </p>
 
         {/* Action Buttons */}
@@ -120,34 +125,34 @@ const LandingPage: React.FC = () => {
               <div className="feature-icon mb-3">
                 <i className="bi bi-share tennis-accent" style={{ fontSize: '2.5rem' }}></i>
               </div>
-              <h5>Share Events</h5>
-              <p className="text-muted">Share your tennis events with friends via social media and messaging apps</p>
+              <h5>Share Your Events</h5>
+              <p className="text-muted">Share your tennis events with friends via social media or make them public for anyone to join</p>
             </div>
             <div className="col-md-4 text-center mb-4">
               <div className="feature-icon mb-3">
-                <i className="bi bi-geo-alt tennis-accent" style={{ fontSize: '2.5rem' }}></i>
+                <i className="bi bi-people tennis-accent" style={{ fontSize: '2.5rem' }}></i>
               </div>
-              <h5>Local Courts</h5>
-              <p className="text-muted">Find players at courts near you and discover new places to play</p>
+              <h5>Choose Your Players</h5>
+              <p className="text-muted">Review join requests and select the perfect players for your tennis session</p>
             </div>
             <div className="col-md-4 text-center mb-4">
               <div className="feature-icon mb-3">
-                <i className="bi bi-clock tennis-accent" style={{ fontSize: '2.5rem' }}></i>
+                <i className="bi bi-calendar-event tennis-accent" style={{ fontSize: '2.5rem' }}></i>
               </div>
-              <h5>Flexible Scheduling</h5>
-              <p className="text-muted">Match with players who share your availability and playing preferences</p>
+              <h5>Easy Event Management</h5>
+              <p className="text-muted">Create, manage, and organize tennis events with flexible scheduling options</p>
             </div>
           </div>
         </div>
 
         {/* Call to Action */}
         <div className="cta-section text-center mt-5 p-4 bg-light rounded">
-          <h3 className="mb-3" style={{ color: 'var(--tennis-navy)' }}>Ready to Play?</h3>
-          <p className="text-muted mb-4">Join our community of tennis enthusiasts and never play alone again.</p>
+          <h3 className="mb-3" style={{ color: 'var(--tennis-navy)' }}>Ready to Organize?</h3>
+          <p className="text-muted mb-4">Start creating tennis events and build your local tennis community today.</p>
           {isClerkAvailable ? (
             <SignUpButton mode="modal">
               <button className="btn btn-primary btn-lg">
-                Start Playing Today
+                Create Your First Event
               </button>
             </SignUpButton>
                     ) : (
@@ -157,7 +162,7 @@ const LandingPage: React.FC = () => {
               style={{ opacity: 0.6 }}
               title="Coming in next couple of weeks"
             >
-              Start Playing Today
+              Create Your First Event
             </button>
           )}
         </div>
