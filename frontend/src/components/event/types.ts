@@ -27,11 +27,18 @@ export interface StyleProps {
   colorClass?: string;
 }
 
-export const SKILL_LEVEL_DESCRIPTIONS = {
-  ANY: 'Any NTRP - Open to all skill levels',
-  BEGINNER: 'NTRP < 3.5 - New to intermediate players learning fundamentals',
-  INTERMEDIATE: 'NTRP 3.5–5.0 - Consistent players with developed strokes and strategy',
-  ADVANCED: 'NTRP > 5.0 - Elite players with tournament experience and advanced skills'
+export const SKILL_LEVEL_LABELS = {
+  ANY: 'Any NTRP',
+  BEGINNER: 'NTRP < 3.5',
+  INTERMEDIATE: 'NTRP 3.5–5.0',
+  ADVANCED: 'NTRP > 5.0'
+} as const;
+
+export const SKILL_LEVEL_HINTS = {
+  ANY: 'Open to all skill levels',
+  BEGINNER: 'New to intermediate players learning fundamentals',
+  INTERMEDIATE: 'Consistent players with developed strokes and strategy',
+  ADVANCED: 'Elite players with tournament experience and advanced skills'
 } as const;
 
 // Comprehensive NTRP level information for reference
