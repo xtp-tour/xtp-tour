@@ -16,8 +16,8 @@ type Config struct {
 }
 
 type HttpConfig struct {
-	Port       int         `default:"8080" envvar:"SERVICE_PORT"`
-	Cors       cors.Config `default:"{\"AllowOrigins\": [\"http://localhost\", \"https://localhost\", \"*\"]}"`
+	Port       int          `default:"8080" envvar:"SERVICE_PORT"`
+	Cors       *cors.Config `default:"{\"AllowOrigins\":[\"http://localhost\"],\"AllowMethods\":[\"GET\",\"POST\",\"PUT\",\"DELETE\",\"OPTIONS\"],\"AllowHeaders\":[\"Origin\",\"Content-Length\",\"Content-Type\",\"Authorization\"],\"ExposeHeaders\":[\"Content-Length\"],\"AllowCredentials\":true,\"MaxAge\":43200000000000}"`
 	AuthConfig AuthConfig
 }
 

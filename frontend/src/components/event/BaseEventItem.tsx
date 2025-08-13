@@ -4,6 +4,7 @@ import EventHeader from './EventHeader';
 import DefaultEventBody from './DefaultEventBody';
 import ConfirmedEventBody from './ConfirmedEventBody';
 import { ActionButton, StyleProps, TimeSlot } from './types';
+import { formatTimeSlotSummary } from '../../utils/dateUtils';
 import moment from 'moment';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -23,17 +24,6 @@ interface BaseEventItemProps extends StyleProps {
   children?: React.ReactNode;
   shareButton?: React.ReactNode;
 }
-
-const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
-  if (timeSlots.length === 0) return '';
-  if (timeSlots.length === 1) {
-    return timeSlots[0].date.format('MMM D, h:mm A');
-  }
-  if (timeSlots.length === 2) {
-    return `${timeSlots[0].date.format('MMM D, h:mm A')} and ${timeSlots[1].date.format('MMM D, h:mm A')}`;
-  }
-  return `${timeSlots[0].date.format('MMM D, h:mm A')}, ${timeSlots[1].date.format('MMM D, h:mm A')}...`;
-};
 
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
   event,
@@ -68,7 +58,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           colorClass={colorClass}
           actionButton={actionButton}
           timeSlotSummary={formatTimeSlotSummary(timeSlots)}
-          joinedCount={event.joinRequests ? event.joinRequests.length : 0}
+          joinedCount={event.joinRequests?.filter(req => req.isRejected === false).length || 0}
           event={event}
           shareButton={shareButton}
         />
@@ -106,16 +96,19 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted"
           style={{ 
             borderTop: '1px solid #dee2e6',
-            padding: '8px 16px',
-            cursor: 'pointer'
+            padding: '4px 16px',
+            cursor: 'pointer',
+            minHeight: '44px',
+            fontSize: '0.875rem'
           }}
-          aria-label={isCollapsed ? 'Show details' : 'Hide details'}
+          aria-label={isCollapsed ? 'Show event details' : 'Hide event details'}
+          aria-expanded={!isCollapsed}
           onClick={(e) => {
             setIsCollapsed(!isCollapsed);
             e.currentTarget.blur();
           }}
         >
-          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`}></i>
+          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-1`} aria-hidden="true" style={{ fontSize: '0.75rem' }}></i>
           <span>{isCollapsed ? 'Show Details' : 'Hide Details'}</span>
         </button>
       </div>

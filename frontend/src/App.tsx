@@ -24,7 +24,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center">
             <i className="bi bi-trophy-fill tennis-accent me-2 fs-3"></i>
-            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Set Match</h1>
+            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>Xtp Tour</h1>
           </div>
           <div>
             {isClerkAvailable ? (
@@ -71,7 +71,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <footer className="mt-5 pt-3 border-top">
           <div className="text-center">
             <small className="text-muted">
-              Set Match v{__APP_VERSION__}
+              Xtp Tour v{__APP_VERSION__}
             </small>
           </div>
         </footer>

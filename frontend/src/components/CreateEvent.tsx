@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 //  Don't add 'bootstrap/dist/js/bootstrap.bundle.min.js'; here. It breaks the locations selector
 import 'use-bootstrap-select/dist/use-bootstrap-select.css'
 import UseBootstrapSelect from 'use-bootstrap-select'
@@ -7,7 +7,7 @@ import { Tooltip, Toast } from 'bootstrap';
 import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDuration } from '../utils/dateUtils';
-import { generateTimeSlots, DateTimeSlot } from '../utils/timeSlotUtils';
+import AvailabilityCalendar from './event/AvailabilityCalendar';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -30,13 +30,16 @@ const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
   'ANY': 'Any Level'
 };
 
-const calculateEndTime = (startTime: string, duration: string): string => {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const totalMinutes = hours * 60 + minutes + parseInt(duration) * 60;
-  const endHours = Math.floor(totalMinutes / 60);
-  const endMinutes = totalMinutes % 60;
+// Time slot validation utilities
+const validateTimeSlots = (selectedTimes: string[]): boolean => {
+  if (selectedTimes.length === 0) return false;
   
-  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+  // Validate each selected time is in the future
+  const now = new Date();
+  return selectedTimes.every(timeStr => {
+    const time = new Date(timeStr);
+    return time.getTime() > now.getTime();
+  });
 };
 
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
@@ -48,14 +51,18 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [locationError, setLocationError] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState('2');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('INTERMEDIATE');
-  const [dateSlots, setDateSlots] = useState<DateTimeSlot[]>([
-    { 
-      id: 1, 
-      date: getTomorrowDate(),
-      timeFrom: '09:00',
-      timeTo: calculateEndTime('09:00', '2')
+  const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
+  const [nightGame, setNightGame] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Clear validation errors when user makes changes
+  const handleTimeSelectionChange = useCallback((times: string[]) => {
+    setSelectedStartTimes(times);
+    if (validationErrors.some(error => error.includes('time slot'))) {
+      setValidationErrors(prev => prev.filter(error => !error.includes('time slot')));
     }
-  ]);
+  }, [validationErrors]);
+
   const selectRef = useRef<HTMLSelectElement>(null);
   
   const [invitationType, setInvitationType] = useState<EventType>('MATCH');
@@ -132,12 +139,42 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     };
   }, [isExpanded, locations, isLoadingLocations, selectedLocations]);
 
-  // Get tomorrow's date in YYYY-MM-DD format
-  function getTomorrowDate(): string {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  }
+  // Form validation
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+    
+    if (selectedLocations.length === 0) {
+      errors.push('Please select at least one location');
+    }
+    
+    if (!validateTimeSlots(selectedStartTimes)) {
+      if (selectedStartTimes.length === 0) {
+        errors.push('Please select at least one time slot');
+      } else {
+        errors.push('Some selected times are in the past');
+      }
+    }
+    
+    if (description.trim().length > 1000) {
+      errors.push('Description must be less than 1000 characters');
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  // Reset form to initial state
+  const resetForm = useCallback(() => {
+    setSelectedLocations([]);
+    setSelectedStartTimes([]);
+    setNightGame(false);
+    setSessionDuration('2');
+    setSkillLevel('INTERMEDIATE');
+    setInvitationType('MATCH');
+    setRequestType('SINGLE');
+    setDescription('');
+    setValidationErrors([]);
+  }, []);
 
   const handleNativeLocationChange = (e: Event) => {
     const select = e.target as HTMLSelectElement;
@@ -156,57 +193,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setIsExpanded(!isExpanded);
   };
 
-  const handleAddDate = () => {
-    const defaultStartTime = '09:00';
-    setDateSlots(prev => [
-      ...prev,
-      {
-        id: Math.max(0, ...prev.map(slot => slot.id)) + 1,
-        date: getTomorrowDate(),
-        timeFrom: defaultStartTime,
-        timeTo: calculateEndTime(defaultStartTime, sessionDuration) // Use current session duration
-      }
-    ]);
-  };
-
-  const handleRemoveDate = (id: number) => {
-    if (dateSlots.length > 1) {
-      setDateSlots(prev => prev.filter(slot => slot.id !== id));
-    }
-  };
-
-  // Generate time options for select (from 6:00 to 22:00)
-  const getTimeOptions = (startTime?: string) => {
-    const options = [];
-    for (let hour = 6; hour <= 22; hour++) {
-      for (const minutes of ['00', '30']) {
-        const time = `${String(hour).padStart(2, '0')}:${minutes}`;
-        if (!startTime || time > startTime) {
-          options.push(time);
-        }
-      }
-    }
-    return options;
-  };
-
-  const handleDateChange = (id: number, field: keyof DateTimeSlot, value: string) => {
-    if (field === 'timeFrom') {
-      const endTime = calculateEndTime(value, sessionDuration);
-      setDateSlots(prev =>
-        prev.map(slot =>
-          slot.id === id ? { ...slot, timeFrom: value, timeTo: endTime } : slot
-        )
-      );
-    } else {
-      setDateSlots(prev =>
-        prev.map(slot =>
-          slot.id === id ? { ...slot, [field]: value } : slot
-        )
-      );
-    }
-  };
-
-  const timeOptions = getTimeOptions();
+  // Calendar selection handlers - now fully controlled by parent component
 
   const showToast = (message: string) => {
     if (toastRef.current) {
@@ -265,42 +252,41 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (selectedLocations.length === 0) {
-      showToast('Please select at least one location');
-      return;
-    }
-
-    if (dateSlots.length === 0) {
-      showToast('Please add at least one date and time slot');
+    // Validate form before submission
+    if (!validateForm()) {
+      const errorMessage = validationErrors.join('. ');
+      showToast(errorMessage);
       return;
     }
 
     try {
-      const timeSlots = generateTimeSlots(dateSlots, parseFloat(sessionDuration));
-
+      // Use selected times directly - they're already in ISO format
       const request: CreateEventRequest = {
         event: {
           eventType: invitationType,
-          description,
+          description: description.trim() || undefined,
           expectedPlayers: requestType === 'SINGLE' ? 2 : 4,
-          sessionDuration: parseFloat(sessionDuration),
+          sessionDuration: parseFloat(sessionDuration) * 60, // Convert hours to minutes
           skillLevel,
           visibility: 'PUBLIC',
           locations: selectedLocations,
-          timeSlots: timeSlots,
+          timeSlots: selectedStartTimes,
         }
       };
 
       await api.createEvent(request);
       showToast('Event created successfully!');
+      
+      // Reset form to initial state
+      resetForm();
       setIsExpanded(false);
       onEventCreated?.();
     } catch (error) {
-      if (error instanceof Error) {
-        showToast(`Failed to create event: ${error.message}`);
-      } else {
-        showToast('Failed to create event. Please try again later.');
-      }
+      console.error('Error creating event:', error);
+      const errorMessage = error instanceof Error 
+        ? `Error creating event: ${error.message}` 
+        : 'Error creating event. Please try again.';
+      showToast(errorMessage);
     }
   };
 
@@ -528,88 +514,44 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Available Dates</label>
-                {dateSlots.map(slot => (
-                  <div key={slot.id} className="card p-3 bg-light mb-2">
-                    <div className="row g-5">
-                      <div className="col-md-5">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`date-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            Date
-                          </label>
-                          <input 
-                            type="date" 
-                            className="form-control" 
-                            id={`date-${slot.id}`}
-                            value={slot.date}
-                            min={getTomorrowDate()}
-                            onChange={(e) => handleDateChange(slot.id, 'date', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`timeFrom-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            From
-                          </label>
-                          <select 
-                            className="form-select" 
-                            id={`timeFrom-${slot.id}`}
-                            value={slot.timeFrom}
-                            onChange={(e) => handleDateChange(slot.id, 'timeFrom', e.target.value)}
-                            required
-                          >
-                            {timeOptions.map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-md-flex align-items-center">
-                          <label htmlFor={`timeTo-${slot.id}`} className="form-label mb-md-0 me-md-2">
-                            To
-                          </label>
-                          <select 
-                            className="form-select" 
-                            id={`timeTo-${slot.id}`}
-                            value={slot.timeTo}
-                            onChange={(e) => handleDateChange(slot.id, 'timeTo', e.target.value)}
-                            required
-                          >
-                            {getTimeOptions(slot.timeFrom).map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      {dateSlots.length > 1 && (
-                        <div className="col-md-1 d-flex align-items-center">
-                          <button 
-                            type="button" 
-                            className="btn btn-outline-secondary w-100"
-                            onClick={() => handleRemoveDate(slot.id)}
-                          >
-                            <i className="bi bi-x"></i>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                <label className="form-label">Your Availability (next 7 days)</label>
+                {validationErrors.some(error => error.includes('time slot')) && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.find(error => error.includes('time slot'))}</small>
                   </div>
-                ))}
-                <button 
-                  type="button" 
-                  className="btn btn-outline-primary btn-sm mt-2"
-                  onClick={handleAddDate}
-                >
-                  + Add Another Date
-                </button>
+                )}
+                <div className="form-check form-switch mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="nightGameSwitch"
+                    checked={nightGame}
+                    onChange={(e) => setNightGame(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="nightGameSwitch">
+                    Night game (show only night hours)
+                  </label>
+                </div>
+                <AvailabilityCalendar
+                  value={selectedStartTimes}
+                  onChange={handleTimeSelectionChange}
+                  startHour={8}
+                  endHour={21}
+                  nightOnly={nightGame}
+                  disabled={!isExpanded}
+                  className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
+                />
+                {selectedStartTimes.length > 0 && (
+                  <small className="form-text text-muted mt-1 d-block">
+                    {selectedStartTimes.length} time slot{selectedStartTimes.length !== 1 ? 's' : ''} selected
+                  </small>
+                )}
               </div>
 
               <div className="mb-4">
                 <label htmlFor="description" className="form-label d-flex align-items-center">
-                  Description
+                  Description (optional)
                   
                 </label>
                 <textarea

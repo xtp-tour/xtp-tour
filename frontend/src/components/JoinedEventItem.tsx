@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import BaseEventItem from './event/BaseEventItem';
-import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
+import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import { ApiEvent, ApiJoinRequest } from '../types/api';
 import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
-import UserDisplay from './UserDisplay';
 import Toast from './Toast';
+import ShareButton from './ShareButton';
+import { useShareEvent } from '../hooks/useShareEvent';
+import { BADGE_STYLES } from '../styles/badgeStyles';
+import HostDisplay from './HostDisplay';
 
 interface Props {
   event: ApiEvent;
@@ -22,6 +25,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const [error, setError] = useState<string | null>(null);
   const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
   const [showToast, setShowToast] = useState(false);
+  
+  const { shareEvent } = useShareEvent({
+    eventId: event.id || '',
+    onSuccess: () => setShowToast(true)
+  });
 
   // Find the user's join request
   useEffect(() => {
@@ -98,18 +106,33 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   const { colorClass } = getColorClasses();
 
-  // Get user's join request status
+  // Get user's join request status with badge info
   const getJoinRequestStatus = () => {
-    if (!userJoinRequest) return '';
+    if (!userJoinRequest) return { text: '', variant: 'text-bg-secondary' };
     
     if (userJoinRequest.isRejected === true) {
-      return 'Request rejected';
+      return { text: 'Request rejected', variant: 'text-bg-danger' };
     } else if (userJoinRequest.isRejected === false) {
-      return 'Request accepted';
+      return { text: 'Request accepted', variant: 'text-bg-success' };
     } else {
-      return 'Waiting for host approval';
+      return { text: 'Waiting for host approval', variant: 'text-bg-warning' };
     }
   };
+
+  const joinRequestStatus = getJoinRequestStatus();
+
+  // Determine which status to show - prioritize event status for confirmed/completed events
+  const getDisplayStatus = () => {
+    if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+      // Show event status for final states
+      return null; // Let EventHeader handle the status display
+    } else {
+      // Show join request status for ongoing events
+      return joinRequestStatus;
+    }
+  };
+
+  const displayStatus = getDisplayStatus();
 
   // Get action button based on event status
   const getActionButton = () => {
@@ -134,37 +157,23 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     };
   };
 
-  const handleShareEvent = () => {
-    const eventUrl = `${window.location.origin}/event/${event.id}`;
-    navigator.clipboard.writeText(eventUrl);
-    setShowToast(true);
-  };
-
   const getShareButton = () => {
-    return (
-      <button
-        className="btn btn-sm btn-outline-secondary"
-        onClick={handleShareEvent}
-        title="Share event"
-      >
-        <i className="bi bi-share"></i>
-      </button>
-    );
+    return <ShareButton onClick={shareEvent} />;
   };
 
   return (
     <>
       <BaseEventItem
         event={event}
-        headerTitle="Joined Event"
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
         headerSubtitle={
-          <div className="d-flex align-items-center flex-column align-items-start">
-            <div>
-              Host: <UserDisplay userId={event.userId || ''} fallback="Unknown Host" />
-            </div>
-            <div className="text-muted small">
-              {getJoinRequestStatus()}
-            </div>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <HostDisplay userId={event.userId || ''} fallback="Unknown Host" />
+            {displayStatus && (
+              <span className={`badge ${displayStatus.variant}`} style={BADGE_STYLES}>
+                {displayStatus.text}
+              </span>
+            )}
           </div>
         }
         colorClass={colorClass}

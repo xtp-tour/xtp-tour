@@ -1,6 +1,7 @@
 import React from 'react';
 import { TimeSlot } from './types';
 import moment from 'moment';
+import { BADGE_STYLES } from '../../styles/badgeStyles';
 
 
 interface Props {
@@ -77,10 +78,11 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
               return (
                 <div
                   key={`${dateKey}-${index}`}
-                  className={`badge p-2 ${onSelect ? 'cursor-pointer' : ''}`}
+                  className={`badge ${onSelect ? 'cursor-pointer' : ''}`}
                   onClick={() => onSelect && slot.isAvailable !== false && onSelect(slot)}
                   role={onSelect ? 'button' : undefined}
                   style={{
+                    ...BADGE_STYLES,
                     ...style,
                     cursor: onSelect && slot.isAvailable !== false ? 'pointer' : 'default'
                   }}

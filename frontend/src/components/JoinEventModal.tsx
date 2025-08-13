@@ -6,6 +6,7 @@ import { EventFlowDiagram } from './EventFlowDiagram';
 import { EventStep } from '../types/eventTypes';
 import { TimeSlot } from './event/types';
 import moment from 'moment';
+import { BADGE_STYLES } from '../styles/badgeStyles';
 
 interface Props {
   eventId: string;
@@ -163,12 +164,13 @@ export const JoinEventModal: React.FC<Props> = ({
                     {options.locations.map(locationId => (
                       <div
                         key={locationId}
-                        className={`badge p-2 ${
+                        className={`badge ${
                           selectedLocations.includes(locationId)
                             ? 'text-white'
                             : 'text-dark border border-opacity-25'
                         }`}
                         style={{
+                          ...BADGE_STYLES,
                           backgroundColor: selectedLocations.includes(locationId)
                             ? 'var(--tennis-navy)'
                             : 'var(--tennis-light)',
