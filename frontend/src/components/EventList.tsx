@@ -81,6 +81,9 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
     availableEvents: true
   });
 
+  // State for active tab
+  const [activeTab, setActiveTab] = useState<'toJoin' | 'myEvents'>('toJoin');
+
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -142,65 +145,89 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
   return (
     <div className="mt-4">
-      <section className="mb-5">
-        <SectionHeader
-          title="Your Events"
-          count={myOpenEvents.length}
-          isExpanded={expandedSections.myEvents}
-          onToggle={() => toggleSection('myEvents')}
-        />
-        {expandedSections.myEvents && (
-          myOpenEvents.length === 0 ? (
-            <p className="text-muted">You haven't created any events yet.</p>
-          ) : (
-            <div>
-              {myOpenEvents.map(event => (
-                <MyEventItem
-                  key={event.id}
-                  event={event}
-                  onDelete={async (id) => {
-                    try {
-                      await api.deleteEvent(id);
-                      setMyEvents(prev => prev.filter(ev => ev.id !== id));
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Failed to delete event');
-                    }
-                  }}
-                  onEventUpdated={() => {
-                    // Refresh all event lists when an event is confirmed
-                    api.listEvents()
-                      .then(response => {
-                        setMyEvents((response.events || []).map(transformEventData));
-                      })
-                      .catch(err => {
-                        console.error("Failed to refresh events:", err);
-                      });
-                  }}
-                />
-              ))}
-            </div>
-          )
-        )}
-      </section>
+      {/* Tab Navigation */}
+      <div className="mb-4">
+        <ul className="nav nav-pills nav-fill" role="tablist">
+          <li className="nav-item" role="presentation">
+            <button
+              className={`nav-link d-flex align-items-center justify-content-center flex-wrap gap-1 ${activeTab === 'toJoin' ? 'active' : ''}`}
+              type="button"
+              role="tab"
+              onClick={() => setActiveTab('toJoin')}
+              style={{
+                backgroundColor: activeTab === 'toJoin' ? 'var(--tennis-accent)' : 'transparent',
+                color: 'var(--tennis-navy)',
+                border: '1px solid var(--tennis-accent)',
+                fontWeight: activeTab === 'toJoin' ? '600' : '400',
+                minHeight: '48px',
+                fontSize: '0.9rem',
+                padding: '8px 12px'
+              }}
+            >
+              <div className="d-flex align-items-center flex-wrap justify-content-center gap-1">
+                <i className="bi bi-search"></i>
+                <span className="d-none d-sm-inline">Events to Join</span>
+                <span className="d-inline d-sm-none">To Join</span>
+                <span className="badge" style={{
+                  backgroundColor: activeTab === 'toJoin' ? 'var(--tennis-navy)' : 'var(--tennis-accent)',
+                  color: activeTab === 'toJoin' ? 'var(--tennis-accent)' : 'var(--tennis-navy)',
+                  minWidth: '20px',
+                  fontSize: '0.75rem'
+                }}>
+                  {availableEvents.length}
+                </span>
+              </div>
+            </button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button
+              className={`nav-link d-flex align-items-center justify-content-center flex-wrap gap-1 ${activeTab === 'myEvents' ? 'active' : ''}`}
+              type="button"
+              role="tab"
+              onClick={() => setActiveTab('myEvents')}
+              style={{
+                backgroundColor: activeTab === 'myEvents' ? 'var(--tennis-accent)' : 'transparent',
+                color: 'var(--tennis-navy)',
+                border: '1px solid var(--tennis-accent)',
+                fontWeight: activeTab === 'myEvents' ? '600' : '400',
+                minHeight: '48px',
+                fontSize: '0.9rem',
+                padding: '8px 12px'
+              }}
+            >
+              <div className="d-flex align-items-center flex-wrap justify-content-center gap-1">
+                <i className="bi bi-person-circle"></i>
+                <span>My Events</span>
+                <span className="badge" style={{
+                  backgroundColor: activeTab === 'myEvents' ? 'var(--tennis-navy)' : 'var(--tennis-accent)',
+                  color: activeTab === 'myEvents' ? 'var(--tennis-accent)' : 'var(--tennis-navy)',
+                  minWidth: '20px',
+                  fontSize: '0.75rem'
+                }}>
+                  {myOpenEvents.length + joinedEvents.length}
+                </span>
+              </div>
+            </button>
+          </li>
+        </ul>
+      </div>
 
-      <section className="mb-5">
-        <SectionHeader
-          title="Joined Events"
-          count={joinedEvents.length}
-          isExpanded={expandedSections.joinedEvents}
-          onToggle={() => toggleSection('joinedEvents')}
-        />
-        {expandedSections.joinedEvents && (
-          joinedEvents.length === 0 ? (
-            <p className="text-muted">You haven't joined any events yet.</p>
-          ) : (
-            <div>
-              {joinedEvents.map(event => (
-                <JoinedEventItem
-                  key={event.id}
-                  event={event}
-                  onCancelled={() => {
-                    // Refresh joined events after cancellation
+      {/* Tab Content */}
+      <div className="tab-content">
+        {/* Events to Join Tab */}
+        {activeTab === 'toJoin' && (
+          <div className="tab-pane fade show active">
+            <section className="mb-5">
+              <SectionHeader
+                title="Available Events to Join"
+                count={availableEvents.length}
+                isExpanded={expandedSections.availableEvents}
+                onToggle={() => toggleSection('availableEvents')}
+              />
+              {expandedSections.availableEvents && (
+                <PublicEventList
+                  onEventJoined={() => {
+                    // Refresh joined events when a user joins an event
                     api.listJoinedEvents()
                       .then(response => {
                         setJoinedEvents((response.events || []).map(transformEventData));
@@ -210,34 +237,90 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
                       });
                   }}
                 />
-              ))}
-            </div>
-          )
+              )}
+            </section>
+          </div>
         )}
-      </section>
 
-      <section className="mb-5">
-        <SectionHeader
-          title="Available Events to Join"
-          count={availableEvents.length}
-          isExpanded={expandedSections.availableEvents}
-          onToggle={() => toggleSection('availableEvents')}
-        />
-        {expandedSections.availableEvents && (
-          <PublicEventList
-            onEventJoined={() => {
-              // Refresh joined events when a user joins an event
-              api.listJoinedEvents()
-                .then(response => {
-                  setJoinedEvents((response.events || []).map(transformEventData));
-                })
-                .catch(err => {
-                  console.error("Failed to refresh joined events:", err);
-                });
-            }}
-          />
+        {/* My Events Tab */}
+        {activeTab === 'myEvents' && (
+          <div className="tab-pane fade show active">
+            <section className="mb-5">
+              <SectionHeader
+                title="Your Events"
+                count={myOpenEvents.length}
+                isExpanded={expandedSections.myEvents}
+                onToggle={() => toggleSection('myEvents')}
+              />
+              {expandedSections.myEvents && (
+                myOpenEvents.length === 0 ? (
+                  <p className="text-muted">You haven't created any events yet.</p>
+                ) : (
+                  <div>
+                    {myOpenEvents.map(event => (
+                      <MyEventItem
+                        key={event.id}
+                        event={event}
+                        onDelete={async (id) => {
+                          try {
+                            await api.deleteEvent(id);
+                            setMyEvents(prev => prev.filter(ev => ev.id !== id));
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : 'Failed to delete event');
+                          }
+                        }}
+                        onEventUpdated={() => {
+                          // Refresh all event lists when an event is confirmed
+                          api.listEvents()
+                            .then(response => {
+                              setMyEvents((response.events || []).map(transformEventData));
+                            })
+                            .catch(err => {
+                              console.error("Failed to refresh events:", err);
+                            });
+                        }}
+                      />
+                    ))}
+                  </div>
+                )
+              )}
+            </section>
+
+            <section className="mb-5">
+              <SectionHeader
+                title="Joined Events"
+                count={joinedEvents.length}
+                isExpanded={expandedSections.joinedEvents}
+                onToggle={() => toggleSection('joinedEvents')}
+              />
+              {expandedSections.joinedEvents && (
+                joinedEvents.length === 0 ? (
+                  <p className="text-muted">You haven't joined any events yet.</p>
+                ) : (
+                  <div>
+                    {joinedEvents.map(event => (
+                      <JoinedEventItem
+                        key={event.id}
+                        event={event}
+                        onCancelled={() => {
+                          // Refresh joined events after cancellation
+                          api.listJoinedEvents()
+                            .then(response => {
+                              setJoinedEvents((response.events || []).map(transformEventData));
+                            })
+                            .catch(err => {
+                              console.error("Failed to refresh joined events:", err);
+                            });
+                        }}
+                      />
+                    ))}
+                  </div>
+                )
+              )}
+            </section>
+          </div>
         )}
-      </section>
+      </div>
     </div>
   );
 });
