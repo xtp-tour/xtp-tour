@@ -3,7 +3,7 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_DESCRIPTIONS } from './types';
+import { SKILL_LEVEL_LABELS, SKILL_LEVEL_HINTS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
 import { LocationBadge } from './EventBadges';
 import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
@@ -157,12 +157,17 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             )}
             {/* Skill level badge */}
             <div className="d-flex flex-wrap gap-1 mt-1">
-              <span className="badge text-bg-dark" style={BADGE_STYLES}>
-                <span>{event.skillLevel}</span>
-                <span className="badge bg-light text-dark" style={NESTED_BADGE_STYLES}>
-                  {SKILL_LEVEL_DESCRIPTIONS[event.skillLevel]}
+              <OverlayTrigger
+                placement="top"
+                overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>{SKILL_LEVEL_HINTS[event.skillLevel]}</Tooltip>}
+              >
+                <span className="badge text-bg-dark" style={BADGE_STYLES}>
+                  <span>{event.skillLevel}</span>
+                  <span className="badge bg-light text-dark" style={NESTED_BADGE_STYLES}>
+                    {SKILL_LEVEL_LABELS[event.skillLevel]}
+                  </span>
                 </span>
-              </span>
+              </OverlayTrigger>
             </div>
           </div>
         </div>

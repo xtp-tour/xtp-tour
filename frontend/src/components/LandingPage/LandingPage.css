@@ -1,23 +1,51 @@
 .landing-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0;
+  line-height: 1.6;
 }
 
 .hero-section {
-  padding: 3rem 0;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  margin: -2rem -1rem 3rem -1rem;
+  border-radius: 0 0 2rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .hero-icon {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* Flow container styling - adapted from EventFlowDiagram */
+.hero-icon i {
+  background: linear-gradient(135deg, var(--tennis-navy) 0%, var(--tennis-navy-light) 50%, #ff6b35 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Flow container styling - enhanced for modern look */
 .flow-container {
-  background-color: #f8f9fa;
-  border-radius: 0.75rem;
-  padding: 2rem;
-  margin: 2rem 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 1.5rem;
+  padding: 3rem 2rem;
+  margin: 3rem 1rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--tennis-navy), #ff6b35, var(--tennis-navy));
+  border-radius: 1.5rem 1.5rem 0 0;
 }
 
 .flow-steps {
@@ -36,72 +64,179 @@
 }
 
 .step-icon {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
-  background-color: #fff;
-  border: 3px solid #0d6efd;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid var(--tennis-navy);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto 1.5rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(27, 54, 93, 0.12);
+  position: relative;
+  z-index: 2;
+}
+
+.step-icon:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(27, 54, 93, 0.2);
+  border-color: #ff6b35;
+}
+
+.step-icon:hover i {
+  color: #ff6b35;
+  transform: scale(1.1);
 }
 
 .step-icon i {
-  font-size: 1.5rem;
-  color: #0d6efd;
-  transition: all 0.3s ease;
+  font-size: 1.6rem;
+  color: var(--tennis-navy);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
 }
 
-.step-content {
-  max-width: 200px;
-  margin: 0 auto;
-}
+  .step-content {
+    max-width: 280px;
+    margin: 0 auto;
+    text-align: center;
+  }
 
 .step-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #495057;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--tennis-navy);
+  letter-spacing: -0.02em;
 }
 
 .step-description {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #6c757d;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .flow-connector {
   flex: 0.5;
-  height: 3px;
-  background: linear-gradient(90deg, #0d6efd, #6c757d);
-  margin-top: 2rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--tennis-navy), #e9ecef);
+  margin-top: 2.25rem;
   position: relative;
   border-radius: 2px;
+  opacity: 0.6;
+}
+
+.flow-connector::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--tennis-navy);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  opacity: 0.8;
 }
 
 /* Features section */
 .features {
-  padding: 2rem 0;
+  padding: 4rem 2rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  margin: 3rem -1rem 0;
+  border-radius: 2rem 2rem 0 0;
+}
+
+.feature-card {
+  transition: all 0.3s ease;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.feature-icon i {
+  background: linear-gradient(135deg, var(--tennis-navy) 0%, #ff6b35 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon i {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.3));
 }
 
 .features h5 {
   color: var(--tennis-navy);
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1rem;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
 }
 
 /* Call to action section */
 .cta-section {
-  border: 2px solid #e9ecef;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: none;
+  background: linear-gradient(135deg, var(--tennis-navy) 0%, var(--tennis-navy-light) 100%);
+  color: white;
+  box-shadow: 0 12px 40px rgba(27, 54, 93, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="0%" r="100%"><stop offset="0%" stop-color="%23ff6b35" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ff6b35" stop-opacity="0"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>');
+  opacity: 0.1;
+}
+
+.cta-section h3 {
+  color: white !important;
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.cta-section p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1.1rem;
+}
+
+.cta-section .btn-primary {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c61 100%);
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+  transition: all 0.3s ease;
+}
+
+.cta-section .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+  background: linear-gradient(135deg, #ff8c61 0%, #ff6b35 100%);
 }
 
 /* Tennis accent color utility */
@@ -109,14 +244,209 @@
   color: #ff6b35 !important;
 }
 
+/* Enhanced typography */
+.display-4 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--tennis-navy) 0%, var(--tennis-navy-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lead {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #5a6c7d;
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  opacity: 0.9;
+}
+
+/* Section headings */
+.how-it-works h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.how-it-works .text-muted {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+/* Improved text contrast and spacing */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+p {
+  margin-bottom: 1.25rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+  color: var(--tennis-navy);
+}
+
+.text-muted {
+  color: #6c757d !important;
+  opacity: 0.85;
+}
+
+/* Better readability for smaller text */
+small, .small {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Focus on key content */
+.feature-card p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #5a6c7d;
+}
+
+.training-section h3 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.training-section p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #5a6c7d;
+  opacity: 0.9;
+}
+
+/* Enhanced buttons */
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  box-shadow: 0 4px 16px rgba(27, 54, 93, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(27, 54, 93, 0.3);
+}
+
+.btn-outline-primary {
+  border-width: 2px;
+  font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(27, 54, 93, 0.2);
+}
+
+/* Hero actions */
+.hero-actions {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-actions .btn {
+  min-width: 280px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.hero-actions .btn-link {
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.hero-actions .btn-link:hover {
+  transform: none;
+  box-shadow: none;
+  text-decoration: underline;
+}
+
+/* Training section */
+.training-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 1.5rem;
+  margin: 3rem 1rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.game-features {
+  display: flex;
+  justify-content: center;
+}
+
+.feature-highlight {
+  background: rgba(27, 54, 93, 0.05);
+  border: 1px solid rgba(27, 54, 93, 0.1);
+  max-width: 350px;
+}
+
+.feature-highlight h5 {
+  color: var(--tennis-navy);
+  font-weight: 700;
+}
+
+.feature-highlight ul li {
+  color: #5a6c7d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.feature-highlight .bi {
+  font-size: 1.1rem;
+}
+
+/* Enhanced CTA section */
+.cta-section .btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.cta-section .btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .landing-page {
-    padding: 1rem;
+    padding: 0;
   }
 
   .hero-section {
-    padding: 2rem 0;
+    padding: 3rem 1.5rem;
+    margin: 0 0 2rem 0;
+    border-radius: 0 0 1.5rem 1.5rem;
+  }
+
+  .features {
+    padding: 3rem 1.5rem 2rem;
+    margin: 2rem 0 0;
+    border-radius: 1.5rem 1.5rem 0 0;
   }
 
   .hero-icon i {
@@ -128,33 +458,57 @@
   }
 
   .flow-container {
-    padding: 1.5rem 1rem;
+    padding: 2rem 1.5rem;
+    margin: 2rem 0.5rem;
+    border-radius: 1rem;
   }
 
   .flow-steps {
     flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
 
   .flow-step {
-    padding: 1.5rem 0;
-    margin-bottom: 1rem;
+    padding: 1.5rem 1rem;
+    margin-bottom: 0;
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .flow-connector {
-    width: 3px;
-    height: 2rem;
-    margin: 0 auto;
-    background: linear-gradient(180deg, #0d6efd, #6c757d);
+    width: 2px;
+    height: 2.5rem;
+    margin: 1rem auto;
+    background: linear-gradient(180deg, var(--tennis-navy), #e9ecef);
+    flex-shrink: 0;
+  }
+
+  .flow-connector::after {
+    right: 50%;
+    top: 100%;
+    transform: translateX(50%) rotate(90deg);
+    border-left-color: var(--tennis-navy);
   }
 
   .step-icon {
     width: 3.5rem;
     height: 3.5rem;
     border-width: 2px;
+    border-radius: 0.875rem;
   }
 
   .step-icon i {
     font-size: 1.25rem;
+  }
+
+  .step-content {
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
   }
 
   .features .col-md-4 {
@@ -173,15 +527,102 @@
 
 @media (max-width: 576px) {
   .flow-container {
-    margin: 1rem -1rem;
-    border-radius: 0;
+    margin: 1.5rem 0;
+    border-radius: 1rem;
+    padding: 2rem 1rem;
+  }
+
+  .flow-steps {
+    gap: 0.5rem;
+  }
+
+  .flow-step {
+    padding: 1rem 0.5rem;
+  }
+
+  .flow-connector {
+    height: 2rem;
+    margin: 0.5rem auto;
+  }
+
+  .hero-section {
+    padding: 2.5rem 1rem;
+  }
+
+  .features {
+    padding: 2.5rem 1rem 1.5rem;
+  }
+
+  .training-section {
+    margin: 2rem 0;
+    padding: 2rem 1rem;
+  }
+
+  .display-4 {
+    font-size: 2.2rem !important;
+  }
+
+  .lead {
+    font-size: 1.15rem;
   }
 
   .step-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
   }
 
   .step-description {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .step-content {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .feature-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .features h5 {
+    font-size: 1.2rem;
+  }
+
+  .hero-actions .btn {
+    min-width: 100%;
+    margin-bottom: 0.75rem;
+  }
+
+  .game-features {
+    margin-top: 2rem;
+  }
+
+  .feature-highlight {
+    padding: 2rem 1.5rem !important;
+  }
+
+  .cta-section {
+    padding: 2rem 1.5rem !important;
+    margin: 2rem 0 !important;
+  }
+
+  .cta-section h3 {
+    font-size: 1.6rem !important;
+  }
+
+  .cta-section p {
+    font-size: 1rem !important;
+  }
+
+  .cta-section .btn {
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+
+  .cta-section .d-flex {
+    flex-direction: column !important;
   }
 }

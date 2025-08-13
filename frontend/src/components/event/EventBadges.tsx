@@ -1,7 +1,7 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_DESCRIPTIONS } from './types';
+import { SKILL_LEVEL_LABELS, SKILL_LEVEL_HINTS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
 import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
 
@@ -15,12 +15,17 @@ interface EventBadgesProps {
 }
 
 const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }) => (
-  <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-blue)' }}>
-    <span>{skillLevel}</span>
-    <span className="badge bg-light" style={{ ...NESTED_BADGE_STYLES, color: 'var(--tennis-blue)' }}>
-      {SKILL_LEVEL_DESCRIPTIONS[skillLevel]}
+  <OverlayTrigger
+    placement="top"
+    overlay={<Tooltip id={`skill-level-tooltip-${skillLevel}`}>{SKILL_LEVEL_HINTS[skillLevel]}</Tooltip>}
+  >
+    <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-blue)' }}>
+      <span>{skillLevel}</span>
+      <span className="badge bg-light" style={{ ...NESTED_BADGE_STYLES, color: 'var(--tennis-blue)' }}>
+        {SKILL_LEVEL_LABELS[skillLevel]}
+      </span>
     </span>
-  </span>
+  </OverlayTrigger>
 );
 
 const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (

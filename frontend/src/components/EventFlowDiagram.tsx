@@ -21,26 +21,26 @@ export const EventFlowDiagram: React.FC<Props> = ({
     {
       step: EventStep.Created,
       title: 'Event Created',
-      description: `${hostName} created an event to play`,
-      icon: 'bi-plus-circle'
+      description: `${hostName} created an event with preferred date, time, and location`,
+      icon: 'bi-calendar-plus'
     },
     {
       step: EventStep.Pending,
-      title: 'Ready for Your Response',
-      description: 'Review and choose your preferred time and place',
-      icon: 'bi-clock'
+      title: 'Shared & Open for Requests',
+      description: 'Event is shared and players can request to join',
+      icon: 'bi-share'
     },
     {
       step: EventStep.Joined,
-      title: 'Your Response Sent',
-      description: `You've selected your preferences and joined the event`,
-      icon: 'bi-check-circle'
+      title: 'Players Selected',
+      description: `${hostName} has selected players from join requests`,
+      icon: 'bi-people'
     },
     {
       step: EventStep.Confirmed,
-      title: 'Session Scheduled',
+      title: 'Court Booked & Ready',
       description: `${hostName} has booked the court and confirmed the session`,
-      icon: 'bi-calendar-check'
+      icon: 'bi-check-circle'
     }
   ];
 
@@ -106,12 +106,12 @@ export const EventFlowDiagram: React.FC<Props> = ({
           <div className="next-steps">
             <h6 className="next-steps-title">
               <i className="bi bi-info-circle me-2"></i>
-              What happens after you join?
+              What happens after you request to join?
             </h6>
             <ol className="next-steps-list">
-              <li>{hostName} will be notified of your preferred options</li>
-              <li>They will book a court based on your availability</li>
-              <li>You'll receive a confirmation with the final time and place</li>
+              <li>{hostName} will review your join request along with others</li>
+              <li>They will select players based on availability and preferences</li>
+              <li>If selected, you'll receive confirmation with the final time and place</li>
             </ol>
           </div>
 
