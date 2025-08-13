@@ -28,10 +28,33 @@ export interface StyleProps {
 }
 
 export const SKILL_LEVEL_DESCRIPTIONS = {
-  ANY: 'Any NTRP',
-  BEGINNER: 'NTRP < 3.5',
-  INTERMEDIATE: 'NTRP 3.5–5.0',
-  ADVANCED: 'NTRP > 5.0'
+  ANY: 'Any NTRP - Open to all skill levels',
+  BEGINNER: 'NTRP < 3.5 - New to intermediate players learning fundamentals',
+  INTERMEDIATE: 'NTRP 3.5–5.0 - Consistent players with developed strokes and strategy',
+  ADVANCED: 'NTRP > 5.0 - Elite players with tournament experience and advanced skills'
+} as const;
+
+// Comprehensive NTRP level information for reference
+export const NTRP_DETAILED_DESCRIPTIONS = {
+  1.0: 'New Player: Just starting to learn tennis',
+  1.5: 'Beginner: Limited experience, working on getting ball in play',
+  2.0: 'Novice: Needs court experience, obvious stroke weaknesses',
+  2.5: 'Advanced Novice: Learning ball judgment, can sustain slow rallies',
+  3.0: 'Intermediate: Fairly consistent on medium-paced shots',
+  3.5: 'Advanced Intermediate: Improved stroke dependability with directional control',
+  4.0: 'Advanced: Dependable strokes with depth and directional control',
+  4.5: 'Expert: Beginning to master power and spins, sound footwork',
+  5.0: 'Elite: Good shot anticipation, can structure game around strengths',
+  5.5: 'Elite+: Developed power/consistency as major weapon',
+  6.0: 'Tournament: Intensive training, sectional/national ranking',
+  7.0: 'Professional: World-class player'
+} as const;
+
+// Official NTRP resources for comprehensive information
+export const NTRP_RESOURCES = {
+  USTA_OVERVIEW: 'https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html',
+  USTA_FAQS: 'https://www.usta.com/en/home/play/adult-tennis/programs/national/usta-league-faqs.html',
+  USTA_SELF_RATE: 'https://activenetwork.my.salesforce-sites.com/usta/articles/en_US/Article/League-NTRP-Rating-Information'
 } as const;
 
 export const SECTION_TITLES = {
