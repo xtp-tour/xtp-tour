@@ -100,7 +100,7 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][]): string => {
     const endDate = moment(uniqueDates[uniqueDates.length - 1]).format('MMM D');
     
     if (categoriesArray.length >= 3) {
-      return `${startDate}–${endDate} • multiple days`;
+      return `${startDate}–${endDate} • whole day`;
     } else {
       return `${startDate}–${endDate} • ${categoriesArray.sort().join(' & ')}`;
     }

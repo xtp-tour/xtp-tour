@@ -66,7 +66,17 @@ export const testTimeSlotCompression = () => {
   console.log('User bug case (6 slots, multi-day, multi-time):', compressTimeSlots(userBugCase));
   // Expected: "Aug 14–Aug 18 • afternoon & morning" (simplified time categories)
 
-  // Test Case 7: Empty array
+  // Test Case 7: Multi-day with 3+ time categories (should show "whole day")
+  const wholeDayMultiDay = [
+    createTimeSlot('2024-08-14 08:00'), // Thu, morning
+    createTimeSlot('2024-08-15 14:00'), // Fri, afternoon
+    createTimeSlot('2024-08-16 19:00'), // Sat, evening
+    createTimeSlot('2024-08-17 02:00')  // Sun, night
+  ];
+  console.log('Multi-day whole day (4 time categories):', compressTimeSlots(wholeDayMultiDay));
+  // Expected: "Aug 14–Aug 17 • whole day"
+
+  // Test Case 8: Empty array
   console.log('Empty array:', compressTimeSlots([]));
   // Expected: ""
 
