@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { compressTimeSlots } from './timeSlotCompression';
 
 // Interface for time slot - keeping it minimal for utils
 interface TimeSlot {
@@ -76,30 +77,11 @@ export const formatDuration = (minutes: number): string => {
 
 /**
  * Format time slots summary for display in event headers
+ * Uses smart compression to show ranges and time-of-day generalizations
  * 
  * @param timeSlots Array of time slots with moment dates
  * @returns Formatted time slots summary string
  */
 export const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
-  if (timeSlots.length === 0) return '';
-  
-  const firstSlot = timeSlots[0];
-  
-  if (timeSlots.length === 1) {
-    return firstSlot.date.format('ddd, MMM D • h:mm A');
-  }
-  
-  if (timeSlots.length === 2) {
-    const firstDate = firstSlot.date;
-    const secondDate = timeSlots[1].date;
-    
-    // Check if both slots are on the same day
-    if (firstDate.isSame(secondDate, 'day')) {
-      return `${firstDate.format('ddd, MMM D')} • ${firstDate.format('h:mm A')}–${secondDate.format('h:mm A')}`;
-    } else {
-      return `${firstDate.format('ddd, MMM D • h:mm A')} and ${secondDate.format('ddd, MMM D • h:mm A')}`;
-    }
-  }
-  
-  return `${firstSlot.date.format('ddd, MMM D • h:mm A')}, ${timeSlots[1].date.format('ddd, MMM D • h:mm A')}...`;
+  return compressTimeSlots(timeSlots);
 }; 
