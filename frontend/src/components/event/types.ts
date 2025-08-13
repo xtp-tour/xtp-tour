@@ -125,12 +125,12 @@ export const timeSlotFromDateAndConfirmation = (
   isAvailable: boolean = true,
   isUserSelected?: boolean
 ): TimeSlot => {
-  // Parse UTC date string into moment object
-  const dateObj = moment.utc(date);
+  // Parse UTC date string into moment object and convert to local time
+  const dateObj = moment.utc(date).local();
   
   // Check if the date matches the confirmation datetime
   const isSelected = confirmation ? 
-    moment.utc(confirmation.datetime).isSame(dateObj) : 
+    moment.utc(confirmation.datetime).isSame(moment.utc(date)) : 
     false;
 
   return {
