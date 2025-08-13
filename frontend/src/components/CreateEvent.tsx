@@ -24,10 +24,10 @@ const MATCH_DURATION_OPTIONS = [
 ];
 
 const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
-  'INTERMEDIATE': 'NTRP 3.5–5.0 - Consistent players with developed strokes and strategy',
-  'BEGINNER': 'NTRP < 3.5 - New to intermediate players learning fundamentals',
-  'ADVANCED': 'NTRP > 5.0 - Elite players with tournament experience and advanced skills',
-  'ANY': 'Any NTRP - Open to all skill levels'
+  'INTERMEDIATE': 'Intermediate (NTRP 3.5–5.0)',
+  'BEGINNER': 'Beginner (NTRP < 3.5)',
+  'ADVANCED': 'Advanced (NTRP > 5.0)',
+  'ANY': 'Any Level'
 };
 
 const calculateEndTime = (startTime: string, duration: string): string => {
