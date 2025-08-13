@@ -1,9 +1,9 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_LABELS, SKILL_LEVEL_HINTS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
 import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 type ApiEventType = ApiEvent['eventType'];
@@ -14,19 +14,22 @@ interface EventBadgesProps {
   sessionDuration: number;
 }
 
-const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }) => (
+const SkillLevelBadge: React.FC<{ skillLevel: ApiSkillLevel }> = ({ skillLevel }) => {
+  const { t } = useTranslation();
+  return (
   <OverlayTrigger
     placement="top"
-    overlay={<Tooltip id={`skill-level-tooltip-${skillLevel}`}>{SKILL_LEVEL_HINTS[skillLevel]}</Tooltip>}
+    overlay={<Tooltip id={`skill-level-tooltip-${skillLevel}`}>{t(`createEvent.skillHints.${skillLevel}`)}</Tooltip>}
   >
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-blue)' }}>
       <span>{skillLevel}</span>
       <span className="badge bg-light" style={{ ...NESTED_BADGE_STYLES, color: 'var(--tennis-blue)' }}>
-        {SKILL_LEVEL_LABELS[skillLevel]}
+        {t(`createEvent.skillLabels.${skillLevel}`)}
       </span>
     </span>
   </OverlayTrigger>
-);
+  );
+};
 
 const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (
   <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-navy)' }}>
@@ -36,11 +39,13 @@ const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (
 );
 
 const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlayers }) => {
+  const { t } = useTranslation();
+  
   const getRequestTypeLabel = (players: number): string => {
     switch (players) {
-      case 2: return 'Singles';
-      case 4: return 'Doubles';
-      default: return `${players} Players`;
+      case 2: return t('eventTypes.singles');
+      case 4: return t('eventTypes.doubles');
+      default: return t('eventTypes.players', { count: players });
     }
   };
   
@@ -52,18 +57,20 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
 };
 
 // Utility function to get event type label
-export const getEventTypeLabel = (type: ApiEventType): string => {
+export const getEventTypeLabel = (type: ApiEventType, t: (key: string) => string): string => {
   switch (type) {
-    case 'MATCH': return 'Match';
-    case 'TRAINING': return 'Training';
+    case 'MATCH': return t('eventTypes.match');
+    case 'TRAINING': return t('eventTypes.training');
     default: return type;
   }
 };
 
 const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => {
+  const { t } = useTranslation();
+  
   return (
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
-      {getEventTypeLabel(eventType)}
+      {getEventTypeLabel(eventType, t)}
     </span>
   );
 };

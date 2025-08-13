@@ -1,0 +1,312 @@
+{
+  "app": {
+    "title": "Xtp Tour",
+    "version": "Xtp Tour v{{version}}"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "comingSoon": "Próximamente en las siguientes semanas"
+  },
+  "landing": {
+    "hero": {
+      "title": "Programación de tenis simplificada",
+      "subtitle": "No más mensajes de ida y vuelta para organizar partidos de tenis. Establece tu disponibilidad, comparte tu sesión y permite que los jugadores reserven automáticamente contigo.",
+      "createLink": "Crear Tu Enlace de Tenis",
+      "findPartners": "Encontrar Compañeros de Tenis",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signInLink": "Iniciar Sesión"
+    },
+    "howItWorks": {
+      "title": "Programación fácil para todos",
+      "subtitle": "Como Calendly, pero para jugadores de tenis",
+      "steps": {
+        "step1": {
+          "title": "1. Establece tu disponibilidad",
+          "description": "Elige tus pistas preferidas, horarios y preferencias de juego (individuales, dobles, nivel de habilidad)"
+        },
+        "step2": {
+          "title": "2. Comparte tu enlace de tenis",
+          "description": "Envía tu enlace a amigos o hazlo visible para que otros jugadores te encuentren"
+        },
+        "step3": {
+          "title": "3. Recibe reservas",
+          "description": "Los jugadores seleccionan su horario preferido y solicitan unirse a tu sesión"
+        },
+        "step4": {
+          "title": "4. Juega tenis",
+          "description": "Encuéntrense en la pista y disfruten del juego - no más problemas de programación"
+        }
+      }
+    },
+    "features": {
+      "saveTime": {
+        "title": "Ahorra tiempo",
+        "description": "Elimina las idas y venidas para encontrar un horario que funcione para todos"
+      },
+      "workTogether": {
+        "title": "Trabaja mejor en equipo",
+        "description": "Conecta con jugadores de tu nivel de habilidad para mejores partidos y entrenamientos"
+      },
+      "playMore": {
+        "title": "Juega más tenis",
+        "description": "Pasa menos tiempo coordinando y más tiempo en la pista mejorando tu juego"
+      }
+    },
+    "gameTypes": {
+      "title": "Tu tenis, a tu manera",
+      "subtitle": "Establece tus preferencias una vez y permite que los jugadores reserven automáticamente la sesión perfecta contigo.",
+      "competitive": "Partidos competitivos - Juegos individuales con puntuación",
+      "training": "Sesiones de entrenamiento - Práctica y desarrollo de habilidades",
+      "doubles": "Partidos de dobles - Juegos de equipos de 4 jugadores",
+      "whatYouCanSet": "Lo Que Puedes Establecer:",
+      "features": {
+        "multipleVenues": "Múltiples opciones de lugares",
+        "flexibleTimeSlots": "Horarios flexibles (calendario de 7 días)",
+        "skillLevelMatching": "Emparejamiento por nivel de habilidad (basado en NTRP)",
+        "sessionDuration": "Duración de la sesión (1-4 horas)",
+        "singlesOnly": "Individuales (dobles próximamente)"
+      }
+    },
+    "cta": {
+      "title": "Fácil por delante",
+      "subtitle": "Nos encargamos del trabajo de conectar para tenis. Tu horario, tu enlace, a tu manera.",
+      "startScheduling": "Comenzar programación",
+      "findPartners": "Encontrar compañeros"
+    }
+  },
+  "createEvent": {
+    "title": "Crear Evento",
+    "close": "Cerrar",
+    "newInvitation": "Nueva Invitación",
+    "form": {
+      "preferredLocations": "Ubicaciones Preferidas",
+      "requestType": "Tipo de Solicitud",
+      "single": "Individual",
+      "doubles": "Dobles",
+      "comingSoon": "Próximamente",
+      "opponentSkillLevel": "Nivel de Habilidad del Oponente",
+      "skillLevelHelper": "Elige el rango de nivel de habilidad NTRP para tu partido de tenis.",
+      "ntrpLink": "¿Cuál es mi nivel NTRP? →",
+      "sessionDuration": "Duración de la Sesión",
+      "invitationType": "Tipo de Invitación",
+      "gameOnPoints": "Juego por puntos",
+      "training": "Entrenamiento",
+      "gameTooltip": "Buscando una persona para jugar un partido regular de tenis",
+      "trainingTooltip": "El objetivo principal es mejorar las habilidades del juego jugando rallies",
+      "availability": "Tu Disponibilidad (próximos 7 días)",
+      "nightGame": "Juego nocturno (mostrar solo horas nocturnas)",
+      "timeSlotSelected": "{{count}} horario seleccionado",
+      "timeSlotSelected_other": "{{count}} horarios seleccionados",
+      "description": "Descripción (opcional)",
+      "trainingPlaceholder": "Describe tu plan de entrenamiento y objetivos...",
+      "generalPlaceholder": "Agrega cualquier información adicional...",
+      "createInvitation": "Crear Invitación",
+      "trainingTip": "Considera agregar plan de entrenamiento u objetivos a la descripción"
+    },
+    "skillLevels": {
+      "INTERMEDIATE": "Intermedio (NTRP 3.5–5.0)",
+      "BEGINNER": "Principiante (NTRP < 3.5)",
+      "ADVANCED": "Avanzado (NTRP > 5.0)",
+      "ANY": "Cualquier Nivel"
+    },
+    "skillLabels": {
+      "ANY": "Cualquier NTRP",
+      "BEGINNER": "NTRP < 3.5",
+      "INTERMEDIATE": "NTRP 3.5–5.0",
+      "ADVANCED": "NTRP > 5.0"
+    },
+    "skillHints": {
+      "ANY": "Abierto a todos los niveles de habilidad",
+      "BEGINNER": "Jugadores nuevos a intermedios aprendiendo fundamentos",
+      "INTERMEDIATE": "Jugadores consistentes con golpes desarrollados y estrategia",
+      "ADVANCED": "Jugadores elite con experiencia en torneos y habilidades avanzadas"
+    },
+    "loading": {
+      "locations": "Cargando ubicaciones...",
+      "availableLocations": "Cargando ubicaciones disponibles..."
+    },
+    "errors": {
+      "noLocationsAvailable": "No hay ubicaciones disponibles",
+      "failedToLoadLocations": "Error al cargar ubicaciones. Por favor intenta más tarde.",
+      "selectAtLeastOneLocation": "Por favor selecciona al menos una ubicación",
+      "selectAtLeastOneTimeSlot": "Por favor selecciona al menos un horario",
+      "somePastTimes": "Algunos horarios seleccionados están en el pasado",
+      "descriptionTooLong": "La descripción debe tener menos de 1000 caracteres"
+    },
+    "success": {
+      "eventCreated": "¡Evento creado exitosamente!"
+    }
+  },
+  "eventList": {
+    "loading": "Cargando...",
+    "tabs": {
+      "toJoin": "Eventos para Unirse",
+      "toJoinShort": "Unirse",
+      "myEvents": "Mis Eventos"
+    },
+    "sections": {
+      "availableEventsToJoin": "Eventos Disponibles para Unirse",
+      "yourEvents": "Tus Eventos",
+      "joinedEvents": "Eventos Unidos"
+    },
+    "empty": {
+      "noEventsCreated": "Aún no has creado ningún evento.",
+      "noEventsJoined": "Aún no te has unido a ningún evento."
+    }
+  },
+  "errors": {
+    "somethingWentWrong": "Algo salió mal",
+    "tryRefreshing": "Por favor intenta actualizar la página.",
+    "reloadPage": "Recargar Página"
+  },
+  "common": {
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "showDetails": "Mostrar Detalles",
+    "hideDetails": "Ocultar Detalles",
+    "created": "Creado"
+  },
+  "durations": {
+    "hour": "1 hora",
+    "hours": "{{count}} horas",
+    "hourAndHalf": "1.5 horas",
+    "hoursAndHalf": "{{count}}.5 horas"
+  },
+  "profileSetup": {
+    "loading": {
+      "title": "Cargando Perfil...",
+      "text": "Cargando..."
+    },
+    "title": {
+      "create": "Crear Tu Perfil",
+      "complete": "Completar Tu Perfil"
+    },
+    "fields": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "ntrpLevel": "Nivel NTRP",
+      "preferredCity": "Ciudad Preferida"
+    },
+    "ntrp": {
+      "description": "El Programa Nacional de Clasificación de Tenis (NTRP) ayuda a emparejar jugadores de niveles similares.",
+      "learnMore": "Aprender más sobre las calificaciones NTRP →",
+      "selectLevel": "Selecciona tu nivel NTRP",
+      "levels": {
+        "1.0": "1.0 - Nuevo Jugador: Recién empezando a aprender tenis",
+        "1.5": "1.5 - Principiante: Experiencia limitada, trabajando en poner la pelota en juego",
+        "2.0": "2.0 - Novato: Necesita experiencia en la cancha, debilidades obvias en golpes",
+        "2.5": "2.5 - Novato Avanzado: Aprendiendo juicio de pelota, puede sostener rallies lentos",
+        "3.0": "3.0 - Intermedio: Bastante consistente en golpes de velocidad media",
+        "3.5": "3.5 - Intermedio Avanzado: Confiabilidad mejorada en golpes con control direccional",
+        "4.0": "4.0 - Avanzado: Golpes confiables con profundidad y control direccional",
+        "4.5": "4.5 - Experto: Comenzando a dominar potencia y efectos, buen juego de pies",
+        "5.0": "5.0 - Élite: Buena anticipación de golpes, puede estructurar juego alrededor de fortalezas",
+        "5.5": "5.5 - Élite+: Potencia/consistencia desarrollada como arma principal",
+        "6.0": "6.0 - Torneo: Entrenamiento intensivo, ranking seccional/nacional",
+        "7.0": "7.0 - Profesional: Jugador de clase mundial"
+      }
+    },
+    "placeholders": {
+      "preferredCity": "Ingresa tu ciudad preferida"
+    },
+    "buttons": {
+      "saving": "Guardando...",
+      "createProfile": "Crear Perfil",
+      "updateProfile": "Actualizar Perfil"
+    },
+    "errors": {
+      "failedToSave": "Error al guardar perfil. Inténtalo de nuevo."
+    }
+  },
+  "eventTypes": {
+    "match": "Partido",
+    "training": "Entrenamiento",
+    "singles": "Individual",
+    "doubles": "Dobles",
+    "training1on1": "Entrenamiento 1 a 1",
+    "groupTraining": "Entrenamiento Grupal",
+    "matchSingles": "Partido Individual",
+    "matchDoubles": "Partido de Dobles",
+    "unorthodoxMatch": "Partido No Convencional",
+    "players": "{{count}} Jugadores",
+    "event": "Evento"
+  },
+  "eventLabels": {
+    "selectedLocations": "Ubicaciones Seleccionadas",
+    "preferredLocations": "Ubicaciones Preferidas",
+    "startTimes": "Horarios de Inicio",
+    "availableStartTimes": "Horarios de Inicio Disponibles",
+    "description": "Descripción"
+  },
+  "eventStatus": {
+    "open": "Abierto",
+    "accepted": "Esperando confirmación",
+    "confirmed": "Confirmado",
+    "reservationFailed": "Reserva fallida",
+    "cancelled": "Cancelado",
+    "completed": "Completado"
+  },
+  "eventActions": {
+    "cancel": "Cancelar",
+    "join": "Unirse al Evento",
+    "alreadyJoined": "Ya Unido",
+    "confirm": "Confirmar",
+    "confirmed": "Confirmado",
+    "signInToJoin": "Iniciar sesión para unirse",
+    "cancelParticipation": "Cancelar Participación"
+  },
+  "joinRequests": {
+    "rejected": "Solicitud rechazada",
+    "accepted": "Solicitud aceptada",
+    "waiting": "Esperando aprobación del anfitrión"
+  },
+  "share": {
+    "title": "Compartir evento",
+    "linkCopied": "¡Enlace copiado al portapapeles!",
+    "eventLinkCopied": "¡Enlace del evento copiado al portapapeles!"
+  },
+  "host": {
+    "label": "Anfitrión:",
+    "unknown": "Anfitrión Desconocido",
+    "unknownUser": "Usuario Desconocido"
+  },
+  "language": {
+    "changeLanguage": "Cambiar idioma",
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "polish": "Polski"
+  },
+  "calendar": {
+    "navigation": "Navegación del calendario",
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Siguiente semana",
+    "clearAll": "Limpiar todos los horarios seleccionados"
+  },
+  "publicEvent": {
+    "notFound": "El evento que buscas no existe o ha sido eliminado.",
+    "noLongerAvailable": "Evento no encontrado o ya no disponible"
+  },
+  "joinModal": {
+    "selectLocation": "Por favor selecciona al menos una ubicación",
+    "selectTimeSlot": "Por favor selecciona al menos un horario",
+    "failedToJoin": "Error al unirse al evento",
+    "failedToLoadOptions": "Error al cargar opciones"
+  },
+  "timeOfDay": {
+    "morning": "mañana",
+    "afternoon": "tarde", 
+    "evening": "noche",
+    "night": "madrugada",
+    "wholeDay": "todo el día",
+    "and": "y"
+  }
+}

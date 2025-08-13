@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -92,6 +93,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   className = '',
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
   }, [minDate]);
@@ -202,7 +204,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     <div className={className} role="grid" aria-label={calendarAriaLabel}>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex align-items-center">
-          <div className="btn-group" role="group" aria-label="Calendar navigation">
+          <div className="btn-group" role="group" aria-label={t('calendar.navigation')}>
             <button
               type="button"
               className="btn btn-outline-secondary btn-sm shadow-none"
@@ -215,7 +217,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                 }
               }}
               disabled={!canGoPrev || disabled}
-              aria-label="Previous week"
+              aria-label={t('calendar.previousWeek')}
               style={{
                 WebkitTapHighlightColor: 'transparent',
                 backgroundColor: 'transparent',
@@ -237,7 +239,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                 }
               }}
               disabled={!canGoNext || disabled}
-              aria-label="Next week"
+              aria-label={t('calendar.nextWeek')}
               style={{
                 WebkitTapHighlightColor: 'transparent',
                 backgroundColor: 'transparent',
@@ -260,10 +262,10 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               }
             }}
             disabled={!hasSelection || disabled}
-            aria-label="Clear all selected time slots"
+            aria-label={t('calendar.clearAll')}
             style={{ WebkitTapHighlightColor: 'transparent', backgroundColor: 'transparent' }}
           >
-            Clear selection
+            {t('calendar.clearAll')}
           </button>
         </div>
       </div>

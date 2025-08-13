@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import { ApiUserProfileData } from '../types/api';
+import { useTranslation } from 'react-i18next';
 
 interface HostDisplayProps {
   userId: string;
@@ -13,12 +14,14 @@ interface HostDisplayProps {
 
 const HostDisplay: React.FC<HostDisplayProps> = ({ 
   userId, 
-  fallback = 'Unknown Host', 
+  fallback, 
   className = '',
   maxWidth = '300px',
   showAsPlainText = false
 }) => {
+  const { t } = useTranslation();
   const api = useAPI();
+  const defaultFallback = fallback || t('host.unknown');
   const [profile, setProfile] = useState<ApiUserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -49,7 +52,7 @@ const HostDisplay: React.FC<HostDisplayProps> = ({
 
   const getDisplayName = (): string => {
     if (!profile) {
-      return fallback;
+      return defaultFallback;
     }
 
     // Use first name + last name
@@ -67,7 +70,7 @@ const HostDisplay: React.FC<HostDisplayProps> = ({
       return profile.lastName;
     }
 
-    return fallback;
+    return defaultFallback;
   };
 
   const displayName = getDisplayName();
@@ -76,7 +79,7 @@ const HostDisplay: React.FC<HostDisplayProps> = ({
   if (showAsPlainText || loading || error) {
     return (
       <span className={className}>
-        <span className="text-muted">Host:</span> {loading ? 'Loading...' : displayName}
+        <span className="text-muted">{t('host.label')}</span> {loading ? t('common.loading') : displayName}
       </span>
     );
   }

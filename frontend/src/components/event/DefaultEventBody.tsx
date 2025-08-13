@@ -10,6 +10,7 @@ import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BADGE_STYLES } from '../../styles/badgeStyles';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -25,7 +26,7 @@ interface DefaultEventBodyProps {
 }
 
 const formatFullTimestamp = (timestamp: moment.Moment): string => {
-  return timestamp.format('MMMM D, YYYY [at] h:mm A');
+  return timestamp.format('LLLL');
 };
 
 const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
@@ -38,6 +39,7 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
   children,
   isMyEvent = false,
 }) => {
+  const { t } = useTranslation();
   const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
 
   return (
@@ -54,7 +56,7 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
         >
           <div className="d-flex align-items-center small text-muted">
             <i className="bi bi-clock-history me-2"></i>
-            <span>Created <TimeAgo date={momentTimestamp.toDate()} /></span>
+            <span>{t('common.created')} <TimeAgo date={momentTimestamp.toDate()} /></span>
           </div>
         </OverlayTrigger>
       </div>
@@ -111,7 +113,7 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                       )}
                     </td>
                     <td>{(jr.locations || []).join(', ')}</td>
-                    <td>{(jr.timeSlots || []).map(ts => moment(ts).format('MMM D, h:mm A')).join(', ')}</td>
+                    <td>{(jr.timeSlots || []).map(ts => moment(ts).format('MMM D, LT')).join(', ')}</td>
                   </tr>
                 ))}
               </tbody>

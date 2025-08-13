@@ -9,6 +9,7 @@ import CancelEventModal from './event/CancelEventModal';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
 import { useShareEvent } from '../hooks/useShareEvent';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -19,6 +20,7 @@ interface Props {
 }
 
 const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
+  const { t } = useTranslation();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -71,7 +73,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
       return {
         variant: 'outline-secondary',
         icon: 'bi-check-circle-fill',
-        label: 'Confirmed',
+        label: t('eventActions.confirmed'),
         onClick: () => {},
         disabled: true,
         hidden: true // This will be used to completely hide the button
@@ -82,7 +84,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
       return {
         variant: 'outline-success',
         icon: 'bi-check-circle',
-        label: 'Confirm',
+        label: t('eventActions.confirm'),
         onClick: handleConfirmEvent
       };
     }
@@ -90,7 +92,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     return {
       variant: 'outline-danger',
       icon: 'bi-x-circle',
-      label: 'Cancel',
+      label: t('eventActions.cancel'),
       onClick: handleDelete
     };
   };
@@ -125,7 +127,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle={getEventTypeLabel(event.eventType)}
+        headerTitle={getEventTypeLabel(event.eventType, t)}
         colorClass={colorClass}
         timeSlots={timeSlots}
         timestamp={moment(event.createdAt || '')}
@@ -154,7 +156,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
 
       {/* Toast notification for sharing */}
       <Toast
-        message="Event link copied to clipboard!"
+        message={t('share.eventLinkCopied')}
         show={showToast}
         onHide={() => setShowToast(false)}
         type="success"

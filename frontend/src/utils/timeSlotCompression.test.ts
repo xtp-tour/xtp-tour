@@ -11,13 +11,26 @@ const createTimeSlot = (dateStr: string): TimeSlot => ({
   date: moment(dateStr)
 });
 
+// Mock translation function for testing
+const mockT = (key: string): string => {
+  const translations: Record<string, string> = {
+    'timeOfDay.morning': 'morning',
+    'timeOfDay.afternoon': 'afternoon',
+    'timeOfDay.evening': 'evening',
+    'timeOfDay.night': 'night',
+    'timeOfDay.wholeDay': 'whole day',
+    'timeOfDay.and': 'and'
+  };
+  return translations[key] || key;
+};
+
 // Manual test function - run this to verify functionality
 export const testTimeSlotCompression = () => {
   console.log('Testing Time Slot Compression...\n');
 
   // Test Case 1: Single time slot
   const singleSlot = [createTimeSlot('2024-01-15 14:00')];
-  console.log('Single slot:', compressTimeSlots(singleSlot));
+  console.log('Single slot:', compressTimeSlots(singleSlot, mockT));
   // Expected: "Mon, Jan 15 • 2:00 PM"
 
   // Test Case 2: Two consecutive slots (should show range)
@@ -25,7 +38,7 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-01-15 14:00'),
     createTimeSlot('2024-01-15 14:30')
   ];
-  console.log('Consecutive slots:', compressTimeSlots(consecutiveSlots));
+  console.log('Consecutive slots:', compressTimeSlots(consecutiveSlots, mockT));
   // Expected: "Mon, Jan 15 • 2:00 PM–3:00 PM"
 
   // Test Case 3: Three consecutive slots (user's example: 8:00, 8:30, 9:00)
@@ -34,7 +47,7 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-01-15 08:30'),
     createTimeSlot('2024-01-15 09:00')
   ];
-  console.log('Three consecutive (8:00-9:00):', compressTimeSlots(threeConsecutive));
+  console.log('Three consecutive (8:00-9:00):', compressTimeSlots(threeConsecutive, mockT));
   // Expected: "Mon, Jan 15 • 8:00 AM–9:30 AM"
 
   // Test Case 4: Non-consecutive times (should generalize)
@@ -42,7 +55,7 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-01-15 08:30'),
     createTimeSlot('2024-01-15 10:30')
   ];
-  console.log('Non-consecutive times:', compressTimeSlots(nonConsecutive));
+  console.log('Non-consecutive times:', compressTimeSlots(nonConsecutive, mockT));
   // Expected: Something like "Mon, Jan 15 • early morning & morning"
 
   // Test Case 5: Multiple times across day (should generalize to time of day)
@@ -51,7 +64,7 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-01-15 12:00'),
     createTimeSlot('2024-01-15 18:00')
   ];
-  console.log('Whole day slots:', compressTimeSlots(wholeDaySlots));
+  console.log('Whole day slots:', compressTimeSlots(wholeDaySlots, mockT));
   // Expected: "Mon, Jan 15 • whole day" or similar
 
   // Test Case 6: User's specific bug case - 6 slots across multiple days and time periods
@@ -63,7 +76,7 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-08-18 16:00'), // Mon, afternoon
     createTimeSlot('2024-08-18 16:30')  // Mon, afternoon
   ];
-  console.log('User bug case (6 slots, multi-day, multi-time):', compressTimeSlots(userBugCase));
+  console.log('User bug case (6 slots, multi-day, multi-time):', compressTimeSlots(userBugCase, mockT));
   // Expected: "Aug 14–Aug 18 • afternoon & morning" (simplified time categories)
 
   // Test Case 7: Multi-day with 3+ time categories (should show "whole day")
@@ -73,11 +86,11 @@ export const testTimeSlotCompression = () => {
     createTimeSlot('2024-08-16 19:00'), // Sat, evening
     createTimeSlot('2024-08-17 02:00')  // Sun, night
   ];
-  console.log('Multi-day whole day (4 time categories):', compressTimeSlots(wholeDayMultiDay));
+  console.log('Multi-day whole day (4 time categories):', compressTimeSlots(wholeDayMultiDay, mockT));
   // Expected: "Aug 14–Aug 17 • whole day"
 
   // Test Case 8: Empty array
-  console.log('Empty array:', compressTimeSlots([]));
+  console.log('Empty array:', compressTimeSlots([], mockT));
   // Expected: ""
 
   console.log('\nTesting completed!');

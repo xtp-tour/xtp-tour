@@ -6,6 +6,9 @@ interface TimeSlot {
   date: moment.Moment;
 }
 
+// Translation function type
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
+
 /**
  * Format UTC ISO timestamp to local time
  * 
@@ -36,7 +39,7 @@ export const formatLocalToUtc = (localDate: Date | string): string => {
  */
 export const formatTimeSlot = (utcTimeSlot: string): string => {
   const localDate = moment.utc(utcTimeSlot).local();
-  return localDate.format('ddd, MMM D @ h:mm A');
+  return localDate.format('ddd, MMM D @ LT');
 };
 
 /**
@@ -80,8 +83,9 @@ export const formatDuration = (minutes: number): string => {
  * Uses smart compression to show ranges and time-of-day generalizations
  * 
  * @param timeSlots Array of time slots with moment dates
+ * @param t Translation function
  * @returns Formatted time slots summary string
  */
-export const formatTimeSlotSummary = (timeSlots: TimeSlot[]): string => {
-  return compressTimeSlots(timeSlots);
+export const formatTimeSlotSummary = (timeSlots: TimeSlot[], t: TranslationFunction): string => {
+  return compressTimeSlots(timeSlots, t);
 }; 

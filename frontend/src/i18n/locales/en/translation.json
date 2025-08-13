@@ -1,0 +1,312 @@
+{
+  "app": {
+    "title": "Xtp Tour",
+    "version": "Xtp Tour v{{version}}"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "comingSoon": "Coming in next couple of weeks"
+  },
+  "landing": {
+    "hero": {
+      "title": "Tennis scheduling made simple",
+      "subtitle": "No more back-and-forth texting to arrange tennis games. Set your availability, share your session, and let players book time with you automatically.",
+      "createLink": "Create Your Tennis Link",
+      "findPartners": "Find Tennis Partners",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInLink": "Sign In"
+    },
+    "howItWorks": {
+      "title": "Easy scheduling for everyone",
+      "subtitle": "Just like Calendly, but for tennis players",
+      "steps": {
+        "step1": {
+          "title": "1. Set your availability",
+          "description": "Choose your preferred courts, times, and game preferences (singles, doubles, skill level)"
+        },
+        "step2": {
+          "title": "2. Share your tennis link",
+          "description": "Send your link to friends or make it discoverable for other players to find"
+        },
+        "step3": {
+          "title": "3. Get booked",
+          "description": "Players select their preferred time slot and request to join your session"
+        },
+        "step4": {
+          "title": "4. Play tennis",
+          "description": "Meet at the court and enjoy your game - no more scheduling hassles"
+        }
+      }
+    },
+    "features": {
+      "saveTime": {
+        "title": "Save time",
+        "description": "Eliminate the back-and-forth of finding a time that works for everyone"
+      },
+      "workTogether": {
+        "title": "Work better together",
+        "description": "Connect with players at your skill level for better matches and training"
+      },
+      "playMore": {
+        "title": "Play more tennis",
+        "description": "Spend less time coordinating and more time on the court improving your game"
+      }
+    },
+    "gameTypes": {
+      "title": "Your tennis, your way",
+      "subtitle": "Set your preferences once and let players book the perfect session with you automatically.",
+      "competitive": "Competitive matches - Singles games with scoring",
+      "training": "Training sessions - Practice and skill development",
+      "doubles": "Doubles matches - 4-player team games",
+      "whatYouCanSet": "What You Can Set:",
+      "features": {
+        "multipleVenues": "Multiple venue options",
+        "flexibleTimeSlots": "Flexible time slots (7-day calendar)",
+        "skillLevelMatching": "Skill level matching (NTRP-based)",
+        "sessionDuration": "Session duration (1-4 hours)",
+        "singlesOnly": "Singles (doubles coming soon)"
+      }
+    },
+    "cta": {
+      "title": "Easy ahead",
+      "subtitle": "We take the work out of connecting for tennis. Your schedule, your link, your way.",
+      "startScheduling": "Start scheduling",
+      "findPartners": "Find partners"
+    }
+  },
+  "createEvent": {
+    "title": "Create Event",
+    "close": "Close",
+    "newInvitation": "New Invitation",
+    "form": {
+      "preferredLocations": "Preferred Locations",
+      "requestType": "Request Type",
+      "single": "Single",
+      "doubles": "Doubles",
+      "comingSoon": "Coming soon",
+      "opponentSkillLevel": "Opponent Skill Level",
+      "skillLevelHelper": "Choose the NTRP skill level range for your tennis match.",
+      "ntrpLink": "What's my NTRP level? →",
+      "sessionDuration": "Session Duration",
+      "invitationType": "Invitation Type",
+      "gameOnPoints": "Game on points",
+      "training": "Training",
+      "gameTooltip": "Looking for a person to play a regular tennis match",
+      "trainingTooltip": "Main goal is to improve game skills by playing rallies",
+      "availability": "Your Availability (next 7 days)",
+      "nightGame": "Night game (show only night hours)",
+      "timeSlotSelected": "{{count}} time slot selected",
+      "timeSlotSelected_other": "{{count}} time slots selected",
+      "description": "Description (optional)",
+      "trainingPlaceholder": "Describe your training plan and goals...",
+      "generalPlaceholder": "Add any additional information...",
+      "createInvitation": "Create Invitation",
+      "trainingTip": "Consider adding training plan or goals to description"
+    },
+    "skillLevels": {
+      "INTERMEDIATE": "Intermediate (NTRP 3.5–5.0)",
+      "BEGINNER": "Beginner (NTRP < 3.5)",
+      "ADVANCED": "Advanced (NTRP > 5.0)",
+      "ANY": "Any Level"
+    },
+    "skillLabels": {
+      "ANY": "Any NTRP",
+      "BEGINNER": "NTRP < 3.5",
+      "INTERMEDIATE": "NTRP 3.5–5.0",
+      "ADVANCED": "NTRP > 5.0"
+    },
+    "skillHints": {
+      "ANY": "Open to all skill levels",
+      "BEGINNER": "New to intermediate players learning fundamentals",
+      "INTERMEDIATE": "Consistent players with developed strokes and strategy",
+      "ADVANCED": "Elite players with tournament experience and advanced skills"
+    },
+    "loading": {
+      "locations": "Loading locations...",
+      "availableLocations": "Loading available locations..."
+    },
+    "errors": {
+      "noLocationsAvailable": "No locations available",
+      "failedToLoadLocations": "Failed to load locations. Please try again later.",
+      "selectAtLeastOneLocation": "Please select at least one location",
+      "selectAtLeastOneTimeSlot": "Please select at least one time slot",
+      "somePastTimes": "Some selected times are in the past",
+      "descriptionTooLong": "Description must be less than 1000 characters"
+    },
+    "success": {
+      "eventCreated": "Event created successfully!"
+    }
+  },
+  "eventList": {
+    "loading": "Loading...",
+    "tabs": {
+      "toJoin": "Events to Join",
+      "toJoinShort": "To Join",
+      "myEvents": "My Events"
+    },
+    "sections": {
+      "availableEventsToJoin": "Available Events to Join",
+      "yourEvents": "Your Events",
+      "joinedEvents": "Joined Events"
+    },
+    "empty": {
+      "noEventsCreated": "You haven't created any events yet.",
+      "noEventsJoined": "You haven't joined any events yet."
+    }
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "tryRefreshing": "Please try refreshing the page.",
+    "reloadPage": "Reload Page"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "created": "Created"
+  },
+  "durations": {
+    "hour": "1 hour",
+    "hours": "{{count}} hours",
+    "hourAndHalf": "1.5 hours",
+    "hoursAndHalf": "{{count}}.5 hours"
+  },
+  "profileSetup": {
+    "loading": {
+      "title": "Loading Profile...",
+      "text": "Loading..."
+    },
+    "title": {
+      "create": "Create Your Profile",
+      "complete": "Complete Your Profile"
+    },
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "ntrpLevel": "NTRP Level",
+      "preferredCity": "Preferred City"
+    },
+    "ntrp": {
+      "description": "The National Tennis Rating Program (NTRP) helps match players of similar skill levels.",
+      "learnMore": "Learn more about NTRP ratings →",
+      "selectLevel": "Select your NTRP level",
+      "levels": {
+        "1.0": "1.0 - New Player: Just starting to learn tennis",
+        "1.5": "1.5 - Beginner: Limited experience, working on getting ball in play",
+        "2.0": "2.0 - Novice: Needs court experience, obvious stroke weaknesses",
+        "2.5": "2.5 - Advanced Novice: Learning ball judgment, can sustain slow rallies",
+        "3.0": "3.0 - Intermediate: Fairly consistent on medium-paced shots",
+        "3.5": "3.5 - Advanced Intermediate: Improved stroke dependability with directional control",
+        "4.0": "4.0 - Advanced: Dependable strokes with depth and directional control",
+        "4.5": "4.5 - Expert: Beginning to master power and spins, sound footwork",
+        "5.0": "5.0 - Elite: Good shot anticipation, can structure game around strengths",
+        "5.5": "5.5 - Elite+: Developed power/consistency as major weapon",
+        "6.0": "6.0 - Tournament: Intensive training, sectional/national ranking",
+        "7.0": "7.0 - Professional: World-class player"
+      }
+    },
+    "placeholders": {
+      "preferredCity": "Enter your preferred city"
+    },
+    "buttons": {
+      "saving": "Saving...",
+      "createProfile": "Create Profile",
+      "updateProfile": "Update Profile"
+    },
+    "errors": {
+      "failedToSave": "Failed to save profile. Please try again."
+    }
+  },
+  "eventTypes": {
+    "match": "Match",
+    "training": "Training",
+    "singles": "Singles",
+    "doubles": "Doubles",
+    "training1on1": "Training 1 on 1",
+    "groupTraining": "Group Training",
+    "matchSingles": "Match Singles",
+    "matchDoubles": "Match Doubles",
+    "unorthodoxMatch": "Unorthodox Match",
+    "players": "{{count}} Players",
+    "event": "Event"
+  },
+  "eventLabels": {
+    "selectedLocations": "Selected Locations",
+    "preferredLocations": "Preferred Locations",
+    "startTimes": "Start Times",
+    "availableStartTimes": "Available Start Times",
+    "description": "Description"
+  },
+  "eventStatus": {
+    "open": "Open",
+    "accepted": "Awaiting confirmation",
+    "confirmed": "Confirmed",
+    "reservationFailed": "Reservation failed",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "eventActions": {
+    "cancel": "Cancel",
+    "join": "Join Event",
+    "alreadyJoined": "Already Joined",
+    "confirm": "Confirm",
+    "confirmed": "Confirmed",
+    "signInToJoin": "Sign in to Join",
+    "cancelParticipation": "Cancel Participation"
+  },
+  "joinRequests": {
+    "rejected": "Request rejected",
+    "accepted": "Request accepted",
+    "waiting": "Waiting for host approval"
+  },
+  "share": {
+    "title": "Share event",
+    "linkCopied": "Link copied to clipboard!",
+    "eventLinkCopied": "Event link copied to clipboard!"
+  },
+  "host": {
+    "label": "Host:",
+    "unknown": "Unknown Host",
+    "unknownUser": "Unknown User"
+  },
+  "language": {
+    "changeLanguage": "Change language",
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "polish": "Polski"
+  },
+  "calendar": {
+    "navigation": "Calendar navigation",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "clearAll": "Clear all selected time slots"
+  },
+  "publicEvent": {
+    "notFound": "The event you are looking for does not exist or has been removed.",
+    "noLongerAvailable": "Event not found or no longer available"
+  },
+  "joinModal": {
+    "selectLocation": "Please select at least one location",
+    "selectTimeSlot": "Please select at least one time slot",
+    "failedToJoin": "Failed to join event",
+    "failedToLoadOptions": "Failed to load options"
+  },
+  "timeOfDay": {
+    "morning": "morning",
+    "afternoon": "afternoon", 
+    "evening": "evening",
+    "night": "night",
+    "wholeDay": "whole day",
+    "and": "and"
+  }
+}

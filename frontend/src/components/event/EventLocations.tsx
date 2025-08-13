@@ -1,6 +1,7 @@
 import React from 'react';
-import { SECTION_TITLES } from './types';
+import { getSectionTitleKey } from './types';
 import { LocationBadge } from './EventBadges';
+import { useTranslation } from 'react-i18next';
 
 interface EventLocationsProps {
   locations: string[];
@@ -15,16 +16,17 @@ const EventLocations: React.FC<EventLocationsProps> = ({
   userSelectedLocations = [],
   onLocationClick,
 }) => {
+  const { t } = useTranslation();
   console.log('User selected locations:', userSelectedLocations);
   
   // Determine title based on locations status
   let title;
   if (userSelectedLocations.length > 0) {
-    title = "Your Selected Locations";
+    title = t(getSectionTitleKey('selectedLocations'));
   } else if (selectedLocations) {
-    title = SECTION_TITLES.locations.selected;
+    title = t(getSectionTitleKey('selectedLocations'));
   } else {
-    title = SECTION_TITLES.locations.preferred;
+    title = t(getSectionTitleKey('preferredLocations'));
   }
 
   // Determine which locations to show

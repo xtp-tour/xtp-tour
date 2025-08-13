@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import MyEventItem from './MyEventItem';
 import JoinedEventItem from './JoinedEventItem';
 import PublicEventList from './PublicEventList';
@@ -67,6 +68,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded,
 );
 
 const EventList = forwardRef<EventListRef>((_, ref) => {
+  const { t } = useTranslation();
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +131,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
     return (
       <div className="mt-4 text-center">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+          <span className="visually-hidden">{t('eventList.loading')}</span>
         </div>
       </div>
     );
@@ -166,8 +168,8 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
             >
               <div className="d-flex align-items-center flex-wrap justify-content-center gap-1">
                 <i className="bi bi-search"></i>
-                <span className="d-none d-sm-inline">Events to Join</span>
-                <span className="d-inline d-sm-none">To Join</span>
+                <span className="d-none d-sm-inline">{t('eventList.tabs.toJoin')}</span>
+                <span className="d-inline d-sm-none">{t('eventList.tabs.toJoinShort')}</span>
                 <span className="badge" style={{
                   backgroundColor: activeTab === 'toJoin' ? 'var(--tennis-navy)' : 'var(--tennis-accent)',
                   color: activeTab === 'toJoin' ? 'var(--tennis-accent)' : 'var(--tennis-navy)',
@@ -197,7 +199,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
             >
               <div className="d-flex align-items-center flex-wrap justify-content-center gap-1">
                 <i className="bi bi-person-circle"></i>
-                <span>My Events</span>
+                <span>{t('eventList.tabs.myEvents')}</span>
                 <span className="badge" style={{
                   backgroundColor: activeTab === 'myEvents' ? 'var(--tennis-navy)' : 'var(--tennis-accent)',
                   color: activeTab === 'myEvents' ? 'var(--tennis-accent)' : 'var(--tennis-navy)',
@@ -219,7 +221,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
           <div className="tab-pane fade show active">
             <section className="mb-5">
               <SectionHeader
-                title="Available Events to Join"
+                title={t('eventList.sections.availableEventsToJoin')}
                 count={availableEvents.length}
                 isExpanded={expandedSections.availableEvents}
                 onToggle={() => toggleSection('availableEvents')}
@@ -247,14 +249,14 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
           <div className="tab-pane fade show active">
             <section className="mb-5">
               <SectionHeader
-                title="Your Events"
+                title={t('eventList.sections.yourEvents')}
                 count={myOpenEvents.length}
                 isExpanded={expandedSections.myEvents}
                 onToggle={() => toggleSection('myEvents')}
               />
               {expandedSections.myEvents && (
                 myOpenEvents.length === 0 ? (
-                  <p className="text-muted">You haven't created any events yet.</p>
+                  <p className="text-muted">{t('eventList.empty.noEventsCreated')}</p>
                 ) : (
                   <div>
                     {myOpenEvents.map(event => (
@@ -288,14 +290,14 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
             <section className="mb-5">
               <SectionHeader
-                title="Joined Events"
+                title={t('eventList.sections.joinedEvents')}
                 count={joinedEvents.length}
                 isExpanded={expandedSections.joinedEvents}
                 onToggle={() => toggleSection('joinedEvents')}
               />
               {expandedSections.joinedEvents && (
                 joinedEvents.length === 0 ? (
-                  <p className="text-muted">You haven't joined any events yet.</p>
+                  <p className="text-muted">{t('eventList.empty.noEventsJoined')}</p>
                 ) : (
                   <div>
                     {joinedEvents.map(event => (

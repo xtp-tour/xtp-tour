@@ -3,10 +3,10 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
 import moment from 'moment';
 import { components } from '../../types/schema';
-import { SKILL_LEVEL_LABELS, SKILL_LEVEL_HINTS } from './types';
 import { formatDuration } from '../../utils/dateUtils';
 import { LocationBadge } from './EventBadges';
 import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -21,24 +21,24 @@ interface EventHeaderProps extends StyleProps {
 }
 
 const formatConfirmedDateTime = (datetime: string): string => {
-  return moment(datetime).format('ddd, MMM D @ h:mm A');
+  return moment(datetime).format('ddd, MMM D @ LT');
 };
 
 // Get status badge info based on event status
-const getStatusBadge = (event: ApiEvent) => {
+const getStatusBadge = (event: ApiEvent, t: (key: string) => string) => {
   switch (event.status) {
     case 'OPEN':
-      return { text: 'Open', variant: 'text-bg-primary' };
+      return { text: t('eventStatus.open'), variant: 'text-bg-primary' };
     case 'ACCEPTED':
-      return { text: 'Awaiting confirmation', variant: 'text-bg-warning' };
+      return { text: t('eventStatus.accepted'), variant: 'text-bg-warning' };
     case 'CONFIRMED':
-      return { text: 'Confirmed', variant: 'text-bg-success' };
+      return { text: t('eventStatus.confirmed'), variant: 'text-bg-success' };
     case 'RESERVATION_FAILED':
-      return { text: 'Reservation failed', variant: 'text-bg-danger' };
+      return { text: t('eventStatus.reservationFailed'), variant: 'text-bg-danger' };
     case 'CANCELLED':
-      return { text: 'Cancelled', variant: 'text-bg-secondary' };
+      return { text: t('eventStatus.cancelled'), variant: 'text-bg-secondary' };
     case 'COMPLETED':
-      return { text: 'Completed', variant: 'text-bg-secondary' };
+      return { text: t('eventStatus.completed'), variant: 'text-bg-secondary' };
     default:
       return { text: event.status, variant: 'text-bg-secondary' };
   }
@@ -56,9 +56,10 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   event,
   shareButton,
 }) => {
+  const { t } = useTranslation();
   // Check if the event is confirmed
   const isConfirmed = event.status === 'CONFIRMED';
-  const statusBadge = getStatusBadge(event);
+  const statusBadge = getStatusBadge(event, t);
   
   return (
     <div className="card-header bg-white p-2">
@@ -159,12 +160,12 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             <div className="d-flex flex-wrap gap-1 mt-1">
               <OverlayTrigger
                 placement="top"
-                overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>{SKILL_LEVEL_HINTS[event.skillLevel]}</Tooltip>}
+                overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>{t(`createEvent.skillHints.${event.skillLevel}`)}</Tooltip>}
               >
                 <span className="badge text-bg-dark" style={BADGE_STYLES}>
                   <span>{event.skillLevel}</span>
                   <span className="badge bg-light text-dark" style={NESTED_BADGE_STYLES}>
-                    {SKILL_LEVEL_LABELS[event.skillLevel]}
+                    {t(`createEvent.skillLabels.${event.skillLevel}`)}
                   </span>
                 </span>
               </OverlayTrigger>

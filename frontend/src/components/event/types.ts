@@ -27,20 +27,6 @@ export interface StyleProps {
   colorClass?: string;
 }
 
-export const SKILL_LEVEL_LABELS = {
-  ANY: 'Any NTRP',
-  BEGINNER: 'NTRP < 3.5',
-  INTERMEDIATE: 'NTRP 3.5–5.0',
-  ADVANCED: 'NTRP > 5.0'
-} as const;
-
-export const SKILL_LEVEL_HINTS = {
-  ANY: 'Open to all skill levels',
-  BEGINNER: 'New to intermediate players learning fundamentals',
-  INTERMEDIATE: 'Consistent players with developed strokes and strategy',
-  ADVANCED: 'Elite players with tournament experience and advanced skills'
-} as const;
-
 // Comprehensive NTRP level information for reference
 export const NTRP_DETAILED_DESCRIPTIONS = {
   1.0: 'New Player: Just starting to learn tennis',
@@ -64,59 +50,60 @@ export const NTRP_RESOURCES = {
   USTA_SELF_RATE: 'https://activenetwork.my.salesforce-sites.com/usta/articles/en_US/Article/League-NTRP-Rating-Information'
 } as const;
 
-export const SECTION_TITLES = {
-  locations: {
-    selected: 'Selected Locations',
-    preferred: 'Preferred Locations'
-  },
-  timeSlots: {
-    selected: 'Start Times',
-    available: 'Available Start Times'
-  },
-  description: 'Description'
-} as const;
-
-export const getEventTypeLabel = (type: ApiEventType): string => {
+// These functions now require a translation function parameter
+export const getEventTypeLabel = (type: ApiEventType, t: (key: string, options?: Record<string, unknown>) => string): string => {
   switch (type) {
     case 'MATCH':
-      return 'Match';
+      return t('eventTypes.match');
     case 'TRAINING':
-      return 'Training';
+      return t('eventTypes.training');
     default:
       return type;
   }
 };
 
-export const getRequestTypeLabel = (expectedPlayers: number): string => {
+export const getRequestTypeLabel = (expectedPlayers: number, t: (key: string, options?: Record<string, unknown>) => string): string => {
   switch (expectedPlayers) {
     case 2:
-      return 'Singles';
+      return t('eventTypes.singles');
     case 4:
-      return 'Doubles';
+      return t('eventTypes.doubles');
     default:
-      return `${expectedPlayers} Players`;
+      return t('eventTypes.players', { count: expectedPlayers });
   }
 };
 
-export const getEventTitle = (eventType: ApiEventType, expectedPlayers: number): string => {
+export const getEventTitle = (eventType: ApiEventType, expectedPlayers: number, t: (key: string, options?: Record<string, unknown>) => string): string => {
   switch (eventType) {
     case 'TRAINING':
       if (expectedPlayers === 2) {
-        return 'Training 1 on 1';
+        return t('eventTypes.training1on1');
       } else {
-        return 'Group Training';
+        return t('eventTypes.groupTraining');
       }
     case 'MATCH':
       if (expectedPlayers === 2) {
-        return 'Match Singles';
+        return t('eventTypes.matchSingles');
       } else if (expectedPlayers === 4) {
-        return 'Match Doubles';
+        return t('eventTypes.matchDoubles');
       } else {
-        return 'Unorthodox Match';
+        return t('eventTypes.unorthodoxMatch');
       }
     default:
-      return `${getEventTypeLabel(eventType)} Event`;
+      return `${getEventTypeLabel(eventType, t)} ${t('eventTypes.event')}`;
   }
+};
+
+// Helper functions to get translation keys for section titles
+export const getSectionTitleKey = (section: 'selectedLocations' | 'preferredLocations' | 'startTimes' | 'availableStartTimes' | 'description'): string => {
+  const keyMap = {
+    selectedLocations: 'eventLabels.selectedLocations',
+    preferredLocations: 'eventLabels.preferredLocations',
+    startTimes: 'eventLabels.startTimes',
+    availableStartTimes: 'eventLabels.availableStartTimes',
+    description: 'eventLabels.description'
+  };
+  return keyMap[section];
 };
 
 export const timeSlotFromDateAndConfirmation = (

@@ -7,6 +7,7 @@ import moment from 'moment';
 import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { LocationBadge } from './EventBadges';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -18,11 +19,11 @@ interface ConfirmedEventBodyProps extends StyleProps {
 }
 
 const formatFullTimestamp = (timestamp: moment.Moment): string => {
-  return timestamp.format('MMMM D, YYYY [at] h:mm A');
+  return timestamp.format('LLLL');
 };
 
 const formatConfirmedDateTime = (datetime: string): string => {
-  return moment(datetime).format('dddd, MMMM D, YYYY [at] h:mm A');
+  return moment(datetime).format('LLLL');
 };
 
 const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
@@ -31,6 +32,7 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
   timestamp,
   children,
 }) => {
+  const { t } = useTranslation();
   const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
 
   if (!event.confirmation) {
@@ -51,7 +53,7 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
         >
           <div className="d-flex align-items-center small text-muted">
             <i className="bi bi-clock-history me-2"></i>
-            <span>Created <TimeAgo date={momentTimestamp.toDate()} /></span>
+            <span>{t('common.created')} <TimeAgo date={momentTimestamp.toDate()} /></span>
           </div>
         </OverlayTrigger>
       </div>
