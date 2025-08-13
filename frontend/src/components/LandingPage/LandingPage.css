@@ -97,10 +97,11 @@
   font-weight: 600;
 }
 
-.step-content {
-  max-width: 200px;
-  margin: 0 auto;
-}
+  .step-content {
+    max-width: 280px;
+    margin: 0 auto;
+    text-align: center;
+  }
 
 .step-title {
   font-size: 1.2rem;
@@ -464,18 +465,26 @@ small, .small {
 
   .flow-steps {
     flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
 
   .flow-step {
-    padding: 1.5rem 0;
-    margin-bottom: 1rem;
+    padding: 1.5rem 1rem;
+    margin-bottom: 0;
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .flow-connector {
     width: 2px;
-    height: 2rem;
-    margin: 0 auto;
+    height: 2.5rem;
+    margin: 1rem auto;
     background: linear-gradient(180deg, var(--tennis-navy), #e9ecef);
+    flex-shrink: 0;
   }
 
   .flow-connector::after {
@@ -496,6 +505,12 @@ small, .small {
     font-size: 1.25rem;
   }
 
+  .step-content {
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
   .features .col-md-4 {
     margin-bottom: 2rem;
   }
@@ -514,7 +529,20 @@ small, .small {
   .flow-container {
     margin: 1.5rem 0;
     border-radius: 1rem;
-    padding: 1.5rem 1rem;
+    padding: 2rem 1rem;
+  }
+
+  .flow-steps {
+    gap: 0.5rem;
+  }
+
+  .flow-step {
+    padding: 1rem 0.5rem;
+  }
+
+  .flow-connector {
+    height: 2rem;
+    margin: 0.5rem auto;
   }
 
   .hero-section {
@@ -539,11 +567,19 @@ small, .small {
   }
 
   .step-title {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
   }
 
   .step-description {
     font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .step-content {
+    max-width: 100%;
+    padding: 0 0.5rem;
   }
 
   .feature-card {
