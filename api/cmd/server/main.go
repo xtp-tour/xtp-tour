@@ -47,7 +47,7 @@ func main() {
 	}
 
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
-	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifications.NewAllPurposeNotifier(dbConn))
+	r := server.NewRouter(&serviceConfig.Service, serviceConfig, dbConn, serviceConfig.IsDebugMode, notifications.NewAllPurposeNotifier(dbConn))
 	r.Run()
 }
 

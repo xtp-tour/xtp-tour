@@ -18,6 +18,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
+	"github.com/xtp-tour/xtp-tour/api/pkg/googlecalendar"
 
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
@@ -33,6 +34,7 @@ type Router struct {
 	port     int
 	db       *db.Db
 	notifier Notifier
+	config   *pkg.Config
 }
 
 func (r *Router) Run() {
@@ -43,19 +45,20 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier Notifier) *Router {
-	slog.Info("Cors Config", "cors", config.Cors)
-	slog.Info("Auth config type", "type", config.AuthConfig.Type)
+func NewRouter(httpConfig *pkg.HttpConfig, fullConfig *pkg.Config, dbConn *db.Db, debugMode bool, notifier Notifier) *Router {
+	slog.Info("Cors Config", "cors", httpConfig.Cors)
+	slog.Info("Auth config type", "type", httpConfig.AuthConfig.Type)
 
-	f := rest.NewFizzRouter(config, debugMode)
+	f := rest.NewFizzRouter(httpConfig, debugMode)
 
 	r := &Router{
 		fizz:     f,
-		port:     config.Port,
+		port:     httpConfig.Port,
 		db:       dbConn,
 		notifier: notifier,
+		config:   fullConfig,
 	}
-	r.init(config.AuthConfig)
+	r.init(httpConfig.AuthConfig)
 
 	return r
 }
@@ -118,6 +121,14 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
 		"Bearer": []string{},
 	})}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
+
+	// Google Calendar integration
+	googleCalendar := api.Group("/google-calendar", "Google Calendar", "Google Calendar operations", authMiddleware)
+	googleCalendar.GET("/auth-url", []fizz.OperationOption{fizz.Summary("Get Google Calendar OAuth URL")}, tonic.Handler(r.getGoogleCalendarAuthURLHandler, http.StatusOK))
+	googleCalendar.POST("/connect", []fizz.OperationOption{fizz.Summary("Connect Google Calendar")}, tonic.Handler(r.connectGoogleCalendarHandler, http.StatusOK))
+	googleCalendar.POST("/disconnect", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectGoogleCalendarHandler, http.StatusOK))
+	googleCalendar.GET("/status", []fizz.OperationOption{fizz.Summary("Check Google Calendar connection status")}, tonic.Handler(r.getGoogleCalendarStatusHandler, http.StatusOK))
+	googleCalendar.GET("/blocked-events", []fizz.OperationOption{fizz.Summary("Get blocked events from Google Calendar")}, tonic.Handler(r.getGoogleCalendarBlockedEventsHandler, http.StatusOK))
 }
 
 func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
@@ -672,5 +683,102 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 
 	return &api.UpdateUserProfileResponse{
 		Profile: profile,
+	}, nil
+}
+
+// Google Calendar handlers
+func (r *Router) getGoogleCalendarAuthURLHandler(c *gin.Context) (*rest.GetAuthURLResponse, error) {
+	// Check if Google Calendar is enabled
+	if !r.config.GoogleCalendar.Enabled {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusServiceUnavailable,
+			Message:  "Google Calendar integration is not enabled",
+		}
+	}
+
+	// Get Google Calendar service from config
+	googleService := rest.NewGoogleCalendarService(
+		rest.GoogleCalendarConfig{
+			ClientID:     r.config.GoogleCalendar.ClientID,
+			ClientSecret: r.config.GoogleCalendar.ClientSecret,
+		},
+	)
+
+	authURL := googleService.GetAuthURL()
+	return &rest.GetAuthURLResponse{AuthURL: authURL}, nil
+}
+
+func (r *Router) connectGoogleCalendarHandler(c *gin.Context, req *rest.ConnectRequest) (*rest.ConnectResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// This is a placeholder - the actual implementation should use the repository
+	// TODO: Implement actual Google Calendar connection logic
+	_ = userId // Suppress unused variable warning
+
+	return &rest.ConnectResponse{
+		Success: true,
+		Message: "Google Calendar connected successfully",
+	}, nil
+}
+
+func (r *Router) disconnectGoogleCalendarHandler(c *gin.Context) (*rest.DisconnectResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// This is a placeholder - the actual implementation should use the repository
+	// TODO: Implement actual Google Calendar disconnection logic
+	_ = userId // Suppress unused variable warning
+
+	return &rest.DisconnectResponse{
+		Success: true,
+		Message: "Google Calendar disconnected successfully",
+	}, nil
+}
+
+func (r *Router) getGoogleCalendarStatusHandler(c *gin.Context) (*rest.ConnectionStatusResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "User ID not found",
+		}
+	}
+
+	// This is a placeholder - the actual implementation should use the repository
+	// TODO: Implement actual Google Calendar status check logic
+	_ = userId // Suppress unused variable warning
+
+	return &rest.ConnectionStatusResponse{
+		Connected: false,
+	}, nil
+}
+
+func (r *Router) getGoogleCalendarBlockedEventsHandler(c *gin.Context, req *rest.GetBlockedEventsRequest) (*rest.GetBlockedEventsResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// This is a placeholder - the actual implementation should use the repository
+	// TODO: Implement actual Google Calendar blocked events logic
+	_ = userId // Suppress unused variable warning
+	_ = req    // Suppress unused variable warning
+
+	return &rest.GetBlockedEventsResponse{
+		Events: []googlecalendar.CalendarEvent{},
 	}, nil
 }

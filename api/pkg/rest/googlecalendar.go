@@ -17,6 +17,17 @@ type GoogleCalendarHandler struct {
 	repository *db.GoogleCalendarRepository
 }
 
+// GoogleCalendarConfig represents the configuration for Google Calendar service
+type GoogleCalendarConfig struct {
+	ClientID     string
+	ClientSecret string
+}
+
+// NewGoogleCalendarService creates a new Google Calendar service
+func NewGoogleCalendarService(config GoogleCalendarConfig) *googlecalendar.Service {
+	return googlecalendar.NewService(config.ClientID, config.ClientSecret)
+}
+
 // NewGoogleCalendarHandler creates a new handler
 func NewGoogleCalendarHandler(service *googlecalendar.Service, repository *db.GoogleCalendarRepository) *GoogleCalendarHandler {
 	return &GoogleCalendarHandler{
@@ -222,4 +233,19 @@ func (h *GoogleCalendarHandler) GetBlockedEvents(c *gin.Context) {
 func (h *GoogleCalendarHandler) GetAuthURL(c *gin.Context) {
 	authURL := h.service.GetAuthURL()
 	c.JSON(http.StatusOK, gin.H{"authUrl": authURL})
+}
+
+// Response types for the handlers
+type GetAuthURLResponse struct {
+	AuthURL string `json:"authUrl"`
+}
+
+// CalendarEvent represents a calendar event for the API
+type CalendarEvent struct {
+	ID          string    `json:"id"`
+	Summary     string    `json:"summary"`
+	Start       string    `json:"start"`
+	End         string    `json:"end"`
+	Location    string    `json:"location,omitempty"`
+	Description string    `json:"description,omitempty"`
 }
