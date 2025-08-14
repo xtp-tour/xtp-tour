@@ -9,6 +9,16 @@ import (
 
 const USER_ID_CONTEXT_KEY = "userId"
 
+// GetUserID retrieves the user ID from the context
+func GetUserID(c *gin.Context) string {
+	if userId, ok := c.Get(USER_ID_CONTEXT_KEY); ok {
+		if id, ok := userId.(string); ok {
+			return id
+		}
+	}
+	return ""
+}
+
 // CreateAuthMiddleware creates an auth middleware based on the auth config
 func CreateAuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 

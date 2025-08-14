@@ -9,6 +9,8 @@ import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
+import GoogleCalendarConnect from './GoogleCalendarConnect';
+import GoogleCalendarService from '../services/googleCalendarService';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -43,6 +45,8 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [googleCalendarService, setGoogleCalendarService] = useState<GoogleCalendarService | null>(null);
+  const [blockedEvents, setBlockedEvents] = useState<Array<{start: string, end: string, summary: string}>>([]);
 
   // Get skill level labels with translations
   const getSkillLevelLabels = (): Record<SkillLevel, string> => {
@@ -102,7 +106,56 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     };
 
     fetchLocations();
-  }, [api]);
+  }, [api, t]);
+
+  // Fetch blocked events from Google Calendar when connected
+  useEffect(() => {
+    if (googleCalendarService && selectedStartTimes.length > 0) {
+      fetchBlockedEvents();
+    }
+  }, [googleCalendarService, selectedStartTimes]);
+
+  const fetchBlockedEvents = async () => {
+    if (!googleCalendarService) return;
+
+    try {
+      // Get events for the next 7 days to show blocked slots
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 7);
+
+      const events = await googleCalendarService.getEvents(startDate, endDate);
+      setBlockedEvents(events.map(event => ({
+        start: event.start,
+        end: event.end,
+        summary: event.summary,
+      })));
+    } catch (error) {
+      console.error('Failed to fetch blocked events:', error);
+    }
+  };
+
+  // Check for existing Google Calendar connection on component mount
+  useEffect(() => {
+    checkExistingConnection();
+  }, []);
+
+  const checkExistingConnection = async () => {
+    try {
+      const service = new GoogleCalendarService({
+        baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+      });
+      
+      const hasConnection = await service.checkConnectionStatus();
+      if (hasConnection) {
+        setGoogleCalendarService(service);
+        // Load blocked events immediately
+        await fetchBlockedEvents();
+      }
+    } catch (error) {
+      console.log('No existing Google Calendar connection found');
+    }
+  };
 
   // Initialize bootstrap-select and tooltips
   useEffect(() => {
@@ -526,6 +579,25 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
               </div>
 
               <div className="mb-3">
+                <label className="form-label">
+                  {t('createEvent.googleCalendar.label')}
+                </label>
+                <GoogleCalendarConnect
+                  onConnected={setGoogleCalendarService}
+                  onDisconnected={() => {
+                    setGoogleCalendarService(null);
+                    setBlockedEvents([]);
+                  }}
+                  isConnected={!!googleCalendarService}
+                />
+                {googleCalendarService && (
+                  <small className="form-text text-muted">
+                    {t('createEvent.googleCalendar.helpText')}
+                  </small>
+                )}
+              </div>
+
+              <div className="mb-3">
                 <label className="form-label">{t('createEvent.form.availability')}</label>
                 {validationErrors.some(error => error.includes('time slot')) && (
                   <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
@@ -552,6 +624,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   endHour={21}
                   nightOnly={nightGame}
                   disabled={!isExpanded}
+                  blockedEvents={blockedEvents}
                   className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
                 />
                 {selectedStartTimes.length > 0 && (
