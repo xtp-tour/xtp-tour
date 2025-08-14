@@ -965,7 +965,7 @@ func (db *Db) UpsertCalendarConnection(ctx context.Context, connection *UserCale
 		is_active = VALUES(is_active),
 		updated_at = VALUES(updated_at)
 	`
-	
+
 	_, err := db.conn.ExecContext(ctx, query,
 		connection.UserId,
 		connection.Provider,
@@ -977,7 +977,7 @@ func (db *Db) UpsertCalendarConnection(ctx context.Context, connection *UserCale
 		connection.CreatedAt,
 		connection.UpdatedAt,
 	)
-	
+
 	return err
 }
 
@@ -989,7 +989,7 @@ func (db *Db) GetCalendarConnection(ctx context.Context, userID, provider string
 		FROM user_calendar_connections 
 		WHERE user_id = ? AND provider = ? AND is_active = true
 	`
-	
+
 	err := db.conn.GetContext(ctx, &connection, query, userID, provider)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -997,7 +997,7 @@ func (db *Db) GetCalendarConnection(ctx context.Context, userID, provider string
 		}
 		return nil, err
 	}
-	
+
 	return &connection, nil
 }
 
@@ -1008,7 +1008,7 @@ func (db *Db) UpdateCalendarConnectionTokens(ctx context.Context, connection *Us
 		SET access_token = ?, refresh_token = ?, token_expiry = ?, updated_at = ?
 		WHERE user_id = ? AND provider = ?
 	`
-	
+
 	_, err := db.conn.ExecContext(ctx, query,
 		connection.AccessToken,
 		connection.RefreshToken,
@@ -1017,7 +1017,7 @@ func (db *Db) UpdateCalendarConnectionTokens(ctx context.Context, connection *Us
 		connection.UserId,
 		connection.Provider,
 	)
-	
+
 	return err
 }
 
@@ -1028,7 +1028,7 @@ func (db *Db) DeactivateCalendarConnection(ctx context.Context, userID, provider
 		SET is_active = false, updated_at = ?
 		WHERE user_id = ? AND provider = ?
 	`
-	
+
 	_, err := db.conn.ExecContext(ctx, query, time.Now(), userID, provider)
 	return err
 }
@@ -1045,7 +1045,7 @@ func (db *Db) UpsertCalendarPreferences(ctx context.Context, prefs *UserCalendar
 		show_event_details = VALUES(show_event_details),
 		updated_at = VALUES(updated_at)
 	`
-	
+
 	_, err := db.conn.ExecContext(ctx, query,
 		prefs.UserId,
 		prefs.SyncEnabled,
@@ -1054,7 +1054,7 @@ func (db *Db) UpsertCalendarPreferences(ctx context.Context, prefs *UserCalendar
 		prefs.CreatedAt,
 		prefs.UpdatedAt,
 	)
-	
+
 	return err
 }
 
@@ -1066,7 +1066,7 @@ func (db *Db) GetCalendarPreferences(ctx context.Context, userID string) (*UserC
 		FROM user_calendar_preferences 
 		WHERE user_id = ?
 	`
-	
+
 	err := db.conn.GetContext(ctx, &prefs, query, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -1082,7 +1082,7 @@ func (db *Db) GetCalendarPreferences(ctx context.Context, userID string) (*UserC
 		}
 		return nil, err
 	}
-	
+
 	return &prefs, nil
 }
 
@@ -1093,7 +1093,7 @@ func (db *Db) InsertBusyTime(ctx context.Context, busyTime *CalendarBusyTimeRow)
 		(id, user_id, start_time, end_time, event_title, synced_at)
 		VALUES (UUID(), ?, ?, ?, ?, ?)
 	`
-	
+
 	_, err := db.conn.ExecContext(ctx, query,
 		busyTime.UserId,
 		busyTime.StartTime,
@@ -1101,7 +1101,7 @@ func (db *Db) InsertBusyTime(ctx context.Context, busyTime *CalendarBusyTimeRow)
 		busyTime.EventTitle,
 		busyTime.SyncedAt,
 	)
-	
+
 	return err
 }
 
@@ -1121,7 +1121,7 @@ func (db *Db) GetCachedBusyTimes(ctx context.Context, userID string, timeMin, ti
 		WHERE user_id = ? AND start_time < ? AND end_time > ?
 		ORDER BY start_time
 	`
-	
+
 	err := db.conn.SelectContext(ctx, &busyTimes, query, userID, timeMax, timeMin)
 	return busyTimes, err
 }
