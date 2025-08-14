@@ -102,7 +102,9 @@
       "trainingPlaceholder": "Describe your training plan and goals...",
       "generalPlaceholder": "Add any additional information...",
       "createInvitation": "Create Invitation",
-      "trainingTip": "Consider adding training plan or goals to description"
+      "trainingTip": "Consider adding training plan or goals to description",
+      "calendarIntegration": "Calendar Integration",
+      "calendarIntegrationDesc": "Connect your Google Calendar to automatically avoid scheduling conflicts"
     },
     "skillLevels": {
       "INTERMEDIATE": "Intermediate (NTRP 3.5–5.0)",
@@ -371,6 +373,34 @@
       "failedToLoad": "Failed to load profile",
       "failedToUpdate": "Failed to update profile",
       "failedToDelete": "Failed to delete account"
+    }
+  },
+  "calendar": {
+    "connect": "Connect Google Calendar",
+    "disconnect": "Disconnect",
+    "connected": "Google Calendar Connected",
+    "notConnected": "Calendar not connected",
+    "connecting": "Connecting...",
+    "provider": "Provider",
+    "conflictWarning": "This time conflicts with your calendar",
+    "busySlot": "Busy (Calendar)",
+    "preferences": {
+      "title": "Calendar Settings",
+      "syncEnabled": "Enable calendar sync",
+      "syncFrequency": "Sync frequency",
+      "showEventDetails": "Show event details",
+      "every15min": "Every 15 minutes",
+      "every30min": "Every 30 minutes",
+      "every1hour": "Every hour"
+    },
+    "errors": {
+      "connectionCheck": "Failed to check calendar connection",
+      "connectionFailed": "Failed to connect calendar",
+      "authFailed": "Calendar authorization failed",
+      "authCallback": "Failed to complete authorization",
+      "disconnectFailed": "Failed to disconnect calendar",
+      "preferencesUpdateFailed": "Failed to update preferences",
+      "busyTimesFailed": "Failed to load calendar events"
     }
   }
 }

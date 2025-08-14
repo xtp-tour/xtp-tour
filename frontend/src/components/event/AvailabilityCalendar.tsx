@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAPI } from '../../services/apiProvider';
+import { CalendarBusyPeriod } from '../../types/api';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -34,6 +36,11 @@ interface AvailabilityCalendarProps {
   className?: string;
   /** Disabled state */
   disabled?: boolean;
+  /** Calendar integration settings */
+  calendarIntegration?: {
+    enabled: boolean;
+    onCalendarConnect?: () => void;
+  };
 }
 
 /** Get tomorrow's date in local timezone at midnight */
@@ -92,8 +99,11 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   nightOnly = false,
   className = '',
   disabled = false,
+  calendarIntegration,
 }) => {
   const { t } = useTranslation();
+  const api = useAPI();
+  
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
   }, [minDate]);
@@ -104,6 +114,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   // Convert controlled value to Set for efficient lookups
   const selectedSet = useMemo(() => new Set(value), [value]);
 
+  // Calendar busy times state
+  const [busyPeriods, setBusyPeriods] = useState<CalendarBusyPeriod[]>([]);
+
   // Memoize expensive calculations
   const memoizedOnChange = useCallback(onChange, [onChange]);
 
@@ -111,6 +124,34 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   useEffect(() => {
     setWindowStartDate(prev => clampDate(prev, computedMinDate, new Date(8640000000000000)));
   }, [computedMinDate]);
+
+  // Fetch calendar busy times when calendar integration is enabled
+  const fetchBusyTimes = useCallback(async (startDate: Date, endDate: Date) => {
+    if (!calendarIntegration?.enabled) {
+      setBusyPeriods([]);
+      return;
+    }
+
+    try {
+      const response = await api.getCalendarBusyTimes({
+        timeMin: startDate.toISOString(),
+        timeMax: endDate.toISOString(),
+      });
+      setBusyPeriods(response.busyPeriods);
+    } catch (error) {
+      console.error('Failed to fetch calendar busy times:', error);
+      setBusyPeriods([]);
+    }
+  }, [calendarIntegration?.enabled, api]);
+
+  // Fetch busy times when window or calendar integration changes
+  useEffect(() => {
+    if (calendarIntegration?.enabled) {
+      const endDate = new Date(windowStartDate);
+      endDate.setDate(endDate.getDate() + CALENDAR_CONSTANTS.DAYS_TO_SHOW);
+      fetchBusyTimes(windowStartDate, endDate);
+    }
+  }, [windowStartDate, calendarIntegration?.enabled, fetchBusyTimes]);
 
   // Build time rows depending on mode
   const timeRows = useMemo(() => {
@@ -162,6 +203,24 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const isSelected = useCallback((utcIso: string) => selectedSet.has(utcIso), [selectedSet]);
 
+  // Check if a time slot conflicts with calendar busy times
+  const isSlotBusy = useCallback((dateOnly: Date, minutesFromMidnight: number): boolean => {
+    if (!calendarIntegration?.enabled || busyPeriods.length === 0) {
+      return false;
+    }
+
+    const slotStart = makeLocalDateTime(dateOnly, minutesFromMidnight);
+    const slotEnd = new Date(slotStart.getTime() + stepMinutes * 60 * 1000);
+
+    return busyPeriods.some(period => {
+      const periodStart = new Date(period.start);
+      const periodEnd = new Date(period.end);
+      
+      // Check if the slot overlaps with the busy period
+      return slotStart < periodEnd && slotEnd > periodStart;
+    });
+  }, [calendarIntegration?.enabled, busyPeriods, stepMinutes]);
+
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
     
@@ -169,6 +228,11 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     
     // Validate this isn't a past date/time
     if (!isValidFutureDate(localDateTime, computedMinDate)) {
+      return;
+    }
+
+    // Prevent selection of busy slots
+    if (isSlotBusy(dateOnly, minutesFromMidnight)) {
       return;
     }
     
@@ -182,7 +246,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     }
     
     memoizedOnChange(Array.from(currentSelected));
-  }, [disabled, computedMinDate, value, memoizedOnChange]);
+  }, [disabled, computedMinDate, value, memoizedOnChange, isSlotBusy]);
 
   const clearSelection = useCallback(() => {
     if (disabled || value.length === 0) return;
@@ -301,6 +365,10 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
+                  const isBusy = isSlotBusy(d, m);
+                  const isPast = !isValidFutureDate(localDateTime, computedMinDate);
+                  const isDisabled = disabled || isBusy || isPast;
+                  
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
@@ -308,18 +376,31 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
                           selectedNow 
                             ? 'bg-primary text-white' 
+                            : isBusy
+                            ? 'bg-warning bg-opacity-25 text-muted position-relative'
+                            : isPast
+                            ? 'bg-transparent text-muted' 
                             : disabled 
                             ? 'bg-transparent text-muted' 
                             : 'bg-transparent text-body'
                         }`}
-                        style={{ minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT }}
+                        style={{ 
+                          minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT,
+                          ...(isBusy ? { 
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,.1) 4px, rgba(0,0,0,.1) 8px)'
+                          } : {})
+                        }}
                         onClick={() => toggleCell(d, m)}
-                        disabled={disabled}
+                        disabled={isDisabled}
                         aria-pressed={selectedNow}
-                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}`}
+                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${isBusy ? ` (${t('calendar.busySlot')})` : ''}`}
                         tabIndex={0}
+                        title={isBusy ? t('calendar.conflictWarning') : undefined}
                       >
                         {formatTimeDisplay(m)}
+                        {isBusy && (
+                          <i className="bi bi-calendar-x position-absolute top-0 end-0 me-1 mt-1" style={{ fontSize: '0.7rem', opacity: 0.7 }}></i>
+                        )}
                       </button>
                     </td>
                   );

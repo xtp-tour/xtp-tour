@@ -9,6 +9,7 @@ import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
+import GoogleCalendarConnector from './GoogleCalendarConnector';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -43,6 +44,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
 
   // Get skill level labels with translations
   const getSkillLevelLabels = (): Record<SkillLevel, string> => {
@@ -545,6 +547,20 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                     {t('createEvent.form.nightGame')}
                   </label>
                 </div>
+
+                <div className="mb-3 p-3 bg-light rounded">
+                  <h6 className="mb-2 d-flex align-items-center">
+                    <i className="bi bi-calendar-plus me-2"></i>
+                    {t('createEvent.form.calendarIntegration')}
+                  </h6>
+                  <p className="small text-muted mb-2">
+                    {t('createEvent.form.calendarIntegrationDesc')}
+                  </p>
+                  <GoogleCalendarConnector 
+                    onConnectionChange={setCalendarConnected}
+                    className="mb-0"
+                  />
+                </div>
                 <AvailabilityCalendar
                   value={selectedStartTimes}
                   onChange={handleTimeSelectionChange}
@@ -553,6 +569,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   nightOnly={nightGame}
                   disabled={!isExpanded}
                   className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
+                  calendarIntegration={{
+                    enabled: calendarConnected
+                  }}
                 />
                 {selectedStartTimes.length > 0 && (
                   <small className="form-text text-muted mt-1 d-block">

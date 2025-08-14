@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
+import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarBusyTimesRequest, CalendarBusyTimesResponse, CalendarPreferencesRequest, CalendarPreferencesResponse } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -738,6 +738,59 @@ export class MockAPIClient implements APIClient {
       service: "mock-xtp-tour@1.0.0",
       status: "OK",
       message: "Mock API is running"
+    };
+  }
+
+  // Calendar integration mock methods
+  async getCalendarAuthURL(): Promise<CalendarAuthURLResponse> {
+    await this.delay(200);
+    return {
+      authUrl: "https://accounts.google.com/oauth/authorize?mock=true"
+    };
+  }
+
+  async handleCalendarCallback(_request: CalendarCallbackRequest): Promise<void> {
+    await this.delay(500);
+    // Mock successful callback handling
+  }
+
+  async getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse> {
+    await this.delay(200);
+    return {
+      connected: false // Default to disconnected in mock
+    };
+  }
+
+  async disconnectCalendar(): Promise<void> {
+    await this.delay(200);
+    // Mock disconnect
+  }
+
+  async getCalendarBusyTimes(_request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse> {
+    await this.delay(300);
+    // Return empty busy periods for mock
+    return {
+      busyPeriods: [],
+      calendarId: "primary",
+      syncedAt: new Date().toISOString()
+    };
+  }
+
+  async getCalendarPreferences(): Promise<CalendarPreferencesResponse> {
+    await this.delay(200);
+    return {
+      syncEnabled: true,
+      syncFrequencyMinutes: 30,
+      showEventDetails: false,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse> {
+    await this.delay(200);
+    return {
+      ...request,
+      updatedAt: new Date().toISOString()
     };
   }
 }

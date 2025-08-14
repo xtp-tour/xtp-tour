@@ -1105,3 +1105,180 @@ func (db *Db) rollback(slogger *slog.Logger, tx *sqlx.Tx) {
 		slogger.Error("Failed to rollback transaction", "error", err)
 	}
 }
+
+// Calendar integration methods
+
+// UpsertCalendarConnection creates or updates a user's calendar connection
+func (db *Db) UpsertCalendarConnection(ctx context.Context, connection *UserCalendarConnectionRow) error {
+	query := `
+		INSERT INTO user_calendar_connections
+		(id, user_id, provider, access_token, refresh_token, token_expiry, calendar_id, is_active, created_at, updated_at)
+		VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		access_token = VALUES(access_token),
+		refresh_token = VALUES(refresh_token),
+		token_expiry = VALUES(token_expiry),
+		calendar_id = VALUES(calendar_id),
+		is_active = VALUES(is_active),
+		updated_at = VALUES(updated_at)
+	`
+
+	_, err := db.conn.ExecContext(ctx, query,
+		connection.UserId,
+		connection.Provider,
+		connection.AccessToken,
+		connection.RefreshToken,
+		connection.TokenExpiry,
+		connection.CalendarId,
+		connection.IsActive,
+		connection.CreatedAt,
+		connection.UpdatedAt,
+	)
+
+	return err
+}
+
+// GetCalendarConnection retrieves a user's calendar connection
+func (db *Db) GetCalendarConnection(ctx context.Context, userID, provider string) (*UserCalendarConnectionRow, error) {
+	var connection UserCalendarConnectionRow
+	query := `
+		SELECT id, user_id, provider, access_token, refresh_token, token_expiry, calendar_id, is_active, created_at, updated_at
+		FROM user_calendar_connections
+		WHERE user_id = ? AND provider = ? AND is_active = true
+	`
+
+	err := db.conn.GetContext(ctx, &connection, query, userID, provider)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, DbObjectNotFoundError{Message: "calendar connection not found"}
+		}
+		return nil, err
+	}
+
+	return &connection, nil
+}
+
+// UpdateCalendarConnectionTokens updates OAuth tokens for a calendar connection
+func (db *Db) UpdateCalendarConnectionTokens(ctx context.Context, connection *UserCalendarConnectionRow) error {
+	query := `
+		UPDATE user_calendar_connections
+		SET access_token = ?, refresh_token = ?, token_expiry = ?, updated_at = ?
+		WHERE user_id = ? AND provider = ?
+	`
+
+	_, err := db.conn.ExecContext(ctx, query,
+		connection.AccessToken,
+		connection.RefreshToken,
+		connection.TokenExpiry,
+		connection.UpdatedAt,
+		connection.UserId,
+		connection.Provider,
+	)
+
+	return err
+}
+
+// DeactivateCalendarConnection deactivates a user's calendar connection
+func (db *Db) DeactivateCalendarConnection(ctx context.Context, userID, provider string) error {
+	query := `
+		UPDATE user_calendar_connections
+		SET is_active = false, updated_at = ?
+		WHERE user_id = ? AND provider = ?
+	`
+
+	_, err := db.conn.ExecContext(ctx, query, time.Now(), userID, provider)
+	return err
+}
+
+// UpsertCalendarPreferences creates or updates user calendar preferences
+func (db *Db) UpsertCalendarPreferences(ctx context.Context, prefs *UserCalendarPreferencesRow) error {
+	query := `
+		INSERT INTO user_calendar_preferences
+		(user_id, sync_enabled, sync_frequency_minutes, show_event_details, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		sync_enabled = VALUES(sync_enabled),
+		sync_frequency_minutes = VALUES(sync_frequency_minutes),
+		show_event_details = VALUES(show_event_details),
+		updated_at = VALUES(updated_at)
+	`
+
+	_, err := db.conn.ExecContext(ctx, query,
+		prefs.UserId,
+		prefs.SyncEnabled,
+		prefs.SyncFrequencyMinutes,
+		prefs.ShowEventDetails,
+		prefs.CreatedAt,
+		prefs.UpdatedAt,
+	)
+
+	return err
+}
+
+// GetCalendarPreferences retrieves user calendar preferences
+func (db *Db) GetCalendarPreferences(ctx context.Context, userID string) (*UserCalendarPreferencesRow, error) {
+	var prefs UserCalendarPreferencesRow
+	query := `
+		SELECT user_id, sync_enabled, sync_frequency_minutes, show_event_details, created_at, updated_at
+		FROM user_calendar_preferences
+		WHERE user_id = ?
+	`
+
+	err := db.conn.GetContext(ctx, &prefs, query, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Return default preferences if none exist
+			return &UserCalendarPreferencesRow{
+				UserId:               userID,
+				SyncEnabled:          true,
+				SyncFrequencyMinutes: 30,
+				ShowEventDetails:     false,
+				CreatedAt:            time.Now(),
+				UpdatedAt:            time.Now(),
+			}, nil
+		}
+		return nil, err
+	}
+
+	return &prefs, nil
+}
+
+// InsertBusyTime inserts a calendar busy time period
+func (db *Db) InsertBusyTime(ctx context.Context, busyTime *CalendarBusyTimeRow) error {
+	query := `
+		INSERT INTO calendar_busy_times
+		(id, user_id, start_time, end_time, event_title, synced_at)
+		VALUES (UUID(), ?, ?, ?, ?, ?)
+	`
+
+	_, err := db.conn.ExecContext(ctx, query,
+		busyTime.UserId,
+		busyTime.StartTime,
+		busyTime.EndTime,
+		busyTime.EventTitle,
+		busyTime.SyncedAt,
+	)
+
+	return err
+}
+
+// ClearCachedBusyTimes removes old cached busy times for a user
+func (db *Db) ClearCachedBusyTimes(ctx context.Context, userID string) error {
+	query := `DELETE FROM calendar_busy_times WHERE user_id = ?`
+	_, err := db.conn.ExecContext(ctx, query, userID)
+	return err
+}
+
+// GetCachedBusyTimes retrieves cached busy times for a user in a time range
+func (db *Db) GetCachedBusyTimes(ctx context.Context, userID string, timeMin, timeMax time.Time) ([]CalendarBusyTimeRow, error) {
+	var busyTimes []CalendarBusyTimeRow
+	query := `
+		SELECT id, user_id, start_time, end_time, event_title, synced_at
+		FROM calendar_busy_times
+		WHERE user_id = ? AND start_time < ? AND end_time > ?
+		ORDER BY start_time
+	`
+
+	err := db.conn.SelectContext(ctx, &busyTimes, query, userID, timeMax, timeMin)
+	return busyTimes, err
+}
