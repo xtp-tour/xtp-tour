@@ -6,6 +6,7 @@ import ConfirmedEventBody from './ConfirmedEventBody';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 import { formatTimeSlotSummary } from '../../utils/dateUtils';
 import moment from 'moment';
+import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -41,6 +42,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   children,
   shareButton,
 }) => {
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const isConfirmed = event.status === 'CONFIRMED';
   
@@ -57,7 +59,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           subtitle={headerSubtitle}
           colorClass={colorClass}
           actionButton={actionButton}
-          timeSlotSummary={formatTimeSlotSummary(timeSlots)}
+          timeSlotSummary={formatTimeSlotSummary(timeSlots, t)}
           joinedCount={event.joinRequests?.filter(req => req.isRejected === false).length || 0}
           event={event}
           shareButton={shareButton}
@@ -109,7 +111,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           }}
         >
           <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-1`} aria-hidden="true" style={{ fontSize: '0.75rem' }}></i>
-          <span>{isCollapsed ? 'Show Details' : 'Hide Details'}</span>
+          <span>{isCollapsed ? t('common.showDetails') : t('common.hideDetails')}</span>
         </button>
       </div>
     </div>

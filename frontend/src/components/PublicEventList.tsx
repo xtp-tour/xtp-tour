@@ -10,12 +10,14 @@ import ShareEventModal from './ShareEventModal';
 import { useUser } from '@clerk/clerk-react';
 import ShareButton from './ShareButton';
 import HostDisplay from './HostDisplay';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onEventJoined?: () => void;
 }
 
 const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
+  const { t } = useTranslation();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
   const [events, setEvents] = useState<ApiEvent[]>([]);
@@ -33,7 +35,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
       const response = await api.listPublicEvents();
       setEvents(response.events || []);
     } catch {
-      setError('Failed to load events');
+      setError(t('common.loading')); // Reusing common error message
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
             return {
               variant: 'outline-secondary',
               icon: 'bi-person-plus',
-              label: 'Sign in to Join',
+              label: t('eventActions.signInToJoin'),
               onClick: () => {
                 // This will be handled by the SignInButton in the header
               }
@@ -129,7 +131,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
             return {
               variant: 'outline-primary',
               icon: 'bi-plus-circle',
-              label: hasAlreadyJoined ? 'Already Joined' : 'Join Event',
+              label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
               onClick: () => {},
               hidden: true
             };
@@ -138,7 +140,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           return {
             variant: 'outline-primary',
             icon: 'bi-plus-circle',
-            label: 'Join Event',
+            label: t('eventActions.join'),
             onClick: () => handleJoinEvent(event)
           };
         };
@@ -147,11 +149,11 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
           <div key={event.id} className="mb-3">
             <BaseEventItem
               event={event}
-              headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
+              headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
               headerSubtitle={
                 <HostDisplay 
                   userId={event.userId || ''} 
-                  fallback="Unknown User" 
+                  fallback={t('host.unknownUser')} 
                   showAsPlainText={!isSignedIn}
                 />
               }
@@ -169,7 +171,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
       {selectedEvent && selectedEvent.id && isSignedIn && (
         <JoinEventModal
           eventId={selectedEvent.id}
-          hostName={selectedEvent.userId || 'Unknown User'}
+          hostName={selectedEvent.userId || t('host.unknownUser')}
           show={showJoinModal}
           onHide={() => setShowJoinModal(false)}
           onJoined={handleJoined}
@@ -177,7 +179,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
       )}
 
       <Toast
-        message="Event link copied to clipboard!"
+        message={t('share.eventLinkCopied')}
         show={showToast}
         onHide={() => setShowToast(false)}
         type="success"

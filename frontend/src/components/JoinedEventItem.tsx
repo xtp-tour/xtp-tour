@@ -11,6 +11,7 @@ import ShareButton from './ShareButton';
 import { useShareEvent } from '../hooks/useShareEvent';
 import { BADGE_STYLES } from '../styles/badgeStyles';
 import HostDisplay from './HostDisplay';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   event: ApiEvent;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
+  const { t } = useTranslation();
   const api = useAPI();
   const { user } = useUser();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -43,7 +45,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   const handleCancel = async () => {
     if (!userJoinRequest?.id) {
-      setError('Join request ID not found');
+      setError(t('joinModal.failedToJoin')); // Reusing existing translation
       return;
     }
 
@@ -57,7 +59,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError('Failed to cancel join request. Please try again later.');
+        setError(t('joinModal.failedToJoin'));
       }
     } finally {
       setCancelling(false);
@@ -111,11 +113,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     if (!userJoinRequest) return { text: '', variant: 'text-bg-secondary' };
     
     if (userJoinRequest.isRejected === true) {
-      return { text: 'Request rejected', variant: 'text-bg-danger' };
+      return { text: t('joinRequests.rejected'), variant: 'text-bg-danger' };
     } else if (userJoinRequest.isRejected === false) {
-      return { text: 'Request accepted', variant: 'text-bg-success' };
+      return { text: t('joinRequests.accepted'), variant: 'text-bg-success' };
     } else {
-      return { text: 'Waiting for host approval', variant: 'text-bg-warning' };
+      return { text: t('joinRequests.waiting'), variant: 'text-bg-warning' };
     }
   };
 
@@ -141,7 +143,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
       return {
         variant: 'outline-secondary',
         icon: 'bi-check-circle-fill',
-        label: 'Confirmed',
+        label: t('eventActions.confirmed'),
         onClick: () => {},
         disabled: true,
         hidden: true
@@ -151,7 +153,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     return {
       variant: 'outline-danger',
       icon: 'bi-x-circle',
-      label: 'Cancel',
+      label: t('eventActions.cancel'),
       onClick: () => setShowConfirmModal(true),
       disabled: cancelling || event.status !== 'OPEN'
     };
@@ -165,10 +167,10 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     <>
       <BaseEventItem
         event={event}
-        headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
         headerSubtitle={
           <div className="d-flex align-items-center gap-2 flex-wrap">
-            <HostDisplay userId={event.userId || ''} fallback="Unknown Host" />
+            <HostDisplay userId={event.userId || ''} fallback={t('host.unknown')} />
             {displayStatus && (
               <span className={`badge ${displayStatus.variant}`} style={BADGE_STYLES}>
                 {displayStatus.text}
@@ -226,14 +228,14 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
                 Cancelling...
               </>
             ) : (
-              'Cancel Participation'
+              t('eventActions.cancelParticipation')
             )}
           </button>
         </Modal.Footer>
       </Modal>
 
       <Toast
-        message="Event link copied to clipboard!"
+        message={t('share.eventLinkCopied')}
         show={showToast}
         onHide={() => setShowToast(false)}
         type="success"

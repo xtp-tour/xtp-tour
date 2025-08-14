@@ -5,6 +5,9 @@ interface TimeSlot {
   date: moment.Moment;
 }
 
+// Translation function type
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
+
 /**
  * Time of day categories for generalization
  */
@@ -60,7 +63,7 @@ const groupConsecutiveSlots = (slots: TimeSlot[]): TimeSlot[][] => {
  */
 const formatTimeRange = (group: TimeSlot[]): string => {
   if (group.length === 1) {
-    return group[0].date.format('ddd, MMM D • h:mm A');
+    return group[0].date.format('ddd, MMM D • LT');
   }
   
   const start = group[0];
@@ -70,16 +73,16 @@ const formatTimeRange = (group: TimeSlot[]): string => {
   const endTime = end.date.clone().add(30, 'minutes');
   
   if (start.date.isSame(end.date, 'day')) {
-    return `${start.date.format('ddd, MMM D')} • ${start.date.format('h:mm A')}–${endTime.format('h:mm A')}`;
+    return `${start.date.format('ddd, MMM D')} • ${start.date.format('LT')}–${endTime.format('LT')}`;
   } else {
-    return `${start.date.format('ddd, MMM D • h:mm A')}–${endTime.format('ddd, MMM D • h:mm A')}`;
+    return `${start.date.format('ddd, MMM D • LT')}–${endTime.format('ddd, MMM D • LT')}`;
   }
 };
 
 /**
  * Generalize multiple time ranges to time-of-day categories
  */
-const generalizeToTimeOfDay = (groups: TimeSlot[][]): string => {
+const generalizeToTimeOfDay = (groups: TimeSlot[][], t: TranslationFunction): string => {
   const timeCategories = new Set<TimeOfDay>();
   const dates = new Set<string>();
   
@@ -100,9 +103,9 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][]): string => {
     const endDate = moment(uniqueDates[uniqueDates.length - 1]).format('MMM D');
     
     if (categoriesArray.length >= 3) {
-      return `${startDate}–${endDate} • whole day`;
+      return `${startDate}–${endDate} • ${t('timeOfDay.wholeDay')}`;
     } else {
-      return `${startDate}–${endDate} • ${categoriesArray.sort().join(' & ')}`;
+      return `${startDate}–${endDate} • ${categoriesArray.sort().map(cat => t(`timeOfDay.${cat}`)).join(' & ')}`;
     }
   }
   
@@ -110,9 +113,9 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][]): string => {
   if (uniqueDates.length === 1 && categoriesArray.length > 1) {
     const dateStr = moment(uniqueDates[0]).format('ddd, MMM D');
     if (categoriesArray.length >= 3) {
-      return `${dateStr} • whole day`;
+      return `${dateStr} • ${t('timeOfDay.wholeDay')}`;
     } else {
-      return `${dateStr} • ${categoriesArray.sort().join(' & ')}`;
+      return `${dateStr} • ${categoriesArray.sort().map(cat => t(`timeOfDay.${cat}`)).join(' & ')}`;
     }
   }
   
@@ -120,26 +123,27 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][]): string => {
   if (uniqueDates.length > 1 && categoriesArray.length === 1) {
     const startDate = moment(uniqueDates[0]).format('MMM D');
     const endDate = moment(uniqueDates[uniqueDates.length - 1]).format('MMM D');
-    return `${startDate}–${endDate} • ${categoriesArray[0]}`;
+    return `${startDate}–${endDate} • ${t(`timeOfDay.${categoriesArray[0]}`)}`;
   }
   
   // Default: show first date with time category
   const firstDate = moment(uniqueDates[0]).format('ddd, MMM D');
-  return `${firstDate} • ${categoriesArray[0]}`;
+  return `${firstDate} • ${t(`timeOfDay.${categoriesArray[0]}`)}`;
 };
 
 /**
  * Compress time slots into an optimized display format
  * 
  * @param timeSlots Array of time slots with moment dates
+ * @param t Translation function
  * @returns Compressed time slot summary string
  */
-export const compressTimeSlots = (timeSlots: TimeSlot[]): string => {
+export const compressTimeSlots = (timeSlots: TimeSlot[], t: TranslationFunction): string => {
   if (timeSlots.length === 0) return '';
   
   // For single slot, use original format
   if (timeSlots.length === 1) {
-    return timeSlots[0].date.format('ddd, MMM D • h:mm A');
+    return timeSlots[0].date.format('ddd, MMM D • LT');
   }
   
   // Group consecutive time slots
@@ -156,10 +160,10 @@ export const compressTimeSlots = (timeSlots: TimeSlot[]): string => {
     
     // If both ranges are short, show both
     if (range1.length + range2.length < 50) {
-      return `${range1} and ${range2}`;
+      return `${range1} ${t('timeOfDay.and')} ${range2}`;
     }
   }
   
   // For complex cases, generalize to time-of-day
-  return generalizeToTimeOfDay(groups);
+  return generalizeToTimeOfDay(groups, t);
 };

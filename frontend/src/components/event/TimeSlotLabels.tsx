@@ -73,7 +73,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                 iconColor = 'var(--tennis-navy, #212529)';
               }
 
-              console.log(`Rendering time slot: ${slot.date.format('h:mm A')} - isUserSelected: ${slot.isUserSelected}`);
+              console.log(`Rendering time slot: ${slot.date.format('LT')} - isUserSelected: ${slot.isUserSelected}`);
 
               return (
                 <div
@@ -88,7 +88,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                   }}
                 >
                   <i className={`bi bi-clock me-1`} style={{ color: iconColor }}></i>
-                  {slot.date.format('h:mm A')}
+                  {slot.date.format('LT')}
                 </div>
               );
             })}

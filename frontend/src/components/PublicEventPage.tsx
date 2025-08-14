@@ -9,8 +9,10 @@ import moment from 'moment';
 import { SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
+import { useTranslation } from 'react-i18next';
 
 const PublicEventPage: React.FC = () => {
+  const { t } = useTranslation();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const api = useAPI();
@@ -29,7 +31,7 @@ const PublicEventPage: React.FC = () => {
       const eventData = await api.getPublicEvent(eventId);
       setEvent(eventData);
     } catch {
-      setError('Event not found or no longer available');
+      setError(t('publicEvent.noLongerAvailable'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +78,7 @@ const PublicEventPage: React.FC = () => {
           <div className="text-center">
             <i className="bi bi-exclamation-triangle fs-1 text-warning mb-3"></i>
             <h3>Event Not Found</h3>
-            <p className="text-muted">{error || 'The event you are looking for does not exist or has been removed.'}</p>
+            <p className="text-muted">{error || t('publicEvent.notFound')}</p>
             <button className="btn btn-primary" onClick={handleBackToList}>
               <i className="bi bi-arrow-left me-2"></i>
               Back to Events
@@ -98,7 +100,7 @@ const PublicEventPage: React.FC = () => {
       return {
         variant: 'outline-secondary',
         icon: 'bi-person-plus',
-        label: 'Sign in to Join',
+        label: t('eventActions.signInToJoin'),
         onClick: () => {
           // This will be handled by the SignInButton in the header
         }
@@ -121,7 +123,7 @@ const PublicEventPage: React.FC = () => {
       return {
         variant: 'outline-primary',
         icon: 'bi-plus-circle',
-        label: hasAlreadyJoined ? 'Already Joined' : 'Join Event',
+        label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
         onClick: () => {},
         hidden: true
       };
@@ -130,7 +132,7 @@ const PublicEventPage: React.FC = () => {
     return {
       variant: 'outline-primary',
       icon: 'bi-plus-circle',
-      label: 'Join Event',
+      label: t('eventActions.join'),
       onClick: handleJoinEvent
     };
   };
@@ -155,7 +157,7 @@ const PublicEventPage: React.FC = () => {
                 <p className="text-muted mb-0">
                   <HostDisplay 
                     userId={event.userId || ''} 
-                    fallback="Unknown User" 
+                    fallback={t('host.unknownUser')} 
                     showAsPlainText={!isSignedIn}
                     className="text-muted"
                   />
@@ -180,11 +182,11 @@ const PublicEventPage: React.FC = () => {
             <div className="col-lg-8">
               <BaseEventItem
                 event={event}
-                headerTitle={getEventTitle(event.eventType, event.expectedPlayers)}
+                headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
                 headerSubtitle={
                   <HostDisplay 
                     userId={event.userId || ''} 
-                    fallback="Unknown User" 
+                    fallback={t('host.unknownUser')} 
                     showAsPlainText={!isSignedIn}
                   />
                 }
@@ -275,7 +277,7 @@ const PublicEventPage: React.FC = () => {
         {event.id && isSignedIn && (
           <JoinEventModal
             eventId={event.id}
-            hostName={event.userId || 'Unknown User'}
+            hostName={event.userId || t('host.unknownUser')}
             show={showJoinModal}
             onHide={() => setShowJoinModal(false)}
             onJoined={handleJoined}
@@ -283,7 +285,7 @@ const PublicEventPage: React.FC = () => {
         )}
 
         <Toast
-          message="Link copied to clipboard!"
+          message={t('share.linkCopied')}
           show={showToast}
           onHide={() => setShowToast(false)}
           type="success"

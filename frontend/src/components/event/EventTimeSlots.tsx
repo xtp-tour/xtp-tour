@@ -1,6 +1,7 @@
 import React from 'react';
 import TimeSlotLabels from './TimeSlotLabels';
-import { TimeSlot, SECTION_TITLES } from './types';
+import { TimeSlot, getSectionTitleKey } from './types';
+import { useTranslation } from 'react-i18next';
 
 interface EventTimeSlotsProps {
   timeSlots: TimeSlot[];
@@ -13,15 +14,16 @@ const EventTimeSlots: React.FC<EventTimeSlotsProps> = ({
   hasSelectedTimeSlots,
   onTimeSlotClick,
 }) => {
+  const { t } = useTranslation();
   // Check if any time slots have user selection
   const hasUserSelectedTimeSlots = timeSlots.some(slot => slot.isUserSelected);
   
   // If there are user-selected time slots, we should show that as a special title
   const title = hasUserSelectedTimeSlots 
-    ? "Your Selected Times"
+    ? t(getSectionTitleKey('startTimes')) // Your Selected Times
     : hasSelectedTimeSlots 
-      ? SECTION_TITLES.timeSlots.selected 
-      : SECTION_TITLES.timeSlots.available;
+      ? t(getSectionTitleKey('startTimes')) 
+      : t(getSectionTitleKey('availableStartTimes'));
 
   return (
     <div className="mb-4">
