@@ -13,14 +13,14 @@ type BusyPeriod struct {
 
 // CalendarConnection represents a user's calendar connection
 type CalendarConnection struct {
-	ID           string    `json:"id"`
-	UserID       string    `json:"userId"`
-	Provider     string    `json:"provider"`
-	CalendarID   string    `json:"calendarId"`
-	IsActive     bool      `json:"isActive"`
-	TokenExpiry  time.Time `json:"tokenExpiry"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ID          string    `json:"id"`
+	UserID      string    `json:"userId"`
+	Provider    string    `json:"provider"`
+	CalendarID  string    `json:"calendarId"`
+	IsActive    bool      `json:"isActive"`
+	TokenExpiry time.Time `json:"tokenExpiry"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 // CalendarPreferences represents user's calendar sync preferences
