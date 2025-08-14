@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAPI } from '../services/apiProvider';
 import { CalendarConnectionStatusResponse } from '../types/api';
@@ -26,19 +26,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     showEventDetails: false
   });
 
-  // Check connection status on component mount
-  useEffect(() => {
-    checkConnectionStatus();
-  }, []);
-
-  // Notify parent of connection changes
-  useEffect(() => {
-    if (onConnectionChange && connectionStatus) {
-      onConnectionChange(connectionStatus.connected);
-    }
-  }, [connectionStatus, onConnectionChange]);
-
-  const checkConnectionStatus = async () => {
+  const checkConnectionStatus = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -55,7 +43,19 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [api, showPreferences, t]);
+
+  // Check connection status on component mount
+  useEffect(() => {
+    checkConnectionStatus();
+  }, [checkConnectionStatus]);
+
+  // Notify parent of connection changes
+  useEffect(() => {
+    if (onConnectionChange && connectionStatus) {
+      onConnectionChange(connectionStatus.connected);
+    }
+  }, [connectionStatus, onConnectionChange]);
 
   const handleConnect = async () => {
     try {

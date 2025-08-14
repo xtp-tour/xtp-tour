@@ -749,6 +749,7 @@ export class MockAPIClient implements APIClient {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleCalendarCallback(_request: CalendarCallbackRequest): Promise<void> {
     await this.delay(500);
     // Mock successful callback handling
@@ -766,6 +767,7 @@ export class MockAPIClient implements APIClient {
     // Mock disconnect
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getCalendarBusyTimes(_request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse> {
     await this.delay(300);
     // Return empty busy periods for mock
