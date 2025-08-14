@@ -34,6 +34,10 @@ interface AvailabilityCalendarProps {
   className?: string;
   /** Disabled state */
   disabled?: boolean;
+  /** Busy intervals in UTC ISO strings */
+  busy?: Array<{ start: string; end: string }>;
+  /** Notify parent when visible UTC range changes */
+  onVisibleRangeChange?: (range: { timeMinUtcIso: string; timeMaxUtcIso: string }) => void;
 }
 
 /** Get tomorrow's date in local timezone at midnight */
@@ -92,6 +96,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   nightOnly = false,
   className = '',
   disabled = false,
+  busy = [],
+  onVisibleRangeChange,
 }) => {
   const { t } = useTranslation();
   const computedMinDate = useMemo(() => {
@@ -104,6 +110,21 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   // Convert controlled value to Set for efficient lookups
   const selectedSet = useMemo(() => new Set(value), [value]);
 
+  // Preprocess busy intervals for quick lookup
+  const busyIntervals = useMemo(() => {
+    return busy
+      .map(b => ({ start: new Date(b.start).getTime(), end: new Date(b.end).getTime() }))
+      .filter(b => !Number.isNaN(b.start) && !Number.isNaN(b.end) && b.end > b.start);
+  }, [busy]);
+
+  const isBusy = useCallback((date: Date): boolean => {
+    const t = date.getTime();
+    for (const b of busyIntervals) {
+      if (t >= b.start && t < b.end) return true;
+    }
+    return false;
+  }, [busyIntervals]);
+
   // Memoize expensive calculations
   const memoizedOnChange = useCallback(onChange, [onChange]);
 
@@ -111,6 +132,16 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   useEffect(() => {
     setWindowStartDate(prev => clampDate(prev, computedMinDate, new Date(8640000000000000)));
   }, [computedMinDate]);
+
+  // Emit visible range in UTC whenever the window changes
+  useEffect(() => {
+    if (!onVisibleRangeChange) return;
+    const startLocal = new Date(windowStartDate);
+    startLocal.setHours(0, 0, 0, 0);
+    const endLocal = addDays(windowStartDate, CALENDAR_CONSTANTS.DAYS_TO_SHOW);
+    endLocal.setHours(23, 59, 59, 999);
+    onVisibleRangeChange({ timeMinUtcIso: startLocal.toISOString(), timeMaxUtcIso: endLocal.toISOString() });
+  }, [windowStartDate, onVisibleRangeChange]);
 
   // Build time rows depending on mode
   const timeRows = useMemo(() => {
@@ -171,6 +202,10 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     if (!isValidFutureDate(localDateTime, computedMinDate)) {
       return;
     }
+    // Prevent selecting busy times
+    if (isBusy(localDateTime)) {
+      return;
+    }
     
     const utcIso = localDateTime.toISOString();
     const currentSelected = new Set(value);
@@ -182,7 +217,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     }
     
     memoizedOnChange(Array.from(currentSelected));
-  }, [disabled, computedMinDate, value, memoizedOnChange]);
+  }, [disabled, computedMinDate, value, memoizedOnChange, isBusy]);
 
   const clearSelection = useCallback(() => {
     if (disabled || value.length === 0) return;
@@ -301,6 +336,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
+                  const cellBusy = isBusy(localDateTime);
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
@@ -308,13 +344,13 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
                           selectedNow 
                             ? 'bg-primary text-white' 
-                            : disabled 
+                            : disabled || cellBusy
                             ? 'bg-transparent text-muted' 
                             : 'bg-transparent text-body'
                         }`}
                         style={{ minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT }}
                         onClick={() => toggleCell(d, m)}
-                        disabled={disabled}
+                        disabled={disabled || cellBusy}
                         aria-pressed={selectedNow}
                         aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}`}
                         tabIndex={0}

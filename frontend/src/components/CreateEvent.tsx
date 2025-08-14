@@ -9,6 +9,7 @@ import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
+import { CalendarBusyInterval } from '../types/api';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -43,6 +44,10 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [calendarBusy, setCalendarBusy] = useState<CalendarBusyInterval[]>([]);
+  const [googleConnected, setGoogleConnected] = useState<boolean>(false);
+  const [googleEmail, setGoogleEmail] = useState<string | undefined>(undefined);
+  const [isFetchingBusy, setIsFetchingBusy] = useState<boolean>(false);
 
   // Get skill level labels with translations
   const getSkillLevelLabels = (): Record<SkillLevel, string> => {
@@ -53,6 +58,59 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
       'ANY': t('createEvent.skillLevels.ANY')
     };
   };
+
+  // Load integration status once expanded
+  useEffect(() => {
+    if (!isExpanded) return;
+    (async () => {
+      try {
+        const status = await api.getCalendarIntegrationStatus();
+        setGoogleConnected(status.connected);
+        setGoogleEmail(status.email);
+      } catch {}
+    })();
+  }, [isExpanded, api]);
+
+  const handleConnectGoogle = async () => {
+    try {
+      const { url } = await api.getGoogleAuthUrl(window.location.href);
+      // In real flow redirect; in mock we just set state
+      if (url && url.startsWith('http')) {
+        window.location.href = url;
+      } else {
+        // mock path; reflect connected state
+        const status = await api.getCalendarIntegrationStatus();
+        setGoogleConnected(status.connected);
+        setGoogleEmail(status.email);
+      }
+    } catch {}
+  };
+
+  const handleDisconnectGoogle = async () => {
+    try {
+      await api.disconnectGoogleCalendar();
+      setGoogleConnected(false);
+      setGoogleEmail(undefined);
+      setCalendarBusy([]);
+    } catch {}
+  };
+
+  const fetchBusyForRange = useCallback(async (timeMinUtcIso: string, timeMaxUtcIso: string) => {
+    if (!googleConnected) return;
+    setIsFetchingBusy(true);
+    try {
+      const { busy } = await api.getGoogleFreeBusy(timeMinUtcIso, timeMaxUtcIso);
+      setCalendarBusy(busy || []);
+    } catch {
+      setCalendarBusy([]);
+    } finally {
+      setIsFetchingBusy(false);
+    }
+  }, [api, googleConnected]);
+
+  const handleVisibleRangeChange = useCallback(({ timeMinUtcIso, timeMaxUtcIso }: { timeMinUtcIso: string; timeMaxUtcIso: string }) => {
+    fetchBusyForRange(timeMinUtcIso, timeMaxUtcIso);
+  }, [fetchBusyForRange]);
 
   // Get duration options with translations
   const getDurationOptions = () => {
@@ -186,6 +244,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setRequestType('SINGLE');
     setDescription('');
     setValidationErrors([]);
+    setCalendarBusy([]);
   }, []);
 
   const handleNativeLocationChange = (e: Event) => {
@@ -392,6 +451,24 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                 {renderLocationSelect()}
               </div>
 
+              <div className="mb-3 d-flex align-items-center justify-content-between">
+                <div className="d-flex flex-column">
+                  <label className="form-label mb-1">Google Calendar</label>
+                  <small className="text-muted">
+                    {googleConnected ? (googleEmail || 'Connected') : 'Not connected'}
+                  </small>
+                </div>
+                {googleConnected ? (
+                  <button type="button" className="btn btn-outline-danger btn-sm" onClick={handleDisconnectGoogle}>
+                    <i className="bi bi-x-circle me-1"></i> Disconnect
+                  </button>
+                ) : (
+                  <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleConnectGoogle}>
+                    <i className="bi bi-google me-1"></i> Connect
+                  </button>
+                )}
+              </div>
+
               <div className="mb-3">
                 <label className="form-label">{t('createEvent.form.requestType')}</label>
                 <div className="d-flex gap-4">
@@ -552,8 +629,15 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   endHour={21}
                   nightOnly={nightGame}
                   disabled={!isExpanded}
+                  busy={googleConnected ? calendarBusy : []}
+                  onVisibleRangeChange={handleVisibleRangeChange}
                   className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
                 />
+                {isFetchingBusy && (
+                  <small className="form-text text-muted mt-1 d-block">
+                    <i className="bi bi-cloud-download me-1"></i> Syncing busy times...
+                  </small>
+                )}
                 {selectedStartTimes.length > 0 && (
                   <small className="form-text text-muted mt-1 d-block">
                     {t('createEvent.form.timeSlotSelected', { count: selectedStartTimes.length })}

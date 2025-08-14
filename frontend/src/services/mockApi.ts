@@ -2,6 +2,7 @@ import { APIConfig, ListEventsResponse, UpdateProfileRequest, GetUserProfileResp
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
+import { CalendarBusyInterval, CalendarIntegrationStatus } from '../types/api';
 
 // Define types based on the schema
 type Event = components['schemas']['ApiEvent'];
@@ -300,6 +301,12 @@ export interface APIClient {
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
   updateProfile(request: UpdateProfileRequest): Promise<void>;
   ping(): Promise<{ service?: string; status?: string; message?: string }>;
+
+  // Calendar integration endpoints
+  getCalendarIntegrationStatus(): Promise<CalendarIntegrationStatus>;
+  getGoogleFreeBusy(timeMinUtcIso: string, timeMaxUtcIso: string): Promise<{ busy: CalendarBusyInterval[] }>;
+  getGoogleAuthUrl(redirectUri?: string): Promise<{ url: string }>;
+  disconnectGoogleCalendar(): Promise<void>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -309,6 +316,8 @@ export class MockAPIClient implements APIClient {
   private locations: Location[] = [...MOCK_LOCATIONS];
   private events: Event[] = [...MOCK_MY_INVITATIONS, ...MOCK_OTHER_INVITATIONS];
   private errorReporter: MockSilentErrorReporter;
+  private googleConnected = false;
+  private googleEmail: string | undefined = undefined;
 
   constructor(config: APIConfig) {
     this.config = config;
@@ -729,5 +738,46 @@ export class MockAPIClient implements APIClient {
       status: "OK",
       message: "Mock API is running"
     };
+  }
+
+  // --- Calendar integration stubs ---
+  async getCalendarIntegrationStatus(): Promise<CalendarIntegrationStatus> {
+    await this.delay(150);
+    return {
+      provider: 'google',
+      connected: this.googleConnected,
+      email: this.googleEmail,
+    };
+  }
+
+  async getGoogleFreeBusy(timeMinUtcIso: string, timeMaxUtcIso: string): Promise<{ busy: CalendarBusyInterval[] }> {
+    await this.delay(200);
+    // Deterministic pseudo-busy slots: block daily 12:00-13:00 local in range
+    const start = moment.utc(timeMinUtcIso);
+    const end = moment.utc(timeMaxUtcIso);
+    const busy: CalendarBusyInterval[] = [];
+    const cursor = start.clone();
+    while (cursor.isBefore(end)) {
+      const dayStartLocal = cursor.clone().local().set({ hour: 12, minute: 0, second: 0, millisecond: 0 });
+      const dayEndLocal = dayStartLocal.clone().add(1, 'hour');
+      busy.push({ start: dayStartLocal.utc().toISOString(), end: dayEndLocal.utc().toISOString() });
+      cursor.add(1, 'day');
+    }
+    return { busy };
+  }
+
+  async getGoogleAuthUrl(redirectUri?: string): Promise<{ url: string }> {
+    await this.delay(50);
+    // In mock, simulate a URL and flip connected on "return"
+    const url = `${this.config.baseUrl || ''}/mock/google/oauth?redirect_uri=${encodeURIComponent(redirectUri || window.location.href)}`;
+    this.googleConnected = true;
+    this.googleEmail = 'demo.user@example.com';
+    return { url };
+  }
+
+  async disconnectGoogleCalendar(): Promise<void> {
+    await this.delay(100);
+    this.googleConnected = false;
+    this.googleEmail = undefined;
   }
 }

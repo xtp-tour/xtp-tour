@@ -118,6 +118,14 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
 		"Bearer": []string{},
 	})}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
+
+	// Integrations: Google Calendar
+	integrations := api.Group("/integrations", "Integrations", "Third-party integrations", authMiddleware)
+	google := integrations.Group("/google", "Google", "Google integrations", authMiddleware)
+	google.GET("/status", []fizz.OperationOption{fizz.Summary("Get Google Calendar integration status")}, tonic.Handler(r.googleStatusHandler, http.StatusOK))
+	google.POST("/auth-url", []fizz.OperationOption{fizz.Summary("Get Google OAuth URL")}, tonic.Handler(r.googleAuthUrlHandler, http.StatusOK))
+	google.GET("/freebusy", []fizz.OperationOption{fizz.Summary("Get Google Calendar free/busy")}, tonic.Handler(r.googleFreeBusyHandler, http.StatusOK))
+	google.POST("/disconnect", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.googleDisconnectHandler, http.StatusOK))
 }
 
 func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
@@ -673,4 +681,55 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 	return &api.UpdateUserProfileResponse{
 		Profile: profile,
 	}, nil
+}
+
+// --- Google Calendar handlers (stub) ---
+type googleAuthUrlRequest struct {
+    RedirectUri string `json:"redirectUri"`
+}
+
+type googleAuthUrlResponse struct {
+    Url string `json:"url"`
+}
+
+type googleStatusResponse struct {
+    Provider  string `json:"provider"`
+    Connected bool   `json:"connected"`
+    Email     string `json:"email,omitempty"`
+}
+
+type freeBusyResponse struct {
+    Busy []struct {
+        Start string `json:"start"`
+        End   string `json:"end"`
+    } `json:"busy"`
+}
+
+func (r *Router) googleStatusHandler(c *gin.Context) (*googleStatusResponse, error) {
+    // TODO: Wire real storage and tokens; stub for now
+    return &googleStatusResponse{Provider: "google", Connected: false}, nil
+}
+
+func (r *Router) googleAuthUrlHandler(c *gin.Context, req *googleAuthUrlRequest) (*googleAuthUrlResponse, error) {
+    // TODO: Generate real URL; stub a non-redirecting URL for dev
+    redirect := req.RedirectUri
+    if redirect == "" {
+        redirect = "http://localhost:5173"
+    }
+    return &googleAuthUrlResponse{Url: redirect}, nil
+}
+
+func (r *Router) googleFreeBusyHandler(c *gin.Context) (*freeBusyResponse, error) {
+    timeMin := c.Query("timeMin")
+    timeMax := c.Query("timeMax")
+    _ = timeMin
+    _ = timeMax
+    // TODO: Query Google; return empty list for now
+    return &freeBusyResponse{Busy: []struct{ Start string `json:"start"`; End string `json:"end"` }{}}, nil
+}
+
+func (r *Router) googleDisconnectHandler(c *gin.Context) error {
+    // TODO: Remove stored tokens; stub no-op
+    c.Status(http.StatusOK)
+    return nil
 }

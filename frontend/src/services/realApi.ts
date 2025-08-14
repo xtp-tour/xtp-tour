@@ -1,4 +1,5 @@
 import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, UpdateProfileRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
+import { CalendarBusyInterval, CalendarIntegrationStatus } from '../types/api';
 
 // Debug information interface
 interface DebugInfo {
@@ -264,6 +265,27 @@ export class RealAPIClient {
     await this.fetch(`/api/events/public/${eventId}/joins/${joinRequestId}`, {
       method: 'DELETE'
     });
+  }
+
+  // --- Calendar integration (Google) ---
+  async getCalendarIntegrationStatus(): Promise<CalendarIntegrationStatus> {
+    return await this.fetch<CalendarIntegrationStatus>('/api/integrations/google/status');
+  }
+
+  async getGoogleFreeBusy(timeMinUtcIso: string, timeMaxUtcIso: string): Promise<{ busy: CalendarBusyInterval[] }> {
+    return await this.fetch<{ busy: CalendarBusyInterval[] }>(`/api/integrations/google/freebusy?timeMin=${encodeURIComponent(timeMinUtcIso)}&timeMax=${encodeURIComponent(timeMaxUtcIso)}`);
+  }
+
+  async getGoogleAuthUrl(redirectUri?: string): Promise<{ url: string }> {
+    const payload = redirectUri ? { redirectUri } : {};
+    return await this.fetch<{ url: string }>(`/api/integrations/google/auth-url`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async disconnectGoogleCalendar(): Promise<void> {
+    await this.fetch(`/api/integrations/google/disconnect`, { method: 'POST' });
   }
 
   async reportError(error: Error, extraInfo?: {

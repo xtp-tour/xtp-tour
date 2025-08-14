@@ -54,6 +54,18 @@ export interface UpdateProfileRequest {
   preferredCity: string;
 }
 
+// New: Calendar integration types
+export interface CalendarBusyInterval {
+  start: string; // UTC ISO start
+  end: string;   // UTC ISO end
+}
+
+export interface CalendarIntegrationStatus {
+  provider: 'google';
+  connected: boolean;
+  email?: string;
+}
+
 export interface APIClient {
   // Event endpoints
   createEvent(request: CreateEventRequest): Promise<ApiEvent>;
@@ -90,4 +102,10 @@ export interface APIClient {
   
   // Legacy profile methods for backward compatibility
   updateProfile(request: UpdateProfileRequest): Promise<void>;
+
+  // Calendar integration (Google)
+  getCalendarIntegrationStatus(): Promise<CalendarIntegrationStatus>;
+  getGoogleFreeBusy(timeMinUtcIso: string, timeMaxUtcIso: string): Promise<{ busy: CalendarBusyInterval[] }>;
+  getGoogleAuthUrl(redirectUri?: string): Promise<{ url: string }>;
+  disconnectGoogleCalendar(): Promise<void>;
 }
