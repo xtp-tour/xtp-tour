@@ -136,6 +136,10 @@
     },
     "success": {
       "eventCreated": "Event created successfully!"
+    },
+    "googleCalendar": {
+      "label": "Google Calendar Integration",
+      "helpText": "Connect your Google Calendar to see blocked time slots and avoid double-booking."
     }
   },
   "eventList": {
@@ -308,5 +312,20 @@
     "night": "night",
     "wholeDay": "whole day",
     "and": "and"
+  },
+  "googleCalendar": {
+    "connect": "Connect Google Calendar",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "authCodeInstructions": "After authorizing, copy the authorization code from the popup and paste it here:",
+    "authCodePlaceholder": "Paste authorization code here",
+    "errors": {
+      "connectionFailed": "Failed to connect to Google Calendar",
+      "authenticationFailed": "Authentication failed. Please try again.",
+      "authCodeRequired": "Please enter the authorization code"
+    }
   }
 }

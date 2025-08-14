@@ -13,6 +13,7 @@ type Config struct {
 	Metrics     metrics.MetricsConfig
 	Service     HttpConfig
 	Db          DbConfig
+	GoogleCalendar GoogleCalendarConfig
 }
 
 type HttpConfig struct {
@@ -24,6 +25,13 @@ type HttpConfig struct {
 type AuthConfig struct {
 	Type   string `default:"clerk" envvar:"AUTH_TYPE"`
 	Config string `envvar:"AUTH_CONFIG"`
+}
+
+// GoogleCalendarConfig represents Google Calendar OAuth configuration
+type GoogleCalendarConfig struct {
+	ClientID     string `envvar:"GOOGLE_CLIENT_ID"`
+	ClientSecret string `envvar:"GOOGLE_CLIENT_SECRET"`
+	Enabled      bool   `default:"false" envvar:"GOOGLE_CALENDAR_ENABLED"`
 }
 
 // MySql compatible config
