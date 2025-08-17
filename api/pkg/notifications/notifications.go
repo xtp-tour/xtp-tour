@@ -13,17 +13,23 @@ type NotifierDb interface {
 	GetUserNotificationSettings(joinRequestIds []string) (map[string]db.NotificationSettings, error)
 	GetUserNames(ctx context.Context, userIds []string) (map[string]string, error)
 	GetFacilityName(ctx context.Context, facilityId string) (string, error)
+	GetEventOwner(ctx context.Context, eventId string) (string, error)
 }
 
-// notify player joined event
-// notiy event confirmed by host
+const (
+	TopicEventConfirmed = "event_confirmed"
+	TopicUserJoined     = "user_joined"
+)
+
 type AllPurposeNotifier struct {
-	db NotifierDb
+	db    NotifierDb
+	queue Queue
 }
 
-func NewAllPurposeNotifier(db NotifierDb) *AllPurposeNotifier {
+func NewAllPurposeNotifier(db NotifierDb, queue Queue) *AllPurposeNotifier {
 	return &AllPurposeNotifier{
-		db: db,
+		db:    db,
+		queue: queue,
 	}
 }
 
@@ -61,11 +67,11 @@ func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, joinRequestIds 
 		hostName = "Unknown Host"
 	}
 
-	// Create notification messages
+	// Queue notification messages
 	for _, userId := range joinRequestIds {
-		prefs, exists := userNotifPrefs[userId]
+		_, exists := userNotifPrefs[userId]
 		if !exists {
-			logCtx.Warn("No notification preferences found for user", "userId", userId)
+			logCtx.Error("No notification preferences found for user", "userId", userId)
 			continue
 		}
 
@@ -74,22 +80,32 @@ func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, joinRequestIds 
 			userName = "Unknown User"
 		}
 
-		msg := fmt.Sprintf("Hello %s, your event join request has been confirmed by %s. The event will take place on %s at %s. Email: %s, Phone: %s",
-			userName, hostName, dateTime, facilityName, prefs.Email, prefs.PhoneNumber)
+		msg := fmt.Sprintf("Hello %s, your event join request has been confirmed by %s. The event will take place on %s at %s.",
+			userName, hostName, dateTime, facilityName)
 
-		logCtx.Info("Event confirmation notification",
-			"userId", userId,
-			"userName", userName,
-			"hostName", hostName,
-			"dateTime", dateTime,
-			"location", facilityName,
-			"message", msg)
+		notificationData := db.NotificationQueueData{
+			Topic:   TopicEventConfirmed,
+			Message: msg,
+		}
+
+		if err := d.queue.Enqueue(ctx, userId, notificationData); err != nil {
+			logCtx.Error("Failed to enqueue event confirmation notification",
+				"error", err,
+				"userId", userId,
+				"topic", TopicEventConfirmed)
+		} else {
+			logCtx.Debug("Event confirmation notification queued",
+				"userId", userId,
+				"userName", userName,
+				"hostName", hostName,
+				"dateTime", dateTime,
+				"location", facilityName)
+		}
 	}
 }
 
 func (d *AllPurposeNotifier) UserJoined(logCtx slog.Logger, joinRequest api.JoinRequestData) {
-	logCtx.Info("User joined event notification",
-		"joinRequestId", joinRequest.Id,
-		"eventId", joinRequest.EventId,
-		"comment", joinRequest.Comment)
+	// Since we can't extract userId from slog directly, we'll skip this notification for now
+	// TODO: Modify server interface to pass userId directly or implement proper context passing
+	logCtx.Warn("UserJoined notification skipped - cannot determine joining user ID from current interface", "eventId", joinRequest.EventId)
 }
