@@ -97,6 +97,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	profiles.GET("/:user", []fizz.OperationOption{fizz.Summary("Get user profile")}, tonic.Handler(r.getUserProfileHandler, http.StatusOK))
 	profiles.POST("/", []fizz.OperationOption{fizz.Summary("Create user profile")}, tonic.Handler(r.createUserProfileHandler, http.StatusOK))
 	profiles.PUT("/me", []fizz.OperationOption{fizz.Summary("Update user profile")}, tonic.Handler(r.updateUserProfileHandler, http.StatusOK))
+	profiles.DELETE("/me", []fizz.OperationOption{fizz.Summary("Delete user profile")}, tonic.Handler(r.deleteUserProfileHandler, http.StatusOK))
 
 	events := api.Group("/events", "Events", "Events operations", authMiddleware)
 	events.POST("/", []fizz.OperationOption{fizz.Summary("Create an event")}, tonic.Handler(r.createEventHandler, http.StatusOK))
@@ -129,6 +130,7 @@ func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
 	err := r.db.Ping(context.Background())
 
 	if err != nil {
+		slog.Error("Database connection failed in health check", "error", err)
 		resp.Status = "DB Connection Error"
 		resp.Details = err.Error()
 		return resp, nil
@@ -190,9 +192,12 @@ func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest)
 		}
 	}
 
+	logCtx := slog.With("userId", userId)
+
 	req.Event.UserId = userId.(string)
 	err := r.db.CreateEvent(context.Background(), &req.Event)
 	if err != nil {
+		logCtx.Error("Failed to create event", "error", err, "event", req.Event)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create event",
@@ -215,8 +220,11 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 		}
 	}
 
+	logCtx := slog.With("userId", userId)
+
 	events, err := r.db.GetEventsOfUser(context.Background(), userId.(string))
 	if err != nil {
+		logCtx.Error("Failed to get events of user", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
@@ -229,6 +237,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 	}
 	joinRequests, err := r.db.GetJoinRequests(context.Background(), eventIds...)
 	if err != nil {
+		logCtx.Error("Failed to get join requests", "error", err, "eventIds", eventIds)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get join requests",
@@ -265,6 +274,7 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 
 	events, err := r.db.GetPublicEvents(context.Background(), userId)
 	if err != nil {
+		slog.Error("Failed to get public events", "error", err, "userId", userId)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
@@ -278,8 +288,11 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 }
 
 func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error) {
+	logCtx := slog.With("userId", userId)
+
 	events, err := r.db.GetJoinedEvents(context.Background(), userId)
 	if err != nil {
+		logCtx.Error("Failed to get joined events", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
@@ -298,6 +311,7 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 		event.JoinRequests = make([]*api.JoinRequest, len(event.JoinRequests))
 		myReq, err = r.db.GetJoinRequest(context.Background(), myReq.Id)
 		if err != nil {
+			logCtx.Error("Failed to get join request", "error", err, "joinRequestId", myReq.Id)
 			return nil, rest.HttpError{
 				HttpCode: http.StatusInternalServerError,
 				Message:  "Failed to get join request",
@@ -328,8 +342,11 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 		}
 	}
 
+	logCtx := slog.With("userId", userId, "eventId", req.EventId)
+
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
+		logCtx.Error("Failed to get my event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -345,6 +362,7 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 
 	joinRequests, err := r.db.GetJoinRequests(context.Background(), event.Id)
 	if err != nil {
+		logCtx.Error("Failed to get join requests", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get join requests",
@@ -359,9 +377,11 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 }
 
 func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
+	logCtx := slog.With("eventId", req.EventId)
 
 	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {
+		logCtx.Error("Failed to get public event", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -383,8 +403,11 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 		}
 	}
 
+	logCtx := slog.With("userId", userId, "eventId", req.EventId)
+
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
+		logCtx.Error("Failed to get my event for deletion", "error", err)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -414,7 +437,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 			}
 		}
 
-		slog.Error("Failed to delete event", "error", err, "eventId", req.EventId, "userId", userId)
+		logCtx.Error("Failed to delete event", "error", err)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete event",
@@ -434,6 +457,8 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 		}
 	}
 
+	logCtx := slog.With("userId", userId, "eventId", req.EventId)
+
 	joinRequestId, err := r.db.CreateJoinRequest(context.Background(), req.EventId, userId.(string), &req.JoinRequest)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
@@ -442,7 +467,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 				Message:  "Event not found",
 			}
 		}
-		slog.Error("Failed to create join request", "error", err, "eventId", req.EventId, "userId", userId)
+		logCtx.Error("Failed to create join request", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create join request",
@@ -452,8 +477,8 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 	req.JoinRequest.Id = joinRequestId
 
 	// Notify about user joining
-	logCtx := *slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", joinRequestId)
-	go r.notifier.UserJoined(logCtx, req.JoinRequest)
+	notifyLogCtx := *slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", joinRequestId)
+	go r.notifier.UserJoined(notifyLogCtx, req.JoinRequest)
 
 	return &api.JoinRequestResponse{
 		JoinRequest: api.JoinRequest{
@@ -474,6 +499,8 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 		}
 	}
 
+	logCtx := slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", req.JoinRequestId)
+
 	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
@@ -483,6 +510,7 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 			}
 		}
 
+		logCtx.Error("Failed to get public event for cancel join request", "error", err)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
@@ -504,7 +532,7 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 				Message:  "Join request not found",
 			}
 		}
-		slog.Error("Failed to delete join request", "error", err, "joinRequestId", req.JoinRequestId, "userId", userId)
+		logCtx.Error("Failed to delete join request", "error", err)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete join request",
@@ -597,6 +625,8 @@ func (r *Router) getUserProfileHandler(c *gin.Context, req *api.GetUserProfileRe
 }
 
 func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProfileResponse, error) {
+	logCtx := slog.With("userId", userId)
+
 	profile, err := r.db.GetUserProfile(c, userId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
@@ -606,6 +636,7 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 			}
 		}
 
+		logCtx.Error("Failed to get user profile", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get profile",
@@ -613,12 +644,14 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 	}
 
 	return &api.GetUserProfileResponse{
+		UserId: userId,
 		Profile: &api.UserProfileData{
-			UserId:        userId,
-			FirstName:     profile.FirstName,
-			LastName:      profile.LastName,
-			NTRPLevel:     profile.NTRPLevel,
-			PreferredCity: profile.PreferredCity,
+			FirstName: profile.FirstName,
+			LastName:  profile.LastName,
+			NTRPLevel: profile.NTRPLevel,
+			Language:  profile.Language,
+			Country:   profile.Country,
+			City:      profile.City,
 		},
 	}, nil
 }
@@ -633,8 +666,11 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 		}
 	}
 
-	profile, err := r.db.CreateUserProfile(c, userId.(string), req)
+	logCtx := slog.With("userId", userId)
+
+	_, profile, err := r.db.CreateUserProfile(c, userId.(string), req)
 	if err != nil {
+		logCtx.Error("Failed to create profile", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create profile",
@@ -642,6 +678,7 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 	}
 
 	return &api.CreateUserProfileResponse{
+		UserId:  userId.(string),
 		Profile: profile,
 	}, nil
 }
@@ -656,6 +693,8 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 		}
 	}
 
+	logCtx := slog.With("userId", userId)
+
 	profile, err := r.db.UpdateUserProfile(context.Background(), userId.(string), &req.UserProfileData)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
@@ -664,6 +703,7 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 				Message:  "Profile not found",
 			}
 		}
+		logCtx.Error("Failed to update user profile", "error", err)
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to update profile",
@@ -671,6 +711,30 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 	}
 
 	return &api.UpdateUserProfileResponse{
+		UserId:  userId.(string),
 		Profile: profile,
 	}, nil
+}
+
+func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserProfileRequest) error {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		slog.Info("User ID not found in context")
+		return rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	logCtx := slog.With("userId", userId)
+
+	err := r.db.DeleteUserProfile(context.Background(), userId.(string))
+	if err != nil {
+		logCtx.Error("Failed to delete user profile", "error", err)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to delete profile",
+		}
+	}
+	return nil
 }

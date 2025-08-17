@@ -1,13 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
     uid VARCHAR(36) PRIMARY KEY,
-    phone_number VARCHAR(15) NOT NULL,
-    country VARCHAR(3) NOT NULL,
     external_id VARCHAR(255),
     first_name VARCHAR(100),
     last_name VARCHAR(100),    
-    profile_picture_url VARCHAR(512),
-    ntrp_level DECIMAL(2,1) CHECK (ntrp_level >= 1.0 AND ntrp_level <= 7.0),
-    preferred_city VARCHAR(255),
+    profile_picture_url VARCHAR(512),    
+    is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -16,8 +13,9 @@ CREATE TABLE user_pref (
     uid VARCHAR(36) PRIMARY KEY,
     language VARCHAR(5) NOT NULL,
     country VARCHAR(3) NOT NULL,
-    city VARCHAR(255),
+    city VARCHAR(255) NOT NULL,
     notifications JSON NOT NULL,
+    ntrp_level DECIMAL(2,1) CHECK (ntrp_level >= 1.0 AND ntrp_level <= 7.0),    
     CHECK (JSON_VALID(`notifications`)),
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
 );

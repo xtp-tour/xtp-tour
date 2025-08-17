@@ -207,17 +207,16 @@ type GetMyProfileRequest struct {
 }
 
 type GetUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
 type CreateUserProfileRequest struct {
-	FirstName     string  `json:"firstName"`
-	LastName      string  `json:"lastName"`
-	NTRPLevel     float64 `json:"ntrpLevel"`
-	PreferredCity string  `json:"preferredCity"`
+	UserProfileData
 }
 
 type CreateUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
@@ -226,13 +225,19 @@ type UpdateUserProfileRequest struct {
 }
 
 type UpdateUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
 type UserProfileData struct {
-	UserId        string  `json:"userId"`
-	FirstName     string  `json:"firstName"`
-	LastName      string  `json:"lastName"`
-	NTRPLevel     float64 `json:"ntrpLevel"`
-	PreferredCity string  `json:"preferredCity"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	NTRPLevel float64 `json:"ntrpLevel"`
+
+	Language string `json:"language" default:"en"`
+	Country  string `json:"country" default:"Poland"`
+	City     string `json:"city" default:"Wroclaw"`
+}
+
+type DeleteUserProfileRequest struct {
 }

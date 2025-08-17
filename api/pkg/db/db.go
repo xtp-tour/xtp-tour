@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log/slog"
 	"maps"
 	"slices"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 )
@@ -524,51 +526,46 @@ func (e *ValidationError) Error() string {
 func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, req *api.EventConfirmationRequest) (*api.Confirmation, error) {
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
-		slog.Error("Failed to begin transaction", "error", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "Failed to begin transaction")
 	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
 
 	// Create confirmation
 	confirmationId := uuid.New().String()
 	query := `INSERT INTO confirmations (id, event_id, location_id, dt) VALUES (?, ?, ?, ?)`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime)})
 	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime))
 	if err != nil {
 		tx.Rollback()
-		slog.Error("Failed to create confirmation", "error", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "Failed to create confirmation")
 	}
 
 	// Update join requests with confirmation ID
 	query = `UPDATE join_requests SET is_accepted = true WHERE id in (?)`
 	query, args, err := sqlx.In(query, req.JoinRequestsIds)
 	if err != nil {
-		slog.Error("Failed to prepare query with IN clause", "error", err)
-		return nil, err
+		tx.Rollback()
+		return nil, errors.WithMessage(err, "Failed to prepare query with IN clause")
 	}
 	query = db.conn.Rebind(query)
 	slog.Debug("Executing SQL query", "query", query, "params", args)
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		tx.Rollback()
-		slog.Error("Failed to update event status", "error", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "Failed to update join requests")
 	}
 
 	// Update event status
-	query = `UPDATE events SET status = ? WHERE id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{api.EventStatusConfirmed, eventId})
-	_, err = tx.ExecContext(ctx, query, api.EventStatusConfirmed, eventId)
+	_, err = tx.ExecContext(ctx, `UPDATE events SET status = ? WHERE id = ?`, api.EventStatusConfirmed, eventId)
 	if err != nil {
 		tx.Rollback()
-		slog.Error("Failed to update event status", "error", err)
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		slog.Error("Failed to commit transaction", "error", err)
-		return nil, err
+		return nil, errors.WithMessage(err, "Failed to update event status")
 	}
 
 	// Build response
@@ -584,16 +581,13 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 // Add helper methods for router validation
 func (db *Db) GetEventOwner(ctx context.Context, eventId string) (string, error) {
-	query := `SELECT user_id FROM events WHERE id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", eventId)
 	var userId string
-	err := db.conn.GetContext(ctx, &userId, query, eventId)
+	err := db.conn.GetContext(ctx, &userId, `SELECT user_id FROM events WHERE id = ?`, eventId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", DbObjectNotFoundError{Message: "Event not found"}
 		}
-		slog.Error("Failed to get event owner", "error", err, "eventId", eventId)
-		return "", err
+		return "", errors.WithMessage(err, "Failed to get event owner")
 	}
 	return userId, nil
 }
@@ -603,14 +597,12 @@ func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestI
 	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, userId})
 	result, err := db.conn.ExecContext(ctx, query, joinRequestId, userId)
 	if err != nil {
-		slog.Error("Failed to delete join request", "error", err, "joinRequestId", joinRequestId, "userId", userId)
-		return err
+		return errors.WithMessage(err, "Failed to delete join request")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("Failed to get rows affected", "error", err)
-		return err
+		return errors.WithMessage(err, "Failed to get rows affected")
 	}
 
 	if rowsAffected == 0 {
@@ -728,7 +720,7 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 	query := `
 		SELECT uid, CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name
 		FROM users 
-		WHERE uid IN (?)
+		WHERE uid IN (?) AND is_deleted = false
 	`
 
 	query, args, err := sqlx.In(query, userIds)
@@ -833,18 +825,21 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 }
 
 func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfileData, error) {
-	query := `SELECT uid, first_name, last_name, ntrp_level, preferred_city FROM users WHERE uid = ?`
+	query := `SELECT  first_name, last_name, ntrp_level, language, country, city FROM users u
+	LEFT JOIN user_pref up ON u.uid = up.uid
+	WHERE u.uid = ? AND u.is_deleted = false`
 	slog.Debug("Executing SQL query", "query", query, "params", userId)
 
 	row := db.conn.QueryRowContext(ctx, query, userId)
 
 	var profile api.UserProfileData
 	err := row.Scan(
-		&profile.UserId,
 		&profile.FirstName,
 		&profile.LastName,
 		&profile.NTRPLevel,
-		&profile.PreferredCity,
+		&profile.Language,
+		&profile.Country,
+		&profile.City,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -856,49 +851,88 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 	return &profile, nil
 }
 
-func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api.CreateUserProfileRequest) (*api.UserProfileData, error) {
-	query := `INSERT INTO users (uid, first_name, last_name, ntrp_level, preferred_city) 
-		VALUES (?, ?, ?, ?, ?)`
-
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity})
-	_, err := db.conn.ExecContext(ctx, query, userId, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity)
+func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api.CreateUserProfileRequest) (string, *api.UserProfileData, error) {
+	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
-		slog.Error("Failed to create user profile", "error", err, "userId", userId)
-		return nil, err
+		return "", nil, errors.WithMessage(err, "Failed to begin transaction")
+	}
+
+	_, err = tx.ExecContext(ctx, "INSERT INTO users (uid, first_name, last_name) VALUES (?, ?, ?)",
+		userId, profile.FirstName, profile.LastName)
+	if err != nil {
+		tx.Rollback()
+		return "", nil, errors.WithMessage(err, "Failed to create user profile")
+	}
+
+	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications) VALUES (?, ?, ?, ?, ?, ?)",
+		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, "{}")
+	if err != nil {
+		tx.Rollback()
+		return "", nil, errors.WithMessage(err, "Failed to create user profile")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return "", nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
 	// Set the userId and return the profile
-	return &api.UserProfileData{
-		UserId:        userId,
-		FirstName:     profile.FirstName,
-		LastName:      profile.LastName,
-		NTRPLevel:     profile.NTRPLevel,
-		PreferredCity: profile.PreferredCity,
+	return userId, &api.UserProfileData{
+		FirstName: profile.FirstName,
+		LastName:  profile.LastName,
+		NTRPLevel: profile.NTRPLevel,
+		Language:  profile.Language,
+		Country:   profile.Country,
+		City:      profile.City,
 	}, nil
 }
 
 func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api.UserProfileData) (*api.UserProfileData, error) {
-	query := `UPDATE users SET first_name = ?, last_name = ?, ntrp_level = ?, preferred_city = ? WHERE uid = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId})
-	result, err := db.conn.ExecContext(ctx, query, profile.FirstName, profile.LastName, profile.NTRPLevel, profile.PreferredCity, userId)
+	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
-		slog.Error("Failed to update user profile", "error", err, "userId", userId)
-		return nil, err
+		return nil, errors.WithMessage(err, "Failed to begin transaction")
+	}
+
+	result, err := tx.ExecContext(ctx, `UPDATE users SET first_name = ?, last_name = ? WHERE uid = ?`, profile.FirstName, profile.LastName, userId)
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.WithMessage(err, "Failed to update user profile")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("Failed to get rows affected", "error", err)
-		return nil, err
+		tx.Rollback()
+		return nil, errors.WithMessage(err, "Failed to get rows affected")
 	}
 
 	if rowsAffected == 0 {
+		tx.Rollback()
 		return nil, DbObjectNotFoundError{Message: "Profile not found"}
 	}
 
-	// Set the userId and return the profile
-	profile.UserId = userId
+	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, userId)
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.WithMessage(err, "Failed to update user profile")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.WithMessage(err, "Failed to commit transaction")
+	}
+
 	return profile, nil
+}
+
+func (db *Db) DeleteUserProfile(ctx context.Context, userId string) error {
+	_, err := db.conn.ExecContext(ctx, `UPDATE users SET is_deleted = true WHERE uid = ?`, userId)
+	if err != nil {
+		slog.Error("Failed to delete user profile", "error", err, "userId", userId)
+		return err
+	}
+	return nil
 }
 
 func (db *Db) GetUserNotificationSettings(userIds []string) (map[string]NotificationSettings, error) {
@@ -909,11 +943,10 @@ func (db *Db) GetUserNotificationSettings(userIds []string) (map[string]Notifica
 	query := `
 		SELECT 
 			u.uid,
-			u.phone_number,
-			COALESCE(JSON_UNQUOTE(JSON_EXTRACT(up.notifications, '$.email')), '') as email
+			up.notifications
 		FROM users u
 		LEFT JOIN user_pref up ON u.uid = up.uid
-		WHERE u.uid IN (?)
+		WHERE u.uid IN (?) AND u.is_deleted = false
 	`
 
 	query, args, err := sqlx.In(query, userIds)
@@ -934,17 +967,31 @@ func (db *Db) GetUserNotificationSettings(userIds []string) (map[string]Notifica
 
 	result := make(map[string]NotificationSettings)
 	for rows.Next() {
-		var uid, phoneNumber, email string
-		if err := rows.Scan(&uid, &phoneNumber, &email); err != nil {
+		var uid string
+		var userPrefs UserPreferences
+		if err := rows.Scan(&uid, &userPrefs); err != nil {
 			slog.Error("Failed to scan notification settings row", "error", err)
 			return nil, err
 		}
 
-		result[uid] = NotificationSettings{
-			Email:       email,
-			PhoneNumber: phoneNumber,
-		}
+		// Phone number and email are both stored in the preferences JSON now
+		result[uid] = userPrefs.Notifications
 	}
 
 	return result, nil
+}
+
+func (db *Db) UpsertUserNotificationSettings(ctx context.Context, userId string, settings *NotificationSettings) error {
+	query := `INSERT INTO user_pref (uid, notifications) VALUES (?, ?) ON DUPLICATE KEY UPDATE notifications = ?`
+	json, err := json.Marshal(settings)
+	if err != nil {
+		slog.Error("Failed to marshal notification settings", "error", err)
+		return err
+	}
+	_, err = db.conn.ExecContext(ctx, query, userId, json, json)
+	if err != nil {
+		slog.Error("Failed to upsert user notification settings", "error", err, "userId", userId)
+		return err
+	}
+	return nil
 }

@@ -8,11 +8,17 @@ import (
 )
 
 type Config struct {
-	IsDebugMode bool   `default:"false" envvar:"DEBUG_MODE"`
-	LogLevel    string `default:"info" envvar:"LOG_LEVEL"`
-	Metrics     metrics.MetricsConfig
-	Service     HttpConfig
-	Db          DbConfig
+	IsDebugMode   bool   `default:"false" envvar:"DEBUG_MODE"`
+	LogLevel      string `default:"info" envvar:"LOG_LEVEL"`
+	Metrics       metrics.MetricsConfig
+	Service       HttpConfig
+	Db            DbConfig
+	Notifications NotificationConfig
+}
+
+type NotificationConfig struct {
+	MaxRetries    int `default:"3" envvar:"NOTIFICATION_MAX_RETRIES"`
+	TickerSeconds int `default:"5" envvar:"NOTIFICATION_TICKER_SECONDS"`
 }
 
 type HttpConfig struct {
