@@ -1,2 +1,11 @@
-export AUTH_TYPE=[clerk | debug]
-export AUTH_CONFIG=[your clerk secret key]
+# Database configuration
+export DB_HOST="127.0.0.1"
+export DB_PORT="33306"
+export DB_USER="root"
+export DB_PASSWORD="password"
+export DB_NAME="xtp_tour"
+
+# Google Calendar OAuth configuration
+export GOOGLE_CALENDAR_CLIENT_ID="your-google-oauth-client-id"
+export GOOGLE_CALENDAR_CLIENT_SECRET="your-google-oauth-client-secret"
+export GOOGLE_CALENDAR_REDIRECT_URL="http://localhost:3000/calendar/callback"
