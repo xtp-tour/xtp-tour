@@ -1,7 +1,7 @@
 import React from 'react';
 import { TimeSlot } from './types';
-import moment from 'moment';
 import { BADGE_STYLES } from '../../styles/badgeStyles';
+import { formatDateOnlyLocalized, formatTimeOnlyLocalized } from '../../utils/i18nDateUtils';
 
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }) => {
   // Group slots by date using moment
   const groupedSlots = timeSlots.reduce((acc, slot) => {
-    const dateKey = slot.date.format('YYYY-MM-DD');
+    const dateKey = slot.date.toISOString().split('T')[0];
     
     if (!acc[dateKey]) {
       acc[dateKey] = [];
@@ -29,7 +29,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
           <h6 className="d-flex align-items-center mb-3">
             <i className="bi bi-calendar-event me-2" style={{ color: 'var(--tennis-sage)' }}></i>
             <span style={{ color: 'var(--tennis-navy, #212529)' }}>
-              {moment(dateKey).format('ddd, MMM D')}
+              {formatDateOnlyLocalized(dateKey)}
             </span>
           </h6>
           <div className="d-flex flex-wrap gap-2 ps-4">
@@ -73,7 +73,6 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                 iconColor = 'var(--tennis-navy, #212529)';
               }
 
-              console.log(`Rendering time slot: ${slot.date.format('LT')} - isUserSelected: ${slot.isUserSelected}`);
 
               return (
                 <div
@@ -88,7 +87,7 @@ const TimeSlotLabels: React.FC<Props> = ({ timeSlots, onSelect, className = '' }
                   }}
                 >
                   <i className={`bi bi-clock me-1`} style={{ color: iconColor }}></i>
-                  {slot.date.format('LT')}
+                  {formatTimeOnlyLocalized(slot.date)}
                 </div>
               );
             })}

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
-import moment from 'moment';
 import { components } from '../../types/schema';
 import { formatDuration } from '../../utils/dateUtils';
+import { formatTimeSlotLocalized } from '../../utils/i18nDateUtils';
 import { LocationBadge } from './EventBadges';
 import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,7 @@ interface EventHeaderProps extends StyleProps {
 }
 
 const formatConfirmedDateTime = (datetime: string): string => {
-  return moment(datetime).format('ddd, MMM D @ LT');
+  return formatTimeSlotLocalized(datetime);
 };
 
 // Get status badge info based on event status

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
-import { formatTimeSlot } from '../utils/dateUtils';
+import { formatTimeSlotLocalized } from '../utils/i18nDateUtils';
 import UserDisplay from './UserDisplay';
 import { BADGE_STYLES } from '../styles/badgeStyles';
 
@@ -490,7 +490,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
                               ? 'var(--tennis-white)' 
                               : 'var(--tennis-navy)' 
                           }}></i>
-                          {formatTimeSlot(timeSlot)}
+                          {formatTimeSlotLocalized(timeSlot)}
                         </div>
                       ))}
                     </div>
