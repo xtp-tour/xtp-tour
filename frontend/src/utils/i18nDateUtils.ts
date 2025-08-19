@@ -63,7 +63,11 @@ export const formatTimeSlotLocalized = (utcTimeSlot: string): string => {
                        i18n.language === 'pl' ? 'pl' : 'en';
   
   // Use current i18n locale for formatting
-  return localDate.locale(currentLocale).format('ddd, MMM D @ LT');
+  localDate.locale(currentLocale);
+  
+  // Use 24-hour format for Polish locale, 12-hour for others
+  const timeFormat = currentLocale === 'pl' ? 'HH:mm' : 'LT';
+  return localDate.format(`ddd, MMM D @ ${timeFormat}`);
 };
 
 /**
