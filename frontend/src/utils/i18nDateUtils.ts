@@ -5,6 +5,13 @@ import i18n from '../i18n';
 type TFunction = (key: string, options?: Record<string, unknown>) => string;
 
 /**
+ * Get the current locale for date formatting
+ */
+const getCurrentLocale = (): string => {
+  return i18n.language || 'en';
+};
+
+/**
  * Format session duration from minutes to a human-readable string with i18n support
  * 
  * @param minutes Duration in minutes
@@ -51,40 +58,214 @@ export const formatDurationI18n = (minutes: number, t: TFunction): string => {
 
 /**
  * Format time slot for display in UI with locale awareness, converting from UTC to local
+ * Uses native Intl.DateTimeFormat for proper localization
  * 
  * @param utcTimeSlot UTC ISO string
  * @returns Formatted time string using current i18n locale
  */
 export const formatTimeSlotLocalized = (utcTimeSlot: string): string => {
-  const localDate = moment.utc(utcTimeSlot).local();
-  const currentLocale = i18n.language === 'en' ? 'en' : 
-                       i18n.language === 'es' ? 'es' : 
-                       i18n.language === 'fr' ? 'fr' : 
-                       i18n.language === 'pl' ? 'pl' : 'en';
+  const localDate = moment.utc(utcTimeSlot).local().toDate();
+  const locale = getCurrentLocale();
   
-  // Use current i18n locale for formatting
-  localDate.locale(currentLocale);
+  // Format date part (weekday, month, day) using Intl
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
   
-  // Use 24-hour format for Polish locale, 12-hour for others
-  const timeFormat = currentLocale === 'pl' ? 'HH:mm' : 'LT';
-  return localDate.format(`ddd, MMM D @ ${timeFormat}`);
+  // Format time part using Intl - this automatically uses the locale's preferred format
+  // (24-hour for most European locales including Polish, 12-hour for US English)
+  const timeFormatter = new Intl.DateTimeFormat(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false // Force 24-hour format for consistency across locales
+  });
+  
+  const datePart = dateFormatter.format(localDate);
+  const timePart = timeFormatter.format(localDate);
+  
+  return `${datePart} @ ${timePart}`;
 };
 
 /**
  * Format UTC ISO timestamp to local time with locale support
+ * Uses native Intl.DateTimeFormat for proper localization
  * 
  * @param isoString UTC ISO 8601 timestamp (YYYY-MM-DDTHH:MM:SSZ)
- * @param format Optional format string for moment
+ * @param options Optional Intl.DateTimeFormatOptions for custom formatting
  * @returns Formatted date string in local time using current i18n locale
  */
-export const formatUtcToLocalI18n = (isoString: string, format?: string): string => {
-  const momentDate = moment.utc(isoString).local();
-  const currentLocale = i18n.language === 'en' ? 'en' : 
-                       i18n.language === 'es' ? 'es' : 
-                       i18n.language === 'fr' ? 'fr' : 
-                       i18n.language === 'pl' ? 'pl' : 'en';
+export const formatUtcToLocalI18n = (isoString: string, options?: Intl.DateTimeFormatOptions): string => {
+  const localDate = moment.utc(isoString).local().toDate();
+  const locale = getCurrentLocale();
   
-  momentDate.locale(currentLocale);
+  // Default format: YYYY-MM-DD HH:mm equivalent using Intl
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  };
   
-  return format ? momentDate.format(format) : momentDate.format('YYYY-MM-DD HH:mm');
+  const formatOptions = options || defaultOptions;
+  const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+  
+  return formatter.format(localDate);
+};
+
+/**
+ * Format time only with locale support using native Intl API
+ * 
+ * @param utcTimeSlot UTC ISO string or moment object or Date
+ * @returns Formatted time string using current i18n locale
+ */
+export const formatTimeOnlyLocalized = (utcTimeSlot: string | moment.Moment | Date): string => {
+  let date: Date;
+  
+  if (typeof utcTimeSlot === 'string') {
+    date = moment.utc(utcTimeSlot).local().toDate();
+  } else if (moment.isMoment(utcTimeSlot)) {
+    date = utcTimeSlot.toDate();
+  } else {
+    date = utcTimeSlot;
+  }
+  
+  const locale = getCurrentLocale();
+  const formatter = new Intl.DateTimeFormat(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false // Force 24-hour format for consistency
+  });
+  
+  return formatter.format(date);
+};
+
+/**
+ * Format date only with locale support using native Intl API
+ * 
+ * @param date Date string, moment object, or Date object
+ * @returns Formatted date string using current i18n locale
+ */
+export const formatDateOnlyLocalized = (date: string | moment.Moment | Date): string => {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    dateObj = moment(date).toDate();
+  } else if (moment.isMoment(date)) {
+    dateObj = date.toDate();
+  } else {
+    dateObj = date;
+  }
+  
+  const locale = getCurrentLocale();
+  const formatter = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+  
+  return formatter.format(dateObj);
+};
+
+/**
+ * Format month and day only with locale support using native Intl API
+ * 
+ * @param date Date string, moment object, or Date object
+ * @returns Formatted month and day string using current i18n locale (e.g., "Dec 25")
+ */
+export const formatMonthDayLocalized = (date: string | moment.Moment | Date): string => {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    dateObj = moment(date).toDate();
+  } else if (moment.isMoment(date)) {
+    dateObj = date.toDate();
+  } else {
+    dateObj = date;
+  }
+  
+  const locale = getCurrentLocale();
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric'
+  });
+  
+  return formatter.format(dateObj);
+};
+
+/**
+ * Format date and time range with locale support using native Intl API
+ * 
+ * @param startTime Start time (moment object, Date, or ISO string)
+ * @param endTime End time (moment object, Date, or ISO string)
+ * @returns Formatted date and time range string
+ */
+export const formatDateTimeRangeLocalized = (
+  startTime: moment.Moment | Date | string, 
+  endTime: moment.Moment | Date | string
+): string => {
+  let startDate: Date;
+  let endDate: Date;
+  
+  // Convert inputs to Date objects
+  if (typeof startTime === 'string') {
+    startDate = moment(startTime).toDate();
+  } else if (moment.isMoment(startTime)) {
+    startDate = startTime.toDate();
+  } else {
+    startDate = startTime;
+  }
+  
+  if (typeof endTime === 'string') {
+    endDate = moment(endTime).toDate();
+  } else if (moment.isMoment(endTime)) {
+    endDate = endTime.toDate();
+  } else {
+    endDate = endTime;
+  }
+  
+  const locale = getCurrentLocale();
+  
+  // Check if same day
+  const startMoment = moment(startDate);
+  const endMoment = moment(endDate);
+  
+  if (startMoment.isSame(endMoment, 'day')) {
+    // Same day: "Mon, Dec 25 • 14:00–16:00"
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    const timeFormatter = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const datePart = dateFormatter.format(startDate);
+    const startTime = timeFormatter.format(startDate);
+    const endTime = timeFormatter.format(endDate);
+    
+    return `${datePart} • ${startTime}–${endTime}`;
+  } else {
+    // Different days: "Mon, Dec 25 • 14:00–Tue, Dec 26 • 16:00"
+    const dateTimeFormatter = new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const startFormatted = dateTimeFormatter.format(startDate);
+    const endFormatted = dateTimeFormatter.format(endDate);
+    
+    return `${startFormatted}–${endFormatted}`;
+  }
 };

@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { formatDateTimeRangeLocalized, formatTimeSlotLocalized, formatDateOnlyLocalized, formatMonthDayLocalized } from './i18nDateUtils';
 
 // Interface for time slot - keeping it minimal for utils
 interface TimeSlot {
@@ -59,11 +60,11 @@ const groupConsecutiveSlots = (slots: TimeSlot[]): TimeSlot[][] => {
 };
 
 /**
- * Format a range of consecutive time slots
+ * Format a range of consecutive time slots using localized formatting
  */
 const formatTimeRange = (group: TimeSlot[]): string => {
   if (group.length === 1) {
-    return group[0].date.format('ddd, MMM D • LT');
+    return formatTimeSlotLocalized(group[0].date.toISOString());
   }
   
   const start = group[0];
@@ -72,11 +73,7 @@ const formatTimeRange = (group: TimeSlot[]): string => {
   // Calculate end time by adding 30 minutes to the last slot
   const endTime = end.date.clone().add(30, 'minutes');
   
-  if (start.date.isSame(end.date, 'day')) {
-    return `${start.date.format('ddd, MMM D')} • ${start.date.format('LT')}–${endTime.format('LT')}`;
-  } else {
-    return `${start.date.format('ddd, MMM D • LT')}–${endTime.format('ddd, MMM D • LT')}`;
-  }
+  return formatDateTimeRangeLocalized(start.date, endTime);
 };
 
 /**
@@ -99,8 +96,8 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][], t: TranslationFunction): st
   
   // If spans multiple days and multiple time categories, generalize appropriately
   if (uniqueDates.length > 1 && categoriesArray.length > 1) {
-    const startDate = moment(uniqueDates[0]).format('MMM D');
-    const endDate = moment(uniqueDates[uniqueDates.length - 1]).format('MMM D');
+    const startDate = formatMonthDayLocalized(uniqueDates[0]);
+    const endDate = formatMonthDayLocalized(uniqueDates[uniqueDates.length - 1]);
     
     if (categoriesArray.length >= 3) {
       return `${startDate}–${endDate} • ${t('timeOfDay.wholeDay')}`;
@@ -111,7 +108,7 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][], t: TranslationFunction): st
   
   // If single day but multiple time categories
   if (uniqueDates.length === 1 && categoriesArray.length > 1) {
-    const dateStr = moment(uniqueDates[0]).format('ddd, MMM D');
+    const dateStr = formatDateOnlyLocalized(uniqueDates[0]);
     if (categoriesArray.length >= 3) {
       return `${dateStr} • ${t('timeOfDay.wholeDay')}`;
     } else {
@@ -121,13 +118,13 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][], t: TranslationFunction): st
   
   // If single time category across multiple days
   if (uniqueDates.length > 1 && categoriesArray.length === 1) {
-    const startDate = moment(uniqueDates[0]).format('MMM D');
-    const endDate = moment(uniqueDates[uniqueDates.length - 1]).format('MMM D');
+    const startDate = formatMonthDayLocalized(uniqueDates[0]);
+    const endDate = formatMonthDayLocalized(uniqueDates[uniqueDates.length - 1]);
     return `${startDate}–${endDate} • ${t(`timeOfDay.${categoriesArray[0]}`)}`;
   }
   
   // Default: show first date with time category
-  const firstDate = moment(uniqueDates[0]).format('ddd, MMM D');
+  const firstDate = formatDateOnlyLocalized(uniqueDates[0]);
   return `${firstDate} • ${t(`timeOfDay.${categoriesArray[0]}`)}`;
 };
 
@@ -141,9 +138,9 @@ const generalizeToTimeOfDay = (groups: TimeSlot[][], t: TranslationFunction): st
 export const compressTimeSlots = (timeSlots: TimeSlot[], t: TranslationFunction): string => {
   if (timeSlots.length === 0) return '';
   
-  // For single slot, use original format
+  // For single slot, use localized format
   if (timeSlots.length === 1) {
-    return timeSlots[0].date.format('ddd, MMM D • LT');
+    return formatTimeSlotLocalized(timeSlots[0].date.toISOString());
   }
   
   // Group consecutive time slots

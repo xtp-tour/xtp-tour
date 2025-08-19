@@ -11,6 +11,7 @@ import TimeAgo from 'react-timeago';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BADGE_STYLES } from '../../styles/badgeStyles';
 import { useTranslation } from 'react-i18next';
+import { formatTimeSlotLocalized } from '../../utils/i18nDateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -113,7 +114,7 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                       )}
                     </td>
                     <td>{(jr.locations || []).join(', ')}</td>
-                    <td>{(jr.timeSlots || []).map(ts => moment(ts).format('MMM D, LT')).join(', ')}</td>
+                    <td>{(jr.timeSlots || []).map(ts => formatTimeSlotLocalized(ts)).join(', ')}</td>
                   </tr>
                 ))}
               </tbody>
