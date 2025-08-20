@@ -81,6 +81,9 @@ func createProfiles() (string, string, string, error) {
 				LastName:  users[i] + "Doe",
 				NTRPLevel: 3.5,
 				City:      "Iktslan",
+				Notifications: api.NotificationSettings{
+					DebugAddress: users[i] + "@xtp-tour-debug.com",
+				},
 			},
 		}
 

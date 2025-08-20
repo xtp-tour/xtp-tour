@@ -68,8 +68,9 @@ func (row *ConfirmationRow) ToApi() *api.Confirmation {
 }
 
 type NotificationSettings struct {
-	Email       string `json:"email,omitempty"`
-	PhoneNumber string `json:"phone_number,omitempty"`
+	Email        string `json:"email,omitempty"`
+	PhoneNumber  string `json:"phone_number,omitempty"`
+	DebugAddress string `json:"debug_address,omitempty"`
 }
 
 func (n *NotificationSettings) Value() (driver.Value, error) {

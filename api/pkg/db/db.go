@@ -825,7 +825,7 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 }
 
 func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfileData, error) {
-	query := `SELECT  first_name, last_name, ntrp_level, language, country, city FROM users u
+	query := `SELECT  first_name, last_name, ntrp_level, language, country, city, COALESCE(notifications, '{}') as notifications FROM users u
 	LEFT JOIN user_pref up ON u.uid = up.uid
 	WHERE u.uid = ? AND u.is_deleted = false`
 	slog.Debug("Executing SQL query", "query", query, "params", userId)
@@ -833,6 +833,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 	row := db.conn.QueryRowContext(ctx, query, userId)
 
 	var profile api.UserProfileData
+	var dbNotificationSettings NotificationSettings
 	err := row.Scan(
 		&profile.FirstName,
 		&profile.LastName,
@@ -840,6 +841,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		&profile.Language,
 		&profile.Country,
 		&profile.City,
+		&dbNotificationSettings,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -847,6 +849,11 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		}
 		slog.Error("Failed to get user profile", "error", err, "userId", userId)
 		return nil, err
+	}
+	profile.Notifications = api.NotificationSettings{
+		Email:        dbNotificationSettings.Email,
+		PhoneNumber:  dbNotificationSettings.PhoneNumber,
+		DebugAddress: dbNotificationSettings.DebugAddress,
 	}
 	return &profile, nil
 }
@@ -864,8 +871,13 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
 	}
 
+	dbNotificationSettings := &NotificationSettings{
+		Email:        profile.Notifications.Email,
+		PhoneNumber:  profile.Notifications.PhoneNumber,
+		DebugAddress: profile.Notifications.DebugAddress,
+	}
 	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications) VALUES (?, ?, ?, ?, ?, ?)",
-		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, "{}")
+		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings)
 	if err != nil {
 		tx.Rollback()
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
@@ -911,7 +923,12 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 		return nil, DbObjectNotFoundError{Message: "Profile not found"}
 	}
 
-	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, userId)
+	dbNotificationSettings := &NotificationSettings{
+		Email:        profile.Notifications.Email,
+		PhoneNumber:  profile.Notifications.PhoneNumber,
+		DebugAddress: profile.Notifications.DebugAddress,
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ?, notifications = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, userId)
 	if err != nil {
 		tx.Rollback()
 		return nil, errors.WithMessage(err, "Failed to update user profile")

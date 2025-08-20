@@ -644,15 +644,8 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 	}
 
 	return &api.GetUserProfileResponse{
-		UserId: userId,
-		Profile: &api.UserProfileData{
-			FirstName: profile.FirstName,
-			LastName:  profile.LastName,
-			NTRPLevel: profile.NTRPLevel,
-			Language:  profile.Language,
-			Country:   profile.Country,
-			City:      profile.City,
-		},
+		UserId:  userId,
+		Profile: profile,
 	}, nil
 }
 
