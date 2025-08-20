@@ -935,47 +935,37 @@ func (db *Db) DeleteUserProfile(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (db *Db) GetUserNotificationSettings(userIds []string) (map[string]NotificationSettings, error) {
-	if len(userIds) == 0 {
-		return make(map[string]NotificationSettings), nil
-	}
-
+func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNotifSettingsResult, error) {
 	query := `
-		SELECT 
-			u.uid,
-			up.notifications
-		FROM users u
-		LEFT JOIN user_pref up ON u.uid = up.uid
-		WHERE u.uid IN (?) AND u.is_deleted = false
+	SELECT j.user_id AS user_id, COALESCE(j.is_accepted, 0) as is_accepted, 0 AS is_host, u.notifications, u.language
+	FROM events e 
+		INNER JOIN join_requests j ON e.id = j.event_id
+		LEFT JOIN user_pref u ON j.user_id = u.uid
+	WHERE e.id = ?
+	UNION ALL 
+	SELECT e.user_id AS user_id, -1 AS is_accepted, 1 AS is_host, u.notifications, u.language 
+	FROM events e 
+		LEFT JOIN user_pref u ON e.user_id = u.uid
+	WHERE e.id = ?
 	`
 
-	query, args, err := sqlx.In(query, userIds)
-	if err != nil {
-		slog.Error("Failed to prepare query with IN clause", "error", err)
-		return nil, err
-	}
-	query = db.conn.Rebind(query)
+	slog.Debug("Executing SQL query for notification settings", "query", query, "eventId", eventId)
 
-	slog.Debug("Executing SQL query for notification settings", "query", query, "params", args)
-
-	rows, err := db.conn.Query(query, args...)
+	rows, err := db.conn.Query(query, eventId, eventId)
 	if err != nil {
 		slog.Error("Failed to get user notification settings", "error", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	result := make(map[string]NotificationSettings)
+	result := make(map[string]EventNotifSettingsResult)
 	for rows.Next() {
-		var uid string
-		var userPrefs UserPreferences
-		if err := rows.Scan(&uid, &userPrefs); err != nil {
+		var r EventNotifSettingsResult
+		if err := rows.Scan(&r.UserId, &r.IsAccepted, &r.IsHost, &r.NotifSettings, &r.Language); err != nil {
 			slog.Error("Failed to scan notification settings row", "error", err)
 			return nil, err
 		}
-
-		// Phone number and email are both stored in the preferences JSON now
-		result[uid] = userPrefs.Notifications
+		result[r.UserId] = r
 	}
 
 	return result, nil

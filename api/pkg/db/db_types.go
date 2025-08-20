@@ -91,6 +91,14 @@ func (n *NotificationSettings) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, n)
 }
 
+type EventNotifSettingsResult struct {
+	NotifSettings NotificationSettings
+	UserId        string `db:"user_id"`
+	IsAccepted    int    `db:"is_accepted"`
+	IsHost        int    `db:"is_host"`
+	Language      string `db:"language"`
+}
+
 type UserPreferences struct {
 	Notifications NotificationSettings `json:"notifications,omitempty"`
 	Language      string               `json:"language,omitempty"`

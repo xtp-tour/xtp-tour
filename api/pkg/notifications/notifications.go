@@ -4,21 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
 type NotifierDb interface {
-	GetUserNotificationSettings(joinRequestIds []string) (map[string]db.NotificationSettings, error)
+	GetUsersNotificationSettings(eventId string) (map[string]db.EventNotifSettingsResult, error)
 	GetUserNames(ctx context.Context, userIds []string) (map[string]string, error)
 	GetFacilityName(ctx context.Context, facilityId string) (string, error)
 	GetEventOwner(ctx context.Context, eventId string) (string, error)
 }
 
 const (
-	TopicEventConfirmed = "event_confirmed"
-	TopicUserJoined     = "user_joined"
+	TopicUserJoined = "user_joined"
 )
 
 type AllPurposeNotifier struct {
@@ -33,20 +33,21 @@ func NewAllPurposeNotifier(db NotifierDb, queue Queue) *AllPurposeNotifier {
 	}
 }
 
-func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, joinRequestIds []string, dateTime string, locationId string, hostUserId string) {
+func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinRequestIds []string, dateTime string, locationId string, hostUserId string) {
 	ctx := context.Background()
 
 	// Get user notification settings
-	userNotifPrefs, err := d.db.GetUserNotificationSettings(joinRequestIds)
+	notifPrefs, err := d.db.GetUsersNotificationSettings(eventId)
 	if err != nil {
 		logCtx.Error("Error getting notification settings for users", "error", err)
 		return
 	}
 
 	// Get all user IDs (including host)
-	allUserIds := make([]string, 0, len(joinRequestIds)+1)
-	allUserIds = append(allUserIds, joinRequestIds...)
-	allUserIds = append(allUserIds, hostUserId)
+	allUserIds := []string{}
+	for userId := range notifPrefs {
+		allUserIds = append(allUserIds, userId)
+	}
 
 	// Get user names
 	userNames, err := d.db.GetUserNames(ctx, allUserIds)
@@ -62,44 +63,46 @@ func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, joinRequestIds 
 		facilityName = "Unknown Location"
 	}
 
-	hostName := userNames[hostUserId]
+	// Get host name
+	hostName := ""
+	confirmedUsers := []string{}
+	for id, p := range notifPrefs {
+		if p.IsHost == 1 {
+			hostName = userNames[id]
+		}
+		if p.IsAccepted == 1 {
+			confirmedUsers = append(confirmedUsers, userNames[id])
+		}
+	}
+
 	if hostName == "" {
+		logCtx.Error("No host found for event", "eventId", eventId)
 		hostName = "Unknown Host"
 	}
 
-	// Queue notification messages
-	for _, userId := range joinRequestIds {
-		_, exists := userNotifPrefs[userId]
-		if !exists {
-			logCtx.Error("No notification preferences found for user", "userId", userId)
-			continue
-		}
+	for userId, prefs := range notifPrefs {
+		msg := ""
+		if prefs.IsHost == 1 {
+			msg = fmt.Sprintf("Hello %s, you succefully confirmed the session on %s at %s. We notified %s about place and time of the event. Have a great time!", hostName,
+				dateTime, facilityName, strings.Join(confirmedUsers, ", "))
 
-		userName := userNames[userId]
-		if userName == "" {
-			userName = "Unknown User"
+		} else if prefs.IsAccepted == 1 {
+			msg = fmt.Sprintf("Hello %s, your event join request has been confirmed by %s. The event will take place on %s at %s. Have a great time!",
+				userNames[userId], hostName, dateTime, facilityName)
 		}
-
-		msg := fmt.Sprintf("Hello %s, your event join request has been confirmed by %s. The event will take place on %s at %s.",
-			userName, hostName, dateTime, facilityName)
 
 		notificationData := db.NotificationQueueData{
-			Topic:   TopicEventConfirmed,
+			Topic:   "You have a training session scheduled",
 			Message: msg,
 		}
 
-		if err := d.queue.Enqueue(ctx, userId, notificationData); err != nil {
+		err := d.queue.Enqueue(ctx, userId, notificationData)
+
+		if err != nil {
 			logCtx.Error("Failed to enqueue event confirmation notification",
 				"error", err,
 				"userId", userId,
-				"topic", TopicEventConfirmed)
-		} else {
-			logCtx.Debug("Event confirmation notification queued",
-				"userId", userId,
-				"userName", userName,
-				"hostName", hostName,
-				"dateTime", dateTime,
-				"location", facilityName)
+				"topic", notificationData.Topic)
 		}
 	}
 }

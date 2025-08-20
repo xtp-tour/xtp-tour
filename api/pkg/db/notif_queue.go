@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type NotificationDB interface {
+type NotifQueueDb interface {
 	EnqueueNotification(userId string, data NotificationQueueData) error
 	GetNextNotification() (*NotificationQueueRow, error)
 	UpdateNotificationStatus(id, status string) error

@@ -24,7 +24,7 @@ import (
 )
 
 type Notifier interface {
-	EventConfirmed(logCtx *slog.Logger, joinRequsestIds []string, dateTime string, locationId string, hostUserId string)
+	EventConfirmed(logCtx *slog.Logger, eventId string, confirmedJoinReqIds []string, dateTime string, locationId string, hostUserId string)
 	UserJoined(logCtx slog.Logger, joinRequest api.JoinRequestData)
 }
 
@@ -599,7 +599,7 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		}
 	}
 
-	go r.notifier.EventConfirmed(logCtx, req.JoinRequestsIds, req.DateTime, req.LocationId, userId.(string))
+	go r.notifier.EventConfirmed(logCtx, req.EventId, req.JoinRequestsIds, req.DateTime, req.LocationId, userId.(string))
 
 	return &api.EventConfirmationResponse{
 		Confirmation: *confirmation,
@@ -667,6 +667,7 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 	}
 
 	logCtx := slog.With("userId", userId)
+	logCtx.Info("Creating user profile", "req", req)
 
 	_, profile, err := r.db.CreateUserProfile(c, userId.(string), req)
 	if err != nil {

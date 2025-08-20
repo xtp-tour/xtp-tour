@@ -15,10 +15,10 @@ type Queue interface {
 }
 
 type DbQueue struct {
-	db db.NotificationDB
+	db db.NotifQueueDb
 }
 
-func NewDbQueue(database db.NotificationDB) *DbQueue {
+func NewDbQueue(database db.NotifQueueDb) *DbQueue {
 	return &DbQueue{
 		db: database,
 	}
