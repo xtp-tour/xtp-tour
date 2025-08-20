@@ -55,13 +55,13 @@ func (s *EmailSender) Send(ctx context.Context, address, topic, message string) 
 	if address == "" {
 		return nil // Skip if no email address
 	}
-	
+
 	logCtx := s.logger.With(
 		"deliveryMethod", "email",
 		"address", address,
 		"topic", topic,
 	)
-	
+
 	logCtx.Info("📧 EMAIL SENT", "message", message)
 	return nil
 }
@@ -85,13 +85,13 @@ func (s *SMSSender) Send(ctx context.Context, address, topic, message string) er
 	if address == "" {
 		return nil // Skip if no phone number
 	}
-	
+
 	logCtx := s.logger.With(
 		"deliveryMethod", "sms",
 		"address", address,
 		"topic", topic,
 	)
-	
+
 	logCtx.Info("📱 SMS SENT", "message", message)
 	return nil
 }
@@ -114,48 +114,50 @@ func NewFanOutSender(senders ...SpecificSender) *FanOutSender {
 
 func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQueueRow) error {
 	userPrefs := notification.UserPreferences.Notifications
-	
+
 	logCtx := f.logger.With(
 		"notificationId", notification.Id,
 		"userId", notification.UserId,
 		"topic", notification.Data.Topic,
 	)
-	
+
 	sentCount := 0
-	
+
 	for _, sender := range f.specificSenders {
 		var address string
-		
+
 		switch sender.GetDeliveryMethod() {
 		case "email":
 			address = userPrefs.Email
 		case "sms":
 			address = userPrefs.PhoneNumber
+		case "debug":
+			address = userPrefs.DebugAddress
 		default:
 			logCtx.Warn("Unknown delivery method", "method", sender.GetDeliveryMethod())
 			continue
 		}
-		
+
 		if address != "" {
 			if err := sender.Send(ctx, address, notification.Data.Topic, notification.Data.Message); err != nil {
-				logCtx.Error("Failed to send notification via specific sender", 
-					"error", err, 
+				logCtx.Error("Failed to send notification via specific sender",
+					"error", err,
 					"deliveryMethod", sender.GetDeliveryMethod(),
 					"address", address)
 				return err
 			}
 			sentCount++
 		} else {
-			logCtx.Debug("Skipping delivery method - no address configured", 
+			logCtx.Debug("Skipping delivery method - no address configured",
 				"deliveryMethod", sender.GetDeliveryMethod())
 		}
 	}
-	
+
 	if sentCount == 0 {
 		logCtx.Warn("No notifications sent - no valid addresses found")
 	} else {
 		logCtx.Info("Notification sent successfully", "deliveryMethods", sentCount)
 	}
-	
+
 	return nil
 }
