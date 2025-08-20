@@ -22,7 +22,7 @@ func (db *Db) EnqueueNotification(userId string, data NotificationQueueData) err
 
 	slog.Debug("Enqueuing notification", "id", id, "userId", userId, "topic", data.Topic)
 
-	_, err := db.conn.Exec(query, id, userId, data, NotificationStatusPending)
+	_, err := db.conn.Exec(query, id, userId, &data, NotificationStatusPending)
 	if err != nil {
 		slog.Error("Failed to enqueue notification", "error", err, "userId", userId, "topic", data.Topic)
 		return err
