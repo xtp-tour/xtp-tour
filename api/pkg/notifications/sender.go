@@ -100,6 +100,36 @@ func (s *SMSSender) GetDeliveryMethod() string {
 	return "sms"
 }
 
+// DebugSender handles debug notifications
+type DebugSender struct {
+	logger *slog.Logger
+}
+
+func NewDebugSender() *DebugSender {
+	return &DebugSender{
+		logger: slog.Default(),
+	}
+}
+
+func (s *DebugSender) Send(ctx context.Context, address, topic, message string) error {
+	if address == "" {
+		return nil // Skip if no debug address
+	}
+
+	logCtx := s.logger.With(
+		"deliveryMethod", "debug",
+		"address", address,
+		"topic", topic,
+	)
+
+	logCtx.Info("🐛 DEBUG NOTIFICATION SENT", "message", message)
+	return nil
+}
+
+func (s *DebugSender) GetDeliveryMethod() string {
+	return "debug"
+}
+
 type FanOutSender struct {
 	specificSenders []SpecificSender
 	logger          *slog.Logger
@@ -125,20 +155,25 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 
 	for _, sender := range f.specificSenders {
 		var address string
+		var channelEnabled bool
 
 		switch sender.GetDeliveryMethod() {
 		case "email":
 			address = userPrefs.Email
+			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelEmail)
 		case "sms":
 			address = userPrefs.PhoneNumber
+			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelSMS)
 		case "debug":
 			address = userPrefs.DebugAddress
+			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelDebug)
 		default:
 			logCtx.Warn("Unknown delivery method", "method", sender.GetDeliveryMethod())
 			continue
 		}
 
-		if address != "" {
+		// Only send if channel is enabled AND address is configured
+		if channelEnabled && address != "" {
 			if err := sender.Send(ctx, address, notification.Data.Topic, notification.Data.Message); err != nil {
 				logCtx.Error("Failed to send notification via specific sender",
 					"error", err,
@@ -148,8 +183,13 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 			}
 			sentCount++
 		} else {
-			logCtx.Debug("Skipping delivery method - no address configured",
-				"deliveryMethod", sender.GetDeliveryMethod())
+			if !channelEnabled {
+				logCtx.Debug("Skipping delivery method - channel not enabled",
+					"deliveryMethod", sender.GetDeliveryMethod())
+			} else {
+				logCtx.Debug("Skipping delivery method - no address configured",
+					"deliveryMethod", sender.GetDeliveryMethod())
+			}
 		}
 	}
 

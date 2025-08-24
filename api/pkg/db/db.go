@@ -854,6 +854,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		Email:        dbNotificationSettings.Email,
 		PhoneNumber:  dbNotificationSettings.PhoneNumber,
 		DebugAddress: dbNotificationSettings.DebugAddress,
+		Channels:     dbNotificationSettings.Channels,
 	}
 	return &profile, nil
 }
@@ -875,9 +876,16 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 		Email:        profile.Notifications.Email,
 		PhoneNumber:  profile.Notifications.PhoneNumber,
 		DebugAddress: profile.Notifications.DebugAddress,
+		Channels:     profile.Notifications.Channels,
 	}
-	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications) VALUES (?, ?, ?, ?, ?, ?)",
-		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings)
+
+	// Set default channels if not specified (default to email enabled)
+	if dbNotificationSettings.Channels == 0 {
+		dbNotificationSettings.Channels = NotificationChannelEmail
+	}
+
+	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications, channels) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels)
 	if err != nil {
 		tx.Rollback()
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
@@ -927,8 +935,15 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 		Email:        profile.Notifications.Email,
 		PhoneNumber:  profile.Notifications.PhoneNumber,
 		DebugAddress: profile.Notifications.DebugAddress,
+		Channels:     profile.Notifications.Channels,
 	}
-	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ?, notifications = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, userId)
+
+	// Ensure at least one channel is enabled
+	if dbNotificationSettings.Channels == 0 {
+		dbNotificationSettings.Channels = NotificationChannelEmail
+	}
+
+	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ?, notifications = ?, channels = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels, userId)
 	if err != nil {
 		tx.Rollback()
 		return nil, errors.WithMessage(err, "Failed to update user profile")
@@ -989,13 +1004,18 @@ func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNoti
 }
 
 func (db *Db) UpsertUserNotificationSettings(ctx context.Context, userId string, settings *NotificationSettings) error {
-	query := `INSERT INTO user_pref (uid, notifications) VALUES (?, ?) ON DUPLICATE KEY UPDATE notifications = ?`
+	// Ensure at least one channel is enabled
+	if settings.Channels == 0 {
+		settings.Channels = NotificationChannelEmail
+	}
+
+	query := `INSERT INTO user_pref (uid, notifications, channels) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE notifications = ?, channels = ?`
 	json, err := json.Marshal(settings)
 	if err != nil {
 		slog.Error("Failed to marshal notification settings", "error", err)
 		return err
 	}
-	_, err = db.conn.ExecContext(ctx, query, userId, json, json)
+	_, err = db.conn.ExecContext(ctx, query, userId, json, settings.Channels, json, settings.Channels)
 	if err != nil {
 		slog.Error("Failed to upsert user notification settings", "error", err, "userId", userId)
 		return err
