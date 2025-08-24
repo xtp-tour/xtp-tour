@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
@@ -67,10 +68,64 @@ func (row *ConfirmationRow) ToApi() *api.Confirmation {
 	}
 }
 
+// Notification channel constants using bit flags
+const (
+	NotificationChannelEmail    = 1 << 0 // 00000001
+	NotificationChannelSMS      = 1 << 1 // 00000010
+	NotificationChannelDebug    = 1 << 2 // 00000100
+	NotificationChannelPush     = 1 << 3 // 00001000 (future)
+	NotificationChannelWhatsApp = 1 << 4 // 00010000 (future)
+)
+
 type NotificationSettings struct {
 	Email        string `json:"email,omitempty"`
 	PhoneNumber  string `json:"phone_number,omitempty"`
 	DebugAddress string `json:"debug_address,omitempty"`
+	Channels     uint8  `json:"channels" db:"channels"` // Bit flags for enabled channels
+}
+
+// IsChannelEnabled checks if a specific notification channel is enabled
+func (n *NotificationSettings) IsChannelEnabled(channel uint8) bool {
+	return (n.Channels & channel) != 0
+}
+
+// EnableChannel enables a specific notification channel
+func (n *NotificationSettings) EnableChannel(channel uint8) {
+	n.Channels |= channel
+}
+
+// DisableChannel disables a specific notification channel
+func (n *NotificationSettings) DisableChannel(channel uint8) {
+	n.Channels &^= channel
+}
+
+// GetEnabledChannels returns a slice of enabled channel names
+func (n *NotificationSettings) GetEnabledChannels() []string {
+	var enabled []string
+	if n.IsChannelEnabled(NotificationChannelEmail) {
+		enabled = append(enabled, "email")
+	}
+	if n.IsChannelEnabled(NotificationChannelSMS) {
+		enabled = append(enabled, "sms")
+	}
+	if n.IsChannelEnabled(NotificationChannelDebug) {
+		enabled = append(enabled, "debug")
+	}
+	if n.IsChannelEnabled(NotificationChannelPush) {
+		enabled = append(enabled, "push")
+	}
+	if n.IsChannelEnabled(NotificationChannelWhatsApp) {
+		enabled = append(enabled, "whatsapp")
+	}
+	return enabled
+}
+
+// Validate ensures at least one notification channel is enabled
+func (n *NotificationSettings) Validate() error {
+	if n.Channels == 0 {
+		return errors.New("at least one notification channel must be enabled")
+	}
+	return nil
 }
 
 func (n *NotificationSettings) Value() (driver.Value, error) {

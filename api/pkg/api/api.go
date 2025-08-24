@@ -233,6 +233,7 @@ type NotificationSettings struct {
 	Email        string `json:"email,omitempty"`
 	PhoneNumber  string `json:"phone_number,omitempty"`
 	DebugAddress string `json:"debug_address,omitempty"`
+	Channels     uint8  `json:"channels" description:"Bit flags for enabled notification channels: 1=email, 2=sms, 4=debug, 8=push" default:"1"`
 }
 
 type UserProfileData struct {

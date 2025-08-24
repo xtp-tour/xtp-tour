@@ -15,6 +15,7 @@ CREATE TABLE user_pref (
     country VARCHAR(3) NOT NULL,
     city VARCHAR(255) NOT NULL,
     notifications JSON NOT NULL,
+    channels TINYINT NOT NULL DEFAULT 1 COMMENT 'Bit flags for notification channels: 1=email, 2=sms, 4=debug, 8=push, 16=whatsapp',
     ntrp_level DECIMAL(2,1) CHECK (ntrp_level >= 1.0 AND ntrp_level <= 7.0),    
     CHECK (JSON_VALID(`notifications`)),
     FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE

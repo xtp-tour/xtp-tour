@@ -49,17 +49,18 @@ func main() {
 
 	// Setup notification system
 	queue := notifications.NewDbQueue(dbConn)
-	
+
 	// Create specific senders
 	emailSender := notifications.NewEmailSender()
 	smsSender := notifications.NewSMSSender()
-	
+	debugSender := notifications.NewDebugSender()
+
 	// Create fan-out sender that routes based on user preferences
-	fanOutSender := notifications.NewFanOutSender(emailSender, smsSender)
-	
+	fanOutSender := notifications.NewFanOutSender(emailSender, smsSender, debugSender)
+
 	worker := notifications.NewNotificationWorker(queue, fanOutSender, serviceConfig.Notifications)
 	notifier := notifications.NewAllPurposeNotifier(dbConn, queue)
-	
+
 	// Start background notification worker
 	ctx := context.Background()
 	go worker.Start(ctx)

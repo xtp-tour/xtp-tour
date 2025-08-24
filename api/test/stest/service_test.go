@@ -15,6 +15,7 @@ import (
 	"github.com/num30/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
 type TestConfig struct {
@@ -83,6 +84,7 @@ func createProfiles() (string, string, string, error) {
 				City:      "Iktslan",
 				Notifications: api.NotificationSettings{
 					DebugAddress: users[i] + "@xtp-tour-debug.com",
+					Channels:     db.NotificationChannelDebug,
 				},
 			},
 		}
@@ -552,6 +554,10 @@ func Test_ProfileAPI(t *testing.T) {
 				Language:  "en",
 				Country:   "PL",
 				City:      "Warsaw",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
 			},
 		}
 
@@ -602,6 +608,10 @@ func Test_ProfileAPI(t *testing.T) {
 				LastName:  "Smith",
 				NTRPLevel: 3.5,
 				City:      "Krakow",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
 			},
 		}
 
@@ -653,6 +663,10 @@ func Test_ProfileAPI(t *testing.T) {
 				LastName:  "Johnson",
 				NTRPLevel: 5.0,
 				City:      "Gdansk",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
 			},
 		}
 
