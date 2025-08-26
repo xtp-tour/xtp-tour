@@ -21,7 +21,7 @@ if (!isClerkAvailable) {
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="min-vh-100 bg-light">
       <div className="container py-4">
@@ -179,8 +179,8 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
     return (
     <BrowserRouter>
       <Routes>
-        {/* Health route - completely standalone */}
-        <Route path="/health" element={
+        {/* Detailed health page route */}
+        <Route path="/health-details" element={
           <SimpleErrorBoundary>
             <Health />
           </SimpleErrorBoundary>
