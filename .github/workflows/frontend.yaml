@@ -14,6 +14,10 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   NODE_VERSION: 20
   REGISTRY: ghcr.io/${{ github.repository }}/frontend
