@@ -207,17 +207,16 @@ type GetMyProfileRequest struct {
 }
 
 type GetUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
 type CreateUserProfileRequest struct {
-	FirstName     string  `json:"firstName"`
-	LastName      string  `json:"lastName"`
-	NTRPLevel     float64 `json:"ntrpLevel"`
-	PreferredCity string  `json:"preferredCity"`
+	UserProfileData
 }
 
 type CreateUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
@@ -226,13 +225,27 @@ type UpdateUserProfileRequest struct {
 }
 
 type UpdateUserProfileResponse struct {
+	UserId  string           `json:"userId"`
 	Profile *UserProfileData `json:"profile"`
 }
 
+type NotificationSettings struct {
+	Email        string `json:"email,omitempty"`
+	PhoneNumber  string `json:"phone_number,omitempty"`
+	DebugAddress string `json:"debug_address,omitempty"`
+	Channels     uint8  `json:"channels" description:"Bit flags for enabled notification channels: 1=email, 2=sms, 4=debug, 8=push" default:"1"`
+}
+
 type UserProfileData struct {
-	UserId        string  `json:"userId"`
-	FirstName     string  `json:"firstName"`
-	LastName      string  `json:"lastName"`
-	NTRPLevel     float64 `json:"ntrpLevel"`
-	PreferredCity string  `json:"preferredCity"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	NTRPLevel float64 `json:"ntrpLevel"`
+
+	Language      string               `json:"language" default:"en"`
+	Country       string               `json:"country" default:"Poland"`
+	City          string               `json:"city" default:"Wroclaw"`
+	Notifications NotificationSettings `json:"notification_settings"`
+}
+
+type DeleteUserProfileRequest struct {
 }
