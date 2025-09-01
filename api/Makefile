@@ -2,7 +2,17 @@
 
 build: servicetest.build
 	@echo Building version: \"$(BIN_VER)\"
-	env CGO_ENABLED=0 go build -ldflags='-X github.com/xtp-tour/xtp-tour/api/cmd/version.Version=$(BIN_VER) -extldflags=-static' -o bin/api cmd/server/main.go
+	$(MAKE) build-binary
+
+# ARM build target
+build-arm: servicetest.build
+	@echo Building version: \"$(BIN_VER)\"
+	$(MAKE) build-binary GOARCH=arm64
+
+# Reusable build command
+build-binary:
+	env CGO_ENABLED=0 $(if $(GOARCH),GOARCH=$(GOARCH),) go build -ldflags='-X github.com/xtp-tour/xtp-tour/api/cmd/version.Version=$(BIN_VER) -extldflags=-static' -o bin/api cmd/server/main.go
+
 
 migrate:
 	go run ./... migrate

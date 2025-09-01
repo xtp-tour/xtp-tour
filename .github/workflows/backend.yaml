@@ -1,6 +1,6 @@
 name: Backend CI/CD
 
-on: 
+on:
   pull_request:
     branches: [ main ]
     paths:
@@ -36,7 +36,7 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: make build
+        run: make build-arm
 
       - name: Test
         run: make test
@@ -67,6 +67,7 @@ jobs:
           context: ./api
           file: ./api/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -80,4 +81,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}:${{ github.sha }}-test
             ${{ env.REGISTRY }}:latest-test
-          labels: ${{ steps.meta.outputs.labels }} 
+          labels: ${{ steps.meta.outputs.labels }}
