@@ -4,11 +4,11 @@ FROM node:24-bookworm AS builder
 # Set working directory
 WORKDIR /app
 
+# Install compatible pnpm version
+RUN npm install -g pnpm@10.15.1
+
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
-
-# Install compatible pnpm version
-RUN npm install -g pnpm@8.10.2
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
