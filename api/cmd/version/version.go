@@ -11,8 +11,6 @@ import (
 // NOTE: use go build -ldflags "-X github.com/xtp-tour/xtp-tour/api/cmd/version.Version==$(git describe)"
 var Version = "v0.0.debug"
 
-
-
 // ProcessVersionArgument checks whether the version argument
 // is present and if yes prints version and exits with 0 code
 func ProcessVersionArgument(serviceName string, args []string, version string) {
