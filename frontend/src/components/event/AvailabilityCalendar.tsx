@@ -34,6 +34,12 @@ interface AvailabilityCalendarProps {
   className?: string;
   /** Disabled state */
   disabled?: boolean;
+  /** Google Calendar events to block from selection */
+  blockedEvents?: Array<{
+    start: string;
+    end: string;
+    summary: string;
+  }>;
 }
 
 /** Get tomorrow's date in local timezone at midnight */
@@ -92,6 +98,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   nightOnly = false,
   className = '',
   disabled = false,
+  blockedEvents = [],
 }) => {
   const { t } = useTranslation();
   const computedMinDate = useMemo(() => {
@@ -162,6 +169,22 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const isSelected = useCallback((utcIso: string) => selectedSet.has(utcIso), [selectedSet]);
 
+  // Check if a time slot is blocked by Google Calendar
+  const isTimeSlotBlocked = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
+    const localDateTime = makeLocalDateTime(dateOnly, minutesFromMidnight);
+    const utcIso = localDateTime.toISOString();
+    
+    return blockedEvents.some(event => {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      const slotStart = new Date(utcIso);
+      const slotEnd = new Date(slotStart.getTime() + stepMinutes * 60 * 1000);
+      
+      // Check if there's any overlap
+      return slotStart < eventEnd && slotEnd > eventStart;
+    });
+  }, [blockedEvents, stepMinutes]);
+
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
     
@@ -169,6 +192,11 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     
     // Validate this isn't a past date/time
     if (!isValidFutureDate(localDateTime, computedMinDate)) {
+      return;
+    }
+    
+    // Check if slot is blocked by Google Calendar
+    if (isTimeSlotBlocked(dateOnly, minutesFromMidnight)) {
       return;
     }
     
@@ -182,7 +210,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     }
     
     memoizedOnChange(Array.from(currentSelected));
-  }, [disabled, computedMinDate, value, memoizedOnChange]);
+  }, [disabled, computedMinDate, value, memoizedOnChange, isTimeSlotBlocked]);
 
   const clearSelection = useCallback(() => {
     if (disabled || value.length === 0) return;
@@ -301,6 +329,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
+                  const isBlocked = isTimeSlotBlocked(d, m);
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
@@ -308,15 +337,17 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
                           selectedNow 
                             ? 'bg-primary text-white' 
+                            : isBlocked
+                            ? 'bg-danger text-white' // Blocked slots are red
                             : disabled 
                             ? 'bg-transparent text-muted' 
                             : 'bg-transparent text-body'
                         }`}
                         style={{ minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT }}
                         onClick={() => toggleCell(d, m)}
-                        disabled={disabled}
+                        disabled={disabled || isBlocked} // Disable blocked slots
                         aria-pressed={selectedNow}
-                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}`}
+                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${isBlocked ? ' (blocked by Google Calendar)' : ''}`}
                         tabIndex={0}
                       >
                         {formatTimeDisplay(m)}
