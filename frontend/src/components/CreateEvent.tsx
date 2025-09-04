@@ -576,7 +576,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary w-100">
+              <button type="submit" className="btn btn-primary w-100 btn-no-movement">
                 {t('createEvent.form.createInvitation')}
               </button>
             </form>

@@ -164,4 +164,10 @@ a:hover {
   }
 }
 
+/* Prevent button movement on hover */
+.btn-no-movement:hover {
+  transform: none !important;
+  transition: none !important;
+}
+
  
