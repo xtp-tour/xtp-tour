@@ -52,8 +52,13 @@
 }
 
 /* Prevent any button movement on hover */
+.btn {
+  transition: none !important;
+}
+
 .btn:hover {
   transform: none !important;
+  transition: none !important;
 }
 
 .btn-outline-primary {
