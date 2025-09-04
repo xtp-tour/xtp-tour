@@ -51,6 +51,11 @@
   border-color: var(--tennis-navy-dark) !important;
 }
 
+/* Prevent any button movement on hover */
+.btn:hover {
+  transform: none !important;
+}
+
 .btn-outline-primary {
   color: var(--tennis-navy) !important;
   border-color: var(--tennis-navy) !important;
@@ -162,12 +167,6 @@ a:hover {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Prevent button movement on hover */
-.btn-no-movement:hover {
-  transform: none !important;
-  transition: none !important;
 }
 
  
