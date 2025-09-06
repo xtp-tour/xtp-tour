@@ -15,6 +15,7 @@ import (
 	"github.com/num30/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
 type TestConfig struct {
@@ -68,11 +69,67 @@ func Test_GetMetrics(t *testing.T) {
 	})
 }
 
+func createProfiles() (string, string, string, error) {
+	users := []string{"test-user-1-" + time.Now().Format(time.Stamp),
+		"test-user-2-" + time.Now().Format(time.Stamp),
+		"test-user-3-" + time.Now().Format(time.Stamp)}
+	res := make([]string, 3)
+
+	for i := 0; i < 3; i++ {
+		profileData := api.CreateUserProfileRequest{
+			UserProfileData: api.UserProfileData{
+				FirstName: users[i],
+				LastName:  users[i] + "Doe",
+				NTRPLevel: 3.5,
+				City:      "Iktslan",
+				Notifications: api.NotificationSettings{
+					DebugAddress: users[i] + "@xtp-tour-debug.com",
+					Channels:     db.NotificationChannelDebug,
+				},
+			},
+		}
+
+		var response api.CreateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", users[i]).
+			SetBody(profileData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/profiles/")
+
+		if err != nil {
+			return "", "", "", err
+		}
+
+		if r.StatusCode() != http.StatusOK {
+			return "", "", "", fmt.Errorf("failed to create profile: %s", string(r.Body()))
+		}
+
+		res[i] = response.UserId
+	}
+
+	return res[0], res[1], res[2], nil
+}
+
+func deleteProfiles(users ...string) {
+	for _, user := range users {
+		r, err := restClient.R().SetHeader("Authentication", user).Delete(tConfig.ServiceHost + "/api/profiles/me")
+		if err != nil {
+			slog.With("error", err).Error("Error deleting profile")
+		}
+		if r.StatusCode() != http.StatusOK {
+			slog.With("error", r.StatusCode()).Error("Error deleting profile")
+		}
+	}
+}
+
 // Test API endpoints with debug authorization
 func Test_EventAPI(t *testing.T) {
-	user := "test-user-1"
-	user2 := "test-user-2"
-	user3 := "test-user-3"
+	user, user2, user3, err := createProfiles()
+	if err != nil {
+		t.Fatalf("Failed to create profiles: %v", err)
+	}
+	defer deleteProfiles(user, user2, user3)
+
 	timeSlots := getRelativeTimeSlots()
 	confirmedDate := timeSlots[3] // Using the last time slot as confirmed date
 	confirmedLocation := "matchpoint"
@@ -490,11 +547,18 @@ func Test_ProfileAPI(t *testing.T) {
 	// Create a profile
 	t.Run("CreateProfile", func(tt *testing.T) {
 		profileData := api.CreateUserProfileRequest{
-
-			FirstName:     "John",
-			LastName:      "Doe",
-			NTRPLevel:     4.5,
-			PreferredCity: "Warsaw",
+			UserProfileData: api.UserProfileData{
+				FirstName: "John",
+				LastName:  "Doe",
+				NTRPLevel: 4.5,
+				Language:  "en",
+				Country:   "PL",
+				City:      "Warsaw",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
+			},
 		}
 
 		var response api.CreateUserProfileResponse
@@ -507,11 +571,11 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, testUser, response.UserId)
 				assert.Equal(tt, "John", response.Profile.FirstName)
 				assert.Equal(tt, "Doe", response.Profile.LastName)
 				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
-				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
+				assert.Equal(tt, "Warsaw", response.Profile.City)
 			}
 		}
 	})
@@ -527,11 +591,11 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, testUser, response.UserId)
 				assert.Equal(tt, "John", response.Profile.FirstName)
 				assert.Equal(tt, "Doe", response.Profile.LastName)
 				assert.Equal(tt, 4.5, response.Profile.NTRPLevel)
-				assert.Equal(tt, "Warsaw", response.Profile.PreferredCity)
+				assert.Equal(tt, "Warsaw", response.Profile.City)
 			}
 		}
 	})
@@ -540,10 +604,14 @@ func Test_ProfileAPI(t *testing.T) {
 	t.Run("UpdateProfile", func(tt *testing.T) {
 		profileData := api.UpdateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
-				FirstName:     "Jane",
-				LastName:      "Smith",
-				NTRPLevel:     3.5,
-				PreferredCity: "Krakow",
+				FirstName: "Jane",
+				LastName:  "Smith",
+				NTRPLevel: 3.5,
+				City:      "Krakow",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
 			},
 		}
 
@@ -557,11 +625,11 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, testUser, response.UserId)
 				assert.Equal(tt, "Jane", response.Profile.FirstName)
 				assert.Equal(tt, "Smith", response.Profile.LastName)
 				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
-				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
+				assert.Equal(tt, "Krakow", response.Profile.City)
 			}
 		}
 	})
@@ -577,11 +645,11 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, testUser, response.Profile.UserId)
+				assert.Equal(tt, testUser, response.UserId)
 				assert.Equal(tt, "Jane", response.Profile.FirstName)
 				assert.Equal(tt, "Smith", response.Profile.LastName)
 				assert.Equal(tt, 3.5, response.Profile.NTRPLevel)
-				assert.Equal(tt, "Krakow", response.Profile.PreferredCity)
+				assert.Equal(tt, "Krakow", response.Profile.City)
 			}
 		}
 	})
@@ -590,10 +658,16 @@ func Test_ProfileAPI(t *testing.T) {
 	t.Run("CreateAnotherUserProfile", func(tt *testing.T) {
 		profileData := api.CreateUserProfileRequest{
 
-			FirstName:     "Bob",
-			LastName:      "Johnson",
-			NTRPLevel:     5.0,
-			PreferredCity: "Gdansk",
+			UserProfileData: api.UserProfileData{
+				FirstName: "Bob",
+				LastName:  "Johnson",
+				NTRPLevel: 5.0,
+				City:      "Gdansk",
+				Notifications: api.NotificationSettings{
+					DebugAddress: "test-user-123@example.com",
+					Channels:     db.NotificationChannelDebug,
+				},
+			},
 		}
 
 		var response api.CreateUserProfileResponse
@@ -606,7 +680,7 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, anotherUser, response.Profile.UserId)
+				assert.Equal(tt, anotherUser, response.UserId)
 				assert.Equal(tt, "Bob", response.Profile.FirstName)
 			}
 		}
@@ -623,11 +697,11 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, anotherUser, response.Profile.UserId)
+				assert.Equal(tt, anotherUser, response.UserId)
 				assert.Equal(tt, "Bob", response.Profile.FirstName)
 				assert.Equal(tt, "Johnson", response.Profile.LastName)
 				assert.Equal(tt, 5.0, response.Profile.NTRPLevel)
-				assert.Equal(tt, "Gdansk", response.Profile.PreferredCity)
+				assert.Equal(tt, "Gdansk", response.Profile.City)
 			}
 		}
 	})
@@ -647,10 +721,10 @@ func Test_ProfileAPI(t *testing.T) {
 	t.Run("UpdateProfileInvalidNTRP", func(tt *testing.T) {
 		profileData := api.UpdateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
-				FirstName:     "Invalid",
-				LastName:      "NTRP",
-				NTRPLevel:     10.0, // Invalid - NTRP should be 1.0-7.0
-				PreferredCity: "Test City",
+				FirstName: "Invalid",
+				LastName:  "NTRP",
+				NTRPLevel: 10.0, // Invalid - NTRP should be 1.0-7.0
+				City:      "Test City",
 			},
 		}
 
@@ -670,10 +744,10 @@ func Test_ProfileAPI(t *testing.T) {
 	t.Run("UpdateNonExistentUserProfile", func(tt *testing.T) {
 		profileData := api.UpdateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
-				FirstName:     "Non",
-				LastName:      "Existent",
-				NTRPLevel:     3.0,
-				PreferredCity: "No City",
+				FirstName: "Non",
+				LastName:  "Existent",
+				NTRPLevel: 3.0,
+				City:      "No City",
 			},
 		}
 
@@ -692,10 +766,12 @@ func Test_ProfileAPI(t *testing.T) {
 		testUserMinimal := fmt.Sprintf("min-%d", timestamp%1000000)
 		profileData := api.CreateUserProfileRequest{
 
-			FirstName:     "",
-			LastName:      "",
-			NTRPLevel:     1.0, // Minimum valid NTRP level
-			PreferredCity: "",
+			UserProfileData: api.UserProfileData{
+				FirstName: "",
+				LastName:  "",
+				NTRPLevel: 1.0, // Minimum valid NTRP level
+				City:      "",
+			},
 		}
 
 		var response api.CreateUserProfileResponse
@@ -708,7 +784,7 @@ func Test_ProfileAPI(t *testing.T) {
 		if assert.NoError(tt, err) {
 			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
 			if assert.NotNil(tt, response.Profile) {
-				assert.Equal(tt, testUserMinimal, response.Profile.UserId)
+				assert.Equal(tt, testUserMinimal, response.UserId)
 			}
 		}
 	})
