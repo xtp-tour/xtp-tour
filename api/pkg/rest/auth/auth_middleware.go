@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ func CreateAuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 
 	if authConfig.Type == "debug" {
 		return func(c *gin.Context) {
+			slog.Debug("!!!! Debug auth middleware")
 			userId := c.GetHeader("Authentication")
 			if userId == "" {
 				c.Abort()

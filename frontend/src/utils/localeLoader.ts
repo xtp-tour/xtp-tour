@@ -3,11 +3,12 @@ import moment from 'moment';
 // Dynamically load moment locales without TypeScript type checking
 const loadMomentLocales = async () => {
   const locales = ['es', 'fr', 'pl'];
-  
+
   for (const locale of locales) {
     try {
       // Use dynamic import with string template to avoid TypeScript errors
-      await import(`moment/locale/${locale}`);
+
+      await import(/* @vite-ignore */ `moment/locale/${locale}`);
       if (import.meta.env.DEV) {
         console.log(`Moment locale ${locale} loaded successfully`);
       }
@@ -17,7 +18,7 @@ const loadMomentLocales = async () => {
       }
     }
   }
-  
+
   if (import.meta.env.DEV) {
     console.log('Available moment locales:', moment.locales());
   }

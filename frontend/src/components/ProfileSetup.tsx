@@ -33,10 +33,17 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   // Get NTRP levels with translations
   const getNtrpLevels = () => {
     const levels = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0];
-    return levels.map(value => ({
-      value,
-      label: t(`profileSetup.ntrp.levels.${value}`)
-    }));
+    return levels.map(value => {
+      // Ensure consistent string formatting for translation keys
+      const formattedValue = value.toFixed(1);
+      const translationKey = `profileSetup.ntrp.levels.${formattedValue}`;
+      const translation = t(translationKey);
+
+      return {
+        value,
+        label: translation
+      };
+    });
   };
 
   useEffect(() => {
@@ -47,12 +54,12 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           // Profile exists, check if it's complete
           const profile = response.profile;
           const isComplete = profile.firstName && profile.lastName && profile.ntrpLevel && profile.preferredCity;
-          
+
           if (isComplete) {
             onComplete();
             return;
           }
-          
+
           // Profile exists but is incomplete, pre-populate form
           setProfileExists(true);
           setFormData(prev => ({
@@ -178,10 +185,10 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                 <Form.Group className="mb-3">
                   <Form.Label>{t('profileSetup.fields.ntrpLevel')}</Form.Label>
                   <Form.Text className="text-muted d-block mb-2">
-                    {t('profileSetup.ntrp.description')} 
-                    <a 
-                      href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html" 
-                      target="_blank" 
+                    {t('profileSetup.ntrp.description')}
+                    <a
+                      href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="ms-1"
                     >
@@ -230,4 +237,4 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
       </Row>
     </div>
   );
-}; 
+};

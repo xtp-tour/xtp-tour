@@ -56,3 +56,4 @@ api/bin
 .tmp
 
 frontend/coverage
+.data
