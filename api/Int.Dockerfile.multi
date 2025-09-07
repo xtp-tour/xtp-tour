@@ -1,0 +1,38 @@
+# Multi-stage build for integration tests
+FROM golang:1.23-bookworm AS builder
+
+ENV PROJECT_NAME=api
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the service test binary
+RUN env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
+
+# Production stage
+FROM alpine:latest
+
+ENV PROJECT_NAME=api
+
+# Install ca-certificates for HTTPS requests
+RUN apk --no-cache add ca-certificates
+
+# Copy the test binary from builder stage
+COPY --from=builder /app/bin/service-test /usr/bin/service-test
+
+# You may need some test data, copy it here if needed
+# COPY testdata /usr/bin/testdata
+
+# Make it executable
+RUN chmod +x /usr/bin/service-test
+
+CMD ["/usr/bin/service-test"]

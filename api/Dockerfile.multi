@@ -1,0 +1,40 @@
+# Multi-stage build for Go backend
+FROM golang:1.23-bookworm AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application binary
+RUN env CGO_ENABLED=0 go build -ldflags='-X github.com/xtp-tour/xtp-tour/api/cmd/version.Version=docker -extldflags=-static' -o bin/api cmd/server/main.go
+
+# Build the service test binary
+RUN env CGO_ENABLED=0 go test ./test/stest -tags servicetest -v -c -o bin/service-test
+
+# Production stage
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the binary from builder stage
+COPY --from=builder /app/bin/api /usr/bin/api
+
+# Make it executable
+RUN chmod +x /usr/bin/api
+
+# Expose ports
+EXPOSE 8080 8081
+
+CMD ["/usr/bin/api"]

@@ -59,6 +59,9 @@ func GetDB(config *pkg.DbConfig) (*Db, error) {
 		db = &Db{conn: dbConn}
 	})
 
+	if db == nil {
+		return nil, errors.New("database connection not initialized")
+	}
 	return db, nil
 }
 
@@ -129,7 +132,7 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 		CreatedAt:       time.Now(),
 	}
 
-	query := `INSERT INTO events (id, user_id, skill_level, description, event_type, expected_players, session_duration, visibility, expiration_time, status, created_at) 
+	query := `INSERT INTO events (id, user_id, skill_level, description, event_type, expected_players, session_duration, visibility, expiration_time, status, created_at)
 		VALUES (:id, :user_id, :skill_level, :description, :event_type, :expected_players, :session_duration, :visibility, :expiration_time, :status, :created_at)`
 	slog.Debug("Executing SQL query", "query", query, "params", eventRow)
 	_, err = tx.NamedExecContext(ctx, query, eventRow)
@@ -248,7 +251,7 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 				e.expected_players, e.session_duration, e.visibility, e.status, e.created_at,
 				e.expiration_time, c.location_id, c.dt
 		)
-		SELECT * FROM event_data 
+		SELECT * FROM event_data
 	`
 
 	if filter != "" {
@@ -614,7 +617,7 @@ func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestI
 
 // joinRequestBaseQuery is the common base SQL query for join request operations
 const joinRequestBaseQuery = `
-	SELECT 
+	SELECT
 		jr.id,
 		jr.event_id,
 		jr.user_id,
@@ -719,7 +722,7 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 
 	query := `
 		SELECT uid, CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name
-		FROM users 
+		FROM users
 		WHERE uid IN (?) AND is_deleted = false
 	`
 
@@ -970,13 +973,13 @@ func (db *Db) DeleteUserProfile(ctx context.Context, userId string) error {
 func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNotifSettingsResult, error) {
 	query := `
 	SELECT j.user_id AS user_id, COALESCE(j.is_accepted, 0) as is_accepted, 0 AS is_host, u.notifications, u.language
-	FROM events e 
+	FROM events e
 		INNER JOIN join_requests j ON e.id = j.event_id
 		LEFT JOIN user_pref u ON j.user_id = u.uid
 	WHERE e.id = ?
-	UNION ALL 
-	SELECT e.user_id AS user_id, -1 AS is_accepted, 1 AS is_host, u.notifications, u.language 
-	FROM events e 
+	UNION ALL
+	SELECT e.user_id AS user_id, -1 AS is_accepted, 1 AS is_host, u.notifications, u.language
+	FROM events e
 		LEFT JOIN user_pref u ON e.user_id = u.uid
 	WHERE e.id = ?
 	`

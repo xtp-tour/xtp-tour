@@ -39,7 +39,7 @@ run:
 
 # Development mode with hot-reload
 dev:
-	LOG_LEVEL=debug air
+	AUTH_TYPE=debug LOG_LEVEL=debug air
 
 gen-schemas:
 	go run ./... migrate
