@@ -7,6 +7,7 @@ on:
     branches: [ main ]
     paths:
       - 'api/**'
+      - 'frontend/**'
       - '.github/workflows/service-tests.yaml'
   workflow_dispatch:
 
@@ -40,8 +41,25 @@ jobs:
           go-version: '1.23.2'
           check-latest: true
 
-      - name: Download dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
+      - name: Download Go dependencies
         run: go mod download
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install
 
       - name: Wait for MySQL to be ready
         run: |
@@ -55,6 +73,14 @@ jobs:
         env:
           DB_PORT: 53306
         run: go run cmd/server/main.go migrate
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: pnpm exec playwright install --with-deps
 
       - name: Start server in background
         env:
@@ -76,16 +102,42 @@ jobs:
           # Check if server is responding
           curl -f http://localhost:58080/api/ping || (echo "Server health check failed" && exit 1)
 
+      - name: Start frontend server in background
+        working-directory: ./frontend
+        run: |
+          pnpm dev &
+          FRONTEND_PID=$!
+          echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
+          echo "Frontend server started with PID: $FRONTEND_PID"
+
+      - name: Wait for frontend server to start
+        run: |
+          echo "Waiting for frontend server to start..."
+          sleep 5
+          # Check if frontend is responding
+          curl -f http://localhost:5173 || (echo "Frontend health check failed" && exit 1)
+
       - name: Run service tests
         env:
           SERVICE_HOST: http://localhost:58080
           METRICS_HOST: http://localhost:51025
         run: go test ./test/stest -tags servicetest -v -count=1
 
-      - name: Cleanup server process
+      - name: Run Playwright E2E tests
+        working-directory: ./frontend
+        env:
+          TEST_BASE_URL: http://localhost:5173
+          TEST_API_BASE_URL: http://localhost:58080
+        run: pnpm exec playwright test
+
+      - name: Cleanup processes
         if: always()
         run: |
           if [ ! -z "$SERVER_PID" ]; then
             echo "Stopping server with PID: $SERVER_PID"
             kill $SERVER_PID 2>/dev/null || true
+          fi
+          if [ ! -z "$FRONTEND_PID" ]; then
+            echo "Stopping frontend server with PID: $FRONTEND_PID"
+            kill $FRONTEND_PID 2>/dev/null || true
           fi 

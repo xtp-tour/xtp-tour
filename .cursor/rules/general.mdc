@@ -66,4 +66,9 @@ Othe people may join the event and application manages the event joining lifecyc
 
 ## Commit messages
 
-Commit messages must be concise and not more then 100 characters or 150 characters in exceptional cases
+Commit messages must be concise and not more then 100 characters or 150 characters in exceptional casesd
+
+
+## General Guidelines
+
+- Don't create MD file for each task. Update the READE with a brief section only if it makes sense.
