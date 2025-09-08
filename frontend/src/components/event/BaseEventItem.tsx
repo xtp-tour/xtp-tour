@@ -52,8 +52,13 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   }
 
   return (
-    <div className="card mb-3 overflow-hidden">
-      <div className="card-header bg-transparent border-0 p-0">
+    <div className="card mb-4 shadow-sm border-0" style={{ 
+      borderRadius: '16px',
+      overflow: 'hidden',
+      transition: 'all 0.2s ease-in-out'
+    }}>
+      {/* Modern Card Header */}
+      <div className="card-header bg-white border-0 p-0">
         <EventHeader
           title={headerTitle}
           subtitle={headerSubtitle}
@@ -66,42 +71,46 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
         />
       </div>
 
+      {/* Expandable Content */}
       {!isCollapsed && (
-        isConfirmed ? (
-          <ConfirmedEventBody
-            event={event}
-            colorClass={colorClass}
-            timeSlots={timeSlots}
-            timestamp={timestamp}
-          >
-            {children}
-          </ConfirmedEventBody>
-        ) : (
-          <DefaultEventBody
-            event={event}
-            timeSlots={timeSlots}
-            timestamp={timestamp}
-            userSelectedLocations={userSelectedLocations}
-            onLocationClick={onLocationClick}
-            onTimeSlotClick={onTimeSlotClick}
-            isMyEvent={isMyEvent}
-          >
-            {children}
-          </DefaultEventBody>
-        )
+        <div className="border-top" style={{ borderColor: '#f0f0f0 !important' }}>
+          {isConfirmed ? (
+            <ConfirmedEventBody
+              event={event}
+              colorClass={colorClass}
+              timeSlots={timeSlots}
+              timestamp={timestamp}
+            >
+              {children}
+            </ConfirmedEventBody>
+          ) : (
+            <DefaultEventBody
+              event={event}
+              timeSlots={timeSlots}
+              timestamp={timestamp}
+              userSelectedLocations={userSelectedLocations}
+              onLocationClick={onLocationClick}
+              onTimeSlotClick={onTimeSlotClick}
+              isMyEvent={isMyEvent}
+            >
+              {children}
+            </DefaultEventBody>
+          )}
+        </div>
       )}
       
-      {/* Bottom chevron button - full width */}
-      <div className="card-footer bg-transparent border-0 p-0">
+      {/* Modern Expand/Collapse Button */}
+      <div className="card-footer bg-white border-0 p-0">
         <button
           type="button"
-          className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted"
+          className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted hover-bg-light"
           style={{ 
-            borderTop: '1px solid #dee2e6',
-            padding: '4px 16px',
+            borderTop: '1px solid #f0f0f0',
+            padding: '12px 20px',
             cursor: 'pointer',
-            minHeight: '44px',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            transition: 'all 0.2s ease-in-out'
           }}
           aria-label={isCollapsed ? 'Show event details' : 'Hide event details'}
           aria-expanded={!isCollapsed}
@@ -109,9 +118,19 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
             setIsCollapsed(!isCollapsed);
             e.currentTarget.blur();
           }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f8f9fa';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
         >
-          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-1`} aria-hidden="true" style={{ fontSize: '0.75rem' }}></i>
-          <span>{isCollapsed ? t('common.showDetails') : t('common.hideDetails')}</span>
+          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`} 
+             aria-hidden="true" 
+             style={{ fontSize: '0.875rem', color: 'var(--tennis-navy)' }}></i>
+          <span style={{ color: 'var(--tennis-navy)' }}>
+            {isCollapsed ? t('common.showDetails') : t('common.hideDetails')}
+          </span>
         </button>
       </div>
     </div>

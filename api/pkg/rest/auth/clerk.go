@@ -46,7 +46,6 @@ func CreateClerkAuth(clerkConfig string) func(c *gin.Context) {
 
 	return func(c *gin.Context) {
 		sessionToken := strings.TrimPrefix(c.Request.Header.Get("Authorization"), "Bearer ")
-		slog.Debug("!!!! Verifying session token", "sessionToken", sessionToken)
 
 		// Attempt to get the JSON Web Key from your store.
 		jwk := jwkStore.GetJWK()

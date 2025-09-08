@@ -80,23 +80,39 @@ const LocationBadge: React.FC<{
   isSelected?: boolean;
   onClick?: () => void;
 }> = ({ location, isSelected, onClick }) => {
-  // Truncate location name if too long
-  const maxLength = 20;
-  const displayLocation = location.length > maxLength ? `${location.slice(0, maxLength)}...` : location;
-  const showTooltip = location.length > maxLength;
+  // Clean up location name for display
+  const cleanLocation = location.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const maxLength = 25;
+  const displayLocation = cleanLocation.length > maxLength ? `${cleanLocation.slice(0, maxLength)}...` : cleanLocation;
+  const showTooltip = cleanLocation.length > maxLength;
 
   const badge = (
     <span 
-      className="badge" 
+      className="badge d-inline-flex align-items-center" 
       style={{ 
-        ...BADGE_STYLES,
-        backgroundColor: isSelected ? 'var(--tennis-navy)' : 'var(--tennis-accent)', 
+        backgroundColor: isSelected ? 'var(--tennis-navy)' : '#f8f9fa', 
         color: isSelected ? 'white' : 'var(--tennis-navy)',
+        border: isSelected ? 'none' : '1px solid #e9ecef',
         cursor: onClick ? 'pointer' : undefined,
-        maxWidth: '200px'
+        fontSize: '0.8rem',
+        fontWeight: '500',
+        padding: '0.4rem 0.75rem',
+        borderRadius: '8px',
+        maxWidth: '200px',
+        transition: 'all 0.2s ease-in-out'
+      }}
+      onMouseEnter={(e) => {
+        if (onClick && !isSelected) {
+          e.currentTarget.style.backgroundColor = '#e9ecef';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (onClick && !isSelected) {
+          e.currentTarget.style.backgroundColor = '#f8f9fa';
+        }
       }}
     >
-      <i className="bi bi-geo-alt me-1 flex-shrink-0"></i>
+      <i className="bi bi-geo-alt me-2 flex-shrink-0" style={{ fontSize: '0.9rem' }}></i>
       <span 
         className="text-truncate" 
         style={{ 
@@ -107,14 +123,14 @@ const LocationBadge: React.FC<{
       >
         {displayLocation}
       </span>
-      {onClick && <i className="bi bi-chevron-right ms-1 opacity-75 flex-shrink-0"></i>}
+      {onClick && <i className="bi bi-chevron-right ms-2 opacity-75 flex-shrink-0" style={{ fontSize: '0.8rem' }}></i>}
     </span>
   );
 
   const badgeWithTooltip = showTooltip ? (
     <OverlayTrigger
       placement="top"
-      overlay={<Tooltip id={`location-tooltip-${location}`}>{location}</Tooltip>}
+      overlay={<Tooltip id={`location-tooltip-${location}`}>{cleanLocation}</Tooltip>}
     >
       {badge}
     </OverlayTrigger>
