@@ -57,3 +57,4 @@ api/bin
 
 frontend/coverage
 .data
+**/.playwright-mcp
