@@ -115,55 +115,41 @@ const EventHeader: React.FC<EventHeaderProps> = ({
       <div className="row g-3 mb-3">
         {/* Date & Time */}
         <div className="col-12 col-md-6">
-          <div className="d-flex align-items-center">
-            <div className="bg-light rounded-circle p-2 me-3" style={{ width: '40px', height: '40px' }}>
-              <i className="bi bi-calendar-event text-primary d-flex align-items-center justify-content-center" 
-                 style={{ fontSize: '1.1rem' }}></i>
+          <div>
+            <div className="fw-semibold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+              {isConfirmed && event.confirmation ? (
+                <>
+                  <i className="bi bi-calendar-check me-2 text-success"></i>
+                  {formatConfirmedDateTime(event.confirmation.datetime || '')}
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-calendar-event me-2 text-primary"></i>
+                  {timeSlotSummary}
+                </>
+              )}
             </div>
-            <div>
-              <div className="fw-semibold text-dark" style={{ fontSize: '0.95rem' }}>
-                {isConfirmed && event.confirmation ? (
-                  <>
-                    <i className="bi bi-calendar-check me-1 text-success"></i>
-                    {formatConfirmedDateTime(event.confirmation.datetime || '')}
-                  </>
-                ) : (
-                  timeSlotSummary
-                )}
-              </div>
-              <div className="text-muted small">
-                <i className="bi bi-stopwatch me-1"></i>
-                {formatDuration(event.sessionDuration)}
-              </div>
+            <div className="text-muted small">
+              <i className="bi bi-stopwatch me-2"></i>
+              {formatDuration(event.sessionDuration)}
             </div>
           </div>
         </div>
 
         {/* Location */}
         <div className="col-12 col-md-6">
-          <div className="d-flex align-items-center">
-            <div className="bg-light rounded-circle p-2 me-3" style={{ width: '40px', height: '40px' }}>
-              <i className="bi bi-geo-alt text-primary d-flex align-items-center justify-content-center" 
-                 style={{ fontSize: '1.1rem' }}></i>
-            </div>
-            <div className="flex-grow-1">
-              {isConfirmed && event.confirmation?.location ? (
-                <LocationBadge location={event.confirmation.location} />
-              ) : (
-                event.locations && event.locations.length > 0 && (
-                  <div className="d-flex flex-wrap gap-1">
-                    {event.locations.slice(0, 2).map((location, index) => (
-                      <LocationBadge key={`location-${index}`} location={location} />
-                    ))}
-                    {event.locations.length > 2 && (
-                      <span className="badge bg-light text-muted" style={{ fontSize: '0.75rem' }}>
-                        +{event.locations.length - 2} more
-                      </span>
-                    )}
-                  </div>
-                )
-              )}
-            </div>
+          <div className="flex-grow-1">
+            {isConfirmed && event.confirmation?.location ? (
+              <LocationBadge location={event.confirmation.location} />
+            ) : (
+              event.locations && event.locations.length > 0 && (
+                <div className="d-flex flex-wrap gap-1">
+                  {event.locations.map((location, index) => (
+                    <LocationBadge key={`location-${index}`} location={location} />
+                  ))}
+                </div>
+              )
+            )}
           </div>
         </div>
       </div>

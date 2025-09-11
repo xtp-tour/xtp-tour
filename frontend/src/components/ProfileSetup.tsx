@@ -47,11 +47,48 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   };
 
   useEffect(() => {
-    // Temporarily bypass profile setup for design review
-    setTimeout(() => {
-      onComplete();
-    }, 100);
-  }, [onComplete]);
+    const loadProfile = async () => {
+      try {
+        const response = await api.getUserProfile();
+        if (response.profile) {
+          // Profile exists, check if it's complete
+          const profile = response.profile;
+          const isComplete = profile.firstName && profile.lastName && profile.ntrpLevel && profile.preferredCity;
+
+          if (isComplete) {
+            onComplete();
+            return;
+          }
+
+          // Profile exists but is incomplete, pre-populate form
+          setProfileExists(true);
+          setFormData(prev => ({
+            ...prev,
+            firstName: profile.firstName || user?.firstName || '',
+            lastName: profile.lastName || user?.lastName || '',
+            ntrpLevel: profile.ntrpLevel?.toString() || '',
+            preferredCity: profile.preferredCity || '',
+          }));
+        } else {
+          // No profile exists, we'll create one
+          setProfileExists(false);
+        }
+      } catch (error: unknown) {
+        // If we get a 404, it means profile doesn't exist yet
+        const apiError = error as APIError;
+        if (apiError.status === 404) {
+          setProfileExists(false);
+        } else {
+          console.error('Error loading profile:', error);
+          setProfileExists(false);
+        }
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [api, user, onComplete]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
