@@ -5,8 +5,10 @@ import { components } from '../../types/schema';
 import { formatDuration } from '../../utils/dateUtils';
 import { formatTimeSlotLocalized } from '../../utils/i18nDateUtils';
 import { LocationBadge } from './EventBadges';
-import { BADGE_STYLES, NESTED_BADGE_STYLES } from '../../styles/badgeStyles';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import TimeAgo from 'react-timeago';
+import { getTimeAgoFormatter } from '../../utils/timeAgoFormatters';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -49,7 +51,6 @@ const getStatusBadge = (event: ApiEvent, t: (key: string) => string) => {
 const EventHeader: React.FC<EventHeaderProps> = ({
   title,
   subtitle,
-  colorClass = 'text-primary',
   actionButton,
   timeSlotSummary,
   joinedCount,
@@ -94,13 +95,43 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 {joinedCount} {joinedCount === 1 ? 'ack' : 'acks'}
               </span>
             )}
+            {/* Skill Level Badge */}
+            <OverlayTrigger
+              placement="top"
+              overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>
+                {t(`createEvent.skillHints.${event.skillLevel}`)}
+              </Tooltip>}
+            >
+              <span className="badge bg-dark text-white px-3 py-2" 
+                    style={{ 
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      borderRadius: '20px',
+                      cursor: 'help'
+                    }}>
+                <i className="bi bi-trophy me-2"></i>
+                {event.skillLevel}
+                <span className="badge bg-light text-dark ms-2" 
+                      style={{ 
+                        fontSize: '0.7rem',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '8px'
+                      }}>
+                  {t(`createEvent.skillLabels.${event.skillLevel}`)}
+                </span>
+              </span>
+            </OverlayTrigger>
           </div>
           
           {/* Host Information */}
           {subtitle && (
-            <div className="text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-              <i className="bi bi-person-circle me-2" style={{ fontSize: '1rem' }}></i>
-              {subtitle}
+            <div className="mb-3">
+              <div className="text-muted mb-1" style={{ fontSize: '0.9rem' }}>                
+                {subtitle}
+              </div>
+              <div className="text-muted small">
+                <span className="fw-medium">{t('common.created')}:</span> <TimeAgo date={event.createdAt || new Date()} formatter={getTimeAgoFormatter(i18n.language)} />
+              </div>
             </div>
           )}
         </div>
@@ -129,8 +160,8 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 </>
               )}
             </div>
-            <div className="text-muted small">
-              <i className="bi bi-stopwatch me-2"></i>
+            <div className="fw-semibold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+              <i className="bi bi-stopwatch me-2 text-primary"></i>
               {formatDuration(event.sessionDuration)}
             </div>
           </div>
@@ -154,34 +185,6 @@ const EventHeader: React.FC<EventHeaderProps> = ({
         </div>
       </div>
 
-      {/* Skill Level */}
-      <div className="mb-3">
-        <OverlayTrigger
-          placement="top"
-          overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>
-            {t(`createEvent.skillHints.${event.skillLevel}`)}
-          </Tooltip>}
-        >
-          <span className="badge bg-dark text-white px-3 py-2" 
-                style={{ 
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  borderRadius: '12px',
-                  cursor: 'help'
-                }}>
-            <i className="bi bi-trophy me-2"></i>
-            {event.skillLevel}
-            <span className="badge bg-light text-dark ms-2" 
-                  style={{ 
-                    fontSize: '0.7rem',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '8px'
-                  }}>
-              {t(`createEvent.skillLabels.${event.skillLevel}`)}
-            </span>
-          </span>
-        </OverlayTrigger>
-      </div>
       
       {/* Action Button */}
       <div className="mt-4">

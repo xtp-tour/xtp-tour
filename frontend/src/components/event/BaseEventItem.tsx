@@ -62,7 +62,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
         <EventHeader
           title={headerTitle}
           subtitle={headerSubtitle}
-          colorClass={colorClass}
           actionButton={actionButton}
           timeSlotSummary={formatTimeSlotSummary(timeSlots, t)}
           joinedCount={event.joinRequests?.filter(req => req.isRejected === false).length || 0}
