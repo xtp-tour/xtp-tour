@@ -22,10 +22,6 @@ import (
 var content embed.FS
 
 func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
-	if len(args) > 0 && args[0] == "drop" {
-		dropDbIfExist(dbConfig)
-		return
-	}
 
 	iofsSource, err := iofs.New(content, "sql/migrations")
 	if err != nil {
@@ -41,6 +37,19 @@ func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
 	}
 
 	if len(args) > 0 && args[0] == "down" {
+		slog.Warn("RUNNING MIGRATION DOWN - This will rollback database changes!", "database", dbConfig.Database)
+
+		// Add confirmation in non-production environments
+		if os.Getenv("ENVIRONMENT") != "production" {
+			fmt.Print("Are you sure you want to rollback migrations? This will delete data! (yes/no): ")
+			var response string
+			fmt.Scanln(&response)
+			if response != "yes" {
+				slog.Info("Migration rollback cancelled")
+				return
+			}
+		}
+
 		err = m.Down()
 		if err != nil && err != migrate.ErrNoChange {
 			slog.Error("Failed to run migrations", "error", err)
