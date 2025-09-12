@@ -9,7 +9,6 @@ import { TimeSlot } from './event/types';
 import moment from 'moment';
 import { BADGE_STYLES } from '../styles/badgeStyles';
 import { ApiUserProfileData } from '../types/api';
-import { useTranslation } from 'react-i18next';
 
 interface Props {
   eventId: string;
@@ -169,7 +168,7 @@ export const JoinEventModal: React.FC<Props> = ({
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fs-4">
           <i className="bi bi-calendar2-check me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-          <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.title', { {getDisplayName() })}</span>
+          <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.title', { displayName: getDisplayName() })}</span>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
@@ -269,7 +268,7 @@ export const JoinEventModal: React.FC<Props> = ({
                   />
                   <small className="text-muted d-block mt-2 ps-2">
                     <i className="bi bi-info-circle me-1"></i>
-                    {t('joinModal.timeSlotHelp', { getDisplayName() })}
+                    {t('joinModal.timeSlotHelp', { displayName: getDisplayName() })}
                   </small>
                 </div>
               </div>
