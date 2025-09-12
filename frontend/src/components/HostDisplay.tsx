@@ -87,15 +87,15 @@ const HostDisplay: React.FC<HostDisplayProps> = ({
   // Avatar + name version with truncation and tooltip
   return (
     <div className={`d-flex align-items-center gap-2 ${className}`}>
-      <span className="text-muted">Host:</span>
+      <span >{t('host.label')}</span>
       <div className="d-flex align-items-center gap-2 min-width-0" style={{ maxWidth }}>
         {/* Avatar circle */}
         <div className="flex-shrink-0">
           <div 
-            className="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-            style={{ width: '20px', height: '20px', fontSize: '0.7rem' }}
+            className="rounded-circle bg-light border d-flex align-items-center justify-content-center text-muted"
+            style={{ width: '24px', height: '24px', fontSize: '0.8rem' }}
           >
-            <i className="bi bi-person-fill text-white"></i>
+            <i className="bi bi-person-fill"></i>
           </div>
         </div>
         {/* Name with truncation and tooltip */}

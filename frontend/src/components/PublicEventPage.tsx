@@ -277,7 +277,7 @@ const PublicEventPage: React.FC = () => {
         {event.id && isSignedIn && (
           <JoinEventModal
             eventId={event.id}
-            hostName={event.userId || t('host.unknownUser')}
+            userId={event.userId || ''}
             show={showJoinModal}
             onHide={() => setShowJoinModal(false)}
             onJoined={handleJoined}

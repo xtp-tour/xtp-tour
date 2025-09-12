@@ -8,10 +8,11 @@ import { EventStep } from '../types/eventTypes';
 import { TimeSlot } from './event/types';
 import moment from 'moment';
 import { BADGE_STYLES } from '../styles/badgeStyles';
+import { ApiUserProfileData } from '../types/api';
 
 interface Props {
   eventId: string;
-  hostName: string;
+  userId: string;
   show: boolean;
   onHide: () => void;
   onJoined: () => void;
@@ -24,7 +25,7 @@ interface JoinOptions {
 
 export const JoinEventModal: React.FC<Props> = ({
   eventId,
-  hostName,
+  userId,
   show,
   onHide,
   onJoined
@@ -36,6 +37,48 @@ export const JoinEventModal: React.FC<Props> = ({
   const [options, setOptions] = useState<JoinOptions | null>(null);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeSlot[]>([]);
+  const [hostProfile, setHostProfile] = useState<ApiUserProfileData | null>(null);
+
+  // Function to get display name (reused from HostDisplay)
+  const getDisplayName = (): string => {
+    if (!hostProfile) {
+      return t('host.unknown');
+    }
+
+    // Use first name + last name
+    if (hostProfile.firstName && hostProfile.lastName) {
+      return `${hostProfile.firstName} ${hostProfile.lastName}`;
+    }
+
+    // Fallback to just first name if available
+    if (hostProfile.firstName) {
+      return hostProfile.firstName;
+    }
+
+    // Fallback to just last name if available
+    if (hostProfile.lastName) {
+      return hostProfile.lastName;
+    }
+
+    return t('host.unknown');
+  };
+
+  // Fetch host profile
+  useEffect(() => {
+    const fetchHostProfile = async () => {
+      try {
+        const response = await api.getUserProfileByUserId(userId);
+        setHostProfile(response.profile || null);
+      } catch (err) {
+        console.warn(`Failed to fetch profile for user ${userId}:`, err);
+        setHostProfile(null);
+      }
+    };
+
+    if (userId && show) {
+      fetchHostProfile();
+    }
+  }, [userId, api, show]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -125,13 +168,13 @@ export const JoinEventModal: React.FC<Props> = ({
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fs-4">
           <i className="bi bi-calendar2-check me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-          <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.title', { hostName })}</span>
+          <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.title', { displayName: getDisplayName() })}</span>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
         <EventFlowDiagram
           currentStep={EventStep.Pending}
-          hostName={hostName}
+          hostName={getDisplayName()}
           className="mb-4"
         />
 
@@ -225,7 +268,7 @@ export const JoinEventModal: React.FC<Props> = ({
                   />
                   <small className="text-muted d-block mt-2 ps-2">
                     <i className="bi bi-info-circle me-1"></i>
-                    {t('joinModal.timeSlotHelp', { hostName })}
+                    {t('joinModal.timeSlotHelp', { displayName: getDisplayName() })}
                   </small>
                 </div>
               </div>
