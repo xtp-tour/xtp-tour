@@ -296,6 +296,14 @@
     "noLongerAvailable": "Event not found or no longer available"
   },
   "joinModal": {
+    "title": "Join {{hostName}}'s Game Session",
+    "loadingText": "Loading available options...",
+    "whereToPlay": "Where would you like to play?",
+    "locationHelp": "Select all locations where you can play.",
+    "whenToStart": "When would you like to start?",
+    "timeSlotHelp": "Select all time slots that work for you. {{hostName}} will choose the final time based on your availability.",
+    "submitting": "Submitting...",
+    "joinGameSession": "Join Game Session",
     "selectLocation": "Please select at least one location",
     "selectTimeSlot": "Please select at least one time slot",
     "failedToJoin": "Failed to join event",

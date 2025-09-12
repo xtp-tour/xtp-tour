@@ -296,6 +296,14 @@
     "noLongerAvailable": "Wydarzenia nie znaleziono lub jest niedostępne"
   },
   "joinModal": {
+    "title": "Dołącz do Sesji Gry {{hostName}}",
+    "loadingText": "Ładowanie dostępnych opcji...",
+    "whereToPlay": "Gdzie chciałbyś grać?",
+    "locationHelp": "Wybierz wszystkie lokalizacje, gdzie możesz grać.",
+    "whenToStart": "Kiedy chciałbyś zacząć?",
+    "timeSlotHelp": "Wybierz wszystkie terminy, które Ci odpowiadają. {{hostName}} wybierze ostateczny czas na podstawie Twojej dostępności.",
+    "submitting": "Wysyłanie...",
+    "joinGameSession": "Dołącz do Sesji Gry",
     "selectLocation": "Wybierz co najmniej jedną lokalizację",
     "selectTimeSlot": "Wybierz co najmniej jeden termin",
     "failedToJoin": "Nie udało się dołączyć do wydarzenia",
