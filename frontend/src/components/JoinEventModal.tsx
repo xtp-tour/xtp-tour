@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
 import TimeSlotLabels from './event/TimeSlotLabels';
 import { EventFlowDiagram } from './EventFlowDiagram';
@@ -28,6 +29,7 @@ export const JoinEventModal: React.FC<Props> = ({
   onHide,
   onJoined
 }) => {
+  const { t } = useTranslation();
   const api = useAPI();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export const JoinEventModal: React.FC<Props> = ({
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load options');
+        setError(err instanceof Error ? err.message : t('joinModal.failedToLoadOptions'));
       } finally {
         setLoading(false);
       }
@@ -69,7 +71,7 @@ export const JoinEventModal: React.FC<Props> = ({
     if (show) {
       fetchOptions();
     }
-  }, [api, eventId, show]);
+  }, [api, eventId, show, t]);
 
   const handleLocationChange = (locationId: string, checked: boolean) => {
     setSelectedLocations(prev =>
@@ -93,11 +95,11 @@ export const JoinEventModal: React.FC<Props> = ({
       setError(null);
 
       if (selectedLocations.length === 0) {
-        throw new Error('Please select at least one location');
+        throw new Error(t('joinModal.selectLocation'));
       }
 
       if (selectedTimeSlots.length === 0) {
-        throw new Error('Please select at least one time slot');
+        throw new Error(t('joinModal.selectTimeSlot'));
       }
 
       const request: JoinEventRequest = {
@@ -112,7 +114,7 @@ export const JoinEventModal: React.FC<Props> = ({
       onJoined();
       onHide();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join event');
+      setError(err instanceof Error ? err.message : t('joinModal.failedToJoin'));
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,7 @@ export const JoinEventModal: React.FC<Props> = ({
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fs-4">
           <i className="bi bi-calendar2-check me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-          <span style={{ color: 'var(--tennis-navy)' }}>Join {hostName}'s Game Session</span>
+          <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.title', { hostName })}</span>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="pt-2">
@@ -147,9 +149,9 @@ export const JoinEventModal: React.FC<Props> = ({
         {loading ? (
           <div className="text-center py-5">
             <div className="spinner-border mb-2" style={{ color: 'var(--tennis-navy)' }} role="status">
-              <span className="visually-hidden">Loading...</span>
+              <span className="visually-hidden">{t('common.loading')}</span>
             </div>
-            <p className="text-muted mb-0">Loading available options...</p>
+            <p className="text-muted mb-0">{t('joinModal.loadingText')}</p>
           </div>
         ) : options ? (
           <Form>
@@ -157,7 +159,7 @@ export const JoinEventModal: React.FC<Props> = ({
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-geo-alt me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-                  <span style={{ color: 'var(--tennis-navy)' }}>Where would you like to play?</span>
+                  <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.whereToPlay')}</span>
                 </h6>
                 <div className="ps-2">
                   <div className="d-flex flex-wrap gap-2">
@@ -200,7 +202,7 @@ export const JoinEventModal: React.FC<Props> = ({
                   </div>
                   <small className="text-muted d-block mt-2 ps-2">
                     <i className="bi bi-info-circle me-1"></i>
-                    Select all locations where you can play.
+                    {t('joinModal.locationHelp')}
                   </small>
                 </div>
               </div>
@@ -210,7 +212,7 @@ export const JoinEventModal: React.FC<Props> = ({
               <div className="card-body">
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-clock me-2" style={{ color: 'var(--tennis-accent)' }}></i>
-                  <span style={{ color: 'var(--tennis-navy)' }}>When would you like to start?</span>
+                  <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.whenToStart')}</span>
                 </h6>
                 <div className="ps-2">
                   <TimeSlotLabels
@@ -223,7 +225,7 @@ export const JoinEventModal: React.FC<Props> = ({
                   />
                   <small className="text-muted d-block mt-2 ps-2">
                     <i className="bi bi-info-circle me-1"></i>
-                    Select all time slots that work for you. {hostName} will choose the final time based on your availability.
+                    {t('joinModal.timeSlotHelp', { hostName })}
                   </small>
                 </div>
               </div>
@@ -239,7 +241,7 @@ export const JoinEventModal: React.FC<Props> = ({
           className="text-decoration-none"
           style={{ color: 'var(--tennis-gray)' }}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           variant="primary"
@@ -250,12 +252,12 @@ export const JoinEventModal: React.FC<Props> = ({
           {loading ? (
             <>
               <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Submitting...
+              {t('joinModal.submitting')}
             </>
           ) : (
             <>
               <i className="bi bi-calendar2-check me-2"></i>
-              Join Game Session
+              {t('joinModal.joinGameSession')}
             </>
           )}
         </Button>

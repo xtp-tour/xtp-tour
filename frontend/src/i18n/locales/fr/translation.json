@@ -296,6 +296,14 @@
     "noLongerAvailable": "Événement introuvable ou plus disponible"
   },
   "joinModal": {
+    "title": "Rejoindre la Session de Jeu de {{hostName}}",
+    "loadingText": "Chargement des options disponibles...",
+    "whereToPlay": "Où aimeriez-vous jouer ?",
+    "locationHelp": "Sélectionnez tous les lieux où vous pouvez jouer.",
+    "whenToStart": "Quand aimeriez-vous commencer ?",
+    "timeSlotHelp": "Sélectionnez tous les créneaux horaires qui vous conviennent. {{hostName}} choisira l'heure finale basée sur votre disponibilité.",
+    "submitting": "Envoi en cours...",
+    "joinGameSession": "Rejoindre la Session de Jeu",
     "selectLocation": "Veuillez sélectionner au moins un lieu",
     "selectTimeSlot": "Veuillez sélectionner au moins un créneau horaire",
     "failedToJoin": "Échec de rejoindre l'événement",

@@ -296,6 +296,14 @@
     "noLongerAvailable": "Evento no encontrado o ya no disponible"
   },
   "joinModal": {
+    "title": "Únete a la Sesión de Juego de {{hostName}}",
+    "loadingText": "Cargando opciones disponibles...",
+    "whereToPlay": "¿Dónde te gustaría jugar?",
+    "locationHelp": "Selecciona todas las ubicaciones donde puedes jugar.",
+    "whenToStart": "¿Cuándo te gustaría empezar?",
+    "timeSlotHelp": "Selecciona todos los horarios que te funcionan. {{hostName}} elegirá el horario final basado en tu disponibilidad.",
+    "submitting": "Enviando...",
+    "joinGameSession": "Unirse a la Sesión de Juego",
     "selectLocation": "Por favor selecciona al menos una ubicación",
     "selectTimeSlot": "Por favor selecciona al menos un horario",
     "failedToJoin": "Error al unirse al evento",
