@@ -2,8 +2,6 @@
 .data/
 .tmp/
 
-# Ignore binaries
-bin/
 
 # Ignore test artifacts
 *.test
