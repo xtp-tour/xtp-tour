@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
@@ -136,7 +137,9 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	// Calendar integration endpoints
 	calendar := api.Group("/calendar", "Calendar", "Google Calendar integration operations", authMiddleware)
 	calendar.GET("/auth/url", []fizz.OperationOption{fizz.Summary("Get Google Calendar OAuth URL")}, tonic.Handler(r.getCalendarAuthURLHandler, http.StatusOK))
-	calendar.POST("/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
+	// callback without auth
+	r.fizz.GET("/api/calendar/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
+	//calendar.GET("/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
 	calendar.GET("/connection/status", []fizz.OperationOption{fizz.Summary("Get calendar connection status")}, tonic.Handler(r.getCalendarConnectionStatusHandler, http.StatusOK))
 	calendar.DELETE("/connection", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectCalendarHandler, http.StatusOK))
 	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, gin.HandlerFunc(func(c *gin.Context) {
@@ -819,13 +822,6 @@ func (r *Router) getCalendarAuthURLHandler(c *gin.Context) (*api.CalendarAuthURL
 }
 
 func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallbackRequest) error {
-	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
-	if !ok {
-		return rest.HttpError{
-			HttpCode: http.StatusUnauthorized,
-			Message:  "User ID not found",
-		}
-	}
 
 	// Validate request parameters
 	if req.Code == "" {
@@ -842,8 +838,17 @@ func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallba
 		}
 	}
 
+	stateParts := strings.Split(req.State, ":")
+	if len(stateParts) != 2 {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid state parameter format",
+		}
+	}
+	userId := stateParts[0]
+
 	ctx := context.Background()
-	err := r.calendarService.HandleCallback(ctx, userId.(string), req.Code, req.State)
+	err := r.calendarService.HandleCallback(ctx, userId, req.Code, req.State)
 	if err != nil {
 		slog.Error("Failed to handle calendar callback", "error", err, "userID", userId)
 		return rest.HttpError{
