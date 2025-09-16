@@ -105,7 +105,7 @@ class SilentErrorReporter {
 export class HTTPError extends Error implements APIError {
   public statusCode: number;
   public responseText: string;
-  
+
   constructor(public status: number, message: string) {
     super(message);
     this.name = 'HTTPError';
@@ -130,7 +130,7 @@ export class RealAPIClient {
     };
 
     let responseText = '';
-    
+
     try {
       const response = await fetch(`${this.config.baseUrl}${path}`, {
         ...options,
@@ -138,7 +138,7 @@ export class RealAPIClient {
       });
 
       responseText = await response.text();
-      
+
       if (!response.ok) {
         const error = new HTTPError(response.status, responseText);
         this.errorReporter.report(error, {
@@ -156,7 +156,7 @@ export class RealAPIClient {
       if (error instanceof HTTPError) {
         throw error;
       }
-      
+
       const debugError = error instanceof Error ? error : new Error(String(error));
       this.errorReporter.report(debugError, {
         apiEndpoint: path,
@@ -164,7 +164,7 @@ export class RealAPIClient {
         requestData: options.body ? JSON.parse(options.body as string) : undefined,
         responseData: responseText
       });
-      
+
       throw new HTTPError(500, 'An unexpected error occurred');
     }
   }
@@ -186,14 +186,14 @@ export class RealAPIClient {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      
+
       const response = await fetch(`${this.config.baseUrl}/api/events/${id}`, {
         method: 'DELETE',
         headers,
       });
-      
+
       const responseText = await response.text();
-      
+
       if (!response.ok) {
         const error = new HTTPError(response.status, responseText);
         this.errorReporter.report(error, {
