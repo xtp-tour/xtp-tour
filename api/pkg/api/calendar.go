@@ -11,8 +11,9 @@ type CalendarAuthURLResponse struct {
 
 // CalendarCallbackRequest represents the OAuth callback request
 type CalendarCallbackRequest struct {
-	Code  string `json:"code"`
-	State string `json:"state"`
+	Code  string `query:"code"`
+	State string `query:"state"`
+	Scope string `query:"scope"`
 }
 
 // CalendarConnectionStatusResponse represents the calendar connection status
