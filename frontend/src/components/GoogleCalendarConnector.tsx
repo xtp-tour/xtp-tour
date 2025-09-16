@@ -16,7 +16,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 }) => {
   const { t } = useTranslation();
   const api = useAPI();
-  
+
   const [connectionStatus, setConnectionStatus] = useState<CalendarConnectionStatusResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +26,20 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     showEventDetails: false
   });
 
+  // Keep track of active OAuth flow for cleanup
+  const [activeOAuthFlow, setActiveOAuthFlow] = useState<{
+    interval: NodeJS.Timeout;
+    messageHandler: (event: MessageEvent) => void;
+    window: Window;
+  } | null>(null);
+
   const checkConnectionStatus = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       const status = await api.getCalendarConnectionStatus();
       setConnectionStatus(status);
-      
+
       if (status.connected && showPreferences) {
         const prefs = await api.getCalendarPreferences();
         setPreferences(prefs);
@@ -57,13 +64,32 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     }
   }, [connectionStatus, onConnectionChange]);
 
+  // Cleanup OAuth flow on unmount
+  useEffect(() => {
+    return () => {
+      if (activeOAuthFlow) {
+        clearInterval(activeOAuthFlow.interval);
+        window.removeEventListener('message', activeOAuthFlow.messageHandler);
+        activeOAuthFlow.window.close();
+      }
+    };
+  }, [activeOAuthFlow]);
+
   const handleConnect = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
+      // Clean up any existing OAuth flow
+      if (activeOAuthFlow) {
+        clearInterval(activeOAuthFlow.interval);
+        window.removeEventListener('message', activeOAuthFlow.messageHandler);
+        activeOAuthFlow.window.close();
+        setActiveOAuthFlow(null);
+      }
+
       const authResponse = await api.getCalendarAuthURL();
-      
+
       // Open OAuth URL in a new window
       const authWindow = window.open(
         authResponse.authUrl,
@@ -71,14 +97,22 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
         'width=500,height=600,scrollbars=yes,resizable=yes'
       );
 
+      if (!authWindow) {
+        throw new Error('Failed to open OAuth window');
+      }
+
       // Listen for the OAuth callback
       const handleMessage = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
-        
+
+        const cleanupFlow = () => {
+          setActiveOAuthFlow(null);
+          authWindow.close();
+        };
+
         if (event.data.type === 'CALENDAR_AUTH_SUCCESS') {
-          authWindow?.close();
-          window.removeEventListener('message', handleMessage);
-          
+          cleanupFlow();
+
           // Handle the callback
           api.handleCalendarCallback({
             code: event.data.code,
@@ -88,24 +122,32 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
           }).catch((err) => {
             console.error('Failed to handle calendar callback:', err);
             setError(t('calendar.errors.authCallback'));
+          }).finally(() => {
+            setIsLoading(false);
           });
         } else if (event.data.type === 'CALENDAR_AUTH_ERROR') {
-          authWindow?.close();
-          window.removeEventListener('message', handleMessage);
+          cleanupFlow();
           setError(event.data.error || t('calendar.errors.authFailed'));
+          setIsLoading(false);
         }
       };
 
       window.addEventListener('message', handleMessage);
 
       // Check if window was closed manually
-      const checkClosed = setInterval(() => {
-        if (authWindow?.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener('message', handleMessage);
+      const checkClosedInterval = setInterval(() => {
+        if (authWindow.closed) {
+          setActiveOAuthFlow(null);
           setIsLoading(false);
         }
       }, 1000);
+
+      // Track the active OAuth flow for cleanup
+      setActiveOAuthFlow({
+        interval: checkClosedInterval,
+        messageHandler: handleMessage,
+        window: authWindow
+      });
 
     } catch (err) {
       console.error('Failed to initiate calendar connection:', err);
@@ -118,7 +160,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     try {
       setIsLoading(true);
       setError(null);
-      
+
       await api.disconnectCalendar();
       setConnectionStatus({ connected: false });
     } catch (err) {
@@ -186,7 +228,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
             {t('calendar.disconnect')}
           </button>
         </div>
-        
+
         {connectionStatus.provider && (
           <small className="text-muted">
             {t('calendar.provider')}: {connectionStatus.provider}
@@ -204,7 +246,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     return (
       <div className="mt-3 pt-3 border-top">
         <h6 className="mb-3">{t('calendar.preferences.title')}</h6>
-        
+
         <div className="form-check mb-2">
           <input
             className="form-check-input"
@@ -262,7 +304,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
   return (
     <div className={`google-calendar-connector ${className}`}>
       {renderConnectionStatus()}
-      
+
       {error && (
         <div className="alert alert-danger alert-sm mt-2" role="alert">
           <i className="bi bi-exclamation-triangle me-2"></i>

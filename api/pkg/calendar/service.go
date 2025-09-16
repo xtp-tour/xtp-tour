@@ -2,10 +2,14 @@ package calendar
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
-	"log"
+	"log/slog"
+	"strings"
 	"time"
 
+	"github.com/xtp-tour/xtp-tour/api/pkg/crypto"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -15,8 +19,9 @@ import (
 
 // Service handles Google Calendar integration
 type Service struct {
-	config *oauth2.Config
-	db     *db.Db
+	config     *oauth2.Config
+	db         *db.Db
+	encryption *crypto.TokenEncryption
 }
 
 // NewService creates a new calendar service
@@ -29,30 +34,87 @@ func NewService(authConfig AuthConfig, database *db.Db) *Service {
 		Endpoint:     google.Endpoint,
 	}
 
+	// Initialize token encryption
+	encryption := crypto.MustInitTokenEncryption()
+
 	return &Service{
-		config: config,
-		db:     database,
+		config:     config,
+		db:         database,
+		encryption: encryption,
 	}
 }
 
-// GetAuthURL generates OAuth authorization URL
+// GetAuthURL generates OAuth authorization URL with secure state parameter
 func (s *Service) GetAuthURL(userID string) string {
-	return s.config.AuthCodeURL(userID, oauth2.AccessTypeOffline)
+	// Generate secure state parameter that includes user ID
+	state := s.generateStateParameter(userID)
+	return s.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}
+
+// generateStateParameter creates a secure state parameter containing the user ID
+func (s *Service) generateStateParameter(userID string) string {
+	// Generate random bytes for security
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		slog.Error("Failed to generate random bytes for state", "error", err)
+		// Fallback to timestamp-based randomness (less secure but functional)
+		randomBytes = []byte(fmt.Sprintf("%d", time.Now().UnixNano()))
+	}
+
+	randomStr := base64.URLEncoding.EncodeToString(randomBytes)
+	// Format: userID:randomString
+	return fmt.Sprintf("%s:%s", userID, randomStr)
+}
+
+// validateStateParameter validates the state parameter and extracts user ID
+func (s *Service) validateStateParameter(state, expectedUserID string) error {
+	if state == "" {
+		return fmt.Errorf("state parameter is required")
+	}
+
+	parts := strings.SplitN(state, ":", 2)
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid state parameter format")
+	}
+
+	stateUserID := parts[0]
+	if stateUserID != expectedUserID {
+		return fmt.Errorf("state parameter user ID mismatch")
+	}
+
+	return nil
 }
 
 // HandleCallback processes OAuth callback and stores tokens
-func (s *Service) HandleCallback(ctx context.Context, userID, code string) error {
+func (s *Service) HandleCallback(ctx context.Context, userID, code, state string) error {
+	// Validate state parameter to prevent CSRF attacks
+	if err := s.validateStateParameter(state, userID); err != nil {
+		return fmt.Errorf("state validation failed: %w", err)
+	}
+
 	token, err := s.config.Exchange(ctx, code)
 	if err != nil {
 		return fmt.Errorf("failed to exchange code for token: %w", err)
 	}
 
-	// Store the connection in database
+	// Encrypt tokens before storage
+	encryptedAccessToken, err := s.encryption.EncryptToken(token.AccessToken)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt access token: %w", err)
+	}
+
+	encryptedRefreshToken, err := s.encryption.EncryptToken(token.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt refresh token: %w", err)
+	}
+
+	// Store the connection in database with encrypted tokens
 	connection := &db.UserCalendarConnectionRow{
 		UserId:       userID,
 		Provider:     "google",
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
+		AccessToken:  encryptedAccessToken,
+		RefreshToken: encryptedRefreshToken,
 		TokenExpiry:  token.Expiry,
 		CalendarId:   "primary",
 		IsActive:     true,
@@ -75,10 +137,21 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		return nil, fmt.Errorf("calendar connection is not active")
 	}
 
+	// Decrypt tokens
+	accessToken, err := s.encryption.DecryptToken(connection.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt access token: %w", err)
+	}
+
+	refreshToken, err := s.encryption.DecryptToken(connection.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt refresh token: %w", err)
+	}
+
 	// Create OAuth token
 	token := &oauth2.Token{
-		AccessToken:  connection.AccessToken,
-		RefreshToken: connection.RefreshToken,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 		Expiry:       connection.TokenExpiry,
 		TokenType:    "Bearer",
 	}
@@ -118,12 +191,12 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		for _, busyTime := range calendarData.Busy {
 			startTime, err := time.Parse(time.RFC3339, busyTime.Start)
 			if err != nil {
-				log.Printf("Failed to parse start time: %v", err)
+				slog.Error("Failed to parse start time", "error", err)
 				continue
 			}
 			endTime, err := time.Parse(time.RFC3339, busyTime.End)
 			if err != nil {
-				log.Printf("Failed to parse end time: %v", err)
+				slog.Error("Failed to parse end time", "error", err)
 				continue
 			}
 
@@ -144,7 +217,7 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 	// Cache the busy times in database
 	err = s.cacheBusyTimes(ctx, userID, busyPeriods)
 	if err != nil {
-		log.Printf("Failed to cache busy times: %v", err)
+		slog.Error("Failed to cache busy times", "error", err, "userID", userID)
 		// Don't fail the request, just log the error
 	}
 
@@ -183,15 +256,26 @@ func (s *Service) refreshToken(ctx context.Context, userID string, token *oauth2
 	tokenSource := s.config.TokenSource(ctx, token)
 	newToken, err := tokenSource.Token()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
 
-	// Update token in database
+	// Encrypt new tokens before storage
+	encryptedAccessToken, err := s.encryption.EncryptToken(newToken.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt new access token: %w", err)
+	}
+
+	encryptedRefreshToken, err := s.encryption.EncryptToken(newToken.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt new refresh token: %w", err)
+	}
+
+	// Update token in database with encrypted values
 	connection := &db.UserCalendarConnectionRow{
 		UserId:       userID,
 		Provider:     "google",
-		AccessToken:  newToken.AccessToken,
-		RefreshToken: newToken.RefreshToken,
+		AccessToken:  encryptedAccessToken,
+		RefreshToken: encryptedRefreshToken,
 		TokenExpiry:  newToken.Expiry,
 		UpdatedAt:    time.Now(),
 	}

@@ -237,10 +237,9 @@ type NotificationSettings struct {
 }
 
 type UserProfileData struct {
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	NTRPLevel float64 `json:"ntrpLevel"`
-
+	FirstName     string               `json:"firstName"`
+	LastName      string               `json:"lastName"`
+	NTRPLevel     float64              `json:"ntrpLevel"`
 	Language      string               `json:"language" default:"en"`
 	Country       string               `json:"country" default:"Poland"`
 	City          string               `json:"city" default:"Wroclaw"`

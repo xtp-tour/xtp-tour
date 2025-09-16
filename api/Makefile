@@ -19,8 +19,6 @@ migrate:
 
 dbreset:
 	@echo "WARNING: This will completely destroy your database and all data!"
-	@echo "Press Ctrl+C to cancel, or press Enter to continue..."
-	@read
 	mysql -h 127.0.0.1 -P 33306 -u root --password="password" -e "DROP DATABASE xtp_tour;"
 	go run ./... migrate
 

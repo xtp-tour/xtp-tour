@@ -139,7 +139,18 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	calendar.POST("/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
 	calendar.GET("/connection/status", []fizz.OperationOption{fizz.Summary("Get calendar connection status")}, tonic.Handler(r.getCalendarConnectionStatusHandler, http.StatusOK))
 	calendar.DELETE("/connection", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectCalendarHandler, http.StatusOK))
-	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, tonic.Handler(r.getCalendarBusyTimesHandler, http.StatusOK))
+	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, gin.HandlerFunc(func(c *gin.Context) {
+		response, err := r.getCalendarBusyTimesHandler(c)
+		if err != nil {
+			if httpErr, ok := err.(rest.HttpError); ok {
+				c.JSON(httpErr.HttpCode, gin.H{"error": httpErr.Message})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, response)
+	}))
 	calendar.GET("/preferences", []fizz.OperationOption{fizz.Summary("Get calendar preferences")}, tonic.Handler(r.getCalendarPreferencesHandler, http.StatusOK))
 	calendar.PUT("/preferences", []fizz.OperationOption{fizz.Summary("Update calendar preferences")}, tonic.Handler(r.updateCalendarPreferencesHandler, http.StatusOK))
 }
@@ -810,17 +821,31 @@ func (r *Router) getCalendarAuthURLHandler(c *gin.Context) (*api.CalendarAuthURL
 func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallbackRequest) error {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-
 		return rest.HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
 	}
 
+	// Validate request parameters
+	if req.Code == "" {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Authorization code is required",
+		}
+	}
+
+	if req.State == "" {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "State parameter is required",
+		}
+	}
+
 	ctx := context.Background()
-	err := r.calendarService.HandleCallback(ctx, userId.(string), req.Code)
+	err := r.calendarService.HandleCallback(ctx, userId.(string), req.Code, req.State)
 	if err != nil {
-		slog.Error("Failed to handle calendar callback", "error", err)
+		slog.Error("Failed to handle calendar callback", "error", err, "userID", userId)
 		return rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to connect calendar",
@@ -886,7 +911,7 @@ func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
 	return nil
 }
 
-func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBusyTimesRequest) (*api.CalendarBusyTimesResponse, error) {
+func (r *Router) getCalendarBusyTimesHandler(c *gin.Context) (*api.CalendarBusyTimesResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		return nil, rest.HttpError{
@@ -895,8 +920,35 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBu
 		}
 	}
 
+	// Parse query parameters
+	timeMinStr := c.Query("timeMin")
+	timeMaxStr := c.Query("timeMax")
+
+	if timeMinStr == "" || timeMaxStr == "" {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "timeMin and timeMax query parameters are required",
+		}
+	}
+
+	timeMin, err := time.Parse(time.RFC3339, timeMinStr)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid timeMin format, expected RFC3339",
+		}
+	}
+
+	timeMax, err := time.Parse(time.RFC3339, timeMaxStr)
+	if err != nil {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid timeMax format, expected RFC3339",
+		}
+	}
+
 	ctx := context.Background()
-	busyTimesResponse, err := r.calendarService.GetBusyTimes(ctx, userId.(string), req.TimeMin, req.TimeMax)
+	busyTimesResponse, err := r.calendarService.GetBusyTimes(ctx, userId.(string), timeMin, timeMax)
 	if err != nil {
 		slog.Error("Failed to get calendar busy times", "error", err)
 		return nil, rest.HttpError{
@@ -955,6 +1007,23 @@ func (r *Router) updateCalendarPreferencesHandler(c *gin.Context, req *api.Calen
 		return nil, rest.HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
+		}
+	}
+
+	// Validate sync frequency
+	validFrequencies := []int{15, 30, 60, 120, 240, 480, 720, 1440} // 15min to 24hours
+	isValidFreq := false
+	for _, freq := range validFrequencies {
+		if req.SyncFrequencyMinutes == freq {
+			isValidFreq = true
+			break
+		}
+	}
+
+	if !isValidFreq {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid sync frequency. Must be one of: 15, 30, 60, 120, 240, 480, 720, 1440 minutes",
 		}
 	}
 
