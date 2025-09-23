@@ -154,6 +154,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 		}
 		c.JSON(http.StatusOK, response)
 	}))
+	calendar.GET("/calendars", []fizz.OperationOption{fizz.Summary("Get list of user's calendars")}, tonic.Handler(r.getCalendarsHandler, http.StatusOK))
 	calendar.GET("/preferences", []fizz.OperationOption{fizz.Summary("Get calendar preferences")}, tonic.Handler(r.getCalendarPreferencesHandler, http.StatusOK))
 	calendar.PUT("/preferences", []fizz.OperationOption{fizz.Summary("Update calendar preferences")}, tonic.Handler(r.updateCalendarPreferencesHandler, http.StatusOK))
 }
@@ -977,6 +978,37 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context) (*api.CalendarBusyT
 		CalendarID:  busyTimesResponse.CalendarID,
 		SyncedAt:    busyTimesResponse.SyncedAt,
 	}, nil
+}
+
+func (r *Router) getCalendarsHandler(c *gin.Context) (*api.UserCalendarsResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	ctx := context.Background()
+	calendars, err := r.calendarService.ListCalendars(ctx, userId.(string))
+	if err != nil {
+		slog.Error("Failed to list calendars", "error", err, "userID", userId.(string))
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to list calendars",
+		}
+	}
+
+	var apiCalendars []api.UserCalendar
+	for _, cal := range calendars {
+		apiCalendars = append(apiCalendars, api.UserCalendar{
+			ID:      cal.ID,
+			Summary: cal.Summary,
+			Primary: cal.Primary,
+		})
+	}
+
+	return &api.UserCalendarsResponse{Calendars: apiCalendars}, nil
 }
 
 func (r *Router) getCalendarPreferencesHandler(c *gin.Context) (*api.CalendarPreferencesResponse, error) {

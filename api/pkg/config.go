@@ -47,6 +47,10 @@ type GoogleCalendarConfig struct {
 	ClientID     string `envvar:"GOOGLE_CALENDAR_CLIENT_ID"`
 	ClientSecret string `envvar:"GOOGLE_CALENDAR_CLIENT_SECRET"`
 	RedirectURL  string `envvar:"GOOGLE_CALENDAR_REDIRECT_URL"`
+	// Service Account Configuration (for testing)
+	ServiceAccountEmail   string `envvar:"GOOGLE_SERVICE_ACCOUNT_EMAIL"`
+	ServiceAccountKeyPath string `envvar:"GOOGLE_SERVICE_ACCOUNT_KEY_PATH"`
+	TestCalendarID        string `envvar:"TEST_CALENDAR_ID"`
 }
 
 // MySql compatible config

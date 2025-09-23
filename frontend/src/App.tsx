@@ -13,6 +13,7 @@ import LanguageSwitcherSimple from './components/LanguageSwitcherSimple';
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
+import CalendarCallback from './components/CalendarCallback';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -139,6 +140,7 @@ const AuthenticatedRoutes = () => {
             </Layout>
           } />
           <Route path="/event/:eventId" element={<PublicEventPage />} />
+          <Route path="/api/calendar/auth/callback" element={<CalendarCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ErrorBoundary>

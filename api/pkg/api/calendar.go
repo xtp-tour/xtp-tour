@@ -59,3 +59,15 @@ type CalendarPreferencesResponse struct {
 	ShowEventDetails     bool      `json:"showEventDetails"`
 	UpdatedAt            time.Time `json:"updatedAt"`
 }
+
+// UserCalendar represents a calendar available for sync
+type UserCalendar struct {
+	ID      string `json:"id"`
+	Summary string `json:"summary"`
+	Primary bool   `json:"primary"`
+}
+
+// UserCalendarsResponse is a list of calendars
+type UserCalendarsResponse struct {
+	Calendars []UserCalendar `json:"calendars"`
+}

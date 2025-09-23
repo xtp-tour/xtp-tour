@@ -61,3 +61,10 @@ type FreeBusyResponse struct {
 	CalendarID  string       `json:"calendarId"`
 	SyncedAt    time.Time    `json:"syncedAt"`
 }
+
+// UserCalendar represents a calendar available for sync
+type UserCalendar struct {
+	ID      string `json:"id"`
+	Summary string `json:"summary"`
+	Primary bool   `json:"primary"`
+}
