@@ -16,14 +16,15 @@ interface APIError {
 // NTRP levels will be defined with i18n support inside the component
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useUser();
   const api = useAPI();
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     ntrpLevel: '',
-    preferredCity: '',
+    city: '',
+    language: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,7 +54,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         if (response.profile) {
           // Profile exists, check if it's complete
           const profile = response.profile;
-          const isComplete = profile.firstName && profile.lastName && profile.ntrpLevel && profile.preferredCity;
+          const isComplete = profile.firstName && profile.lastName && profile.ntrpLevel && profile.city;
 
           if (isComplete) {
             onComplete();
@@ -67,7 +68,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             firstName: profile.firstName || user?.firstName || '',
             lastName: profile.lastName || user?.lastName || '',
             ntrpLevel: profile.ntrpLevel?.toString() || '',
-            preferredCity: profile.preferredCity || '',
+            city: profile.city || '',
+            language: profile.language || i18n.language?.split('-')[0] || 'en',
           }));
         } else {
           // No profile exists, we'll create one
@@ -110,7 +112,9 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           firstName: formData.firstName,
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
-          preferredCity: formData.preferredCity,
+          city: formData.city,
+          country: '',
+          language: formData.language || i18n.language?.split('-')[0] || 'en',
         });
       } else {
         // Create new profile
@@ -118,7 +122,9 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           firstName: formData.firstName,
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
-          preferredCity: formData.preferredCity,
+          city: formData.city,
+          country: '',
+          language: formData.language || i18n.language?.split('-')[0] || 'en',
         });
       }
       onComplete();
@@ -214,8 +220,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   <Form.Label>{t('profileSetup.fields.preferredCity')}</Form.Label>
                   <Form.Control
                     type="text"
-                    name="preferredCity"
-                    value={formData.preferredCity}
+                    name="city"
+                    value={formData.city}
                     onChange={handleChange}
                     required
                     placeholder={t('profileSetup.placeholders.preferredCity')}
