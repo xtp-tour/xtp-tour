@@ -74,10 +74,10 @@ function formatTimeDisplay(minutes: number): string {
   const mins = minutes % 60;
   const date = new Date();
   date.setHours(hours, mins, 0, 0);
-  return date.toLocaleTimeString(undefined, { 
-    hour: 'numeric', 
+  return date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true
   });
 }
 
@@ -103,7 +103,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 }) => {
   const { t } = useTranslation();
   const api = useAPI();
-  
+
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
   }, [minDate]);
@@ -205,7 +205,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   // Check if a time slot conflicts with calendar busy times
   const isSlotBusy = useCallback((dateOnly: Date, minutesFromMidnight: number): boolean => {
-    if (!calendarIntegration?.enabled || busyPeriods.length === 0) {
+    if (!calendarIntegration?.enabled || !busyPeriods || busyPeriods.length === 0) {
       return false;
     }
 
@@ -215,7 +215,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     return busyPeriods.some(period => {
       const periodStart = new Date(period.start);
       const periodEnd = new Date(period.end);
-      
+
       // Check if the slot overlaps with the busy period
       return slotStart < periodEnd && slotEnd > periodStart;
     });
@@ -223,9 +223,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
-    
+
     const localDateTime = makeLocalDateTime(dateOnly, minutesFromMidnight);
-    
+
     // Validate this isn't a past date/time
     if (!isValidFutureDate(localDateTime, computedMinDate)) {
       return;
@@ -235,29 +235,29 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     if (isSlotBusy(dateOnly, minutesFromMidnight)) {
       return;
     }
-    
+
     const utcIso = localDateTime.toISOString();
     const currentSelected = new Set(value);
-    
+
     if (currentSelected.has(utcIso)) {
       currentSelected.delete(utcIso);
     } else {
       currentSelected.add(utcIso);
     }
-    
+
     memoizedOnChange(Array.from(currentSelected));
   }, [disabled, computedMinDate, value, memoizedOnChange, isSlotBusy]);
 
   const clearSelection = useCallback(() => {
-    if (disabled || value.length === 0) return;
+    if (disabled || !value || value.length === 0) return;
     memoizedOnChange([]);
-  }, [disabled, value.length, memoizedOnChange]);
+  }, [disabled, value, memoizedOnChange]);
 
 
 
   // Memoize whether any slots are selected for performance
-  const hasSelection = useMemo(() => value.length > 0, [value.length]);
-  
+  const hasSelection = useMemo(() => value && value.length > 0, [value]);
+
   // Generate ARIA label for the calendar
   const calendarAriaLabel = useMemo(() => {
     const modeText = nightOnly ? 'night hours only' : 'daytime hours';
@@ -274,9 +274,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               className="btn btn-outline-secondary btn-sm shadow-none"
               onMouseDown={(e) => e.preventDefault()}
               onTouchStart={(e) => e.preventDefault()}
-              onClick={(e) => { 
+              onClick={(e) => {
                 if (!disabled) {
-                  goPrev(); 
+                  goPrev();
                   (e.currentTarget as HTMLButtonElement).blur();
                 }
               }}
@@ -296,7 +296,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               className="btn btn-outline-secondary btn-sm shadow-none"
               onMouseDown={(e) => e.preventDefault()}
               onTouchStart={(e) => e.preventDefault()}
-              onClick={(e) => { 
+              onClick={(e) => {
                 if (!disabled) {
                   goNext();
                   (e.currentTarget as HTMLButtonElement).blur();
@@ -319,7 +319,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
             className="btn btn-outline-secondary btn-sm shadow-none ms-2"
             onMouseDown={(e) => e.preventDefault()}
             onTouchStart={(e) => e.preventDefault()}
-            onClick={(e) => { 
+            onClick={(e) => {
               if (!disabled) {
                 clearSelection();
                 (e.currentTarget as HTMLButtonElement).blur();
@@ -368,25 +368,25 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const isBusy = isSlotBusy(d, m);
                   const isPast = !isValidFutureDate(localDateTime, computedMinDate);
                   const isDisabled = disabled || isBusy || isPast;
-                  
+
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
                         type="button"
                         className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
-                          selectedNow 
-                            ? 'bg-primary text-white' 
+                          selectedNow
+                            ? 'bg-primary text-white'
                             : isBusy
                             ? 'bg-warning bg-opacity-25 text-muted position-relative'
                             : isPast
-                            ? 'bg-transparent text-muted' 
-                            : disabled 
-                            ? 'bg-transparent text-muted' 
+                            ? 'bg-transparent text-muted'
+                            : disabled
+                            ? 'bg-transparent text-muted'
                             : 'bg-transparent text-body'
                         }`}
-                        style={{ 
+                        style={{
                           minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT,
-                          ...(isBusy ? { 
+                          ...(isBusy ? {
                             backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,.1) 4px, rgba(0,0,0,.1) 8px)'
                           } : {})
                         }}

@@ -48,7 +48,7 @@ func NewService(authConfig AuthConfig, database *db.Db) *Service {
 func (s *Service) GetAuthURL(userID string) string {
 	// Generate secure state parameter that includes user ID
 	state := s.generateStateParameter(userID)
-	return s.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	return s.config.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 }
 
 // generateStateParameter creates a secure state parameter containing the user ID
@@ -98,6 +98,12 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 		return fmt.Errorf("failed to exchange code for token: %w", err)
 	}
 
+	// Check if refresh token is present
+	if token.RefreshToken == "" {
+		slog.Warn("No refresh token received from Google OAuth", "userID", userID)
+		return fmt.Errorf("no refresh token received from Google - user may need to revoke access and re-authorize")
+	}
+
 	// Encrypt tokens before storage
 	encryptedAccessToken, err := s.encryption.EncryptToken(token.AccessToken)
 	if err != nil {
@@ -127,48 +133,10 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 
 // GetBusyTimes retrieves busy periods from Google Calendar
 func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, timeMax time.Time) (*FreeBusyResponse, error) {
-	// Get user's calendar connection
-	connection, err := s.db.GetCalendarConnection(ctx, userID, "google")
+
+	calendarService, calendarId, err := s.getCalendarService(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get calendar connection: %w", err)
-	}
-
-	if !connection.IsActive {
-		return nil, fmt.Errorf("calendar connection is not active")
-	}
-
-	// Decrypt tokens
-	accessToken, err := s.encryption.DecryptToken(connection.AccessToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt access token: %w", err)
-	}
-
-	refreshToken, err := s.encryption.DecryptToken(connection.RefreshToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt refresh token: %w", err)
-	}
-
-	// Create OAuth token
-	token := &oauth2.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		Expiry:       connection.TokenExpiry,
-		TokenType:    "Bearer",
-	}
-
-	// Check if token needs refresh
-	if token.Expiry.Before(time.Now().Add(5 * time.Minute)) {
-		token, err = s.refreshToken(ctx, userID, token)
-		if err != nil {
-			return nil, fmt.Errorf("failed to refresh token: %w", err)
-		}
-	}
-
-	// Create calendar service
-	client := s.config.Client(ctx, token)
-	calendarService, err := calendar.NewService(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create calendar service: %w", err)
+		return nil, err
 	}
 
 	// Query free/busy information
@@ -176,7 +144,7 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		TimeMin: timeMin.Format(time.RFC3339),
 		TimeMax: timeMax.Format(time.RFC3339),
 		Items: []*calendar.FreeBusyRequestItem{
-			{Id: connection.CalendarId},
+			{Id: calendarId},
 		},
 	}
 
@@ -187,7 +155,7 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 
 	// Parse busy periods
 	var busyPeriods []BusyPeriod
-	if calendarData, exists := freeBusyResponse.Calendars[connection.CalendarId]; exists {
+	if calendarData, exists := freeBusyResponse.Calendars[calendarId]; exists {
 		for _, busyTime := range calendarData.Busy {
 			startTime, err := time.Parse(time.RFC3339, busyTime.Start)
 			if err != nil {
@@ -210,7 +178,7 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 
 	response := &FreeBusyResponse{
 		BusyPeriods: busyPeriods,
-		CalendarID:  connection.CalendarId,
+		CalendarID:  calendarId,
 		SyncedAt:    time.Now(),
 	}
 
@@ -222,6 +190,78 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 	}
 
 	return response, nil
+}
+
+// getCalendarService retrieves a Google Calendar service client for a user
+func (s *Service) getCalendarService(ctx context.Context, userID string) (*calendar.Service, string, error) {
+	// Get user's calendar connection
+	connection, err := s.db.GetCalendarConnection(ctx, userID, "google")
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get calendar connection: %w", err)
+	}
+
+	if !connection.IsActive {
+		return nil, "", fmt.Errorf("calendar connection is not active")
+	}
+
+	// Decrypt tokens
+	accessToken, err := s.encryption.DecryptToken(connection.AccessToken)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to decrypt access token: %w", err)
+	}
+
+	refreshToken, err := s.encryption.DecryptToken(connection.RefreshToken)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to decrypt refresh token: %w", err)
+	}
+
+	// Create OAuth token
+	token := &oauth2.Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		Expiry:       connection.TokenExpiry,
+		TokenType:    "Bearer",
+	}
+
+	// Check if token needs refresh
+	if token.Expiry.Before(time.Now().Add(5 * time.Minute)) {
+		token, err = s.refreshToken(ctx, userID, token)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to refresh token: %w", err)
+		}
+	}
+
+	// Create calendar service
+	client := s.config.Client(ctx, token)
+	calendarService, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create calendar service: %w", err)
+	}
+	return calendarService, connection.CalendarId, nil
+}
+
+// ListCalendars retrieves the list of calendars for the user from Google
+func (s *Service) ListCalendars(ctx context.Context, userID string) ([]UserCalendar, error) {
+	calendarService, _, err := s.getCalendarService(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := calendarService.CalendarList.List().Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve calendar list: %w", err)
+	}
+
+	var calendars []UserCalendar
+	for _, item := range list.Items {
+		calendars = append(calendars, UserCalendar{
+			ID:      item.Id,
+			Summary: item.Summary,
+			Primary: item.Primary,
+		})
+	}
+
+	return calendars, nil
 }
 
 // GetConnectionStatus checks if user has an active calendar connection
@@ -320,4 +360,70 @@ func GetDefaultScopes() []string {
 	return []string{
 		calendar.CalendarReadonlyScope,
 	}
+}
+
+// NewServiceAccountService creates a calendar service using service account authentication
+// This is used for testing purposes
+func NewServiceAccountService(serviceAccountKeyPath, serviceAccountEmail string) (*calendar.Service, error) {
+	ctx := context.Background()
+
+	// Create service account credentials
+	client, err := google.DefaultClient(ctx, calendar.CalendarReadonlyScope)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create service account client: %w", err)
+	}
+
+	// Create calendar service with service account
+	calendarService, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create calendar service with service account: %w", err)
+	}
+
+	return calendarService, nil
+}
+
+// GetTestBusyTimes retrieves busy periods from a test calendar using service account
+func GetTestBusyTimes(calendarService *calendar.Service, calendarID string, timeMin, timeMax time.Time) (*FreeBusyResponse, error) {
+	// Query free/busy information using service account
+	freeBusyRequest := &calendar.FreeBusyRequest{
+		TimeMin: timeMin.Format(time.RFC3339),
+		TimeMax: timeMax.Format(time.RFC3339),
+		Items: []*calendar.FreeBusyRequestItem{
+			{Id: calendarID},
+		},
+	}
+
+	freeBusyResponse, err := calendarService.Freebusy.Query(freeBusyRequest).Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query free/busy with service account: %w", err)
+	}
+
+	// Parse busy periods
+	var busyPeriods []BusyPeriod
+	if calendarData, exists := freeBusyResponse.Calendars[calendarID]; exists {
+		for _, busyTime := range calendarData.Busy {
+			startTime, err := time.Parse(time.RFC3339, busyTime.Start)
+			if err != nil {
+				slog.Error("Failed to parse start time", "error", err)
+				continue
+			}
+			endTime, err := time.Parse(time.RFC3339, busyTime.End)
+			if err != nil {
+				slog.Error("Failed to parse end time", "error", err)
+				continue
+			}
+
+			busyPeriods = append(busyPeriods, BusyPeriod{
+				Start: startTime,
+				End:   endTime,
+				Title: "Test Event",
+			})
+		}
+	}
+
+	return &FreeBusyResponse{
+		BusyPeriods: busyPeriods,
+		CalendarID:  calendarID,
+		SyncedAt:    time.Now(),
+	}, nil
 }

@@ -116,3 +116,4 @@ func MustInitTokenEncryption() *TokenEncryption {
 	}
 	return te
 }
+
