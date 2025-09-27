@@ -17,8 +17,18 @@ type Config struct {
 }
 
 type NotificationConfig struct {
-	MaxRetries    int `default:"3" envvar:"NOTIFICATION_MAX_RETRIES"`
-	TickerSeconds int `default:"5" envvar:"NOTIFICATION_TICKER_SECONDS"`
+	MaxRetries    int         `default:"3" envvar:"NOTIFICATION_MAX_RETRIES"`
+	TickerSeconds int         `default:"5" envvar:"NOTIFICATION_TICKER_SECONDS"`
+	Email         EmailConfig `config:"email"`
+}
+
+type EmailConfig struct {
+	Host     string `default:"smtp.zeptomail.com" envvar:"EMAIL_HOST"`
+	Port     int    `default:"587" envvar:"EMAIL_PORT"`
+	Username string `envvar:"EMAIL_USERNAME"`
+	Password string `envvar:"EMAIL_PASSWORD"`
+	From     string `envvar:"EMAIL_FROM"`
+	Enabled  bool   `default:"false" envvar:"EMAIL_ENABLED"`
 }
 
 type HttpConfig struct {

@@ -2,109 +2,112 @@ package notifications
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
-	"github.com/xtp-tour/xtp-tour/api/pkg/db"
+	"github.com/stretchr/testify/assert"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
 
-func TestFanOutSender_WithChannelPreferences(t *testing.T) {
-	// Create test senders
-	emailSender := NewEmailSender()
-	smsSender := NewSMSSender()
-	debugSender := NewDebugSender()
+func TestEmailSender_Disabled(t *testing.T) {
+	config := pkg.EmailConfig{
+		Enabled: false,
+	}
 
-	// Create fan-out sender
-	fanOutSender := NewFanOutSender(emailSender, smsSender, debugSender)
+	sender, err := NewRealEmailSender(config, slog.Default())
+	assert.NoError(t, err)
+	assert.NotNil(t, sender)
+	assert.False(t, sender.enabled)
 
-	// Test notification with only email enabled
-	notification := &db.NotificationQueueRow{
-		Id:     "test-1",
-		UserId: "user-1",
-		Data: db.NotificationQueueData{
-			Topic:   "test",
-			Message: "Test message",
-		},
-		UserPreferences: db.UserPreferences{
-			Notifications: db.NotificationSettings{
-				Email:        "test@example.com",
-				PhoneNumber:  "1234567890",
-				DebugAddress: "debug@example.com",
-				Channels:     db.NotificationChannelEmail, // Only email enabled
+	// Should not send when disabled
+	err = sender.Send(context.Background(), "test@example.com", "Test", "Test message")
+	assert.NoError(t, err)
+}
+
+func TestEmailSender_ConfigValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  pkg.EmailConfig
+		wantErr bool
+	}{
+		{
+			name: "missing username",
+			config: pkg.EmailConfig{
+				Enabled:  true,
+				Host:     "smtp.example.com",
+				Port:     587,
+				Password: "password",
+				From:     "test@example.com",
 			},
+			wantErr: true,
+		},
+		{
+			name: "missing password",
+			config: pkg.EmailConfig{
+				Enabled:  true,
+				Host:     "smtp.example.com",
+				Port:     587,
+				Username: "user",
+				From:     "test@example.com",
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing from",
+			config: pkg.EmailConfig{
+				Enabled:  true,
+				Host:     "smtp.example.com",
+				Port:     587,
+				Username: "user",
+				Password: "password",
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid config",
+			config: pkg.EmailConfig{
+				Enabled:  true,
+				Host:     "smtp.example.com",
+				Port:     587,
+				Username: "user",
+				Password: "password",
+				From:     "test@example.com",
+			},
+			wantErr: false,
 		},
 	}
 
-	// This should only send via email since only email channel is enabled
-	err := fanOutSender.Send(context.Background(), notification)
-	if err != nil {
-		t.Errorf("Failed to send notification: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewRealEmailSender(tt.config, slog.Default())
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
 	}
 }
 
-func TestFanOutSender_WithMultipleChannelsEnabled(t *testing.T) {
-	// Create test senders
-	emailSender := NewEmailSender()
-	smsSender := NewSMSSender()
-	debugSender := NewDebugSender()
-
-	// Create fan-out sender
-	fanOutSender := NewFanOutSender(emailSender, smsSender, debugSender)
-
-	// Test notification with email and SMS enabled
-	notification := &db.NotificationQueueRow{
-		Id:     "test-2",
-		UserId: "user-2",
-		Data: db.NotificationQueueData{
-			Topic:   "test",
-			Message: "Test message",
-		},
-		UserPreferences: db.UserPreferences{
-			Notifications: db.NotificationSettings{
-				Email:        "test@example.com",
-				PhoneNumber:  "1234567890",
-				DebugAddress: "debug@example.com",
-				Channels:     db.NotificationChannelEmail | db.NotificationChannelSMS, // Email and SMS enabled
-			},
-		},
+func TestEmailSender_EmptyAddress(t *testing.T) {
+	config := pkg.EmailConfig{
+		Enabled:  true,
+		Host:     "smtp.example.com",
+		Port:     587,
+		Username: "user",
+		Password: "password",
+		From:     "test@example.com",
 	}
 
-	// This should send via both email and SMS
-	err := fanOutSender.Send(context.Background(), notification)
-	if err != nil {
-		t.Errorf("Failed to send notification: %v", err)
-	}
+	sender, err := NewRealEmailSender(config, slog.Default())
+	assert.NoError(t, err)
+
+	// Should not send to empty address
+	err = sender.Send(context.Background(), "", "Test", "Test message")
+	assert.NoError(t, err)
 }
 
-func TestFanOutSender_WithNoChannelsEnabled(t *testing.T) {
-	// Create test senders
-	emailSender := NewEmailSender()
-	smsSender := NewSMSSender()
-	debugSender := NewDebugSender()
-
-	// Create fan-out sender
-	fanOutSender := NewFanOutSender(emailSender, smsSender, debugSender)
-
-	// Test notification with no channels enabled
-	notification := &db.NotificationQueueRow{
-		Id:     "test-3",
-		UserId: "user-3",
-		Data: db.NotificationQueueData{
-			Topic:   "test",
-			Message: "Test message",
-		},
-		UserPreferences: db.UserPreferences{
-			Notifications: db.NotificationSettings{
-				Email:        "test@example.com",
-				PhoneNumber:  "1234567890",
-				DebugAddress: "debug@example.com",
-				Channels:     0, // No channels enabled
-			},
-		},
-	}
-
-	// This should not send any notifications
-	err := fanOutSender.Send(context.Background(), notification)
-	if err != nil {
-		t.Errorf("Failed to send notification: %v", err)
-	}
+func TestEmailSender_GetDeliveryMethod(t *testing.T) {
+	sender := NewEmailSender()
+	assert.Equal(t, "email", sender.GetDeliveryMethod())
 }

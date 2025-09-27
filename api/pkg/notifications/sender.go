@@ -2,8 +2,13 @@ package notifications
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strconv"
 
+	"github.com/nikoksr/notify"
+	"github.com/nikoksr/notify/service/mail"
+	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
@@ -40,29 +45,79 @@ func (s *LogSender) Send(ctx context.Context, notification *db.NotificationQueue
 	return nil
 }
 
-// EmailSender handles email notifications
+// EmailSender handles email notifications via ZeptoMail
 type EmailSender struct {
-	logger *slog.Logger
+	config  pkg.EmailConfig
+	logger  *slog.Logger
+	enabled bool
 }
 
 func NewEmailSender() *EmailSender {
 	return &EmailSender{
-		logger: slog.Default(),
+		logger:  slog.Default(),
+		enabled: false,
 	}
 }
 
+func NewRealEmailSender(config pkg.EmailConfig, logger *slog.Logger) (*EmailSender, error) {
+	if !config.Enabled {
+		logger.Info("Email notifications disabled")
+		return &EmailSender{
+			config:  config,
+			logger:  logger,
+			enabled: false,
+		}, nil
+	}
+
+	if config.Username == "" || config.Password == "" || config.From == "" {
+		return nil, fmt.Errorf("email configuration incomplete: username, password, and from address are required")
+	}
+
+	logger.Info("ZeptoMail email service initialized successfully",
+		"host", config.Host,
+		"port", config.Port,
+		"from", config.From)
+
+	return &EmailSender{
+		config:  config,
+		logger:  logger,
+		enabled: true,
+	}, nil
+}
+
 func (s *EmailSender) Send(ctx context.Context, address, topic, message string) error {
+	if !s.enabled {
+		s.logger.Debug("Email sending disabled, skipping", "address", address)
+		return nil
+	}
+
 	if address == "" {
-		return nil // Skip if no email address
+		s.logger.Debug("No email address provided, skipping")
+		return nil
 	}
 
 	logCtx := s.logger.With(
 		"deliveryMethod", "email",
 		"address", address,
 		"topic", topic,
+		"from", s.config.From,
 	)
 
-	logCtx.Info("📧 EMAIL SENT", "message", message)
+	// Create a fresh notifier and mail service for this send
+	notifier := notify.New()
+
+	mailService := mail.New(s.config.Host, strconv.Itoa(s.config.Port))
+	mailService.AuthenticateSMTP("", s.config.Username, s.config.Password, "")
+	mailService.AddReceivers(address)
+
+	notifier.UseServices(mailService)
+
+	if err := notifier.Send(ctx, topic, message); err != nil {
+		logCtx.Error("Failed to send email via ZeptoMail", "error", err)
+		return fmt.Errorf("failed to send email to %s: %w", address, err)
+	}
+
+	logCtx.Info("📧 Email sent successfully via ZeptoMail")
 	return nil
 }
 

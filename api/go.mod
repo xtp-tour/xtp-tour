@@ -21,6 +21,12 @@ require (
 )
 
 require (
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
+	github.com/nikoksr/notify v1.3.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+)
+
+require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect

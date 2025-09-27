@@ -51,7 +51,11 @@ func main() {
 	queue := notifications.NewDbQueue(dbConn)
 
 	// Create specific senders
-	emailSender := notifications.NewEmailSender()
+	emailSender, err := notifications.NewRealEmailSender(serviceConfig.Notifications.Email, slog.Default())
+	if err != nil {
+		slog.Error("Failed to create email sender", "error", err)
+		os.Exit(1)
+	}
 	smsSender := notifications.NewSMSSender()
 	debugSender := notifications.NewDebugSender()
 
