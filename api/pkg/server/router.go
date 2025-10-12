@@ -630,7 +630,7 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 	profile, err := r.db.GetUserProfile(c, userId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			logCtx.Debug("Profile not found")
+			logCtx.Info("Profile not found")
 			return nil, rest.HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  fmt.Sprintf("Profile not found for user %s", userId),
