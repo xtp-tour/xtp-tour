@@ -137,7 +137,7 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", eventRow)
 	_, err = tx.NamedExecContext(ctx, query, eventRow)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		ctxLog.Error("Failed to insert event", "error", err)
 		return err
 	}
@@ -154,7 +154,7 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", locations)
 	_, err = tx.NamedExecContext(ctx, query, locations)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		ctxLog.Error("Failed to insert event locations", "error", err)
 		return err
 	}
@@ -171,7 +171,7 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", timeSlots)
 	_, err = tx.NamedExecContext(ctx, query, timeSlots)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		ctxLog.Error("Failed to insert event time slot", "error", err)
 		return err
 	}
@@ -204,7 +204,7 @@ func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event,
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	var eventIds []string
 	for rows.Next() {
 		var eventId string
@@ -282,7 +282,7 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 		slog.Error("Failed to get  events", "error", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	eventMap := make(map[string]*api.Event)
 
@@ -476,7 +476,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, eventId, userId, req.Comment})
 	_, err = tx.ExecContext(ctx, query, joinRequestId, eventId, userId, req.Comment)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		slog.Error("Failed to insert join request", "error", err)
 		return "", err
 	}
@@ -488,7 +488,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 			slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, locationId})
 			_, err = tx.ExecContext(ctx, query, joinRequestId, locationId)
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				slog.Error("Failed to insert join request location", "error", err)
 				return "", err
 			}
@@ -502,7 +502,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 			slog.Debug("Executing SQL query", "query", query, "params", []interface{}{uuid.New().String(), joinRequestId, api.ParseDt(timeSlot)})
 			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, api.ParseDt(timeSlot))
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				slog.Error("Failed to insert join request time slot", "error", err)
 				return "", err
 			}
@@ -534,9 +534,9 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			db.rollback(tx)
 		} else {
-			tx.Commit()
+			err = tx.Commit()
 		}
 	}()
 
@@ -545,7 +545,7 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	query := `INSERT INTO confirmations (id, event_id, location_id, dt) VALUES (?, ?, ?, ?)`
 	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime))
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to create confirmation")
 	}
 
@@ -553,21 +553,21 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	query = `UPDATE join_requests SET is_accepted = true WHERE id in (?)`
 	query, args, err := sqlx.In(query, req.JoinRequestsIds)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to prepare query with IN clause")
 	}
 	query = db.conn.Rebind(query)
 	slog.Debug("Executing SQL query", "query", query, "params", args)
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to update join requests")
 	}
 
 	// Update event status
 	_, err = tx.ExecContext(ctx, `UPDATE events SET status = ? WHERE id = ?`, api.EventStatusConfirmed, eventId)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to update event status")
 	}
 
@@ -643,7 +643,7 @@ func (db *Db) GetJoinRequest(ctx context.Context, joinRequestId string) (*api.Jo
 		slog.Error("Failed to get join request", "error", err, "joinRequestId", joinRequestId)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	if !rows.Next() {
 		if err = rows.Err(); err != nil {
@@ -686,7 +686,7 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 		slog.Error("Failed to get join requests", "error", err, "eventIds", eventIds)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	// Initialize result map
 	result := make(map[string][]*api.JoinRequest)
@@ -740,7 +740,7 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 		slog.Error("Failed to get user names", "error", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]string)
 	for rows.Next() {
@@ -871,7 +871,7 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 	_, err = tx.ExecContext(ctx, "INSERT INTO users (uid, first_name, last_name) VALUES (?, ?, ?)",
 		userId, profile.FirstName, profile.LastName)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
 	}
 
@@ -890,13 +890,13 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications, channels) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return "", nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
@@ -919,18 +919,18 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 
 	result, err := tx.ExecContext(ctx, `UPDATE users SET first_name = ?, last_name = ? WHERE uid = ?`, profile.FirstName, profile.LastName, userId)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to update user profile")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to get rows affected")
 	}
 
 	if rowsAffected == 0 {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, DbObjectNotFoundError{Message: "Profile not found"}
 	}
 
@@ -948,13 +948,13 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 
 	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ?, notifications = ?, channels = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels, userId)
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to update user profile")
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
+		db.rollback(tx)
 		return nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
@@ -991,7 +991,7 @@ func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNoti
 		slog.Error("Failed to get user notification settings", "error", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]EventNotifSettingsResult)
 	for rows.Next() {
@@ -1024,4 +1024,11 @@ func (db *Db) UpsertUserNotificationSettings(ctx context.Context, userId string,
 		return err
 	}
 	return nil
+}
+
+func (db *Db) rollback(tx *sqlx.Tx) {
+	err := tx.Rollback()
+	if err != nil {
+		slog.Error("Failed to rollback transaction", "error", err)
+	}
 }

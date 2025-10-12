@@ -43,7 +43,7 @@ func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
 		if os.Getenv("ENVIRONMENT") != "production" {
 			fmt.Print("Are you sure you want to rollback migrations? This will delete data! (yes/no): ")
 			var response string
-			fmt.Scanln(&response)
+			_, _ = fmt.Scanln(&response)
 			if response != "yes" {
 				slog.Info("Migration rollback cancelled")
 				return
