@@ -128,8 +128,8 @@ class MockAPIError extends Error {
     this.name = 'MockAPIError';
     this.code = code;
     this.details = details;
-    this.statusCode = code === 'NOT_FOUND' ? 404 : 
-                      code === 'UNAUTHORIZED' ? 401 : 
+    this.statusCode = code === 'NOT_FOUND' ? 404 :
+                      code === 'UNAUTHORIZED' ? 401 :
                       code === 'FORBIDDEN' ? 403 : 500;
   }
 }
@@ -620,7 +620,7 @@ export class MockAPIClient implements APIClient {
     await this.checkAuth();
     await this.delay(300);
     return {
-      events: this.events.filter(event => 
+      events: this.events.filter(event =>
         event.joinRequests?.some(request => request.userId === 'current_user')
       ),
       total: 0
@@ -677,12 +677,14 @@ export class MockAPIClient implements APIClient {
     await this.delay(300);
     // Mock implementation - return mock profile data
     return {
+      userId: userId,
       profile: {
-        userId: userId,
         firstName: `User`,
         lastName: `${userId.slice(-4)}`,
         ntrpLevel: 3.0,
-        city: 'Mock City'
+        city: 'Mock City',
+        country: 'Poland',
+        language: 'en'
       }
     };
   }
@@ -692,12 +694,15 @@ export class MockAPIClient implements APIClient {
     await this.delay(500);
     // Mock implementation - simulate successful profile creation
     return {
+      userId: 'current_user',
       profile: {
-        userId: 'current_user',
         firstName: request.firstName,
         lastName: request.lastName,
         ntrpLevel: request.ntrpLevel,
-        city: request.city
+        city: request.city,
+        country: request.country,
+        language: request.language,
+        notification_settings: request.notification_settings
       }
     };
   }
@@ -707,12 +712,15 @@ export class MockAPIClient implements APIClient {
     await this.delay(500);
     // Mock implementation - simulate successful profile update
     return {
+      userId: 'current_user',
       profile: {
-        userId: 'current_user',
         firstName: request.firstName,
         lastName: request.lastName,
         ntrpLevel: request.ntrpLevel,
-        city: request.city
+        city: request.city,
+        country: request.country,
+        language: request.language,
+        notification_settings: request.notification_settings
       }
     };
   }

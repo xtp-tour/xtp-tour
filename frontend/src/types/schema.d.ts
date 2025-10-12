@@ -175,6 +175,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["healthHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profiles/": {
         parameters: {
             query?: never;
@@ -204,7 +220,8 @@ export interface paths {
         /** Update user profile */
         put: operations["updateUserProfileHandler-fm"];
         post?: never;
-        delete?: never;
+        /** Delete user profile */
+        delete: operations["deleteUserProfileHandler-fm"];
         options?: never;
         head?: never;
         patch?: never;
@@ -219,22 +236,6 @@ export interface paths {
         };
         /** Get user profile */
         get: operations["getUserProfileHandler-fm"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ping": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["healthHandler-fm"];
         put?: never;
         post?: never;
         delete?: never;
@@ -278,6 +279,7 @@ export interface components {
         };
         ApiCreateUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
+            userId?: string;
         };
         ApiEvent: {
             confirmation?: components["schemas"]["ApiConfirmation"];
@@ -342,6 +344,7 @@ export interface components {
         };
         ApiGetUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
+            userId?: string;
         };
         ApiHealthResponse: {
             message?: string;
@@ -388,16 +391,33 @@ export interface components {
             id?: string;
             name?: string;
         };
+        ApiNotificationSettings: {
+            /**
+             * Format: int32
+             * @description Bit flags for enabled notification channels: 1=email, 2=sms, 4=debug, 8=push
+             * @default 1
+             */
+            channels: number;
+            debug_address?: string;
+            email?: string;
+            phone_number?: string;
+        };
         ApiUpdateUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
+            userId?: string;
         };
         ApiUserProfileData: {
+            /** @default Wroclaw */
+            city: string;
+            /** @default Poland */
+            country: string;
             firstName?: string;
+            /** @default en */
+            language: string;
             lastName?: string;
+            notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
-            city?: string;
-            userId?: string;
         };
         "ConfirmEvent-FmInput": {
             /**
@@ -412,22 +432,33 @@ export interface components {
             event: components["schemas"]["ApiEventData"];
         };
         "CreateUserProfileHandler-FmInput": {
+            /** @default Wroclaw */
+            city: string;
+            /** @default Poland */
+            country: string;
             firstName?: string;
+            /** @default en */
+            language: string;
             lastName?: string;
+            notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
-            city?: string;
         };
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
         };
         "UpdateUserProfileHandler-FmInput": {
+            /** @default Wroclaw */
+            city: string;
+            /** @default Poland */
+            country: string;
             firstName?: string;
+            /** @default en */
+            language: string;
             lastName?: string;
+            notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
-            city?: string;
-            userId?: string;
         };
     };
     responses: never;
@@ -697,6 +728,26 @@ export interface operations {
             };
         };
     };
+    "healthHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiHealthResponse"];
+                };
+            };
+        };
+    };
     "createUserProfileHandler-fm": {
         parameters: {
             query?: never;
@@ -765,6 +816,24 @@ export interface operations {
             };
         };
     };
+    "deleteUserProfileHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "getUserProfileHandler-fm": {
         parameters: {
             query?: never;
@@ -783,26 +852,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiGetUserProfileResponse"];
-                };
-            };
-        };
-    };
-    "healthHandler-fm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiHealthResponse"];
                 };
             };
         };
