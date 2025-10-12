@@ -4,18 +4,23 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	"github.com/wneessen/go-mail"
+	"github.com/wneessen/go-mail/smtp"
 
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
 
-// EmailSender handles email notifications via SMTP
+// EmailSender handles email notifications via SMTP with connection pooling
 type EmailSender struct {
-	config  pkg.EmailConfig
-	logger  *slog.Logger
-	client  *mail.Client
-	enabled bool
+	config     pkg.EmailConfig
+	logger     *slog.Logger
+	client     *mail.Client
+	enabled    bool
+	smtpConn   *smtp.Client
+	connMutex  sync.Mutex
+	maxRetries int
 }
 
 func NewRealEmailSender(config pkg.EmailConfig, logger *slog.Logger) (*EmailSender, error) {
@@ -62,11 +67,53 @@ func NewRealEmailSender(config pkg.EmailConfig, logger *slog.Logger) (*EmailSend
 		"from", config.From)
 
 	return &EmailSender{
-		config:  config,
-		logger:  logger,
-		client:  client,
-		enabled: true,
+		config:     config,
+		logger:     logger,
+		client:     client,
+		enabled:    true,
+		maxRetries: 2, // Retry once on connection failure
 	}, nil
+}
+
+// getOrCreateConnection returns an existing SMTP connection or creates a new one
+func (s *EmailSender) getOrCreateConnection(ctx context.Context) (*smtp.Client, error) {
+	s.connMutex.Lock()
+	defer s.connMutex.Unlock()
+
+	// Check if we have an existing connection
+	if s.smtpConn != nil {
+		// Test if connection is still alive with Noop
+		if err := s.smtpConn.Noop(); err == nil {
+			return s.smtpConn, nil
+		}
+		// Connection is dead, close it
+		s.logger.Debug("SMTP connection lost, reconnecting")
+		_ = s.smtpConn.Close()
+		s.smtpConn = nil
+	}
+
+	// Create new connection
+	conn, err := s.client.DialToSMTPClientWithContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial SMTP server: %w", err)
+	}
+
+	s.smtpConn = conn
+	s.logger.Debug("New SMTP connection established")
+	return conn, nil
+}
+
+// Close closes the persistent SMTP connection if open
+func (s *EmailSender) Close() error {
+	s.connMutex.Lock()
+	defer s.connMutex.Unlock()
+
+	if s.smtpConn != nil {
+		err := s.smtpConn.Close()
+		s.smtpConn = nil
+		return err
+	}
+	return nil
 }
 
 func (s *EmailSender) Send(ctx context.Context, address, topic, message string) error {
@@ -84,10 +131,9 @@ func (s *EmailSender) Send(ctx context.Context, address, topic, message string) 
 		"deliveryMethod", "email",
 		"address", address,
 		"topic", topic,
-		"from", s.config.From,
 	)
 
-	// Create email message similar to mailOptions in nodemailer
+	// Create email message
 	m := mail.NewMsg()
 	if err := m.From(s.config.From); err != nil {
 		logCtx.Error("Failed to set From address", "error", err)
@@ -100,14 +146,39 @@ func (s *EmailSender) Send(ctx context.Context, address, topic, message string) 
 	m.Subject(topic)
 	m.SetBodyString(mail.TypeTextHTML, message)
 
-	// Send email using SMTP client with context support
-	if err := s.client.DialAndSendWithContext(ctx, m); err != nil {
-		logCtx.Error("Failed to send email via SMTP", "error", err)
-		return fmt.Errorf("failed to send email to %s: %w", address, err)
+	// Send with retry logic using persistent connection
+	var lastErr error
+	for attempt := 0; attempt <= s.maxRetries; attempt++ {
+		if attempt > 0 {
+			logCtx.Debug("Retrying email send", "attempt", attempt)
+		}
+
+		// Get or create connection
+		conn, err := s.getOrCreateConnection(ctx)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		// Send using the persistent connection
+		if err := s.client.SendWithSMTPClient(conn, m); err != nil {
+			lastErr = fmt.Errorf("failed to send email: %w", err)
+			// Mark connection as invalid on send error
+			s.connMutex.Lock()
+			if s.smtpConn != nil {
+				_ = s.smtpConn.Close()
+				s.smtpConn = nil
+			}
+			s.connMutex.Unlock()
+			continue
+		}
+
+		logCtx.Info("📧 Email sent successfully via SMTP")
+		return nil
 	}
 
-	logCtx.Info("📧 Email sent successfully via SMTP")
-	return nil
+	logCtx.Error("Failed to send email after retries", "error", lastErr, "attempts", s.maxRetries+1)
+	return fmt.Errorf("failed to send email to %s after %d attempts: %w", address, s.maxRetries+1, lastErr)
 }
 
 func (s *EmailSender) GetDeliveryMethod() string {
