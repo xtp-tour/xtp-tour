@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/num30/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
@@ -105,17 +104,5 @@ func TestEmailSender_EmptyAddress(t *testing.T) {
 
 	// Should not send to empty address
 	err = sender.Send(context.Background(), "", "Test", "Test message")
-	assert.NoError(t, err)
-}
-
-func TestDEBUGEmailSender(t *testing.T) {
-	conf := pkg.Config{}
-	c := config.NewConfReader("service_test")
-	c.Read(&conf)
-
-	sender, err := NewRealEmailSender(conf.Notifications.Email, slog.Default())
-	assert.NoError(t, err)
-
-	err = sender.Send(context.Background(), "palnitsky@gmail.com", "Test", "Test message")
 	assert.NoError(t, err)
 }

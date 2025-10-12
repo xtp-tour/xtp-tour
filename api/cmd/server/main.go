@@ -53,8 +53,11 @@ func main() {
 	// Create specific senders
 	emailSender, err := notifications.NewRealEmailSender(serviceConfig.Notifications.Email, slog.Default())
 	if err != nil {
-		slog.Error("Failed to create email sender", "error", err)
-		os.Exit(1)
+		if serviceConfig.Notifications.Email.Enabled {
+			slog.Error("Failed to create email sender (email is enabled)", "error", err)
+			os.Exit(1)
+		}
+		slog.Info("Failed to create email sender, continuing with disabled email", "error", err)
 	}
 	smsSender := notifications.NewSMSSender()
 	debugSender := notifications.NewDebugSender()

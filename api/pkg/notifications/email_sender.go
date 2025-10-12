@@ -18,13 +18,6 @@ type EmailSender struct {
 	enabled bool
 }
 
-func NewEmailSender() *EmailSender {
-	return &EmailSender{
-		logger:  slog.Default(),
-		enabled: false,
-	}
-}
-
 func NewRealEmailSender(config pkg.EmailConfig, logger *slog.Logger) (*EmailSender, error) {
 	if !config.Enabled {
 		logger.Info("Email notifications disabled")
@@ -35,15 +28,27 @@ func NewRealEmailSender(config pkg.EmailConfig, logger *slog.Logger) (*EmailSend
 		}, nil
 	}
 
-	if config.Username == "" || config.Password == "" || config.From == "" {
-		return nil, fmt.Errorf("email configuration incomplete: username, password, and from address are required")
+	// Validate required configuration fields
+	var missing []string
+	if config.Username == "" {
+		missing = append(missing, "EMAIL_USERNAME")
+	}
+	if config.Password == "" {
+		missing = append(missing, "EMAIL_PASSWORD")
+	}
+	if config.From == "" {
+		missing = append(missing, "EMAIL_FROM")
+	}
+	if len(missing) > 0 {
+		return nil, fmt.Errorf("email configuration incomplete: missing environment variables: %s", missing)
 	}
 
-	// Create SMTP client similar to nodemailer.createTransport
+	// Create SMTP client with mandatory TLS/STARTTLS for security
 	client, err := mail.NewClient(
 		config.SmtpHost,
 		mail.WithPort(config.Port),
 		mail.WithSMTPAuth(mail.SMTPAuthPlain),
+		mail.WithTLSPortPolicy(mail.TLSMandatory), // Require TLS encryption
 		mail.WithUsername(config.Username),
 		mail.WithPassword(config.Password),
 	)
