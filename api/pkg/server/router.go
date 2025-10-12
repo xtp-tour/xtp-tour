@@ -633,7 +633,7 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 			logCtx.Debug("Profile not found")
 			return nil, rest.HttpError{
 				HttpCode: http.StatusNotFound,
-				Message:  "Profile not found",
+				Message:  fmt.Sprintf("Profile not found for user %s", userId),
 			}
 		}
 
