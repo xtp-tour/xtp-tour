@@ -396,7 +396,7 @@ export interface components {
             lastName?: string;
             /** Format: double */
             ntrpLevel?: number;
-            preferredCity?: string;
+            city?: string;
             userId?: string;
         };
         "ConfirmEvent-FmInput": {
@@ -416,7 +416,7 @@ export interface components {
             lastName?: string;
             /** Format: double */
             ntrpLevel?: number;
-            preferredCity?: string;
+            city?: string;
         };
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
@@ -426,7 +426,7 @@ export interface components {
             lastName?: string;
             /** Format: double */
             ntrpLevel?: number;
-            preferredCity?: string;
+            city?: string;
             userId?: string;
         };
     };
