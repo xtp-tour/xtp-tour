@@ -682,7 +682,7 @@ export class MockAPIClient implements APIClient {
         firstName: `User`,
         lastName: `${userId.slice(-4)}`,
         ntrpLevel: 3.0,
-        preferredCity: 'Mock City'
+        city: 'Mock City'
       }
     };
   }
@@ -697,7 +697,7 @@ export class MockAPIClient implements APIClient {
         firstName: request.firstName,
         lastName: request.lastName,
         ntrpLevel: request.ntrpLevel,
-        preferredCity: request.preferredCity
+        city: request.city
       }
     };
   }
@@ -712,7 +712,7 @@ export class MockAPIClient implements APIClient {
         firstName: request.firstName,
         lastName: request.lastName,
         ntrpLevel: request.ntrpLevel,
-        preferredCity: request.preferredCity
+        city: request.city
       }
     };
   }

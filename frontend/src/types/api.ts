@@ -51,7 +51,7 @@ export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
   ntrpLevel: number;
-  preferredCity: string;
+  city: string;
 }
 
 export interface APIClient {
