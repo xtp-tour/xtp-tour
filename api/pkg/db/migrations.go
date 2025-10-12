@@ -43,7 +43,7 @@ func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
 		if os.Getenv("ENVIRONMENT") != "production" {
 			fmt.Print("Are you sure you want to rollback migrations? This will delete data! (yes/no): ")
 			var response string
-			fmt.Scanln(&response)
+			_, _ = fmt.Scanln(&response)
 			if response != "yes" {
 				slog.Info("Migration rollback cancelled")
 				return
@@ -96,20 +96,6 @@ func createDbIfNotExist(dbConfig *pkg.DbConfig) {
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbConfig.Database))
 	if err != nil {
 		slog.Error("Failed to create database", "error", err)
-		os.Exit(1)
-	}
-}
-
-func dropDbIfExist(dbConfig *pkg.DbConfig) {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&multiStatements=true", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, ""))
-	if err != nil {
-		slog.Error("Failed to open connection", "error", err)
-		os.Exit(1)
-	}
-
-	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbConfig.Database))
-	if err != nil {
-		slog.Error("Failed to drop database", "error", err)
 		os.Exit(1)
 	}
 }

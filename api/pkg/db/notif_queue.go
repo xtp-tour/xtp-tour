@@ -37,7 +37,7 @@ func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 		slog.Error("Failed to begin transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer db.rollback(tx)
 
 	query := `SELECT 
 		nq.id, nq.user_id, nq.data, nq.status, nq.created_at, nq.processed_at, nq.retry_count,

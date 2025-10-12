@@ -40,96 +40,6 @@ func (s *LogSender) Send(ctx context.Context, notification *db.NotificationQueue
 	return nil
 }
 
-// EmailSender handles email notifications
-type EmailSender struct {
-	logger *slog.Logger
-}
-
-func NewEmailSender() *EmailSender {
-	return &EmailSender{
-		logger: slog.Default(),
-	}
-}
-
-func (s *EmailSender) Send(ctx context.Context, address, topic, message string) error {
-	if address == "" {
-		return nil // Skip if no email address
-	}
-
-	logCtx := s.logger.With(
-		"deliveryMethod", "email",
-		"address", address,
-		"topic", topic,
-	)
-
-	logCtx.Info("📧 EMAIL SENT", "message", message)
-	return nil
-}
-
-func (s *EmailSender) GetDeliveryMethod() string {
-	return "email"
-}
-
-// SMSSender handles SMS notifications
-type SMSSender struct {
-	logger *slog.Logger
-}
-
-func NewSMSSender() *SMSSender {
-	return &SMSSender{
-		logger: slog.Default(),
-	}
-}
-
-func (s *SMSSender) Send(ctx context.Context, address, topic, message string) error {
-	if address == "" {
-		return nil // Skip if no phone number
-	}
-
-	logCtx := s.logger.With(
-		"deliveryMethod", "sms",
-		"address", address,
-		"topic", topic,
-	)
-
-	logCtx.Info("📱 SMS SENT", "message", message)
-	return nil
-}
-
-func (s *SMSSender) GetDeliveryMethod() string {
-	return "sms"
-}
-
-// DebugSender handles debug notifications
-type DebugSender struct {
-	logger *slog.Logger
-}
-
-func NewDebugSender() *DebugSender {
-	return &DebugSender{
-		logger: slog.Default(),
-	}
-}
-
-func (s *DebugSender) Send(ctx context.Context, address, topic, message string) error {
-	if address == "" {
-		return nil // Skip if no debug address
-	}
-
-	logCtx := s.logger.With(
-		"deliveryMethod", "debug",
-		"address", address,
-		"topic", topic,
-	)
-
-	logCtx.Info("🐛 DEBUG NOTIFICATION SENT", "message", message)
-	return nil
-}
-
-func (s *DebugSender) GetDeliveryMethod() string {
-	return "debug"
-}
-
 type FanOutSender struct {
 	specificSenders []SpecificSender
 	logger          *slog.Logger
@@ -200,4 +110,63 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 	}
 
 	return nil
+}
+
+// SMSSender handles SMS notifications
+type SMSSender struct {
+	logger *slog.Logger
+}
+
+func NewSMSSender() *SMSSender {
+	return &SMSSender{
+		logger: slog.Default(),
+	}
+}
+
+func (s *SMSSender) Send(ctx context.Context, address, topic, message string) error {
+	if address == "" {
+		s.logger.Debug("No phone number provided, skipping SMS")
+		return nil
+	}
+
+	s.logger.Info("📱 SMS sending not implemented yet",
+		"deliveryMethod", "sms",
+		"address", address,
+		"topic", topic,
+	)
+	return nil
+}
+
+func (s *SMSSender) GetDeliveryMethod() string {
+	return "sms"
+}
+
+// DebugSender handles debug notifications (logging)
+type DebugSender struct {
+	logger *slog.Logger
+}
+
+func NewDebugSender() *DebugSender {
+	return &DebugSender{
+		logger: slog.Default(),
+	}
+}
+
+func (s *DebugSender) Send(ctx context.Context, address, topic, message string) error {
+	if address == "" {
+		s.logger.Debug("No debug address provided, skipping debug notification")
+		return nil
+	}
+
+	s.logger.Info("🐛 Debug notification",
+		"deliveryMethod", "debug",
+		"address", address,
+		"topic", topic,
+		"message", message,
+	)
+	return nil
+}
+
+func (s *DebugSender) GetDeliveryMethod() string {
+	return "debug"
 }
