@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/num30/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 )
@@ -34,7 +35,7 @@ func TestEmailSender_ConfigValidation(t *testing.T) {
 			name: "missing username",
 			config: pkg.EmailConfig{
 				Enabled:  true,
-				Host:     "smtp.example.com",
+				SmtpHost: "smtp.example.com",
 				Port:     587,
 				Password: "password",
 				From:     "test@example.com",
@@ -45,7 +46,7 @@ func TestEmailSender_ConfigValidation(t *testing.T) {
 			name: "missing password",
 			config: pkg.EmailConfig{
 				Enabled:  true,
-				Host:     "smtp.example.com",
+				SmtpHost: "smtp.example.com",
 				Port:     587,
 				Username: "user",
 				From:     "test@example.com",
@@ -56,7 +57,7 @@ func TestEmailSender_ConfigValidation(t *testing.T) {
 			name: "missing from",
 			config: pkg.EmailConfig{
 				Enabled:  true,
-				Host:     "smtp.example.com",
+				SmtpHost: "smtp.example.com",
 				Port:     587,
 				Username: "user",
 				Password: "password",
@@ -67,7 +68,7 @@ func TestEmailSender_ConfigValidation(t *testing.T) {
 			name: "valid config",
 			config: pkg.EmailConfig{
 				Enabled:  true,
-				Host:     "smtp.example.com",
+				SmtpHost: "smtp.example.com",
 				Port:     587,
 				Username: "user",
 				Password: "password",
@@ -92,7 +93,7 @@ func TestEmailSender_ConfigValidation(t *testing.T) {
 func TestEmailSender_EmptyAddress(t *testing.T) {
 	config := pkg.EmailConfig{
 		Enabled:  true,
-		Host:     "smtp.example.com",
+		SmtpHost: "smtp.example.com",
 		Port:     587,
 		Username: "user",
 		Password: "password",
@@ -107,7 +108,14 @@ func TestEmailSender_EmptyAddress(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestEmailSender_GetDeliveryMethod(t *testing.T) {
-	sender := NewEmailSender()
-	assert.Equal(t, "email", sender.GetDeliveryMethod())
+func TestDEBUGEmailSender(t *testing.T) {
+	conf := pkg.Config{}
+	c := config.NewConfReader("service_test")
+	c.Read(&conf)
+
+	sender, err := NewRealEmailSender(conf.Notifications.Email, slog.Default())
+	assert.NoError(t, err)
+
+	err = sender.Send(context.Background(), "palnitsky@gmail.com", "Test", "Test message")
+	assert.NoError(t, err)
 }

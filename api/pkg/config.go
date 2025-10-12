@@ -23,7 +23,7 @@ type NotificationConfig struct {
 }
 
 type EmailConfig struct {
-	Host     string `default:"smtp.zeptomail.com" envvar:"EMAIL_HOST"`
+	SmtpHost string `default:"smtp.zeptomail.eu" envvar:"EMAIL_HOST"`
 	Port     int    `default:"587" envvar:"EMAIL_PORT"`
 	Username string `envvar:"EMAIL_USERNAME"`
 	Password string `envvar:"EMAIL_PASSWORD"`
