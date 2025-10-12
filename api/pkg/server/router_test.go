@@ -1,25 +1,6 @@
 package server
 
-import (
-	"github.com/gin-contrib/cors"
-	"github.com/xtp-tour/xtp-tour/api/pkg"
-)
-
 func init() {
-}
-
-var defaultHttpConfig = &pkg.HttpConfig{
-	Cors: &cors.Config{
-		AllowAllOrigins: true,
-	},
-}
-
-var defaultDbConfig = &pkg.DbConfig{
-	Host:     "localhost",
-	Port:     3306,
-	User:     "test",
-	Password: "test",
-	Database: "test",
 }
 
 // func Test_RouterPing(t *testing.T) {

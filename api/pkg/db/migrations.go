@@ -99,17 +99,3 @@ func createDbIfNotExist(dbConfig *pkg.DbConfig) {
 		os.Exit(1)
 	}
 }
-
-func dropDbIfExist(dbConfig *pkg.DbConfig) {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&multiStatements=true", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, ""))
-	if err != nil {
-		slog.Error("Failed to open connection", "error", err)
-		os.Exit(1)
-	}
-
-	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbConfig.Database))
-	if err != nil {
-		slog.Error("Failed to drop database", "error", err)
-		os.Exit(1)
-	}
-}
