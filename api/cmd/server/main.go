@@ -48,6 +48,23 @@ func main() {
 	}
 
 	// Setup notification system
+	notifier := notifications.NewNotifier(dbConn, notifications.NewDbQueue(dbConn))
+	startNotificationWorker(&serviceConfig.Db)
+
+	metrics.StartMetricsServer(&serviceConfig.Metrics)
+	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifier)
+	r.Run()
+}
+
+// Processes the queue of notifications on schedule
+func startNotificationWorker(dbConf *pkg.DbConfig) {
+	dbConn, err := db.GetDB(dbConf)
+	if err != nil {
+		slog.Error("Failed to initialize database connection", "error", err)
+		os.Exit(1)
+	}
+
+	//consider using separate db connection here
 	queue := notifications.NewDbQueue(dbConn)
 
 	// Create specific senders
@@ -66,15 +83,11 @@ func main() {
 	fanOutSender := notifications.NewFanOutSender(emailSender, smsSender, debugSender)
 
 	worker := notifications.NewNotificationWorker(queue, fanOutSender, serviceConfig.Notifications)
-	notifier := notifications.NewAllPurposeNotifier(dbConn, queue)
 
 	// Start background notification worker
 	ctx := context.Background()
 	go worker.Start(ctx)
 
-	metrics.StartMetricsServer(&serviceConfig.Metrics)
-	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifier)
-	r.Run()
 }
 
 // loadConfig reads in config file, ENV variables, and flags if set.

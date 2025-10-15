@@ -8,7 +8,6 @@ import (
 	"maps"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +20,6 @@ import (
 
 var (
 	dbConn *sqlx.DB
-	once   sync.Once
 )
 
 type Db struct {
@@ -32,32 +30,31 @@ type Db struct {
 func GetDB(config *pkg.DbConfig) (*Db, error) {
 	var db *Db
 
-	once.Do(func() {
-		slog.Info("Initializing database connection", "host", config.Host, "port", config.Port, "database", config.Database)
+	logCtx := slog.With("host", config.Host, "port", config.Port, "database", config.Database)
+	logCtx.Info("Initializing database connection")
 
-		// Create the base DB connection
-		sqlDB, err := sql.Open("mysql", config.GetConnectionString())
-		if err != nil {
-			slog.Error("Failed to connect to database", "error", err)
-			return
-		}
+	// Create the base DB connection
+	sqlDB, err := sql.Open("mysql", config.GetConnectionString())
+	if err != nil {
+		logCtx.Error("Failed to connect to database", "error", err)
+		return nil, err
+	}
 
-		// Convert to sqlx.DB
-		dbConn = sqlx.NewDb(sqlDB, "mysql")
+	// Convert to sqlx.DB
+	dbConn = sqlx.NewDb(sqlDB, "mysql")
 
-		err = dbConn.Ping()
-		if err != nil {
-			slog.Error("Failed to ping database", "error", err)
-			return
-		}
+	err = dbConn.Ping()
+	if err != nil {
+		logCtx.Error("Failed to ping database", "error", err)
+		return nil, err
+	}
 
-		// Configure connection pool
-		dbConn.SetMaxOpenConns(25)
-		dbConn.SetMaxIdleConns(5)
+	// Configure connection pool
+	dbConn.SetMaxOpenConns(25)
+	dbConn.SetMaxIdleConns(5)
 
-		slog.Info("Database connection established")
-		db = &Db{conn: dbConn}
-	})
+	logCtx.Info("Database connection established")
+	db = &Db{conn: dbConn}
 
 	if db == nil {
 		return nil, errors.New("database connection not initialized")
@@ -75,6 +72,9 @@ func (db *Db) Ping(ctx context.Context) error {
 
 // GetAllFacilities retrieves all facilities from the database
 func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
+	logCtx := slog.With("method", "GetAllFacilities")
+	logCtx.Debug("Retrieving all facilities")
+
 	query := `SELECT
 		id,
 		name,
@@ -83,11 +83,11 @@ func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
 		ST_X(location) as 'coordinates.longitude'
 	FROM xtp_tour.facilities`
 
-	slog.Debug("Executing SQL query", "query", query)
+	logCtx.Debug("Executing SQL query", "query", query)
 	var locations []api.Location
 	err := db.conn.SelectContext(ctx, &locations, query)
 	if err != nil {
-		slog.Error("Failed to get facilities from database", "error", err, "query", query)
+		logCtx.Error("Failed to get facilities from database", "error", err, "query", query)
 		return nil, err
 	}
 
@@ -95,14 +95,15 @@ func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
 }
 
 func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
+	logCtx := slog.With("method", "CreateEvent", "userId", event.UserId, "eventId", event.Id)
+	logCtx.Debug("Creating event")
+
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
 		slog.Error("Failed to begin transaction", "error", err)
 		return err
 	}
 	event.Id = uuid.New().String()
-
-	ctxLog := slog.With("userId", event.UserId, "eventId", event.Id)
 
 	// Find the earliest time slot
 	var earliestTime time.Time
@@ -137,8 +138,8 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", eventRow)
 	_, err = tx.NamedExecContext(ctx, query, eventRow)
 	if err != nil {
-		db.rollback(tx)
-		ctxLog.Error("Failed to insert event", "error", err)
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to insert event", "error", err)
 		return err
 	}
 
@@ -154,8 +155,8 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", locations)
 	_, err = tx.NamedExecContext(ctx, query, locations)
 	if err != nil {
-		db.rollback(tx)
-		ctxLog.Error("Failed to insert event locations", "error", err)
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to insert event locations", "error", err)
 		return err
 	}
 
@@ -171,36 +172,45 @@ func (db *Db) CreateEvent(ctx context.Context, event *api.EventData) error {
 	slog.Debug("Executing SQL query", "query", query, "params", timeSlots)
 	_, err = tx.NamedExecContext(ctx, query, timeSlots)
 	if err != nil {
-		db.rollback(tx)
-		ctxLog.Error("Failed to insert event time slot", "error", err)
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to insert event time slot", "error", err)
 		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		ctxLog.Error("Failed to commit transaction", "error", err)
+		logCtx.Error("Failed to commit transaction", "error", err)
 		return err
 	}
 	return nil
 }
 
 func (db *Db) GetEventsOfUser(ctx context.Context, userId string) ([]*api.Event, error) {
+	logCtx := slog.With("method", "GetEventsOfUser", "userId", userId)
+	logCtx.Debug("Getting events for user")
+
 	// First, get all events for the user
 	return db.getEventsInternal(ctx, "user_id = ?", userId)
 }
 
 func (db *Db) GetPublicEvents(ctx context.Context, userId string) ([]*api.Event, error) {
+	logCtx := slog.With("method", "GetPublicEvents", "userId", userId)
+	logCtx.Debug("Getting public events")
+
 	return db.getEventsInternal(ctx, "user_id <> ? AND visibility = ? AND status = ? AND expiration_time > ?", userId, api.EventVisibilityPublic, api.EventStatusOpen, time.Now().UTC())
 }
 
 func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event, error) {
+	logCtx := slog.With("method", "GetJoinedEvents", "userId", userId)
+	logCtx.Debug("Getting joined events for user")
+
 	query := `SELECT event_id FROM join_requests j
 					INNER JOIN events e on j.event_id = e.id
 				WHERE j.user_id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", userId)
+	logCtx.Debug("Executing SQL query", "query", query, "params", userId)
 	rows, err := db.conn.QueryContext(ctx, query, userId)
 	if err != nil {
-		slog.Error("Failed to get accepted events", "error", err)
+		logCtx.Error("Failed to get accepted events", "error", err)
 		return nil, err
 	}
 
@@ -209,7 +219,7 @@ func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event,
 	for rows.Next() {
 		var eventId string
 		if err := rows.Scan(&eventId); err != nil {
-			slog.Error("Failed to scan event ID", "error", err)
+			logCtx.Error("Failed to scan event ID", "error", err)
 			return nil, err
 		}
 		eventIds = append(eventIds, eventId)
@@ -218,12 +228,15 @@ func (db *Db) GetJoinedEvents(ctx context.Context, userId string) ([]*api.Event,
 		return nil, nil
 	}
 
-	slog.Info("Accepted events", "eventIds", eventIds)
+	logCtx.Debug("Found joined events", "eventIds", eventIds)
 
 	return db.getEventsInternal(ctx, "event_id IN (?) ", eventIds)
 }
 
 func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals ...interface{}) ([]*api.Event, error) {
+	logCtx := slog.With("method", "getEventsInternal", "filter", filter)
+	logCtx.Debug("Getting events with filter")
+
 	// First query: get all events, timeslots, locations and confirmations
 	query := `
 		WITH event_data AS (
@@ -266,20 +279,20 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 		var args []interface{}
 		query, args, err = sqlx.In(query, filterVals...)
 		if err != nil {
-			slog.Error("Failed to prepare query with IN clause", "error", err)
+			logCtx.Error("Failed to prepare query with IN clause", "error", err)
 			return nil, err
 		}
 
 		query = db.conn.Rebind(query)
-		slog.Debug("Executing SQL query with IN clause", "query", query, "params", args)
+		logCtx.Debug("Executing SQL query with IN clause", "query", query, "params", args)
 		rows, err = db.conn.QueryContext(ctx, query, args...)
 	} else {
-		slog.Debug("Executing SQL query", "query", query, "params", filterVals)
+		logCtx.Debug("Executing SQL query", "query", query, "params", filterVals)
 		rows, err = db.conn.QueryContext(ctx, query, filterVals...)
 	}
 
 	if err != nil {
-		slog.Error("Failed to get  events", "error", err)
+		logCtx.Error("Failed to get events", "error", err)
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
@@ -312,7 +325,7 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 			&confirmedLoc, &confirmedDt,
 		)
 		if err != nil {
-			slog.Error("Failed to scan event row", "error", err)
+			logCtx.Error("Failed to scan event row", "error", err)
 			return nil, err
 		}
 
@@ -396,30 +409,39 @@ func (db *Db) getEventsInternal(ctx context.Context, filter string, filterVals .
 }
 
 func (db *Db) GetEventLocations(ctx context.Context, eventId string) ([]string, error) {
+	logCtx := slog.With("method", "GetEventLocations", "eventId", eventId)
+	logCtx.Debug("Getting event locations")
+
 	query := `SELECT location_id FROM event_locations WHERE event_id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", eventId)
+	logCtx.Debug("Executing SQL query", "query", query, "params", eventId)
 	var locations []string
 	err := db.conn.SelectContext(ctx, &locations, query, eventId)
 	if err != nil {
-		slog.Error("Failed to get event locations", "error", err, "eventId", eventId)
+		logCtx.Error("Failed to get event locations", "error", err, "eventId", eventId)
 		return nil, err
 	}
 	return locations, nil
 }
 
 func (db *Db) GetEventTimeSlots(ctx context.Context, eventId string) ([]time.Time, error) {
+	logCtx := slog.With("method", "GetEventTimeSlots", "eventId", eventId)
+	logCtx.Debug("Getting event time slots")
+
 	query := `SELECT dt FROM event_time_slots WHERE event_id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", eventId)
+	logCtx.Debug("Executing SQL query", "query", query, "params", eventId)
 	var timeSlots []time.Time
 	err := db.conn.SelectContext(ctx, &timeSlots, query, eventId)
 	if err != nil {
-		slog.Error("Failed to get event time slots", "error", err, "eventId", eventId)
+		logCtx.Error("Failed to get event time slots", "error", err, "eventId", eventId)
 		return nil, err
 	}
 	return timeSlots, nil
 }
 
 func (db *Db) GetMyEvent(ctx context.Context, userId string, eventId string) (*api.Event, error) {
+	logCtx := slog.With("method", "GetMyEvent", "userId", userId, "eventId", eventId)
+	logCtx.Debug("Getting user's event")
+
 	events, err := db.getEventsInternal(ctx, "event_id = ? and user_id = ?", eventId, userId)
 	if err != nil {
 		return nil, err
@@ -431,6 +453,9 @@ func (db *Db) GetMyEvent(ctx context.Context, userId string, eventId string) (*a
 }
 
 func (db *Db) GetPublicEvent(ctx context.Context, eventId string) (*api.Event, error) {
+	logCtx := slog.With("method", "GetPublicEvent", "eventId", eventId)
+	logCtx.Debug("Getting public event")
+
 	events, err := db.getEventsInternal(ctx, "event_id = ? and visibility = ?", eventId, api.EventVisibilityPublic)
 	if err != nil {
 		return nil, err
@@ -442,17 +467,20 @@ func (db *Db) GetPublicEvent(ctx context.Context, eventId string) (*api.Event, e
 }
 
 func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) error {
+	logCtx := slog.With("method", "DeleteEvent", "userId", userId, "eventId", eventId)
+	logCtx.Debug("Deleting event")
+
 	query := `DELETE FROM events WHERE id = ? AND user_id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{eventId, userId})
+	logCtx.Debug("Executing SQL query", "query", query, "params", []interface{}{eventId, userId})
 	result, err := db.conn.ExecContext(ctx, query, eventId, userId)
 	if err != nil {
-		slog.Error("Failed to delete event", "error", err, "eventId", eventId, "userId", userId)
+		logCtx.Error("Failed to delete event", "error", err, "eventId", eventId, "userId", userId)
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		slog.Error("Failed to get rows affected", "error", err)
+		logCtx.Error("Failed to get rows affected", "error", err)
 		return err
 	}
 
@@ -464,20 +492,23 @@ func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) er
 }
 
 func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId string, req *api.JoinRequestData) (joinRequestId string, err error) {
+	logCtx := slog.With("method", "CreateJoinRequest", "eventId", eventId, "userId", userId)
+	logCtx.Debug("Creating join request")
+
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
-		slog.Error("Failed to begin transaction", "error", err)
+		logCtx.Error("Failed to begin transaction", "error", err)
 		return "", err
 	}
 
 	// Create join request
 	joinRequestId = uuid.New().String()
 	query := `INSERT INTO join_requests (id, event_id, user_id, comment) VALUES (?, ?, ?, ?)`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, eventId, userId, req.Comment})
+	logCtx.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, eventId, userId, req.Comment})
 	_, err = tx.ExecContext(ctx, query, joinRequestId, eventId, userId, req.Comment)
 	if err != nil {
 		_ = tx.Rollback()
-		slog.Error("Failed to insert join request", "error", err)
+		logCtx.Error("Failed to insert join request", "error", err)
 		return "", err
 	}
 
@@ -485,11 +516,11 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	if len(req.Locations) > 0 {
 		query = `INSERT INTO join_request_locations (join_request_id, location_id) VALUES (?, ?)`
 		for _, locationId := range req.Locations {
-			slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, locationId})
+			logCtx.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, locationId})
 			_, err = tx.ExecContext(ctx, query, joinRequestId, locationId)
 			if err != nil {
 				_ = tx.Rollback()
-				slog.Error("Failed to insert join request location", "error", err)
+				logCtx.Error("Failed to insert join request location", "error", err)
 				return "", err
 			}
 		}
@@ -499,11 +530,11 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 	if len(req.TimeSlots) > 0 {
 		query = `INSERT INTO join_request_time_slots (id, join_request_id, dt) VALUES (?, ?, ?)`
 		for _, timeSlot := range req.TimeSlots {
-			slog.Debug("Executing SQL query", "query", query, "params", []interface{}{uuid.New().String(), joinRequestId, api.ParseDt(timeSlot)})
+			logCtx.Debug("Executing SQL query", "query", query, "params", []interface{}{uuid.New().String(), joinRequestId, api.ParseDt(timeSlot)})
 			_, err = tx.ExecContext(ctx, query, uuid.New().String(), joinRequestId, api.ParseDt(timeSlot))
 			if err != nil {
 				_ = tx.Rollback()
-				slog.Error("Failed to insert join request time slot", "error", err)
+				logCtx.Error("Failed to insert join request time slot", "error", err)
 				return "", err
 			}
 		}
@@ -511,7 +542,7 @@ func (db *Db) CreateJoinRequest(ctx context.Context, eventId string, userId stri
 
 	err = tx.Commit()
 	if err != nil {
-		slog.Error("Failed to commit transaction", "error", err)
+		logCtx.Error("Failed to commit transaction", "error", err)
 		return "", err
 	}
 
@@ -527,6 +558,9 @@ func (e *ValidationError) Error() string {
 }
 
 func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, req *api.EventConfirmationRequest) (*api.Confirmation, error) {
+	logCtx := slog.With("method", "ConfirmEvent", "userId", userId, "eventId", eventId)
+	logCtx.Debug("Confirming event")
+
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Failed to begin transaction")
@@ -534,7 +568,7 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 	defer func() {
 		if err != nil {
-			db.rollback(tx)
+			db.rollback(logCtx, tx)
 		} else {
 			err = tx.Commit()
 		}
@@ -545,7 +579,7 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	query := `INSERT INTO confirmations (id, event_id, location_id, dt) VALUES (?, ?, ?, ?)`
 	_, err = tx.ExecContext(ctx, query, confirmationId, eventId, req.LocationId, api.ParseDt(req.DateTime))
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to create confirmation")
 	}
 
@@ -553,21 +587,21 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 	query = `UPDATE join_requests SET is_accepted = true WHERE id in (?)`
 	query, args, err := sqlx.In(query, req.JoinRequestsIds)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to prepare query with IN clause")
 	}
 	query = db.conn.Rebind(query)
-	slog.Debug("Executing SQL query", "query", query, "params", args)
+	logCtx.Debug("Executing SQL query", "query", query, "params", args)
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to update join requests")
 	}
 
 	// Update event status
 	_, err = tx.ExecContext(ctx, `UPDATE events SET status = ? WHERE id = ?`, api.EventStatusConfirmed, eventId)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to update event status")
 	}
 
@@ -584,27 +618,36 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 
 // Add helper methods for router validation
 func (db *Db) GetEventOwner(ctx context.Context, eventId string) (string, error) {
+	logCtx := slog.With("method", "GetEventOwner", "eventId", eventId)
+	logCtx.Debug("Getting event owner")
+
 	var userId string
 	err := db.conn.GetContext(ctx, &userId, `SELECT user_id FROM events WHERE id = ?`, eventId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", DbObjectNotFoundError{Message: "Event not found"}
 		}
+		logCtx.Error("Failed to get event owner", "error", err)
 		return "", errors.WithMessage(err, "Failed to get event owner")
 	}
 	return userId, nil
 }
 
 func (db *Db) DeleteJoinRequest(ctx context.Context, userId string, joinRequestId string) error {
+	logCtx := slog.With("method", "DeleteJoinRequest", "userId", userId, "joinRequestId", joinRequestId)
+	logCtx.Debug("Deleting join request")
+
 	query := `DELETE FROM join_requests WHERE id = ? AND user_id = ?`
-	slog.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, userId})
+	logCtx.Debug("Executing SQL query", "query", query, "params", []interface{}{joinRequestId, userId})
 	result, err := db.conn.ExecContext(ctx, query, joinRequestId, userId)
 	if err != nil {
+		logCtx.Error("Failed to delete join request", "error", err)
 		return errors.WithMessage(err, "Failed to delete join request")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		logCtx.Error("Failed to get rows affected", "error", err)
 		return errors.WithMessage(err, "Failed to get rows affected")
 	}
 
@@ -632,22 +675,25 @@ const joinRequestBaseQuery = `
 	LEFT JOIN join_request_time_slots jrts ON jr.id = jrts.join_request_id`
 
 func (db *Db) GetJoinRequest(ctx context.Context, joinRequestId string) (*api.JoinRequest, error) {
+	logCtx := slog.With("method", "GetJoinRequest", "joinRequestId", joinRequestId)
+	logCtx.Debug("Getting join request")
+
 	query := joinRequestBaseQuery + `
 		WHERE jr.id = ?
 		GROUP BY jr.id, jr.event_id, jr.user_id, jr.comment, jr.created_at, jr.is_accepted`
 
-	slog.Debug("Executing SQL query", "query", query, "params", joinRequestId)
+	logCtx.Debug("Executing SQL query", "query", query, "params", joinRequestId)
 
 	rows, err := db.conn.QueryContext(ctx, query, joinRequestId)
 	if err != nil {
-		slog.Error("Failed to get join request", "error", err, "joinRequestId", joinRequestId)
+		logCtx.Error("Failed to get join request", "error", err, "joinRequestId", joinRequestId)
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
 
 	if !rows.Next() {
 		if err = rows.Err(); err != nil {
-			slog.Error("Error iterating over join request rows", "error", err)
+			logCtx.Error("Error iterating over join request rows", "error", err)
 			return nil, err
 		}
 		return nil, DbObjectNotFoundError{Message: "Join request not found"}
@@ -655,7 +701,7 @@ func (db *Db) GetJoinRequest(ctx context.Context, joinRequestId string) (*api.Jo
 
 	joinRequest, err := scanJoinRequest(rows)
 	if err != nil {
-		slog.Error("Failed to scan join request", "error", err)
+		logCtx.Error("Failed to scan join request", "error", err)
 		return nil, err
 	}
 
@@ -663,6 +709,9 @@ func (db *Db) GetJoinRequest(ctx context.Context, joinRequestId string) (*api.Jo
 }
 
 func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[string][]*api.JoinRequest, error) {
+	logCtx := slog.With("method", "GetJoinRequests", "eventIds", eventIds)
+	logCtx.Debug("Getting join requests for events")
+
 	if len(eventIds) == 0 {
 		return make(map[string][]*api.JoinRequest), nil
 	}
@@ -675,15 +724,15 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 		eventIds,
 	)
 	if err != nil {
-		slog.Error("Failed to prepare query with IN clause", "error", err)
+		logCtx.Error("Failed to prepare query with IN clause", "error", err)
 		return nil, err
 	}
 	query = db.conn.Rebind(query)
 
-	slog.Debug("Executing SQL query", "query", query, "params", args)
+	logCtx.Debug("Executing SQL query", "query", query, "params", args)
 	rows, err := db.conn.QueryContext(ctx, query, args...)
 	if err != nil {
-		slog.Error("Failed to get join requests", "error", err, "eventIds", eventIds)
+		logCtx.Error("Failed to get join requests", "error", err, "eventIds", eventIds)
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
@@ -699,7 +748,7 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 	for rows.Next() {
 		joinRequest, err := scanJoinRequest(rows)
 		if err != nil {
-			slog.Error("Failed to scan join request", "error", err)
+			logCtx.Error("Failed to scan join request", "error", err)
 			return nil, err
 		}
 
@@ -708,7 +757,7 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 	}
 
 	if err = rows.Err(); err != nil {
-		slog.Error("Error iterating over join request rows", "error", err)
+		logCtx.Error("Error iterating over join request rows", "error", err)
 		return nil, err
 	}
 
@@ -716,6 +765,9 @@ func (db *Db) GetJoinRequests(ctx context.Context, eventIds ...string) (map[stri
 }
 
 func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]string, error) {
+	logCtx := slog.With("method", "GetUserNames", "userIds", userIds)
+	logCtx.Debug("Getting user names")
+
 	if len(userIds) == 0 {
 		return make(map[string]string), nil
 	}
@@ -728,16 +780,16 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 
 	query, args, err := sqlx.In(query, userIds)
 	if err != nil {
-		slog.Error("Failed to prepare query with IN clause", "error", err)
+		logCtx.Error("Failed to prepare query with IN clause", "error", err)
 		return nil, err
 	}
 	query = db.conn.Rebind(query)
 
-	slog.Debug("Executing SQL query for user names", "query", query, "params", args)
+	logCtx.Debug("Executing SQL query for user names", "query", query, "params", args)
 
 	rows, err := db.conn.QueryContext(ctx, query, args...)
 	if err != nil {
-		slog.Error("Failed to get user names", "error", err)
+		logCtx.Error("Failed to get user names", "error", err)
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
@@ -746,7 +798,7 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 	for rows.Next() {
 		var uid, fullName string
 		if err := rows.Scan(&uid, &fullName); err != nil {
-			slog.Error("Failed to scan user name row", "error", err)
+			logCtx.Error("Failed to scan user name row", "error", err)
 			return nil, err
 		}
 		result[uid] = strings.TrimSpace(fullName)
@@ -756,9 +808,12 @@ func (db *Db) GetUserNames(ctx context.Context, userIds []string) (map[string]st
 }
 
 func (db *Db) GetFacilityName(ctx context.Context, facilityId string) (string, error) {
+	logCtx := slog.With("method", "GetFacilityName", "facilityId", facilityId)
+	logCtx.Debug("Getting facility name")
+
 	query := `SELECT name FROM facilities WHERE id = ?`
 
-	slog.Debug("Executing SQL query for facility name", "query", query, "params", facilityId)
+	logCtx.Debug("Executing SQL query for facility name", "query", query, "params", facilityId)
 
 	var name string
 	err := db.conn.GetContext(ctx, &name, query, facilityId)
@@ -766,7 +821,7 @@ func (db *Db) GetFacilityName(ctx context.Context, facilityId string) (string, e
 		if err == sql.ErrNoRows {
 			return "", DbObjectNotFoundError{Message: "Facility not found"}
 		}
-		slog.Error("Failed to get facility name", "error", err, "facilityId", facilityId)
+		logCtx.Error("Failed to get facility name", "error", err, "facilityId", facilityId)
 		return "", err
 	}
 
@@ -828,10 +883,13 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 }
 
 func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfileData, error) {
+	logCtx := slog.With("method", "GetUserProfile", "userId", userId)
+	logCtx.Debug("Getting user profile")
+
 	query := `SELECT  first_name, last_name, ntrp_level, language, country, city, COALESCE(notifications, '{}') as notifications FROM users u
 	LEFT JOIN user_pref up ON u.uid = up.uid
 	WHERE u.uid = ? AND u.is_deleted = false`
-	slog.Debug("Executing SQL query", "query", query, "params", userId)
+	logCtx.Debug("Executing SQL query", "query", query, "params", userId)
 
 	row := db.conn.QueryRowContext(ctx, query, userId)
 
@@ -850,7 +908,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		if err == sql.ErrNoRows {
 			return nil, DbObjectNotFoundError{Message: "Profile not found"}
 		}
-		slog.Error("Failed to get user profile", "error", err, "userId", userId)
+		logCtx.Error("Failed to get user profile", "error", err, "userId", userId)
 		return nil, err
 	}
 	profile.Notifications = api.NotificationSettings{
@@ -863,6 +921,9 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 }
 
 func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api.CreateUserProfileRequest) (string, *api.UserProfileData, error) {
+	logCtx := slog.With("method", "CreateUserProfile", "userId", userId)
+	logCtx.Debug("Creating user profile")
+
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
 		return "", nil, errors.WithMessage(err, "Failed to begin transaction")
@@ -871,7 +932,7 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 	_, err = tx.ExecContext(ctx, "INSERT INTO users (uid, first_name, last_name) VALUES (?, ?, ?)",
 		userId, profile.FirstName, profile.LastName)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
 	}
 
@@ -890,13 +951,13 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 	_, err = tx.ExecContext(ctx, "INSERT INTO user_pref (uid, language, country, city, ntrp_level, notifications, channels) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		userId, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return "", nil, errors.WithMessage(err, "Failed to create user profile")
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return "", nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
@@ -912,6 +973,9 @@ func (db *Db) CreateUserProfile(ctx context.Context, userId string, profile *api
 }
 
 func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api.UserProfileData) (*api.UserProfileData, error) {
+	logCtx := slog.With("method", "UpdateUserProfile", "userId", userId)
+	logCtx.Debug("Updating user profile")
+
 	tx, err := db.conn.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Failed to begin transaction")
@@ -919,18 +983,18 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 
 	result, err := tx.ExecContext(ctx, `UPDATE users SET first_name = ?, last_name = ? WHERE uid = ?`, profile.FirstName, profile.LastName, userId)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to update user profile")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to get rows affected")
 	}
 
 	if rowsAffected == 0 {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, DbObjectNotFoundError{Message: "Profile not found"}
 	}
 
@@ -948,13 +1012,13 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 
 	_, err = tx.ExecContext(ctx, `UPDATE user_pref SET language = ?, country = ?, city = ?, ntrp_level = ?, notifications = ?, channels = ? WHERE uid = ?`, profile.Language, profile.Country, profile.City, profile.NTRPLevel, dbNotificationSettings, dbNotificationSettings.Channels, userId)
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to update user profile")
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		db.rollback(tx)
+		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
@@ -962,15 +1026,21 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 }
 
 func (db *Db) DeleteUserProfile(ctx context.Context, userId string) error {
+	logCtx := slog.With("method", "DeleteUserProfile", "userId", userId)
+	logCtx.Debug("Deleting user profile")
+
 	_, err := db.conn.ExecContext(ctx, `UPDATE users SET is_deleted = true WHERE uid = ?`, userId)
 	if err != nil {
-		slog.Error("Failed to delete user profile", "error", err, "userId", userId)
+		logCtx.Error("Failed to delete user profile", "error", err, "userId", userId)
 		return err
 	}
 	return nil
 }
 
 func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNotifSettingsResult, error) {
+	logCtx := slog.With("method", "GetUsersNotificationSettings", "eventId", eventId)
+	logCtx.Debug("Getting users notification settings")
+
 	query := `
 	SELECT j.user_id AS user_id, COALESCE(j.is_accepted, 0) as is_accepted, 0 AS is_host, u.notifications, u.language
 	FROM events e
@@ -984,11 +1054,11 @@ func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNoti
 	WHERE e.id = ?
 	`
 
-	slog.Debug("Executing SQL query for notification settings", "query", query, "eventId", eventId)
+	logCtx.Debug("Executing SQL query for notification settings", "query", query, "eventId", eventId)
 
 	rows, err := db.conn.Query(query, eventId, eventId)
 	if err != nil {
-		slog.Error("Failed to get user notification settings", "error", err)
+		logCtx.Error("Failed to get user notification settings", "error", err)
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
@@ -997,7 +1067,7 @@ func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNoti
 	for rows.Next() {
 		var r EventNotifSettingsResult
 		if err := rows.Scan(&r.UserId, &r.IsAccepted, &r.IsHost, &r.NotifSettings, &r.Language); err != nil {
-			slog.Error("Failed to scan notification settings row", "error", err)
+			logCtx.Error("Failed to scan notification settings row", "error", err)
 			return nil, err
 		}
 		result[r.UserId] = r
@@ -1007,6 +1077,9 @@ func (db *Db) GetUsersNotificationSettings(eventId string) (map[string]EventNoti
 }
 
 func (db *Db) UpsertUserNotificationSettings(ctx context.Context, userId string, settings *NotificationSettings) error {
+	logCtx := slog.With("method", "UpsertUserNotificationSettings", "userId", userId)
+	logCtx.Debug("Upserting user notification settings")
+
 	// Ensure at least one channel is enabled
 	if settings.Channels == 0 {
 		settings.Channels = NotificationChannelEmail
@@ -1015,20 +1088,20 @@ func (db *Db) UpsertUserNotificationSettings(ctx context.Context, userId string,
 	query := `INSERT INTO user_pref (uid, notifications, channels) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE notifications = ?, channels = ?`
 	json, err := json.Marshal(settings)
 	if err != nil {
-		slog.Error("Failed to marshal notification settings", "error", err)
+		logCtx.Error("Failed to marshal notification settings", "error", err)
 		return err
 	}
 	_, err = db.conn.ExecContext(ctx, query, userId, json, settings.Channels, json, settings.Channels)
 	if err != nil {
-		slog.Error("Failed to upsert user notification settings", "error", err, "userId", userId)
+		logCtx.Error("Failed to upsert user notification settings", "error", err, "userId", userId)
 		return err
 	}
 	return nil
 }
 
-func (db *Db) rollback(tx *sqlx.Tx) {
+func (db *Db) rollback(slogger *slog.Logger, tx *sqlx.Tx) {
 	err := tx.Rollback()
 	if err != nil {
-		slog.Error("Failed to rollback transaction", "error", err)
+		slogger.Error("Failed to rollback transaction", "error", err)
 	}
 }

@@ -311,10 +311,65 @@
   },
   "timeOfDay": {
     "morning": "matin",
-    "afternoon": "après-midi", 
+    "afternoon": "après-midi",
     "evening": "soir",
     "night": "nuit",
     "wholeDay": "toute la journée",
     "and": "et"
+  },
+  "userMenu": {
+    "profile": "Profil",
+    "signOut": "Se Déconnecter"
+  },
+  "userProfile": {
+    "title": "Profil Utilisateur",
+    "sections": {
+      "personalInfo": "Informations Personnelles",
+      "notifications": "Paramètres de Notification",
+      "dangerZone": "Zone Dangereuse"
+    },
+    "fields": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "city": "Ville",
+      "country": "Pays",
+      "language": "Langue",
+      "ntrpLevel": "Niveau NTRP",
+      "email": "Adresse E-mail",
+      "phoneNumber": "Numéro de Téléphone",
+      "debugAddress": "Adresse de Débogage"
+    },
+    "notifications": {
+      "channels": {
+        "email": "Notifications par E-mail",
+        "sms": "Notifications par SMS",
+        "push": "Notifications Push (bientôt disponible)",
+        "whatsapp": "Notifications WhatsApp (bientôt disponible)",
+        "debug": "Notifications de Débogage (développement uniquement)"
+      },
+      "validation": "Au moins un canal de notification doit être activé"
+    },
+    "buttons": {
+      "save": "Enregistrer les Modifications",
+      "saving": "Enregistrement...",
+      "deleteAccount": "Supprimer le Compte",
+      "confirmDelete": "Oui, Supprimer Mon Compte",
+      "cancel": "Annuler"
+    },
+    "deleteAccount": {
+      "title": "Supprimer le Compte",
+      "warning": "Cette action est irréversible. Toutes vos données, y compris les événements et les demandes de participation, seront définitivement supprimées.",
+      "modalTitle": "Êtes-vous sûr ?",
+      "modalBody": "Cela supprimera définitivement votre compte et toutes les données associées."
+    },
+    "success": {
+      "profileUpdated": "Profil mis à jour avec succès",
+      "accountDeleted": "Compte supprimé avec succès"
+    },
+    "errors": {
+      "failedToLoad": "Échec du chargement du profil",
+      "failedToUpdate": "Échec de la mise à jour du profil",
+      "failedToDelete": "Échec de la suppression du compte"
+    }
   }
 }

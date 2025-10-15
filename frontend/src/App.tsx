@@ -1,11 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { BrowserRouter, Route, Routes, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import EventList, { EventListRef } from "./components/EventList";
 import PublicEventPage from "./components/PublicEventPage";
 import CreateEvent from "./components/CreateEvent";
 import { ProfileSetup } from './components/ProfileSetup';
+import UserProfile from './components/UserProfile';
+import UserMenu from './components/UserMenu';
 import LandingPage from './components/LandingPage';
 import LanguageSwitcherSimple from './components/LanguageSwitcherSimple';
 import { APIProvider } from './services/apiProvider';
@@ -28,7 +30,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center">
             <i className="bi bi-trophy-fill tennis-accent me-2 fs-3"></i>
-            <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>{t('app.title')}</h1>
+            <Link to="/" className="text-decoration-none">
+              <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>{t('app.title')}</h1>
+            </Link>
           </div>
           <div className="d-flex align-items-center gap-2">
             <LanguageSwitcherSimple />
@@ -45,7 +49,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   </div>
                 </SignedOut>
                 <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
+                  <UserMenu />
                 </SignedIn>
               </>
             ) : (
@@ -122,6 +126,16 @@ const AuthenticatedRoutes = () => {
               ) : (
                 <LandingPage />
               )}
+            </Layout>
+          } />
+          <Route path="/profile" element={
+            <Layout>
+              <SignedIn>
+                <UserProfile />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/" replace />
+              </SignedOut>
             </Layout>
           } />
           <Route path="/event/:eventId" element={<PublicEventPage />} />

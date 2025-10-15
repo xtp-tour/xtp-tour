@@ -21,19 +21,21 @@ const (
 	TopicUserJoined = "user_joined"
 )
 
-type AllPurposeNotifier struct {
+// Notifier have list of methods to schedule notifications on notification queue
+type Notifier struct {
 	db    NotifierDb
 	queue Queue
 }
 
-func NewAllPurposeNotifier(db NotifierDb, queue Queue) *AllPurposeNotifier {
-	return &AllPurposeNotifier{
+// NewNotifier creates a new Notifier that could be used for scheduling notifications on notification queue
+func NewNotifier(db NotifierDb, queue Queue) *Notifier {
+	return &Notifier{
 		db:    db,
 		queue: queue,
 	}
 }
 
-func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinRequestIds []string, dateTime string, locationId string, hostUserId string) {
+func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinRequestIds []string, dateTime string, locationId string, hostUserId string) {
 	ctx := context.Background()
 
 	// Get user notification settings
@@ -107,8 +109,52 @@ func (d *AllPurposeNotifier) EventConfirmed(logCtx *slog.Logger, eventId string,
 	}
 }
 
-func (d *AllPurposeNotifier) UserJoined(logCtx slog.Logger, joinRequest api.JoinRequestData) {
-	// Since we can't extract userId from slog directly, we'll skip this notification for now
-	// TODO: Modify server interface to pass userId directly or implement proper context passing
-	logCtx.Warn("UserJoined notification skipped - cannot determine joining user ID from current interface", "eventId", joinRequest.EventId)
+func (d *Notifier) UserJoined(logCtx slog.Logger, userId string, joinRequest api.JoinRequestData) {
+	ctx := context.Background()
+
+	// Get event owner to notify them about the new join request
+	eventOwnerId, err := d.db.GetEventOwner(ctx, joinRequest.EventId)
+	if err != nil {
+		logCtx.Error("Error getting event owner", "error", err, "eventId", joinRequest.EventId)
+		return
+	}
+
+	// Get user names for notification
+	userNames, err := d.db.GetUserNames(ctx, []string{userId, eventOwnerId})
+	if err != nil {
+		logCtx.Error("Error getting user names", "error", err)
+		return
+	}
+
+	joiningUserName := userNames[userId]
+	if joiningUserName == "" {
+		joiningUserName = "A user"
+	}
+
+	// Create notification message for event owner
+	msg := fmt.Sprintf("Hello! %s has requested to join your event.", joiningUserName)
+	if joinRequest.Comment != "" {
+		msg += fmt.Sprintf(" They left a comment: \"%s\"", joinRequest.Comment)
+	}
+
+	notificationData := db.NotificationQueueData{
+		Topic:   "New Join Request",
+		Message: msg,
+	}
+
+	// Enqueue notification for event owner
+	err = d.queue.Enqueue(ctx, eventOwnerId, notificationData)
+	if err != nil {
+		logCtx.Error("Failed to enqueue user joined notification",
+			"error", err,
+			"eventOwnerId", eventOwnerId,
+			"joiningUserId", userId,
+			"topic", notificationData.Topic)
+		return
+	}
+
+	logCtx.Info("UserJoined notification sent successfully",
+		"joiningUserId", userId,
+		"eventOwnerId", eventOwnerId,
+		"eventId", joinRequest.EventId)
 }

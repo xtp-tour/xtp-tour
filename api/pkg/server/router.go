@@ -26,7 +26,7 @@ import (
 
 type Notifier interface {
 	EventConfirmed(logCtx *slog.Logger, eventId string, confirmedJoinReqIds []string, dateTime string, locationId string, hostUserId string)
-	UserJoined(logCtx slog.Logger, joinRequest api.JoinRequestData)
+	UserJoined(logCtx slog.Logger, userId string, joinRequest api.JoinRequestData)
 }
 
 type Router struct {
@@ -476,10 +476,11 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 	}
 
 	req.JoinRequest.Id = joinRequestId
+	req.JoinRequest.EventId = req.EventId // Set eventId from path parameter
 
 	// Notify about user joining
 	notifyLogCtx := *slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", joinRequestId)
-	go r.notifier.UserJoined(notifyLogCtx, req.JoinRequest)
+	go r.notifier.UserJoined(notifyLogCtx, userId.(string), req.JoinRequest)
 
 	return &api.JoinRequestResponse{
 		JoinRequest: api.JoinRequest{

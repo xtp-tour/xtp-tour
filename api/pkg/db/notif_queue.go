@@ -17,7 +17,7 @@ type NotifQueueDb interface {
 func (db *Db) EnqueueNotification(userId string, data NotificationQueueData) error {
 	id := uuid.New().String()
 
-	query := `INSERT INTO notification_queue (id, user_id, data, status, created_at, retry_count) 
+	query := `INSERT INTO notification_queue (id, user_id, data, status, created_at, retry_count)
 		VALUES (?, ?, ?, ?, NOW(), 0)`
 
 	slog.Debug("Enqueuing notification", "id", id, "userId", userId, "topic", data.Topic)
@@ -32,21 +32,23 @@ func (db *Db) EnqueueNotification(userId string, data NotificationQueueData) err
 }
 
 func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
+	logCtx := slog.With("method", "GetNextNotification")
+	logCtx.Debug("Getting next notification")
+
 	tx, err := db.conn.Beginx()
 	if err != nil {
-		slog.Error("Failed to begin transaction", "error", err)
+		logCtx.Error("Failed to begin transaction", "error", err)
 		return nil, err
 	}
-	defer db.rollback(tx)
 
-	query := `SELECT 
+	query := `SELECT
 		nq.id, nq.user_id, nq.data, nq.status, nq.created_at, nq.processed_at, nq.retry_count,
 		COALESCE(up.notifications, '{}') AS user_preferences
 		FROM notification_queue nq
 		LEFT JOIN user_pref up ON nq.user_id = up.uid
 		WHERE nq.status = ?
-		ORDER BY nq.created_at ASC 
-		LIMIT 1 
+		ORDER BY nq.created_at ASC
+		LIMIT 1
 		FOR UPDATE`
 
 	var notification NotificationQueueRow
@@ -55,20 +57,23 @@ func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		slog.Error("Failed to get next notification", "error", err)
+		logCtx.Error("Failed to get next notification", "error", err)
 		return nil, err
 	}
 
 	updateQuery := `UPDATE notification_queue SET status = ? WHERE id = ?`
+	logCtx.Debug("Executing SQL query", "query", updateQuery, "params", []interface{}{NotificationStatusProcessing, notification.Id})
 	_, err = tx.Exec(updateQuery, NotificationStatusProcessing, notification.Id)
 	if err != nil {
-		slog.Error("Failed to update notification status to processing", "error", err, "id", notification.Id)
+		logCtx.Error("Failed to update notification status to processing", "error", err, "id", notification.Id)
+		db.rollback(logCtx, tx)
 		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		slog.Error("Failed to commit transaction", "error", err)
+		logCtx.Error("Failed to commit transaction", "error", err)
+		db.rollback(logCtx, tx)
 		return nil, err
 	}
 

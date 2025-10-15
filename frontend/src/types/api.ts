@@ -75,10 +75,11 @@ export interface APIClient {
   getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse>;
   createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
-  
+  deleteUserProfile(): Promise<void>;
+
   // Health check endpoint
   ping(): Promise<{ service?: string; status?: string; message?: string }>;
-  
+
   // Error reporting
   reportError(error: Error, extraInfo?: {
     apiEndpoint?: string;
@@ -87,7 +88,7 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
-  
+
   // Legacy profile methods for backward compatibility
   updateProfile(request: UpdateProfileRequest): Promise<void>;
 }

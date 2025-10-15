@@ -311,10 +311,65 @@
   },
   "timeOfDay": {
     "morning": "morning",
-    "afternoon": "afternoon", 
+    "afternoon": "afternoon",
     "evening": "evening",
     "night": "night",
     "wholeDay": "whole day",
     "and": "and"
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "signOut": "Sign Out"
+  },
+  "userProfile": {
+    "title": "User Profile",
+    "sections": {
+      "personalInfo": "Personal Information",
+      "notifications": "Notification Settings",
+      "dangerZone": "Danger Zone"
+    },
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "city": "City",
+      "country": "Country",
+      "language": "Language",
+      "ntrpLevel": "NTRP Level",
+      "email": "Email Address",
+      "phoneNumber": "Phone Number",
+      "debugAddress": "Debug Address"
+    },
+    "notifications": {
+      "channels": {
+        "email": "Email Notifications",
+        "sms": "SMS Notifications",
+        "push": "Push Notifications (coming soon)",
+        "whatsapp": "WhatsApp Notifications (coming soon)",
+        "debug": "Debug Notifications (development only)"
+      },
+      "validation": "At least one notification channel must be enabled"
+    },
+    "buttons": {
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "deleteAccount": "Delete Account",
+      "confirmDelete": "Yes, Delete My Account",
+      "cancel": "Cancel"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "warning": "This action cannot be undone. All your data including events and join requests will be permanently deleted.",
+      "modalTitle": "Are you sure?",
+      "modalBody": "This will permanently delete your account and all associated data."
+    },
+    "success": {
+      "profileUpdated": "Profile updated successfully",
+      "accountDeleted": "Account deleted successfully"
+    },
+    "errors": {
+      "failedToLoad": "Failed to load profile",
+      "failedToUpdate": "Failed to update profile",
+      "failedToDelete": "Failed to delete account"
+    }
   }
 }

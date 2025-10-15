@@ -311,10 +311,65 @@
   },
   "timeOfDay": {
     "morning": "mañana",
-    "afternoon": "tarde", 
+    "afternoon": "tarde",
     "evening": "noche",
     "night": "madrugada",
     "wholeDay": "todo el día",
     "and": "y"
+  },
+  "userMenu": {
+    "profile": "Perfil",
+    "signOut": "Cerrar Sesión"
+  },
+  "userProfile": {
+    "title": "Perfil de Usuario",
+    "sections": {
+      "personalInfo": "Información Personal",
+      "notifications": "Configuración de Notificaciones",
+      "dangerZone": "Zona de Peligro"
+    },
+    "fields": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "city": "Ciudad",
+      "country": "País",
+      "language": "Idioma",
+      "ntrpLevel": "Nivel NTRP",
+      "email": "Correo Electrónico",
+      "phoneNumber": "Número de Teléfono",
+      "debugAddress": "Dirección de Depuración"
+    },
+    "notifications": {
+      "channels": {
+        "email": "Notificaciones por Correo",
+        "sms": "Notificaciones por SMS",
+        "push": "Notificaciones Push (próximamente)",
+        "whatsapp": "Notificaciones por WhatsApp (próximamente)",
+        "debug": "Notificaciones de Depuración (solo desarrollo)"
+      },
+      "validation": "Al menos un canal de notificación debe estar habilitado"
+    },
+    "buttons": {
+      "save": "Guardar Cambios",
+      "saving": "Guardando...",
+      "deleteAccount": "Eliminar Cuenta",
+      "confirmDelete": "Sí, Eliminar Mi Cuenta",
+      "cancel": "Cancelar"
+    },
+    "deleteAccount": {
+      "title": "Eliminar Cuenta",
+      "warning": "Esta acción no se puede deshacer. Todos tus datos, incluidos eventos y solicitudes de unión, se eliminarán permanentemente.",
+      "modalTitle": "¿Estás seguro?",
+      "modalBody": "Esto eliminará permanentemente tu cuenta y todos los datos asociados."
+    },
+    "success": {
+      "profileUpdated": "Perfil actualizado exitosamente",
+      "accountDeleted": "Cuenta eliminada exitosamente"
+    },
+    "errors": {
+      "failedToLoad": "Error al cargar el perfil",
+      "failedToUpdate": "Error al actualizar el perfil",
+      "failedToDelete": "Error al eliminar la cuenta"
+    }
   }
 }

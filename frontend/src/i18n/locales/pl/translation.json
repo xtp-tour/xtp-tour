@@ -311,10 +311,65 @@
   },
   "timeOfDay": {
     "morning": "rano",
-    "afternoon": "po południu", 
+    "afternoon": "po południu",
     "evening": "wieczorem",
     "night": "w nocy",
     "wholeDay": "cały dzień",
     "and": "i"
+  },
+  "userMenu": {
+    "profile": "Profil",
+    "signOut": "Wyloguj się"
+  },
+  "userProfile": {
+    "title": "Profil Użytkownika",
+    "sections": {
+      "personalInfo": "Informacje Osobiste",
+      "notifications": "Ustawienia Powiadomień",
+      "dangerZone": "Strefa Niebezpieczna"
+    },
+    "fields": {
+      "firstName": "Imię",
+      "lastName": "Nazwisko",
+      "city": "Miasto",
+      "country": "Kraj",
+      "language": "Język",
+      "ntrpLevel": "Poziom NTRP",
+      "email": "Adres E-mail",
+      "phoneNumber": "Numer Telefonu",
+      "debugAddress": "Adres Debugowania"
+    },
+    "notifications": {
+      "channels": {
+        "email": "Powiadomienia E-mail",
+        "sms": "Powiadomienia SMS",
+        "push": "Powiadomienia Push (wkrótce)",
+        "whatsapp": "Powiadomienia WhatsApp (wkrótce)",
+        "debug": "Powiadomienia Debugowania (tylko deweloperskie)"
+      },
+      "validation": "Przynajmniej jeden kanał powiadomień musi być włączony"
+    },
+    "buttons": {
+      "save": "Zapisz Zmiany",
+      "saving": "Zapisywanie...",
+      "deleteAccount": "Usuń Konto",
+      "confirmDelete": "Tak, Usuń Moje Konto",
+      "cancel": "Anuluj"
+    },
+    "deleteAccount": {
+      "title": "Usuń Konto",
+      "warning": "Ta akcja jest nieodwracalna. Wszystkie Twoje dane, w tym wydarzenia i prośby o dołączenie, zostaną trwale usunięte.",
+      "modalTitle": "Czy jesteś pewien?",
+      "modalBody": "Spowoduje to trwałe usunięcie Twojego konta i wszystkich powiązanych danych."
+    },
+    "success": {
+      "profileUpdated": "Profil zaktualizowany pomyślnie",
+      "accountDeleted": "Konto usunięte pomyślnie"
+    },
+    "errors": {
+      "failedToLoad": "Nie udało się załadować profilu",
+      "failedToUpdate": "Nie udało się zaktualizować profilu",
+      "failedToDelete": "Nie udało się usunąć konta"
+    }
   }
 }

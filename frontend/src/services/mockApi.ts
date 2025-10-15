@@ -725,6 +725,13 @@ export class MockAPIClient implements APIClient {
     };
   }
 
+  async deleteUserProfile(): Promise<void> {
+    await this.checkAuth();
+    await this.delay(500);
+    // Mock implementation - simulate successful profile deletion
+    console.log('Mock: User profile deleted');
+  }
+
   // Legacy method for backward compatibility
   async updateProfile(request: UpdateProfileRequest): Promise<void> {
     await this.updateUserProfile(request);

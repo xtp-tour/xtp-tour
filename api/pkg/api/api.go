@@ -81,6 +81,15 @@ type JoinRequest struct {
 	IsAccepted *bool  `json:"isRejected,omitempty"`
 }
 
+type JoinRequestRequest struct {
+	EventId     string          `path:"eventId" validate:"required"`
+	JoinRequest JoinRequestData `json:"joinRequest" validate:"required"`
+}
+
+type JoinRequestResponse struct {
+	JoinRequest JoinRequest `json:"joinRequest"`
+}
+
 type EventConfirmationRequest struct {
 	EventId         string   `path:"eventId" validate:"required"`
 	LocationId      string   `json:"locationId" validate:"required"`
@@ -148,15 +157,6 @@ type GetEventResponse struct {
 
 type DeleteEventRequest struct {
 	EventId string `path:"eventId" validate:"required"`
-}
-
-type JoinRequestRequest struct {
-	EventId     string          `path:"eventId" validate:"required"`
-	JoinRequest JoinRequestData `json:"joinRequest" validate:"required"`
-}
-
-type JoinRequestResponse struct {
-	JoinRequest JoinRequest `json:"joinRequest"`
 }
 
 type ListEventsRequest struct {
