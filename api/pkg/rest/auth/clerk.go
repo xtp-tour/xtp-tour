@@ -34,7 +34,7 @@ func NewJWKStore() JWKStore {
 	return &jwkStore{}
 }
 
-func CreateClerkAuth(clerkConfig string) func(c *gin.Context) {
+func CreateClerkAuthMiddleware(clerkConfig string) func(c *gin.Context) {
 
 	config := &clerk.ClientConfig{}
 

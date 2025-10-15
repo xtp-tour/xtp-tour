@@ -10,6 +10,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
@@ -662,6 +663,38 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 
 	logCtx := slog.With("userId", userId)
 	logCtx.Info("Creating user profile", "req", req)
+
+	// Extract email and phone from Clerk user object if not provided in request
+	if clerkUser, exists := c.Get("user"); exists {
+		if usr, ok := clerkUser.(*clerk.User); ok {
+			// Auto-populate email if not provided
+			if req.Notifications.Email == "" && usr.PrimaryEmailAddressID != nil {
+				for _, emailAddr := range usr.EmailAddresses {
+					if emailAddr.ID == *usr.PrimaryEmailAddressID {
+						req.Notifications.Email = emailAddr.EmailAddress
+						logCtx.Info("Auto-populated email from Clerk", "email", emailAddr.EmailAddress)
+						break
+					}
+				}
+			}
+
+			// Auto-populate phone if not provided
+			if req.Notifications.PhoneNumber == "" && usr.PrimaryPhoneNumberID != nil {
+				for _, phoneNum := range usr.PhoneNumbers {
+					if phoneNum.ID == *usr.PrimaryPhoneNumberID {
+						req.Notifications.PhoneNumber = phoneNum.PhoneNumber
+						logCtx.Info("Auto-populated phone from Clerk", "phone", phoneNum.PhoneNumber)
+						break
+					}
+				}
+			}
+
+			// Enable email channel by default if email is available
+			if req.Notifications.Email != "" && req.Notifications.Channels == 0 {
+				req.Notifications.Channels = 1 // Email channel enabled
+			}
+		}
+	}
 
 	_, profile, err := r.db.CreateUserProfile(c, userId.(string), req)
 	if err != nil {

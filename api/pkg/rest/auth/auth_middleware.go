@@ -14,7 +14,7 @@ const USER_ID_CONTEXT_KEY = "userId"
 func CreateAuthMiddleware(authConfig pkg.AuthConfig) gin.HandlerFunc {
 
 	if authConfig.Type == "clerk" {
-		return CreateClerkAuth(authConfig.Config)
+		return CreateClerkAuthMiddleware(authConfig.Config)
 	}
 
 	if authConfig.Type == "debug" {
