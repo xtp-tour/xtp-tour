@@ -84,7 +84,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
   });
 
   // State for active tab
-  const [activeTab, setActiveTab] = useState<'toJoin' | 'myEvents'>('toJoin');
+  const [activeTab, setActiveTab] = useState<'toJoin' | 'myEvents' | 'joinedEvents'>('toJoin');
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -125,6 +125,9 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
   // Filter events based on their status and ownership
   const myOpenEvents = myEvents
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
+  
+  const joinedEventsSorted = joinedEvents
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
   if (loading) {
@@ -206,7 +209,37 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
                   minWidth: '20px',
                   fontSize: '0.75rem'
                 }}>
-                  {myOpenEvents.length + joinedEvents.length}
+                  {myOpenEvents.length}
+                </span>
+              </div>
+            </button>
+          </li>
+          <li className="nav-item" role="presentation">
+            <button
+              className={`nav-link d-flex align-items-center justify-content-center flex-wrap gap-1 ${activeTab === 'joinedEvents' ? 'active' : ''}`}
+              type="button"
+              role="tab"
+              onClick={() => setActiveTab('joinedEvents')}
+              style={{
+                backgroundColor: activeTab === 'joinedEvents' ? 'var(--tennis-accent)' : 'transparent',
+                color: 'var(--tennis-navy)',
+                border: '1px solid var(--tennis-accent)',
+                fontWeight: activeTab === 'joinedEvents' ? '600' : '400',
+                minHeight: '48px',
+                fontSize: '0.9rem',
+                padding: '8px 12px'
+              }}
+            >
+              <div className="d-flex align-items-center flex-wrap justify-content-center gap-1">
+                <i className="bi bi-people"></i>
+                <span>{t('eventList.tabs.joinedEvents')}</span>
+                <span className="badge" style={{
+                  backgroundColor: activeTab === 'joinedEvents' ? 'var(--tennis-navy)' : 'var(--tennis-accent)',
+                  color: activeTab === 'joinedEvents' ? 'var(--tennis-accent)' : 'var(--tennis-navy)',
+                  minWidth: '20px',
+                  fontSize: '0.75rem'
+                }}>
+                  {joinedEventsSorted.length}
                 </span>
               </div>
             </button>
@@ -287,20 +320,25 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
                 )
               )}
             </section>
+          </div>
+        )}
 
+        {/* Joined Events Tab */}
+        {activeTab === 'joinedEvents' && (
+          <div className="tab-pane fade show active">
             <section className="mb-5">
               <SectionHeader
                 title={t('eventList.sections.joinedEvents')}
-                count={joinedEvents.length}
+                count={joinedEventsSorted.length}
                 isExpanded={expandedSections.joinedEvents}
                 onToggle={() => toggleSection('joinedEvents')}
               />
               {expandedSections.joinedEvents && (
-                joinedEvents.length === 0 ? (
+                joinedEventsSorted.length === 0 ? (
                   <p className="text-muted">{t('eventList.empty.noEventsJoined')}</p>
                 ) : (
                   <div>
-                    {joinedEvents.map(event => (
+                    {joinedEventsSorted.map(event => (
                       <JoinedEventItem
                         key={event.id}
                         event={event}

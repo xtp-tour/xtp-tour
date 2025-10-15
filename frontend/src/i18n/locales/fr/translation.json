@@ -143,7 +143,8 @@
     "tabs": {
       "toJoin": "Événements à Rejoindre",
       "toJoinShort": "Rejoindre",
-      "myEvents": "Mes Événements"
+      "myEvents": "Mes Événements",
+      "joinedEvents": "Événements Rejoints"
     },
     "sections": {
       "availableEventsToJoin": "Événements Disponibles à Rejoindre",
