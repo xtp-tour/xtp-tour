@@ -111,6 +111,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           city: formData.city,
+          country: 'Poland',
+          language: 'en',
         });
       } else {
         // Create new profile
@@ -119,6 +121,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           city: formData.city,
+          country: 'Poland',
+          language: 'en',
         });
       }
       onComplete();

@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, UpdateProfileRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
 
 // Debug information interface
 interface DebugInfo {
@@ -302,11 +302,6 @@ export class RealAPIClient {
     await this.fetch<void>('/api/profiles/me', {
       method: 'DELETE',
     });
-  }
-
-  // Legacy method for backward compatibility - will be removed once all components are updated
-  async updateProfile(request: UpdateProfileRequest): Promise<void> {
-    await this.updateUserProfile(request);
   }
 
   async ping(): Promise<{ service?: string; status?: string; message?: string }> {

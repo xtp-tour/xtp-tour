@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse, UpdateProfileRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
+import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -298,7 +298,7 @@ export interface APIClient {
   getUserProfileByUserId(userId: string): Promise<GetUserProfileResponse>;
   createUserProfile(request: CreateUserProfileRequest): Promise<CreateUserProfileResponse>;
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
-  updateProfile(request: UpdateProfileRequest): Promise<void>;
+  deleteUserProfile(): Promise<void>;
   ping(): Promise<{ service?: string; status?: string; message?: string }>;
 }
 
@@ -730,11 +730,6 @@ export class MockAPIClient implements APIClient {
     await this.delay(500);
     // Mock implementation - simulate successful profile deletion
     console.log('Mock: User profile deleted');
-  }
-
-  // Legacy method for backward compatibility
-  async updateProfile(request: UpdateProfileRequest): Promise<void> {
-    await this.updateUserProfile(request);
   }
 
   async ping(): Promise<{ service?: string; status?: string; message?: string }> {
