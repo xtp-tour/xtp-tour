@@ -46,14 +46,6 @@ export interface APIConfig {
   getAuthToken(): Promise<string | undefined>;
 }
 
-// Legacy types for backward compatibility - these will be removed once all components are updated
-export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-  ntrpLevel: number;
-  city: string;
-}
-
 export interface APIClient {
   // Event endpoints
   createEvent(request: CreateEventRequest): Promise<ApiEvent>;
@@ -88,7 +80,4 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
-
-  // Legacy profile methods for backward compatibility
-  updateProfile(request: UpdateProfileRequest): Promise<void>;
 }
