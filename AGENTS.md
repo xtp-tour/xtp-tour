@@ -45,8 +45,10 @@ The frontend (`frontend/`) is a TypeScript/React application using Vite:
 - Frontend: Use `make` commands in `frontend/` directory for development
 - Frontend uses pnpm as a package manager
 - Backend uses MySQL database which can be run using Docker Compose from the `api/` directory
-- Authentication: Uses Clerk for user authentication and profile management
-- API types are auto-generated from OpenAPI specification in `frontend/src/types/schema.d.ts`
+- Authentication: Uses Clerk for user authentication and profile management. Backend could start in debug authentication in which case every request with token is considered as authenticated with userId same as token. Refer to `api/pkg/rest/auth/auth_middleware.go` for more details.
+- API types on frontend are auto-generated from OpenAPI specification in `frontend/src/types/schema.d.ts` by running `make generate-types` in frontend directory command. API should be running to generate the types.
+- Service tests for backend are in `api/test/` directory and are tagged with `servicetest`. They can be run with `make servicetest.run` command. For those tests API should run with DEBUG authentication middleware
+
 
 ## Code Style Guidelines
 - Backend: Follow Go standard formatting (gofmt)
