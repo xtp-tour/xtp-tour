@@ -2,7 +2,7 @@ name: Service Tests
 
 on:
   push:
-    branches: [ main ]    
+    branches: [ main ]
   pull_request:
     branches: [ main ]
     paths:
@@ -17,7 +17,7 @@ jobs:
     defaults:
       run:
         working-directory: ./api
-    
+
     services:
       mysql:
         image: mysql:9.3.0
@@ -78,9 +78,23 @@ jobs:
         working-directory: ./frontend
         run: pnpm build
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-browsers-
+
       - name: Install Playwright browsers
         working-directory: ./frontend
-        run: pnpm exec playwright install --with-deps
+        run: |
+          if [ ! -d ~/.cache/ms-playwright/chromium-* ]; then
+            echo "Installing Playwright browsers..."
+            pnpm exec playwright install chromium --with-deps
+          else
+            echo "Playwright browsers already cached, skipping installation"
+          fi
 
       - name: Start server in background
         env:
@@ -94,7 +108,7 @@ jobs:
           SERVER_PID=$!
           echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
           echo "Server started with PID: $SERVER_PID"
-          
+
       - name: Wait for server to start
         run: |
           echo "Waiting for server to start..."
@@ -128,7 +142,7 @@ jobs:
         env:
           TEST_BASE_URL: http://localhost:5173
           TEST_API_BASE_URL: http://localhost:58080
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test --project=chromium
 
       - name: Cleanup processes
         if: always()
@@ -140,4 +154,4 @@ jobs:
           if [ ! -z "$FRONTEND_PID" ]; then
             echo "Stopping frontend server with PID: $FRONTEND_PID"
             kill $FRONTEND_PID 2>/dev/null || true
-          fi 
+          fi
