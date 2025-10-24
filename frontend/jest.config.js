@@ -22,7 +22,6 @@ export default {
   testPathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/src/test/e2e/',
-    '<rootDir>/src/utils/timeSlotCompression.test.ts',
   ],
   collectCoverageFrom: [
     'src/**/*.(ts|tsx)',
