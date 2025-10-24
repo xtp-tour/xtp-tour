@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom';
 
+// Mock import.meta.env for Vite environment variables
+(globalThis as any).import = {
+  meta: {
+    env: {
+      DEV: true,
+      PROD: false,
+      MODE: 'test',
+    },
+  },
+};
+
 // Mock window.matchMedia for components that use responsive hooks
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -51,5 +62,18 @@ jest.mock('use-bootstrap-select', () => ({
     getOrCreateInstance: jest.fn().mockReturnValue({
       setValue: jest.fn(),
     }),
+  },
+}));
+
+// Mock i18n to avoid import.meta issues in tests
+jest.mock('../i18n', () => ({
+  __esModule: true,
+  default: {
+    t: (key: string) => key,
+    changeLanguage: jest.fn().mockResolvedValue(undefined),
+    language: 'en',
+    languages: ['en', 'es', 'fr', 'pl'],
+    use: jest.fn().mockReturnThis(),
+    init: jest.fn().mockResolvedValue(undefined),
   },
 })); 
