@@ -83,44 +83,44 @@ const UserProfile: React.FC = () => {
   };
 
   useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await api.getUserProfile();
+        if (response.profile) {
+          // Get user's email from Clerk
+          const clerkEmail = user?.emailAddresses[0]?.emailAddress || '';
+
+          // Pre-populate email if not set in notification settings
+          const notificationSettings = response.profile.notification_settings || {
+            channels: CHANNEL_EMAIL,
+            email: '',
+            phone_number: '',
+            debug_address: '',
+          };
+
+          // If email is empty, use Clerk email
+          if (!notificationSettings.email && clerkEmail) {
+            notificationSettings.email = clerkEmail;
+          }
+
+          setFormData({
+            ...response.profile,
+            notification_settings: notificationSettings,
+          });
+        }
+      } catch (err) {
+        console.error('Error loading profile:', err);
+        setError(t('userProfile.errors.failedToLoad'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (user) {
       loadProfile();
     }
-  }, [user]);
-
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      const response = await api.getUserProfile();
-      if (response.profile) {
-        // Get user's email from Clerk
-        const clerkEmail = user?.emailAddresses[0]?.emailAddress || '';
-
-        // Pre-populate email if not set in notification settings
-        const notificationSettings = response.profile.notification_settings || {
-          channels: CHANNEL_EMAIL,
-          email: '',
-          phone_number: '',
-          debug_address: '',
-        };
-
-        // If email is empty, use Clerk email
-        if (!notificationSettings.email && clerkEmail) {
-          notificationSettings.email = clerkEmail;
-        }
-
-        setFormData({
-          ...response.profile,
-          notification_settings: notificationSettings,
-        });
-      }
-    } catch (err) {
-      console.error('Error loading profile:', err);
-      setError(t('userProfile.errors.failedToLoad'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, api, t]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

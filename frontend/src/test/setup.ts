@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 
 // Mock import.meta.env for Vite environment variables
-(globalThis as any).import = {
+(globalThis as { import: { meta: { env: Record<string, unknown> } } }).import = {
   meta: {
     env: {
       DEV: true,
@@ -76,4 +76,4 @@ jest.mock('../i18n', () => ({
     use: jest.fn().mockReturnThis(),
     init: jest.fn().mockResolvedValue(undefined),
   },
-})); 
+}));

@@ -90,7 +90,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     };
 
     loadProfile();
-  }, [api, user, onComplete]);
+  }, [api, user, onComplete, i18n.language]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
