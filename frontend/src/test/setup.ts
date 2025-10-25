@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 
 // Mock import.meta.env for Vite environment variables
-(globalThis as { import: { meta: { env: Record<string, unknown> } } }).import = {
+(globalThis as unknown as { import: { meta: { env: Record<string, unknown> } } }).import = {
   meta: {
     env: {
       DEV: true,
