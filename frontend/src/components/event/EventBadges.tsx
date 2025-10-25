@@ -40,7 +40,7 @@ const DurationBadge: React.FC<{ minutes: number }> = ({ minutes }) => (
 
 const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlayers }) => {
   const { t } = useTranslation();
-  
+
   const getRequestTypeLabel = (players: number): string => {
     switch (players) {
       case 2: return t('eventTypes.singles');
@@ -48,7 +48,7 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
       default: return t('eventTypes.players', { count: players });
     }
   };
-  
+
   return (
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-light)', color: 'var(--tennis-navy)', border: '1px solid var(--tennis-navy)' }}>
       {getRequestTypeLabel(expectedPlayers)}
@@ -57,6 +57,7 @@ const RequestTypeBadge: React.FC<{ expectedPlayers: number }> = ({ expectedPlaye
 };
 
 // Utility function to get event type label
+// eslint-disable-next-line react-refresh/only-export-components
 export const getEventTypeLabel = (type: ApiEventType, t: (key: string) => string): string => {
   switch (type) {
     case 'MATCH': return t('eventTypes.match');
@@ -67,7 +68,7 @@ export const getEventTypeLabel = (type: ApiEventType, t: (key: string) => string
 
 const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) => {
   const { t } = useTranslation();
-  
+
   return (
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
       {getEventTypeLabel(eventType, t)}
@@ -75,7 +76,7 @@ const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) =>
   );
 };
 
-const LocationBadge: React.FC<{ 
+const LocationBadge: React.FC<{
   location: string;
   isSelected?: boolean;
   onClick?: () => void;
@@ -87,10 +88,10 @@ const LocationBadge: React.FC<{
   const showTooltip = cleanLocation.length > maxLength;
 
   const badge = (
-    <span 
-      className="badge d-inline-flex align-items-center" 
-      style={{ 
-        backgroundColor: isSelected ? 'var(--tennis-navy)' : '#f8f9fa', 
+    <span
+      className="badge d-inline-flex align-items-center"
+      style={{
+        backgroundColor: isSelected ? 'var(--tennis-navy)' : '#f8f9fa',
         color: isSelected ? 'white' : 'var(--tennis-navy)',
         border: isSelected ? 'none' : '1px solid #e9ecef',
         cursor: onClick ? 'pointer' : undefined,
@@ -113,9 +114,9 @@ const LocationBadge: React.FC<{
       }}
     >
       <i className="bi bi-geo-alt me-2 flex-shrink-0" style={{ fontSize: '0.9rem' }}></i>
-      <span 
-        className="text-truncate" 
-        style={{ 
+      <span
+        className="text-truncate"
+        style={{
           minWidth: 0,
           maxWidth: '150px',
           display: 'inline-block'
@@ -135,7 +136,7 @@ const LocationBadge: React.FC<{
       {badge}
     </OverlayTrigger>
   ) : badge;
-  
+
   return onClick ? (
     <a
       href="#"
@@ -163,4 +164,4 @@ const EventBadges: React.FC<EventBadgesProps> = ({
 );
 
 export default EventBadges;
-export { LocationBadge, EventTypeBadge, RequestTypeBadge, SkillLevelBadge, DurationBadge }; 
+export { LocationBadge, EventTypeBadge, RequestTypeBadge, SkillLevelBadge, DurationBadge };

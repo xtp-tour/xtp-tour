@@ -14,20 +14,36 @@ You will need:
 
 - Create new migration `migrate create -ext sql -dir db/migrations -seq <migration-name>`
 
+## Google Calendar Integration
+
+Create a new Google Cloud project and enable the Google Calendar API.
+
+Create a new OAuth client ID and set the redirect URL to `http://localhost:3000/calendar/callback`.
+
+Set environment variables:
+```bash
+export GOOGLE_CALENDAR_CLIENT_ID="your-client-id"
+export GOOGLE_CALENDAR_CLIENT_SECRET="your-client-secret"
+export GOOGLE_CALENDAR_REDIRECT_URL="http://localhost:3000/calendar/callback"
+export TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+
+Endpoints: `/api/calendar/*` - OAuth flow, connection status, busy times, preferences.
+
 
 
 # :computer: Useful commands
 
 
 - run unit tests `go test ./... -v`
-- run server `go run cmd/server/main.go` 
+- run server `go run cmd/server/main.go`
 - run service tests from another terminal `go test ./test/stest -tags servicetest  -v -count=1`
 - Send PUT request:
 ```
         curl -X 'PUT' 'http://localhost:8080/things/first-thing' \
-        -d '{ "value": "thing value" }'  
+        -d '{ "value": "thing value" }'
 ```
-- Send GET request 
+- Send GET request
 ```
         curl 'http://localhost:8080/things/first-thing'
 ```

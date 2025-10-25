@@ -100,6 +100,7 @@ export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProvi
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAPI(): APIClient {
   const client = useContext(APIContext);
   if (!client) {

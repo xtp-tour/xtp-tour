@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarBusyTimesRequest, CalendarBusyTimesResponse, CalendarPreferencesRequest, CalendarPreferencesResponse } from '../types/api';
 
 // Debug information interface
 interface DebugInfo {
@@ -306,5 +306,46 @@ export class RealAPIClient {
 
   async ping(): Promise<{ service?: string; status?: string; message?: string }> {
     return this.fetch<{ service?: string; status?: string; message?: string }>('/ping');
+  }
+
+  // Calendar integration methods
+  async getCalendarAuthURL(): Promise<CalendarAuthURLResponse> {
+    return await this.fetch<CalendarAuthURLResponse>('/api/calendar/auth/url');
+  }
+
+  async handleCalendarCallback(request: CalendarCallbackRequest): Promise<void> {
+    await this.fetch<void>('/api/calendar/auth/callback', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse> {
+    return await this.fetch<CalendarConnectionStatusResponse>('/api/calendar/connection/status');
+  }
+
+  async disconnectCalendar(): Promise<void> {
+    await this.fetch<void>('/api/calendar/connection', {
+      method: 'DELETE',
+    });
+  }
+
+  async getCalendarBusyTimes(request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse> {
+    const params = new URLSearchParams({
+      timeMin: request.timeMin,
+      timeMax: request.timeMax,
+    });
+    return await this.fetch<CalendarBusyTimesResponse>(`/api/calendar/busy-times?${params}`);
+  }
+
+  async getCalendarPreferences(): Promise<CalendarPreferencesResponse> {
+    return await this.fetch<CalendarPreferencesResponse>('/api/calendar/preferences');
+  }
+
+  async updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse> {
+    return await this.fetch<CalendarPreferencesResponse>('/api/calendar/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
   }
 }

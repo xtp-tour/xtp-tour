@@ -16,7 +16,7 @@ interface APIError {
 // NTRP levels will be defined with i18n support inside the component
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useUser();
   const api = useAPI();
   const [formData, setFormData] = useState({
@@ -24,6 +24,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     lastName: user?.lastName || '',
     ntrpLevel: '',
     city: '',
+    language: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             lastName: profile.lastName || user?.lastName || '',
             ntrpLevel: profile.ntrpLevel?.toString() || '',
             city: profile.city || '',
+            language: profile.language || i18n.language?.split('-')[0] || 'en',
           }));
         } else {
           // No profile exists, we'll create one
@@ -88,7 +90,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     };
 
     loadProfile();
-  }, [api, user, onComplete]);
+  }, [api, user, onComplete, i18n.language]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -111,8 +113,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           city: formData.city,
-          country: 'Poland',
-          language: 'en',
+          country: '',
+          language: formData.language || i18n.language?.split('-')[0] || 'en',
         });
       } else {
         // Create new profile
@@ -121,8 +123,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           lastName: formData.lastName,
           ntrpLevel: parseFloat(formData.ntrpLevel),
           city: formData.city,
-          country: 'Poland',
-          language: 'en',
+          country: '',
+          language: formData.language || i18n.language?.split('-')[0] || 'en',
         });
       }
       onComplete();

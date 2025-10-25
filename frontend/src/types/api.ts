@@ -80,4 +80,61 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
+
+  // Calendar integration methods
+  getCalendarAuthURL(): Promise<CalendarAuthURLResponse>;
+  handleCalendarCallback(request: CalendarCallbackRequest): Promise<void>;
+  getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
+  disconnectCalendar(): Promise<void>;
+  getCalendarBusyTimes(request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse>;
+  getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
+  updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
+}
+
+// Calendar integration types
+export interface CalendarAuthURLResponse {
+  authUrl: string;
+}
+
+export interface CalendarCallbackRequest {
+  code: string;
+  state: string;
+}
+
+export interface CalendarConnectionStatusResponse {
+  connected: boolean;
+  provider?: string;
+  calendarId?: string;
+  tokenExpiry?: string;
+  createdAt?: string;
+}
+
+export interface CalendarBusyTimesRequest {
+  timeMin: string;
+  timeMax: string;
+}
+
+export interface CalendarBusyPeriod {
+  start: string;
+  end: string;
+  title?: string;
+}
+
+export interface CalendarBusyTimesResponse {
+  busyPeriods: CalendarBusyPeriod[];
+  calendarId: string;
+  syncedAt: string;
+}
+
+export interface CalendarPreferencesRequest {
+  syncEnabled: boolean;
+  syncFrequencyMinutes: number;
+  showEventDetails: boolean;
+}
+
+export interface CalendarPreferencesResponse {
+  syncEnabled: boolean;
+  syncFrequencyMinutes: number;
+  showEventDetails: boolean;
+  updatedAt: string;
 }
