@@ -29,24 +29,13 @@ const CalendarCallback: React.FC = () => {
         }
 
         // Forward the callback to the backend
-        const response = await fetch(`${api.baseUrl}/api/calendar/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${await api.getAuthToken()}`,
-          },
-        });
-
-        if (response.ok) {
-          setStatus('success');
-          // Redirect back to the main page after a short delay
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 2000);
-        } else {
-          const errorData = await response.text();
-          setStatus('error');
-          setErrorMessage(`Failed to connect calendar: ${errorData}`);
-        }
+        await api.handleCalendarCallback({ code, state });
+        
+        setStatus('success');
+        // Redirect back to the main page after a short delay
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 2000);
       } catch (err) {
         setStatus('error');
         setErrorMessage(`Error processing callback: ${err instanceof Error ? err.message : 'Unknown error'}`);

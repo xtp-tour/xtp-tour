@@ -28,7 +28,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 
   // Keep track of active OAuth flow for cleanup
   const [activeOAuthFlow, setActiveOAuthFlow] = useState<{
-    interval: NodeJS.Timeout;
+    interval: number;
     messageHandler: (event: MessageEvent) => void;
     window: Window;
   } | null>(null);
