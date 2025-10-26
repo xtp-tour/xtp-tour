@@ -142,18 +142,7 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	//calendar.GET("/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
 	calendar.GET("/connection/status", []fizz.OperationOption{fizz.Summary("Get calendar connection status")}, tonic.Handler(r.getCalendarConnectionStatusHandler, http.StatusOK))
 	calendar.DELETE("/connection", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectCalendarHandler, http.StatusOK))
-	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, gin.HandlerFunc(func(c *gin.Context) {
-		response, err := r.getCalendarBusyTimesHandler(c)
-		if err != nil {
-			if httpErr, ok := err.(rest.HttpError); ok {
-				c.JSON(httpErr.HttpCode, gin.H{"error": httpErr.Message})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-			}
-			return
-		}
-		c.JSON(http.StatusOK, response)
-	}))
+	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, tonic.Handler(r.getCalendarBusyTimesHandler, http.StatusOK))
 	calendar.GET("/calendars", []fizz.OperationOption{fizz.Summary("Get list of user's calendars")}, tonic.Handler(r.getCalendarsHandler, http.StatusOK))
 	calendar.GET("/preferences", []fizz.OperationOption{fizz.Summary("Get calendar preferences")}, tonic.Handler(r.getCalendarPreferencesHandler, http.StatusOK))
 	calendar.PUT("/preferences", []fizz.OperationOption{fizz.Summary("Update calendar preferences")}, tonic.Handler(r.updateCalendarPreferencesHandler, http.StatusOK))
@@ -917,7 +906,7 @@ func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
 	return nil
 }
 
-func (r *Router) getCalendarBusyTimesHandler(c *gin.Context) (*api.CalendarBusyTimesResponse, error) {
+func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBusyTimesRequest) (*api.CalendarBusyTimesResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		return nil, rest.HttpError{
@@ -926,32 +915,9 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context) (*api.CalendarBusyT
 		}
 	}
 
-	// Parse query parameters
-	timeMinStr := c.Query("timeMin")
-	timeMaxStr := c.Query("timeMax")
-
-	if timeMinStr == "" || timeMaxStr == "" {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusBadRequest,
-			Message:  "timeMin and timeMax query parameters are required",
-		}
-	}
-
-	timeMin, err := time.Parse(time.RFC3339, timeMinStr)
-	if err != nil {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusBadRequest,
-			Message:  "Invalid timeMin format, expected RFC3339",
-		}
-	}
-
-	timeMax, err := time.Parse(time.RFC3339, timeMaxStr)
-	if err != nil {
-		return nil, rest.HttpError{
-			HttpCode: http.StatusBadRequest,
-			Message:  "Invalid timeMax format, expected RFC3339",
-		}
-	}
+	// The request struct binding handles parsing, so we can use the fields directly.
+	timeMin := req.TimeMin
+	timeMax := req.TimeMax
 
 	ctx := context.Background()
 	busyTimesResponse, err := r.calendarService.GetBusyTimes(ctx, userId.(string), timeMin, timeMax)

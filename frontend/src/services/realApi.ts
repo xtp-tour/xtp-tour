@@ -333,21 +333,31 @@ export class RealAPIClient {
     });
   }
 
-  async getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']> {
+  async getBusyTimes(
+    timeMin: string,
+    timeMax: string,
+  ): Promise<components['schemas']['ApiCalendarBusyTimesResponse']> {
     const params = new URLSearchParams({
       timeMin,
       timeMax,
     });
-    return await this.fetch<components['schemas']['CalendarBusyTimesResponse']>(`/api/calendar/busy-times?${params.toString()}`);
+    return await this.fetch<components['schemas']['ApiCalendarBusyTimesResponse']>(
+      `/api/calendar/busy-times?${params.toString()}`,
+    );
   }
 
   async getCalendars(): Promise<ApiUserCalendar[]> {
-    const response = await this.fetch<components['schemas']['ApiUserCalendarsResponse']>('/api/calendar/calendars');
+    const response =
+      await this.fetch<components['schemas']['ApiUserCalendarsResponse']>(
+        '/api/calendar/calendars',
+      );
     return response.calendars || [];
   }
 
   async getCalendarPreferences(): Promise<CalendarPreferencesResponse> {
-    return await this.fetch<CalendarPreferencesResponse>('/api/calendar/preferences');
+    return await this.fetch<CalendarPreferencesResponse>(
+      '/api/calendar/preferences',
+    );
   }
 
   async updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse> {

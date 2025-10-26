@@ -63,3 +63,5 @@ frontend/coverage
 # Sensitive credentials
 *service-account.json
 calendar-service-account.json
+frontend/playwright-report
+frontend/dist

@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAPI } from '../../services/apiProvider';
 import moment from 'moment';
+import { components } from '../../types/schema';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -170,7 +171,15 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
           const timeMin = windowStartDate.toISOString();
           const timeMax = addDays(windowStartDate, CALENDAR_CONSTANTS.DAYS_TO_SHOW).toISOString();
           const response = await api.getBusyTimes(timeMin, timeMax);
-          setBusyTimes(response.busyPeriods || []);
+          const validBusyPeriods = (response.busyPeriods || [])
+            .filter((p: components['schemas']['ApiCalendarBusyPeriod']) => p.start && p.end)
+            .map((p: components['schemas']['ApiCalendarBusyPeriod']) => ({
+              ...p,
+              start: p.start!,
+              end: p.end!,
+              title: p.title || 'Busy',
+            }));
+          setBusyTimes(validBusyPeriods);
         } catch (error) {
           console.error('Failed to fetch busy times:', error);
           // Optionally, show a toast or other error indicator

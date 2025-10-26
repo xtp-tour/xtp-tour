@@ -84,12 +84,15 @@ export interface APIClient {
   // Calendar integration methods
   getCalendarAuthURL(): Promise<CalendarAuthURLResponse>;
   handleCalendarCallback(request: CalendarCallbackRequest): Promise<void>;
-  getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
-  disconnectCalendar(): Promise<void>;
-  getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']>;
-  getCalendars(): Promise<ApiUserCalendar[]>;
-  getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
-  updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
+  /**
+	 * Get calendar connection status
+	 */
+	getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
+	disconnectCalendar(): Promise<void>;
+	getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['ApiCalendarBusyTimesResponse']>;
+	getCalendars(): Promise<ApiUserCalendar[]>;
+	getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
+	updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
 }
 
 // Calendar integration types using schema types
