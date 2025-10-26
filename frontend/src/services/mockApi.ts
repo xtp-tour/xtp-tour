@@ -759,16 +759,17 @@ export class MockAPIClient implements APIClient {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleCalendarCallback(_request: CalendarCallbackRequest): Promise<void> {
     await this.delay(500);
-    // Mock successful callback handling
+    console.log('handleCalendarCallback', _request);
+    // Simulate a successful callback
+    return;
   }
 
   async getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse> {
     await this.delay(200);
     return {
-      connected: false // Default to disconnected in mock
+      connected: false, // Default to disconnected in mock
     };
   }
 
@@ -777,12 +778,12 @@ export class MockAPIClient implements APIClient {
     // Mock disconnect
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async getBusyTimes(
+  async getBusyTimes(
 		_timeMin: string,
 		_timeMax: string,
 	): Promise<components['schemas']['ApiCalendarBusyTimesResponse']> {
-		await this.delay(200);
+		console.log('getBusyTimes', _timeMin, _timeMax);
+    await this.delay(200);
 		return {
 			busyPeriods: [],
 			calendarId: 'mock-calendar-id',
