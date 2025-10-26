@@ -139,7 +139,6 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	calendar.GET("/auth/url", []fizz.OperationOption{fizz.Summary("Get Google Calendar OAuth URL")}, tonic.Handler(r.getCalendarAuthURLHandler, http.StatusOK))
 	// callback without auth
 	r.fizz.GET("/api/calendar/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
-	//calendar.GET("/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
 	calendar.GET("/connection/status", []fizz.OperationOption{fizz.Summary("Get calendar connection status")}, tonic.Handler(r.getCalendarConnectionStatusHandler, http.StatusOK))
 	calendar.DELETE("/connection", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectCalendarHandler, http.StatusOK))
 	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, tonic.Handler(r.getCalendarBusyTimesHandler, http.StatusOK))
