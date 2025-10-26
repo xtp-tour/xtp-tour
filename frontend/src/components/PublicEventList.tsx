@@ -39,7 +39,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, t]);
 
   useEffect(() => {
     loadEvents();
@@ -151,9 +151,9 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
               event={event}
               headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
               headerSubtitle={
-                <HostDisplay 
-                  userId={event.userId || ''} 
-                  fallback={t('host.unknownUser')} 
+                <HostDisplay
+                  userId={event.userId || ''}
+                  fallback={t('host.unknownUser')}
                   showAsPlainText={!isSignedIn}
                 />
               }

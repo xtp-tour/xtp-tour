@@ -53,8 +53,15 @@ yarn.lock
 ehthumbs.db
 Thumbs.db
 api/bin
+api/server
 .tmp
 
 frontend/coverage
 .data
 **/.playwright-mcp
+
+# Sensitive credentials
+*service-account.json
+calendar-service-account.json
+frontend/playwright-report
+frontend/dist

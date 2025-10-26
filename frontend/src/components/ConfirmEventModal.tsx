@@ -77,7 +77,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
     if (!event || !event.joinRequests || event.joinRequests.length === 0) return;
 
     const map: AvailabilityMap = {};
-    
+
     // Initialize the map
     if (event.locations && event.locations.length > 0) {
       event.locations.forEach(locationId => {
@@ -115,7 +115,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
   // Update available locations when selected join requests change
   useEffect(() => {
     if (!event || !availabilityMap || Object.keys(availabilityMap).length === 0) return;
-    
+
     // If no join requests are selected, show all locations
     if (selectedJoinRequests.length === 0) {
       setAvailableLocations(event.locations || []);
@@ -125,7 +125,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
     // Find locations where all selected players are available for at least one time slot
     const compatibleLocations = event.locations?.filter(locationId => {
       if (!availabilityMap[locationId]) return false;
-      
+
       // Check if this location has at least one time slot where all selected players are available
       const hasCompatibleTimeSlot = Object.entries(availabilityMap[locationId]).some(([, userIds]) => {
         return selectedJoinRequests.every(requestId => {
@@ -134,33 +134,33 @@ export const ConfirmEventModal: React.FC<Props> = ({
           return request && userIds.includes(request.userId || '');
         });
       });
-      
+
       return hasCompatibleTimeSlot;
     }) || [];
-    
+
     console.log('Selected join requests:', selectedJoinRequests);
     console.log('Compatible locations:', compatibleLocations);
-    
+
     setAvailableLocations(compatibleLocations);
-    
+
     // Clear selected location if it's no longer available
     if (selectedLocation && !compatibleLocations.includes(selectedLocation)) {
       setSelectedLocation('');
       setSelectedDateTime('');
     }
-  }, [selectedJoinRequests, availabilityMap, event?.locations, event?.joinRequests, event]);
+  }, [selectedJoinRequests, availabilityMap, event?.locations, event?.joinRequests, event, selectedLocation]);
 
   // Update available time slots when location or selected join requests change
   useEffect(() => {
     if (!event || !selectedLocation || !availabilityMap[selectedLocation]) return;
-    
+
     // Find time slots where all selected join requests are available
     const timeSlots = Object.keys(availabilityMap[selectedLocation]).filter(timeSlot => {
       const availableUsers = availabilityMap[selectedLocation][timeSlot];
-      
+
       // If we haven't selected any join requests yet, show all time slots
       if (selectedJoinRequests.length === 0) return true;
-      
+
       // Check if all selected join requests are available for this time slot
       return selectedJoinRequests.every(requestId => {
         const request = event.joinRequests?.find(r => r.id === requestId);
@@ -170,12 +170,12 @@ export const ConfirmEventModal: React.FC<Props> = ({
 
     console.log('Available time slots for location', selectedLocation, ':', timeSlots);
     setAvailableTimeSlots(timeSlots);
-    
+
     // Clear selected date time if it's no longer available
     if (selectedDateTime && !timeSlots.includes(selectedDateTime)) {
       setSelectedDateTime('');
     }
-  }, [selectedLocation, selectedJoinRequests, availabilityMap, event?.joinRequests, event]);
+  }, [selectedLocation, selectedJoinRequests, availabilityMap, event?.joinRequests, event, selectedDateTime]);
 
   const handleLocationChange = (locationId: string) => {
     setSelectedLocation(locationId);
@@ -187,8 +187,8 @@ export const ConfirmEventModal: React.FC<Props> = ({
   };
 
   const handleJoinRequestChange = (requestId: string, checked: boolean) => {
-    setSelectedJoinRequests(prev => 
-      checked 
+    setSelectedJoinRequests(prev =>
+      checked
         ? [...prev, requestId]
         : prev.filter(id => id !== requestId)
     );
@@ -197,7 +197,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
   // Check if a user has any available locations and time slots
   const userHasAvailability = (userId: string) => {
     if (!availabilityMap || Object.keys(availabilityMap).length === 0) return false;
-    
+
     // Check each location
     for (const locationId in availabilityMap) {
       // Check each time slot in this location
@@ -208,7 +208,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
         }
       }
     }
-    
+
     return false;
   };
 
@@ -256,12 +256,12 @@ export const ConfirmEventModal: React.FC<Props> = ({
 
   const getValidJoinRequests = () => {
     if (!event || !event.joinRequests) return [];
-    
+
     const validRequests = event.joinRequests.filter(request => {
       // Include requests that are not rejected (either null or false)
       return request.isRejected !== true;
     });
-    
+
     // Log availability for debugging
     validRequests.forEach(request => {
       console.log(`User ${request.userId} has isRejected:`, request.isRejected);
@@ -273,7 +273,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
         console.log(`User ${request.userId} time slots:`, request.timeSlots);
       }
     });
-    
+
     return validRequests;
   };
 
@@ -299,8 +299,8 @@ export const ConfirmEventModal: React.FC<Props> = ({
       </Modal.Header>
       <Modal.Body className="pt-2">
         {error && (
-          <Alert variant="danger" className="mb-3" style={{ 
-            backgroundColor: '#FFF5F5', 
+          <Alert variant="danger" className="mb-3" style={{
+            backgroundColor: '#FFF5F5',
             borderColor: 'var(--tennis-clay)',
             color: 'var(--tennis-clay)'
           }}>
@@ -332,7 +332,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
                     Select Players ({selectedJoinRequests.length} of {(event.expectedPlayers || 0) - 1})
                   </span>
                 </h6>
-                
+
                 {getValidJoinRequests().length === 0 ? (
                   <div className="alert alert-warning">
                     <i className="bi bi-exclamation-triangle me-2"></i>
@@ -343,14 +343,14 @@ export const ConfirmEventModal: React.FC<Props> = ({
                     {getValidJoinRequests().map(request => {
                       const hasAvailability = userHasAvailability(request.userId || '');
                       return (
-                        <div 
-                          key={request.id} 
+                        <div
+                          key={request.id}
                           className="list-group-item list-group-item-action"
                         >
                           <div className="d-flex align-items-center justify-content-between">
                             <div>
-                              <UserDisplay 
-                                userId={request.userId || ''} 
+                              <UserDisplay
+                                userId={request.userId || ''}
                                 fallback="Unknown Player"
                               />
                               {request.comment && (
@@ -408,8 +408,8 @@ export const ConfirmEventModal: React.FC<Props> = ({
                           }`}
                           style={{
                             ...BADGE_STYLES,
-                            backgroundColor: selectedLocation === locationId 
-                              ? 'var(--tennis-navy)' 
+                            backgroundColor: selectedLocation === locationId
+                              ? 'var(--tennis-navy)'
                               : 'var(--tennis-light)',
                             borderColor: selectedLocation === locationId
                               ? 'var(--tennis-navy)'
@@ -420,13 +420,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
                           role="button"
                         >
                           <i className={`bi bi-geo-alt me-1 ${
-                            selectedLocation === locationId 
-                              ? 'text-white' 
+                            selectedLocation === locationId
+                              ? 'text-white'
                               : ''
-                          }`} style={{ 
-                            color: selectedLocation === locationId 
-                              ? 'var(--tennis-white)' 
-                              : 'var(--tennis-navy)' 
+                          }`} style={{
+                            color: selectedLocation === locationId
+                              ? 'var(--tennis-white)'
+                              : 'var(--tennis-navy)'
                           }}></i>
                           {locationId}
                         </div>
@@ -435,7 +435,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
                   ) : (
                     <div className="alert alert-warning">
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      {selectedJoinRequests.length > 0 
+                      {selectedJoinRequests.length > 0
                         ? "No compatible locations found for the selected players."
                         : "Please select players to see available locations."}
                     </div>
@@ -470,8 +470,8 @@ export const ConfirmEventModal: React.FC<Props> = ({
                           }`}
                           style={{
                             ...BADGE_STYLES,
-                            backgroundColor: selectedDateTime === timeSlot 
-                              ? 'var(--tennis-navy)' 
+                            backgroundColor: selectedDateTime === timeSlot
+                              ? 'var(--tennis-navy)'
                               : 'var(--tennis-light)',
                             borderColor: selectedDateTime === timeSlot
                               ? 'var(--tennis-navy)'
@@ -482,13 +482,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
                           role="button"
                         >
                           <i className={`bi bi-clock me-1 ${
-                            selectedDateTime === timeSlot 
-                              ? 'text-white' 
+                            selectedDateTime === timeSlot
+                              ? 'text-white'
                               : ''
-                          }`} style={{ 
-                            color: selectedDateTime === timeSlot 
-                              ? 'var(--tennis-white)' 
-                              : 'var(--tennis-navy)' 
+                          }`} style={{
+                            color: selectedDateTime === timeSlot
+                              ? 'var(--tennis-white)'
+                              : 'var(--tennis-navy)'
                           }}></i>
                           {formatTimeSlotLocalized(timeSlot)}
                         </div>
@@ -513,9 +513,9 @@ export const ConfirmEventModal: React.FC<Props> = ({
         )}
       </Modal.Body>
       <Modal.Footer className="border-0 pt-2">
-        <Button 
-          variant="link" 
-          onClick={onHide} 
+        <Button
+          variant="link"
+          onClick={onHide}
           disabled={loading || fetchingEvent}
           className="text-decoration-none"
           style={{ color: 'var(--tennis-gray)' }}
@@ -526,10 +526,10 @@ export const ConfirmEventModal: React.FC<Props> = ({
           variant="primary"
           onClick={handleConfirm}
           disabled={
-            loading || 
+            loading ||
             fetchingEvent ||
             !event ||
-            !selectedLocation || 
+            !selectedLocation ||
             !selectedDateTime ||
             selectedJoinRequests.length !== (event?.expectedPlayers || 0) - 1
           }
@@ -549,4 +549,4 @@ export const ConfirmEventModal: React.FC<Props> = ({
   );
 };
 
-export default ConfirmEventModal; 
+export default ConfirmEventModal;

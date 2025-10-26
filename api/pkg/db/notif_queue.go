@@ -57,7 +57,9 @@ func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
+
 		logCtx.Error("Failed to get next notification", "error", err)
+		db.rollback(logCtx, tx)
 		return nil, err
 	}
 

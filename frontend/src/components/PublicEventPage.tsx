@@ -35,7 +35,7 @@ const PublicEventPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [eventId, api]);
+  }, [eventId, api, t]);
 
   useEffect(() => {
     if (eventId) {
@@ -155,9 +155,9 @@ const PublicEventPage: React.FC = () => {
                   Tennis Event
                 </h1>
                 <p className="text-muted mb-0">
-                  <HostDisplay 
-                    userId={event.userId || ''} 
-                    fallback={t('host.unknownUser')} 
+                  <HostDisplay
+                    userId={event.userId || ''}
+                    fallback={t('host.unknownUser')}
                     showAsPlainText={!isSignedIn}
                     className="text-muted"
                   />
@@ -184,9 +184,9 @@ const PublicEventPage: React.FC = () => {
                 event={event}
                 headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
                 headerSubtitle={
-                  <HostDisplay 
-                    userId={event.userId || ''} 
-                    fallback={t('host.unknownUser')} 
+                  <HostDisplay
+                    userId={event.userId || ''}
+                    fallback={t('host.unknownUser')}
                     showAsPlainText={!isSignedIn}
                   />
                 }

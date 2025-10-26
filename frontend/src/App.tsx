@@ -13,6 +13,7 @@ import LanguageSwitcherSimple from './components/LanguageSwitcherSimple';
 import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
+import CalendarCallback from './components/CalendarCallback';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -107,50 +108,38 @@ const AuthenticatedContent = () => {
   );
 };
 
-const AuthenticatedRoutes = () => {
-  const routeContent = (
-    <APIProvider useMock={false} baseUrl={import.meta.env.VITE_API_BASE_URL || ''}>
-      <ErrorBoundary>
-        <Routes>
-          <Route path="/" element={
-            <Layout>
-              {isClerkAvailable ? (
-                <>
-                  <SignedIn>
-                    <AuthenticatedContent />
-                  </SignedIn>
-                  <SignedOut>
-                    <LandingPage />
-                  </SignedOut>
-                </>
-              ) : (
-                <LandingPage />
-              )}
-            </Layout>
-          } />
-          <Route path="/profile" element={
-            <Layout>
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={
+        <Layout>
+          {isClerkAvailable ? (
+            <>
               <SignedIn>
-                <UserProfile />
+                <AuthenticatedContent />
               </SignedIn>
               <SignedOut>
-                <Navigate to="/" replace />
+                <LandingPage />
               </SignedOut>
-            </Layout>
-          } />
-          <Route path="/event/:eventId" element={<PublicEventPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </ErrorBoundary>
-    </APIProvider>
-  );
-
-  return isClerkAvailable ? (
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      {routeContent}
-    </ClerkProvider>
-  ) : (
-    routeContent
+            </>
+          ) : (
+            <LandingPage />
+          )}
+        </Layout>
+      } />
+      <Route path="/profile" element={
+        <Layout>
+          <SignedIn>
+            <UserProfile />
+          </SignedIn>
+          <SignedOut>
+            <Navigate to="/" replace />
+          </SignedOut>
+        </Layout>
+      } />
+      <Route path="/event/:eventId" element={<PublicEventPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
@@ -190,21 +179,34 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
 }
 
   function App() {
-    return (
-    <BrowserRouter>
-      <Routes>
-        {/* Detailed health page route */}
-        <Route path="/health-details" element={
-          <SimpleErrorBoundary>
-            <Health />
-          </SimpleErrorBoundary>
-        } />
+    const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-        {/* All other routes wrapped in ClerkProvider */}
-        <Route path="*" element={<AuthenticatedRoutes />} />
-      </Routes>
-    </BrowserRouter>
-  );
+    const appContent = (
+      <APIProvider useMock={!isClerkAvailable} baseUrl={import.meta.env.VITE_API_BASE_URL || ''}>
+        <ErrorBoundary>
+          <Routes>
+            {/* Public routes that don't need the main layout */}
+            <Route path="/health-details" element={<SimpleErrorBoundary><Health /></SimpleErrorBoundary>} />
+            <Route path="/calendar/auth/callback" element={<CalendarCallback />} />
+
+            {/* All other routes */}
+            <Route path="*" element={<AppRoutes />} />
+          </Routes>
+        </ErrorBoundary>
+      </APIProvider>
+    );
+
+    return (
+      <BrowserRouter>
+        {isClerkAvailable ? (
+          <ClerkProvider publishableKey={clerkPubKey}>
+            {appContent}
+          </ClerkProvider>
+        ) : (
+          appContent
+        )}
+      </BrowserRouter>
+    );
 }
 
 export default App;

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwks"
@@ -79,6 +80,8 @@ func CreateClerkAuthMiddleware(clerkConfig string) func(c *gin.Context) {
 		claims, err := jwt.Verify(c.Request.Context(), &jwt.VerifyParams{
 			Token: sessionToken,
 			JWK:   jwk,
+			// 2 seconds leeway to account for clock skew
+			Leeway: 2 * time.Second,
 		})
 		if err != nil {
 			slog.Error("Error verifying JWT", "error", err)
