@@ -778,7 +778,10 @@ export class MockAPIClient implements APIClient {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async getBusyTimes(_timeMin: string,_timeMax: string): Promise<components['schemas']['ApiCalendarBusyTimesResponse']> {
+	async getBusyTimes(
+		_timeMin: string,
+		_timeMax: string,
+	): Promise<components['schemas']['ApiCalendarBusyTimesResponse']> {
 		await this.delay(200);
 		return {
 			busyPeriods: [],
