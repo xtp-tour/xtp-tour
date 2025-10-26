@@ -103,7 +103,7 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 	// Check if refresh token is present
 	if token.RefreshToken == "" {
 		slog.Warn("No refresh token received from Google OAuth", "userID", userID)
-		return fmt.Errorf("no refresh token received from Google - user may need to revoke access and re-authorize")
+		return fmt.Errorf("no refresh token received from Google. The user must revoke the application's access in their Google account and then re-authorize to grant a refresh token.")
 	}
 
 	// Encrypt tokens before storage
