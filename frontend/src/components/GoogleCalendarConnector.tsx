@@ -28,7 +28,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 
   // Keep track of active OAuth flow for cleanup
   const [activeOAuthFlow, setActiveOAuthFlow] = useState<{
-    interval: number;
+    interval: number | null;
     messageHandler: (event: MessageEvent) => void;
     window: Window;
   } | null>(null);
@@ -42,7 +42,11 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 
       if (status.connected && showPreferences) {
         const prefs = await api.getCalendarPreferences();
-        setPreferences(prefs);
+        setPreferences({
+          syncEnabled: prefs.syncEnabled ?? true,
+          syncFrequencyMinutes: prefs.syncFrequencyMinutes ?? 30,
+          showEventDetails: prefs.showEventDetails ?? false
+        });
       }
     } catch (err) {
       console.error('Failed to check calendar connection status:', err);
@@ -59,7 +63,7 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 
   // Notify parent of connection changes
   useEffect(() => {
-    if (onConnectionChange && connectionStatus) {
+    if (onConnectionChange && connectionStatus && connectionStatus.connected !== undefined) {
       onConnectionChange(connectionStatus.connected);
     }
   }, [connectionStatus, onConnectionChange]);
@@ -68,9 +72,11 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
   useEffect(() => {
     return () => {
       if (activeOAuthFlow) {
-        clearInterval(activeOAuthFlow.interval);
+        if (activeOAuthFlow.interval) {
+          clearInterval(activeOAuthFlow.interval);
+        }
         window.removeEventListener('message', activeOAuthFlow.messageHandler);
-        activeOAuthFlow.window.close();
+        // Let the popup close itself to avoid COOP errors
       }
     };
   }, [activeOAuthFlow]);
@@ -82,9 +88,11 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
 
       // Clean up any existing OAuth flow
       if (activeOAuthFlow) {
-        clearInterval(activeOAuthFlow.interval);
+        if (activeOAuthFlow.interval) {
+          clearInterval(activeOAuthFlow.interval);
+        }
         window.removeEventListener('message', activeOAuthFlow.messageHandler);
-        activeOAuthFlow.window.close();
+        // Let the popup close itself to avoid COOP errors
         setActiveOAuthFlow(null);
       }
 
@@ -101,50 +109,62 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
         throw new Error('Failed to open OAuth window');
       }
 
-      // Listen for the OAuth callback
+      // Listen for postMessage from the CalendarCallback component
       const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
+        console.log('[GoogleCalendarConnector] Received message', {
+          origin: event.origin,
+          expectedOrigin: window.location.origin,
+          type: event.data?.type
+        });
 
-        const cleanupFlow = () => {
-          setActiveOAuthFlow(null);
-          authWindow.close();
-        };
+        // Verify the message is from our own origin
+        if (event.origin !== window.location.origin) {
+          console.warn('[GoogleCalendarConnector] Ignoring message from unexpected origin:', event.origin);
+          return;
+        }
 
         if (event.data.type === 'CALENDAR_AUTH_SUCCESS') {
-          cleanupFlow();
+          console.log('[GoogleCalendarConnector] Auth success message received. Cleaning up OAuth flow and refreshing status.');
+          // Clean up
+          window.removeEventListener('message', handleMessage);
+          if (activeOAuthFlow?.interval) {
+            clearInterval(activeOAuthFlow.interval);
+          }
+          setActiveOAuthFlow(null);
 
-          // Handle the callback
-          api.handleCalendarCallback({
-            code: event.data.code,
-            state: event.data.state
-          }).then(() => {
-            checkConnectionStatus();
-          }).catch((err) => {
-            console.error('Failed to handle calendar callback:', err);
-            setError(t('calendar.errors.authCallback'));
-          }).finally(() => {
+          // Refresh connection status
+          checkConnectionStatus().then(() => {
+            console.log('[GoogleCalendarConnector] Connection status refreshed successfully.');
+            setIsLoading(false);
+          }).catch(err => {
+            console.error('[GoogleCalendarConnector] Error refreshing connection status:', err);
+            setError(t('calendar.errors.connectionCheck'));
             setIsLoading(false);
           });
+
         } else if (event.data.type === 'CALENDAR_AUTH_ERROR') {
-          cleanupFlow();
+          console.error('[GoogleCalendarConnector] Auth error message received:', event.data.error);
+          // Clean up
+          window.removeEventListener('message', handleMessage);
+          if (activeOAuthFlow?.interval) {
+            clearInterval(activeOAuthFlow.interval);
+          }
+          setActiveOAuthFlow(null);
+
           setError(event.data.error || t('calendar.errors.authFailed'));
           setIsLoading(false);
+        } else {
+          console.log('[GoogleCalendarConnector] Received message of unknown type:', event.data.type);
         }
       };
 
       window.addEventListener('message', handleMessage);
 
-      // Check if window was closed manually
-      const checkClosedInterval = setInterval(() => {
-        if (authWindow.closed) {
-          setActiveOAuthFlow(null);
-          setIsLoading(false);
-        }
-      }, 1000);
-
       // Track the active OAuth flow for cleanup
+      // Note: We don't poll window.closed to avoid COOP errors
+      // The popup will close itself and send us a postMessage
       setActiveOAuthFlow({
-        interval: checkClosedInterval,
+        interval: null,
         messageHandler: handleMessage,
         window: authWindow
       });

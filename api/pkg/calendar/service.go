@@ -48,7 +48,9 @@ func NewService(authConfig AuthConfig, database *db.Db) *Service {
 func (s *Service) GetAuthURL(userID string) string {
 	// Generate secure state parameter that includes user ID
 	state := s.generateStateParameter(userID)
-	return s.config.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	authUrl := s.config.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	slog.Debug("Auth URL", "authUrl", authUrl)
+	return authUrl
 }
 
 // generateStateParameter creates a secure state parameter containing the user ID

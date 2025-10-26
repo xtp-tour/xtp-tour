@@ -18,13 +18,13 @@ You will need:
 
 Create a new Google Cloud project and enable the Google Calendar API.
 
-Create a new OAuth client ID and set the redirect URL to `http://localhost:3000/calendar/callback`.
+Create a new OAuth client ID and set the redirect URL to `http://localhost:5173/calendar/callback`.
 
 Set environment variables:
 ```bash
 export GOOGLE_CALENDAR_CLIENT_ID="your-client-id"
 export GOOGLE_CALENDAR_CLIENT_SECRET="your-client-secret"
-export GOOGLE_CALENDAR_REDIRECT_URL="http://localhost:3000/calendar/callback"
+export GOOGLE_CALENDAR_REDIRECT_URL="http://localhost:5173/calendar/callback"
 export TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)
 ```
 

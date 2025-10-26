@@ -11,10 +11,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** Handle Google Calendar OAuth callback */
-        post: operations["calendarCallbackHandler-fm"];
+        get: operations["calendarCallbackHandler-fm"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -30,6 +30,23 @@ export interface paths {
         };
         /** Get Google Calendar OAuth URL */
         get: operations["getCalendarAuthURLHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calendar/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get list of user's calendars */
+        get: operations["getCalendarsHandler-fm"];
         put?: never;
         post?: never;
         delete?: never;
@@ -512,6 +529,14 @@ export interface components {
             profile?: components["schemas"]["ApiUserProfileData"];
             userId?: string;
         };
+        ApiUserCalendar: {
+            id?: string;
+            primary?: boolean;
+            summary?: string;
+        };
+        ApiUserCalendarsResponse: {
+            calendars?: components["schemas"]["ApiUserCalendar"][];
+        };
         ApiUserProfileData: {
             /** @default Wroclaw */
             city: string;
@@ -524,10 +549,6 @@ export interface components {
             notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
-        };
-        "CalendarCallbackHandler-FmInput": {
-            code?: string;
-            state?: string;
         };
         "ConfirmEvent-FmInput": {
             /**
@@ -587,16 +608,16 @@ export type $defs = Record<string, never>;
 export interface operations {
     "calendarCallbackHandler-fm": {
         parameters: {
-            query?: never;
+            query?: {
+                code?: string;
+                scope?: string;
+                state?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["CalendarCallbackHandler-FmInput"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -623,6 +644,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiCalendarAuthURLResponse"];
+                };
+            };
+        };
+    };
+    "getCalendarsHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiUserCalendarsResponse"];
                 };
             };
         };

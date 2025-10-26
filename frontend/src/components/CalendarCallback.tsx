@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAPI } from '../services/apiProvider';
 
@@ -8,37 +8,70 @@ const CalendarCallback: React.FC = () => {
   const api = useAPI();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const effectRan = useRef(false);
 
   useEffect(() => {
+    if (effectRan.current) return;
+    effectRan.current = true;
+
     const handleCallback = async () => {
+      let isPopup = false;
+      try {
+        isPopup = !!(window.opener && window.opener !== window && !window.opener.closed);
+        console.log(`[CalendarCallback] Popup check: window.opener exists and is not closed. isPopup=${isPopup}`);
+      } catch (e) {
+        console.error('[CalendarCallback] Error checking for window.opener (this is expected due to cross-origin policies). Assuming this is a popup.', e);
+        isPopup = true;
+      }
+
+      console.log(`[CalendarCallback] Starting... Is popup: ${isPopup}`);
+
       try {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
 
+        console.log('[CalendarCallback] URL Params:', { code, state, error });
+
         if (error) {
-          setStatus('error');
-          setErrorMessage(`OAuth error: ${error}`);
-          return;
+          throw new Error(`OAuth error from provider: ${error}`);
         }
 
         if (!code || !state) {
-          setStatus('error');
-          setErrorMessage('Missing authorization code or state parameter');
-          return;
+          throw new Error('Missing authorization code or state from provider.');
         }
 
-        // Forward the callback to the backend
+        console.log('[CalendarCallback] Calling backend API with code and state...');
         await api.handleCalendarCallback({ code, state });
-        
+        console.log('[CalendarCallback] Backend API call successful!');
+
         setStatus('success');
-        // Redirect back to the main page after a short delay
-        setTimeout(() => {
+
+        if (isPopup) {
+          console.log('[CalendarCallback] Sending CALENDAR_AUTH_SUCCESS to parent window.');
+          window.opener.postMessage({ type: 'CALENDAR_AUTH_SUCCESS' }, '*');
+          setTimeout(() => {
+            console.log('[CalendarCallback] Closing popup now (success).');
+            window.close();
+          }, 1000);
+        } else {
+          console.log('[CalendarCallback] Not a popup. Navigating home.');
           navigate('/', { replace: true });
-        }, 2000);
+        }
       } catch (err) {
+        const detailedError = err instanceof Error ? err.message : 'An unknown error occurred.';
+        console.error('[CalendarCallback] Caught error during processing:', detailedError, err);
         setStatus('error');
-        setErrorMessage(`Error processing callback: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setErrorMessage(detailedError);
+
+        if (isPopup) {
+          console.log('[CalendarCallback] Sending CALENDAR_AUTH_ERROR to parent window.');
+          window.opener.postMessage({ type: 'CALENDAR_AUTH_ERROR', error: detailedError }, '*');
+          setTimeout(() => {
+            console.log('[CalendarCallback] Closing popup now (error).');
+            window.close();
+          }, 3000); // Leave error visible for a few seconds
+        }
       }
     };
 

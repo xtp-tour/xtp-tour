@@ -86,55 +86,20 @@ export interface APIClient {
   handleCalendarCallback(request: CalendarCallbackRequest): Promise<void>;
   getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
   disconnectCalendar(): Promise<void>;
-  getCalendarBusyTimes(request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse>;
+  getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']>;
+  getCalendars(): Promise<ApiUserCalendar[]>;
   getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
   updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
 }
 
-// Calendar integration types
-export interface CalendarAuthURLResponse {
-  authUrl: string;
-}
+// Calendar integration types using schema types
+export type ApiUserCalendar = components['schemas']['ApiUserCalendar'];
+export type CalendarAuthURLResponse = components['schemas']['ApiCalendarAuthURLResponse'];
+export type CalendarConnectionStatusResponse = components['schemas']['ApiCalendarConnectionStatusResponse'];
+export type CalendarPreferencesResponse = components['schemas']['ApiCalendarPreferencesResponse'];
+export type CalendarPreferencesRequest = components['schemas']['UpdateCalendarPreferencesHandler-FmInput'];
 
 export interface CalendarCallbackRequest {
   code: string;
   state: string;
-}
-
-export interface CalendarConnectionStatusResponse {
-  connected: boolean;
-  provider?: string;
-  calendarId?: string;
-  tokenExpiry?: string;
-  createdAt?: string;
-}
-
-export interface CalendarBusyTimesRequest {
-  timeMin: string;
-  timeMax: string;
-}
-
-export interface CalendarBusyPeriod {
-  start: string;
-  end: string;
-  title?: string;
-}
-
-export interface CalendarBusyTimesResponse {
-  busyPeriods: CalendarBusyPeriod[];
-  calendarId: string;
-  syncedAt: string;
-}
-
-export interface CalendarPreferencesRequest {
-  syncEnabled: boolean;
-  syncFrequencyMinutes: number;
-  showEventDetails: boolean;
-}
-
-export interface CalendarPreferencesResponse {
-  syncEnabled: boolean;
-  syncFrequencyMinutes: number;
-  showEventDetails: boolean;
-  updatedAt: string;
 }

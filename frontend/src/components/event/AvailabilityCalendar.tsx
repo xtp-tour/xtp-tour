@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAPI } from '../../services/apiProvider';
-import { CalendarBusyPeriod } from '../../types/api';
+import moment from 'moment';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -49,6 +49,11 @@ function getTomorrowLocal(): Date {
   d.setDate(d.getDate() + 1);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+interface BusyPeriod {
+  start: string; // UTC ISO
+  end: string;   // UTC ISO
 }
 
 /** Validate that a date is not in the past */
@@ -103,6 +108,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 }) => {
   const { t } = useTranslation();
   const api = useAPI();
+  const [busyTimes, setBusyTimes] = useState<BusyPeriod[]>([]);
+  const [isLoadingBusyTimes, setIsLoadingBusyTimes] = useState(false);
 
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
@@ -114,44 +121,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   // Convert controlled value to Set for efficient lookups
   const selectedSet = useMemo(() => new Set(value), [value]);
 
-  // Calendar busy times state
-  const [busyPeriods, setBusyPeriods] = useState<CalendarBusyPeriod[]>([]);
-
   // Memoize expensive calculations
   const memoizedOnChange = useCallback(onChange, [onChange]);
-
-  // Update window start if min bound changes
-  useEffect(() => {
-    setWindowStartDate(prev => clampDate(prev, computedMinDate, new Date(8640000000000000)));
-  }, [computedMinDate]);
-
-  // Fetch calendar busy times when calendar integration is enabled
-  const fetchBusyTimes = useCallback(async (startDate: Date, endDate: Date) => {
-    if (!calendarIntegration?.enabled) {
-      setBusyPeriods([]);
-      return;
-    }
-
-    try {
-      const response = await api.getCalendarBusyTimes({
-        timeMin: startDate.toISOString(),
-        timeMax: endDate.toISOString(),
-      });
-      setBusyPeriods(response.busyPeriods);
-    } catch (error) {
-      console.error('Failed to fetch calendar busy times:', error);
-      setBusyPeriods([]);
-    }
-  }, [calendarIntegration?.enabled, api]);
-
-  // Fetch busy times when window or calendar integration changes
-  useEffect(() => {
-    if (calendarIntegration?.enabled) {
-      const endDate = new Date(windowStartDate);
-      endDate.setDate(endDate.getDate() + CALENDAR_CONSTANTS.DAYS_TO_SHOW);
-      fetchBusyTimes(windowStartDate, endDate);
-    }
-  }, [windowStartDate, calendarIntegration?.enabled, fetchBusyTimes]);
 
   // Build time rows depending on mode
   const timeRows = useMemo(() => {
@@ -190,6 +161,30 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const canGoNext = true; // no forward limit
 
+  // Fetch busy times when calendar integration is enabled or date window changes
+  useEffect(() => {
+    if (calendarIntegration?.enabled) {
+      const fetchBusyTimes = async () => {
+        setIsLoadingBusyTimes(true);
+        try {
+          const timeMin = windowStartDate.toISOString();
+          const timeMax = addDays(windowStartDate, CALENDAR_CONSTANTS.DAYS_TO_SHOW).toISOString();
+          const response = await api.getBusyTimes(timeMin, timeMax);
+          setBusyTimes(response.busyPeriods || []);
+        } catch (error) {
+          console.error('Failed to fetch busy times:', error);
+          // Optionally, show a toast or other error indicator
+        } finally {
+          setIsLoadingBusyTimes(false);
+        }
+      };
+      fetchBusyTimes();
+    } else {
+      setBusyTimes([]); // Clear busy times if integration is disabled
+    }
+  }, [calendarIntegration?.enabled, windowStartDate, api]);
+
+
   const goPrev = useCallback(() => {
     if (!canGoPrev) return;
     const next = addDays(windowStartDate, -7);
@@ -204,22 +199,20 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   const isSelected = useCallback((utcIso: string) => selectedSet.has(utcIso), [selectedSet]);
 
   // Check if a time slot conflicts with calendar busy times
-  const isSlotBusy = useCallback((dateOnly: Date, minutesFromMidnight: number): boolean => {
-    if (!calendarIntegration?.enabled || !busyPeriods || busyPeriods.length === 0) {
+  const isSlotBusy = useCallback((localDateTime: Date): boolean => {
+    if (busyTimes.length === 0) {
       return false;
     }
+    const slotStart = moment(localDateTime);
+    const slotEnd = slotStart.clone().add(stepMinutes, 'minutes');
 
-    const slotStart = makeLocalDateTime(dateOnly, minutesFromMidnight);
-    const slotEnd = new Date(slotStart.getTime() + stepMinutes * 60 * 1000);
-
-    return busyPeriods.some(period => {
-      const periodStart = new Date(period.start);
-      const periodEnd = new Date(period.end);
-
-      // Check if the slot overlaps with the busy period
-      return slotStart < periodEnd && slotEnd > periodStart;
+    return busyTimes.some(busyPeriod => {
+      const busyStart = moment(busyPeriod.start);
+      const busyEnd = moment(busyPeriod.end);
+      // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
+      return slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart);
     });
-  }, [calendarIntegration?.enabled, busyPeriods, stepMinutes]);
+  }, [busyTimes, stepMinutes]);
 
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
@@ -232,7 +225,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     }
 
     // Prevent selection of busy slots
-    if (isSlotBusy(dateOnly, minutesFromMidnight)) {
+    if (isSlotBusy(localDateTime)) {
       return;
     }
 
@@ -365,9 +358,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
-                  const isBusy = isSlotBusy(d, m);
+                  const isBusy = isSlotBusy(localDateTime);
                   const isPast = !isValidFutureDate(localDateTime, computedMinDate);
-                  const isDisabled = disabled || isBusy || isPast;
+                  const isDisabled = disabled || isBusy || isPast || isLoadingBusyTimes;
 
                   return (
                     <td key={idx} className="p-0" role="gridcell">
@@ -388,7 +381,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                           minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT,
                           ...(isBusy ? {
                             backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,.1) 4px, rgba(0,0,0,.1) 8px)'
-                          } : {})
+                          } : {}),
+                           ...(isLoadingBusyTimes ? { cursor: 'wait' } : {})
                         }}
                         onClick={() => toggleCell(d, m)}
                         disabled={isDisabled}

@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarBusyTimesRequest, CalendarBusyTimesResponse, CalendarPreferencesRequest, CalendarPreferencesResponse } from '../types/api';
+import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -300,6 +300,16 @@ export interface APIClient {
   updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse>;
   deleteUserProfile(): Promise<void>;
   ping(): Promise<{ service?: string; status?: string; message?: string }>;
+
+  // Calendar integration methods
+  getCalendarAuthURL(): Promise<CalendarAuthURLResponse>;
+  handleCalendarCallback(request: CalendarCallbackRequest): Promise<void>;
+  getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
+  disconnectCalendar(): Promise<void>;
+  getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']>;
+  getCalendars(): Promise<ApiUserCalendar[]>;
+  getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
+  updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -768,14 +778,28 @@ export class MockAPIClient implements APIClient {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getCalendarBusyTimes(_request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse> {
-    await this.delay(300);
-    // Return empty busy periods for mock
+  async getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']> {
+    await this.delay(200);
     return {
       busyPeriods: [],
-      calendarId: "primary",
-      syncedAt: new Date().toISOString()
     };
+  }
+
+  async getCalendars(): Promise<ApiUserCalendar[]> {
+    await this.delay(200);
+    // Return mock calendars
+    return [
+      {
+        id: "primary",
+        summary: "Primary Calendar",
+        primary: true
+      },
+      {
+        id: "secondary",
+        summary: "Work Calendar",
+        primary: false
+      }
+    ];
   }
 
   async getCalendarPreferences(): Promise<CalendarPreferencesResponse> {

@@ -1,4 +1,5 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarBusyTimesRequest, CalendarBusyTimesResponse, CalendarPreferencesRequest, CalendarPreferencesResponse } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar } from '../types/api';
+import { components } from '../types/schema';
 
 // Debug information interface
 interface DebugInfo {
@@ -314,10 +315,12 @@ export class RealAPIClient {
   }
 
   async handleCalendarCallback(request: CalendarCallbackRequest): Promise<void> {
-    await this.fetch<void>('/api/calendar/auth/callback', {
-      method: 'POST',
-      body: JSON.stringify(request),
+    // Backend expects GET with query parameters (OAuth callback pattern)
+    const params = new URLSearchParams({
+      code: request.code,
+      state: request.state,
     });
+    await this.fetch<void>(`/api/calendar/auth/callback?${params.toString()}`);
   }
 
   async getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse> {
@@ -330,12 +333,17 @@ export class RealAPIClient {
     });
   }
 
-  async getCalendarBusyTimes(request: CalendarBusyTimesRequest): Promise<CalendarBusyTimesResponse> {
+  async getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['CalendarBusyTimesResponse']> {
     const params = new URLSearchParams({
-      timeMin: request.timeMin,
-      timeMax: request.timeMax,
+      timeMin,
+      timeMax,
     });
-    return await this.fetch<CalendarBusyTimesResponse>(`/api/calendar/busy-times?${params}`);
+    return await this.fetch<components['schemas']['CalendarBusyTimesResponse']>(`/api/calendar/busy-times?${params.toString()}`);
+  }
+
+  async getCalendars(): Promise<ApiUserCalendar[]> {
+    const response = await this.fetch<components['schemas']['ApiUserCalendarsResponse']>('/api/calendar/calendars');
+    return response.calendars || [];
   }
 
   async getCalendarPreferences(): Promise<CalendarPreferencesResponse> {
