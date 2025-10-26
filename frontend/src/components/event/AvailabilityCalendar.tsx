@@ -207,21 +207,29 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const isSelected = useCallback((utcIso: string) => selectedSet.has(utcIso), [selectedSet]);
 
+  // Precompute busy periods as moment objects for efficiency
+  const busyPeriods = useMemo(
+    () =>
+      busyTimes.map(busyPeriod => ({
+        start: moment(busyPeriod.start),
+        end: moment(busyPeriod.end),
+      })),
+    [busyTimes]
+  );
+
   // Check if a time slot conflicts with calendar busy times
   const isSlotBusy = useCallback((localDateTime: Date): boolean => {
-    if (busyTimes.length === 0) {
+    if (busyPeriods.length === 0) {
       return false;
     }
     const slotStart = moment(localDateTime);
     const slotEnd = slotStart.clone().add(stepMinutes, 'minutes');
 
-    return busyTimes.some(busyPeriod => {
-      const busyStart = moment(busyPeriod.start);
-      const busyEnd = moment(busyPeriod.end);
+    return busyPeriods.some(busyPeriod => {
       // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
-      return slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart);
+      return slotStart.isBefore(busyPeriod.end) && slotEnd.isAfter(busyPeriod.start);
     });
-  }, [busyTimes, stepMinutes]);
+  }, [busyPeriods, stepMinutes]);
 
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
