@@ -207,7 +207,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                     date: dateKey,
                     title: title,
                   });
-                  currentDate.add(1, 'day');
+                  currentDate = currentDate.add(1, 'day');
                 }
               } else {
                 // Regular timed event
