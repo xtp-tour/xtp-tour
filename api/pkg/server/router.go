@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
@@ -16,6 +17,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
+	"github.com/xtp-tour/xtp-tour/api/pkg/calendar"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
 	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
@@ -30,10 +32,11 @@ type Notifier interface {
 }
 
 type Router struct {
-	fizz     *fizz.Fizz
-	port     int
-	db       *db.Db
-	notifier Notifier
+	fizz            *fizz.Fizz
+	port            int
+	db              *db.Db
+	notifier        Notifier
+	calendarService *calendar.Service
 }
 
 func (r *Router) Run() {
@@ -50,11 +53,21 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier N
 
 	f := rest.NewFizzRouter(config, debugMode)
 
+	// Initialize calendar service
+	calendarConfig := calendar.AuthConfig{
+		ClientID:     config.GoogleCalendar.ClientID,
+		ClientSecret: config.GoogleCalendar.ClientSecret,
+		RedirectURL:  config.GoogleCalendar.RedirectURL,
+		Scopes:       calendar.GetDefaultScopes(),
+	}
+	calendarService := calendar.NewService(calendarConfig, dbConn)
+
 	r := &Router{
-		fizz:     f,
-		port:     config.Port,
-		db:       dbConn,
-		notifier: notifier,
+		fizz:            f,
+		port:            config.Port,
+		db:              dbConn,
+		notifier:        notifier,
+		calendarService: calendarService,
 	}
 	r.init(config.AuthConfig)
 
@@ -120,6 +133,18 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
 		"Bearer": []string{},
 	})}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
+
+	// Calendar integration endpoints
+	calendar := api.Group("/calendar", "Calendar", "Google Calendar integration operations", authMiddleware)
+	calendar.GET("/auth/url", []fizz.OperationOption{fizz.Summary("Get Google Calendar OAuth URL")}, tonic.Handler(r.getCalendarAuthURLHandler, http.StatusOK))
+	// callback without auth
+	r.fizz.GET("/api/calendar/auth/callback", []fizz.OperationOption{fizz.Summary("Handle Google Calendar OAuth callback")}, tonic.Handler(r.calendarCallbackHandler, http.StatusOK))
+	calendar.GET("/connection/status", []fizz.OperationOption{fizz.Summary("Get calendar connection status")}, tonic.Handler(r.getCalendarConnectionStatusHandler, http.StatusOK))
+	calendar.DELETE("/connection", []fizz.OperationOption{fizz.Summary("Disconnect Google Calendar")}, tonic.Handler(r.disconnectCalendarHandler, http.StatusOK))
+	calendar.GET("/busy-times", []fizz.OperationOption{fizz.Summary("Get busy times from calendar")}, tonic.Handler(r.getCalendarBusyTimesHandler, http.StatusOK))
+	calendar.GET("/calendars", []fizz.OperationOption{fizz.Summary("Get list of user's calendars")}, tonic.Handler(r.getCalendarsHandler, http.StatusOK))
+	calendar.GET("/preferences", []fizz.OperationOption{fizz.Summary("Get calendar preferences")}, tonic.Handler(r.getCalendarPreferencesHandler, http.StatusOK))
+	calendar.PUT("/preferences", []fizz.OperationOption{fizz.Summary("Update calendar preferences")}, tonic.Handler(r.updateCalendarPreferencesHandler, http.StatusOK))
 }
 
 func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
@@ -754,9 +779,7 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 			Message:  "User ID not found",
 		}
 	}
-
 	logCtx := slog.With("userId", userId)
-
 	err := r.db.DeleteUserProfile(context.Background(), userId.(string))
 	if err != nil {
 		logCtx.Error("Failed to delete user profile", "error", err)
@@ -766,4 +789,271 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 		}
 	}
 	return nil
+
+}
+
+// Calendar handlers
+
+func (r *Router) getCalendarAuthURLHandler(c *gin.Context) (*api.CalendarAuthURLResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	authURL := r.calendarService.GetAuthURL(userId.(string))
+
+	return &api.CalendarAuthURLResponse{
+		AuthURL: authURL,
+	}, nil
+}
+
+func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallbackRequest) error {
+
+	// Validate request parameters
+	if req.Code == "" {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Authorization code is required",
+		}
+	}
+
+	if req.State == "" {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "State parameter is required",
+		}
+	}
+
+	stateParts := strings.Split(req.State, ":")
+	if len(stateParts) != 2 {
+		return rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid state parameter format",
+		}
+	}
+	userId := stateParts[0]
+
+	ctx := context.Background()
+	err := r.calendarService.HandleCallback(ctx, userId, req.Code, req.State)
+	if err != nil {
+		slog.Error("Failed to handle calendar callback", "error", err, "userID", userId)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to connect calendar",
+		}
+	}
+
+	return nil
+}
+
+func (r *Router) getCalendarConnectionStatusHandler(c *gin.Context) (*api.CalendarConnectionStatusResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	ctx := context.Background()
+	connection, err := r.calendarService.GetConnectionStatus(ctx, userId.(string))
+	if err != nil {
+		slog.Error("Failed to get calendar connection status", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get connection status",
+		}
+	}
+
+	if connection == nil {
+		return &api.CalendarConnectionStatusResponse{
+			Connected: false,
+		}, nil
+	}
+
+	return &api.CalendarConnectionStatusResponse{
+		Connected:   true,
+		Provider:    connection.Provider,
+		CalendarID:  connection.CalendarID,
+		TokenExpiry: connection.TokenExpiry,
+		CreatedAt:   connection.CreatedAt,
+	}, nil
+}
+
+func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	ctx := context.Background()
+	err := r.calendarService.DisconnectCalendar(ctx, userId.(string))
+	if err != nil {
+		slog.Error("Failed to disconnect calendar", "error", err)
+		return rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to disconnect calendar",
+		}
+	}
+
+	return nil
+}
+
+func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBusyTimesRequest) (*api.CalendarBusyTimesResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// The request struct binding handles parsing, so we can use the fields directly.
+	timeMin := req.TimeMin
+	timeMax := req.TimeMax
+
+	ctx := context.Background()
+	busyTimesResponse, err := r.calendarService.GetBusyTimes(ctx, userId.(string), timeMin, timeMax)
+	if err != nil {
+		slog.Error("Failed to get calendar busy times", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get busy times",
+		}
+	}
+
+	// Convert calendar.BusyPeriod to api.CalendarBusyPeriod
+	var busyPeriods []api.CalendarBusyPeriod
+	for _, period := range busyTimesResponse.BusyPeriods {
+		busyPeriods = append(busyPeriods, api.CalendarBusyPeriod{
+			Start: period.Start,
+			End:   period.End,
+			Title: period.Title,
+		})
+	}
+
+	slog.Info("!!! Calendar busy times", "busyPeriods", busyPeriods, "calendarID", busyTimesResponse.CalendarID, "syncedAt", busyTimesResponse.SyncedAt)
+
+	return &api.CalendarBusyTimesResponse{
+		BusyPeriods: busyPeriods,
+		CalendarID:  busyTimesResponse.CalendarID,
+		SyncedAt:    busyTimesResponse.SyncedAt,
+	}, nil
+}
+
+func (r *Router) getCalendarsHandler(c *gin.Context) (*api.UserCalendarsResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	ctx := context.Background()
+	calendars, err := r.calendarService.ListCalendars(ctx, userId.(string))
+	if err != nil {
+		slog.Error("Failed to list calendars", "error", err, "userID", userId.(string))
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to list calendars",
+		}
+	}
+
+	var apiCalendars []api.UserCalendar
+	for _, cal := range calendars {
+		apiCalendars = append(apiCalendars, api.UserCalendar{
+			ID:      cal.ID,
+			Summary: cal.Summary,
+			Primary: cal.Primary,
+		})
+	}
+
+	return &api.UserCalendarsResponse{Calendars: apiCalendars}, nil
+}
+
+func (r *Router) getCalendarPreferencesHandler(c *gin.Context) (*api.CalendarPreferencesResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	ctx := context.Background()
+	prefs, err := r.db.GetCalendarPreferences(ctx, userId.(string))
+	if err != nil {
+		slog.Error("Failed to get calendar preferences", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get preferences",
+		}
+	}
+
+	return &api.CalendarPreferencesResponse{
+		SyncEnabled:          prefs.SyncEnabled,
+		SyncFrequencyMinutes: prefs.SyncFrequencyMinutes,
+		ShowEventDetails:     prefs.ShowEventDetails,
+		UpdatedAt:            prefs.UpdatedAt,
+	}, nil
+}
+
+func (r *Router) updateCalendarPreferencesHandler(c *gin.Context, req *api.CalendarPreferencesRequest) (*api.CalendarPreferencesResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	// Validate sync frequency
+	validFrequencies := []int{15, 30, 60, 120, 240, 480, 720, 1440} // 15min to 24hours
+	isValidFreq := false
+	for _, freq := range validFrequencies {
+		if req.SyncFrequencyMinutes == freq {
+			isValidFreq = true
+			break
+		}
+	}
+
+	if !isValidFreq {
+		return nil, rest.HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid sync frequency. Must be one of: 15, 30, 60, 120, 240, 480, 720, 1440 minutes",
+		}
+	}
+
+	ctx := context.Background()
+	prefs := &db.UserCalendarPreferencesRow{
+		UserId:               userId.(string),
+		SyncEnabled:          req.SyncEnabled,
+		SyncFrequencyMinutes: req.SyncFrequencyMinutes,
+		ShowEventDetails:     req.ShowEventDetails,
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
+	}
+
+	err := r.db.UpsertCalendarPreferences(ctx, prefs)
+	if err != nil {
+		slog.Error("Failed to update calendar preferences", "error", err)
+		return nil, rest.HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to update preferences",
+		}
+	}
+
+	return &api.CalendarPreferencesResponse{
+		SyncEnabled:          prefs.SyncEnabled,
+		SyncFrequencyMinutes: prefs.SyncFrequencyMinutes,
+		ShowEventDetails:     prefs.ShowEventDetails,
+		UpdatedAt:            prefs.UpdatedAt,
+	}, nil
 }

@@ -7,5 +7,11 @@
 			"path": "api"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"go.goroot": "",
+		"go.gopath": "",
+		"gopls": {
+			"experimentalWorkspaceModule": true
+		}
+	}
 }

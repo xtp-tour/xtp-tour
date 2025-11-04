@@ -9,6 +9,7 @@ import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
+import GoogleCalendarConnector from './GoogleCalendarConnector';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -21,7 +22,7 @@ type SingleDoubleType = 'SINGLE' | 'DOUBLES';
 // Time slot validation utilities
 const validateTimeSlots = (selectedTimes: string[]): boolean => {
   if (selectedTimes.length === 0) return false;
-  
+
   // Validate each selected time is in the future
   const now = new Date();
   return selectedTimes.every(timeStr => {
@@ -43,6 +44,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
 
   // Get skill level labels with translations
   const getSkillLevelLabels = (): Record<SkillLevel, string> => {
@@ -76,7 +78,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   }, [validationErrors]);
 
   const selectRef = useRef<HTMLSelectElement>(null);
-  
+
   const [invitationType, setInvitationType] = useState<EventType>('MATCH');
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
@@ -102,10 +104,13 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     };
 
     fetchLocations();
-  }, [api]);
+  }, [api, t]);
 
   // Initialize bootstrap-select and tooltips
   useEffect(() => {
+    // Capture ref value at the beginning of the effect
+    const selectElement = selectRef.current;
+
     // Initialize tooltips
     const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltips.forEach(tooltip => {
@@ -115,17 +120,17 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     });
 
     // Only initialize select if component is expanded and locations are loaded
-    if (isExpanded && locations.length > 0 && !isLoadingLocations && selectRef.current) {
+    if (isExpanded && locations.length > 0 && !isLoadingLocations && selectElement) {
       // Clean up existing instance and create a new one
       if (typeof UseBootstrapSelect.clearAll === 'function') {
         UseBootstrapSelect.clearAll();
       }
       if (typeof UseBootstrapSelect.getOrCreateInstance === 'function') {
-        const select = UseBootstrapSelect.getOrCreateInstance(selectRef.current);
+        const select = UseBootstrapSelect.getOrCreateInstance(selectElement);
         // Ensure the select is initialized with the current selected values
         select.setValue(selectedLocations);
         // Add change event listener to update React state
-        selectRef.current.addEventListener('change', handleNativeLocationChange);
+        selectElement.addEventListener('change', handleNativeLocationChange);
       }
     }
 
@@ -140,10 +145,10 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
           }
         }
       });
-      
+
       // Clean up bootstrap-select and event listeners
-      if (selectRef.current) {
-        selectRef.current.removeEventListener('change', handleNativeLocationChange);
+      if (selectElement) {
+        selectElement.removeEventListener('change', handleNativeLocationChange);
       }
       if (typeof UseBootstrapSelect.clearAll === 'function') {
         UseBootstrapSelect.clearAll();
@@ -154,11 +159,11 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   // Form validation
   const validateForm = (): boolean => {
     const errors: string[] = [];
-    
+
     if (selectedLocations.length === 0) {
       errors.push(t('createEvent.errors.selectAtLeastOneLocation'));
     }
-    
+
     if (!validateTimeSlots(selectedStartTimes)) {
       if (selectedStartTimes.length === 0) {
         errors.push(t('createEvent.errors.selectAtLeastOneTimeSlot'));
@@ -166,11 +171,11 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
         errors.push(t('createEvent.errors.somePastTimes'));
       }
     }
-    
+
     if (description.trim().length > 1000) {
       errors.push(t('createEvent.errors.descriptionTooLong'));
     }
-    
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -263,7 +268,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form before submission
     if (!validateForm()) {
       const errorMessage = validationErrors.join('. ');
@@ -288,15 +293,15 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
       await api.createEvent(request);
       showToast(t('createEvent.success.eventCreated'));
-      
+
       // Reset form to initial state
       resetForm();
       setIsExpanded(false);
       onEventCreated?.();
     } catch (error) {
       console.error('Error creating event:', error);
-      const errorMessage = error instanceof Error 
-        ? `${t('common.error')}: ${error.message}` 
+      const errorMessage = error instanceof Error
+        ? `${t('common.error')}: ${error.message}`
         : t('common.error');
       showToast(errorMessage);
     }
@@ -325,7 +330,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
   return (
     <div className="mb-4">
-      <button 
+      <button
         className={`btn ${isExpanded ? 'btn-outline-secondary' : 'btn-primary'} w-100`}
         onClick={handleExpandToggle}
         aria-expanded={isExpanded}
@@ -344,16 +349,16 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
         )}
       </button>
 
-      <div 
-        className={`collapse mt-3 ${isExpanded ? 'show' : ''}`} 
+      <div
+        className={`collapse mt-3 ${isExpanded ? 'show' : ''}`}
         id="CreateEventForm"
       >
         <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
-          <div 
+          <div
             ref={toastRef}
-            className="toast align-items-center text-white bg-info border-0" 
-            role="alert" 
-            aria-live="assertive" 
+            className="toast align-items-center text-white bg-info border-0"
+            role="alert"
+            aria-live="assertive"
             aria-atomic="true"
           >
             <div className="d-flex">
@@ -361,10 +366,10 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                 <i className="bi bi-info-circle me-2"></i>
                 {t('createEvent.form.trainingTip')}
               </div>
-              <button 
-                type="button" 
-                className="btn-close btn-close-white me-2 m-auto" 
-                data-bs-dismiss="toast" 
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
                 aria-label={t('common.close')}
               ></button>
             </div>
@@ -375,7 +380,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h3 className="card-title h5 mb-0">{t('createEvent.newInvitation')}</h3>
-              <button 
+              <button
                 type="button"
                 className="btn btn-link text-secondary p-0"
                 onClick={() => setIsExpanded(false)}
@@ -387,7 +392,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
             <form onSubmit={handleCreateEvent}>
               <div className="mb-4">
                 <label className="form-label d-block">
-                  {t('createEvent.form.preferredLocations')}                  
+                  {t('createEvent.form.preferredLocations')}
                 </label>
                 {renderLocationSelect()}
               </div>
@@ -429,19 +434,19 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
               <div className="mb-3">
                 <label htmlFor="skillLevel" className="form-label">{t('createEvent.form.opponentSkillLevel')}</label>
                 <div className="text-muted small mb-2">
-                  {t('createEvent.form.skillLevelHelper')} 
-                  <a 
-                    href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html" 
-                    target="_blank" 
+                  {t('createEvent.form.skillLevelHelper')}
+                  <a
+                    href="https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="ms-1"
                   >
                     {t('createEvent.form.ntrpLink')}
                   </a>
                 </div>
-                <select 
-                  className="form-select" 
-                  id="skillLevel" 
+                <select
+                  className="form-select"
+                  id="skillLevel"
                   name="skillLevel"
                   value={skillLevel}
                   onChange={handleSkillLevelChange}
@@ -457,9 +462,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
               <div className="mb-3">
                 <label htmlFor="sessionDuration" className="form-label">{t('createEvent.form.sessionDuration')}</label>
-                <select 
-                  className="form-select" 
-                  id="sessionDuration" 
+                <select
+                  className="form-select"
+                  id="sessionDuration"
                   name="sessionDuration"
                   value={sessionDuration}
                   onChange={handleDurationChange}
@@ -490,7 +495,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                     <label className="form-check-label ms-2" htmlFor="invitationTypeMatch">
                       {t('createEvent.form.gameOnPoints')}
                     </label>
-                    <span 
+                    <span
                       className="ms-2"
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
@@ -513,7 +518,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                     <label className="form-check-label ms-2" htmlFor="invitationTypeTraining">
                       {t('createEvent.form.training')}
                     </label>
-                    <span 
+                    <span
                       className="ms-2"
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
@@ -545,6 +550,24 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                     {t('createEvent.form.nightGame')}
                   </label>
                 </div>
+
+                <div className={`mb-3 ${calendarConnected ? 'p-2' : 'p-3'} bg-light rounded`}>
+                  {!calendarConnected && (
+                    <>
+                      <h6 className="mb-2 d-flex align-items-center">
+                        <i className="bi bi-calendar-plus me-2"></i>
+                        {t('createEvent.form.calendarIntegration')}
+                      </h6>
+                      <p className="small text-muted mb-2">
+                        {t('createEvent.form.calendarIntegrationDesc')}
+                      </p>
+                    </>
+                  )}
+                  <GoogleCalendarConnector
+                    onConnectionChange={setCalendarConnected}
+                    className="mb-0"
+                  />
+                </div>
                 <AvailabilityCalendar
                   value={selectedStartTimes}
                   onChange={handleTimeSelectionChange}
@@ -553,6 +576,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   nightOnly={nightGame}
                   disabled={!isExpanded}
                   className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
+                  calendarIntegration={{
+                    enabled: calendarConnected
+                  }}
                 />
                 {selectedStartTimes.length > 0 && (
                   <small className="form-text text-muted mt-1 d-block">
@@ -564,7 +590,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
               <div className="mb-4">
                 <label htmlFor="description" className="form-label d-flex align-items-center">
                   {t('createEvent.form.description')}
-                  
+
                 </label>
                 <textarea
                   id="description"

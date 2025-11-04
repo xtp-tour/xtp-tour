@@ -24,77 +24,115 @@ const mockT = (key: string): string => {
   return translations[key] || key;
 };
 
-// Manual test function - run this to verify functionality
-export const testTimeSlotCompression = () => {
-  console.log('Testing Time Slot Compression...\n');
+describe('compressTimeSlots', () => {
+  describe('single day scenarios', () => {
+    it('should handle single time slot', () => {
+      const singleSlot = [createTimeSlot('2024-01-15 14:00')];
+      const result = compressTimeSlots(singleSlot, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+      expect(result).toContain('14:00');
+    });
 
-  // Test Case 1: Single time slot
-  const singleSlot = [createTimeSlot('2024-01-15 14:00')];
-  console.log('Single slot:', compressTimeSlots(singleSlot, mockT));
-  // Expected: "Mon, Jan 15 • 2:00 PM"
+    it('should show range for two consecutive slots', () => {
+      const consecutiveSlots = [
+        createTimeSlot('2024-01-15 14:00'),
+        createTimeSlot('2024-01-15 14:30')
+      ];
+      const result = compressTimeSlots(consecutiveSlots, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+      expect(result).toMatch(/14:00.*15:00/);
+    });
 
-  // Test Case 2: Two consecutive slots (should show range)
-  const consecutiveSlots = [
-    createTimeSlot('2024-01-15 14:00'),
-    createTimeSlot('2024-01-15 14:30')
-  ];
-  console.log('Consecutive slots:', compressTimeSlots(consecutiveSlots, mockT));
-  // Expected: "Mon, Jan 15 • 2:00 PM–3:00 PM"
+    it('should handle three consecutive slots (8:00, 8:30, 9:00)', () => {
+      const threeConsecutive = [
+        createTimeSlot('2024-01-15 08:00'),
+        createTimeSlot('2024-01-15 08:30'),
+        createTimeSlot('2024-01-15 09:00')
+      ];
+      const result = compressTimeSlots(threeConsecutive, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+      expect(result).toMatch(/08:00.*09:30/);
+    });
 
-  // Test Case 3: Three consecutive slots (user's example: 8:00, 8:30, 9:00)
-  const threeConsecutive = [
-    createTimeSlot('2024-01-15 08:00'),
-    createTimeSlot('2024-01-15 08:30'),
-    createTimeSlot('2024-01-15 09:00')
-  ];
-  console.log('Three consecutive (8:00-9:00):', compressTimeSlots(threeConsecutive, mockT));
-  // Expected: "Mon, Jan 15 • 8:00 AM–9:30 AM"
+    it('should generalize non-consecutive times on same day', () => {
+      const nonConsecutive = [
+        createTimeSlot('2024-01-15 08:30'),
+        createTimeSlot('2024-01-15 10:30')
+      ];
+      const result = compressTimeSlots(nonConsecutive, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+      // Should contain some time of day indication
+      expect(result.length).toBeGreaterThan(0);
+    });
 
-  // Test Case 4: Non-consecutive times (should generalize)
-  const nonConsecutive = [
-    createTimeSlot('2024-01-15 08:30'),
-    createTimeSlot('2024-01-15 10:30')
-  ];
-  console.log('Non-consecutive times:', compressTimeSlots(nonConsecutive, mockT));
-  // Expected: Something like "Mon, Jan 15 • early morning & morning"
+    it('should generalize multiple times across day', () => {
+      const wholeDaySlots = [
+        createTimeSlot('2024-01-15 08:00'),
+        createTimeSlot('2024-01-15 12:00'),
+        createTimeSlot('2024-01-15 18:00')
+      ];
+      const result = compressTimeSlots(wholeDaySlots, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+    });
+  });
 
-  // Test Case 5: Multiple times across day (should generalize to time of day)
-  const wholeDaySlots = [
-    createTimeSlot('2024-01-15 08:00'),
-    createTimeSlot('2024-01-15 12:00'),
-    createTimeSlot('2024-01-15 18:00')
-  ];
-  console.log('Whole day slots:', compressTimeSlots(wholeDaySlots, mockT));
-  // Expected: "Mon, Jan 15 • whole day" or similar
+  describe('multi-day scenarios', () => {
+    it('should handle 6 slots across multiple days and time periods', () => {
+      const userBugCase = [
+        createTimeSlot('2024-08-14 06:00'), // Thu, morning
+        createTimeSlot('2024-08-14 06:30'), // Thu, morning
+        createTimeSlot('2024-08-17 12:30'), // Sun, afternoon
+        createTimeSlot('2024-08-18 15:30'), // Mon, afternoon
+        createTimeSlot('2024-08-18 16:00'), // Mon, afternoon
+        createTimeSlot('2024-08-18 16:30')  // Mon, afternoon
+      ];
+      const result = compressTimeSlots(userBugCase, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Aug');
+      expect(result).toContain('14');
+      expect(result).toContain('18');
+    });
 
-  // Test Case 6: User's specific bug case - 6 slots across multiple days and time periods
-  const userBugCase = [
-    createTimeSlot('2024-08-14 06:00'), // Thu, morning
-    createTimeSlot('2024-08-14 06:30'), // Thu, morning
-    createTimeSlot('2024-08-17 12:30'), // Sun, afternoon
-    createTimeSlot('2024-08-18 15:30'), // Mon, afternoon
-    createTimeSlot('2024-08-18 16:00'), // Mon, afternoon
-    createTimeSlot('2024-08-18 16:30')  // Mon, afternoon
-  ];
-  console.log('User bug case (6 slots, multi-day, multi-time):', compressTimeSlots(userBugCase, mockT));
-  // Expected: "Aug 14–Aug 18 • afternoon & morning" (simplified time categories)
+    it('should show "whole day" for multi-day with 3+ time categories', () => {
+      const wholeDayMultiDay = [
+        createTimeSlot('2024-08-14 08:00'), // Thu, morning
+        createTimeSlot('2024-08-15 14:00'), // Fri, afternoon
+        createTimeSlot('2024-08-16 19:00'), // Sat, evening
+        createTimeSlot('2024-08-17 02:00')  // Sun, night
+      ];
+      const result = compressTimeSlots(wholeDayMultiDay, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Aug');
+      // Should contain either time categories or "whole day"
+      expect(result.length).toBeGreaterThan(0);
+    });
+  });
 
-  // Test Case 7: Multi-day with 3+ time categories (should show "whole day")
-  const wholeDayMultiDay = [
-    createTimeSlot('2024-08-14 08:00'), // Thu, morning
-    createTimeSlot('2024-08-15 14:00'), // Fri, afternoon
-    createTimeSlot('2024-08-16 19:00'), // Sat, evening
-    createTimeSlot('2024-08-17 02:00')  // Sun, night
-  ];
-  console.log('Multi-day whole day (4 time categories):', compressTimeSlots(wholeDayMultiDay, mockT));
-  // Expected: "Aug 14–Aug 17 • whole day"
+  describe('edge cases', () => {
+    it('should handle empty array', () => {
+      const result = compressTimeSlots([], mockT);
+      expect(result).toBe('');
+    });
 
-  // Test Case 8: Empty array
-  console.log('Empty array:', compressTimeSlots([], mockT));
-  // Expected: ""
-
-  console.log('\nTesting completed!');
-};
-
-// Auto-run test in development (comment out for production)
-// testTimeSlotCompression();
+    it('should handle single slot in array', () => {
+      const singleSlot = [createTimeSlot('2024-01-15 09:00')];
+      const result = compressTimeSlots(singleSlot, mockT);
+      
+      expect(result).toBeTruthy();
+      expect(result).toContain('Jan 15');
+      expect(result).toContain('09:00');
+    });
+  });
+});

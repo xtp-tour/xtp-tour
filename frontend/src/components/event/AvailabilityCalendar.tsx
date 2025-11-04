@@ -1,5 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAPI } from '../../services/apiProvider';
+import moment from 'moment';
+import { components } from '../../types/schema';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -34,6 +37,11 @@ interface AvailabilityCalendarProps {
   className?: string;
   /** Disabled state */
   disabled?: boolean;
+  /** Calendar integration settings */
+  calendarIntegration?: {
+    enabled: boolean;
+    onCalendarConnect?: () => void;
+  };
 }
 
 /** Get tomorrow's date in local timezone at midnight */
@@ -42,6 +50,17 @@ function getTomorrowLocal(): Date {
   d.setDate(d.getDate() + 1);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+interface BusyPeriod {
+  start: string; // UTC ISO
+  end: string;   // UTC ISO
+  title?: string;
+}
+
+interface AllDayEvent {
+  date: string; // YYYY-MM-DD in local timezone
+  title: string;
 }
 
 /** Validate that a date is not in the past */
@@ -67,10 +86,10 @@ function formatTimeDisplay(minutes: number): string {
   const mins = minutes % 60;
   const date = new Date();
   date.setHours(hours, mins, 0, 0);
-  return date.toLocaleTimeString(undefined, { 
-    hour: 'numeric', 
+  return date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true
   });
 }
 
@@ -92,8 +111,14 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   nightOnly = false,
   className = '',
   disabled = false,
+  calendarIntegration,
 }) => {
   const { t } = useTranslation();
+  const api = useAPI();
+  const [busyTimes, setBusyTimes] = useState<BusyPeriod[]>([]);
+  const [isLoadingBusyTimes, setIsLoadingBusyTimes] = useState(false);
+  const [allDayEvents, setAllDayEvents] = useState<Map<string, AllDayEvent[]>>(new Map());
+
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
   }, [minDate]);
@@ -106,11 +131,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   // Memoize expensive calculations
   const memoizedOnChange = useCallback(onChange, [onChange]);
-
-  // Update window start if min bound changes
-  useEffect(() => {
-    setWindowStartDate(prev => clampDate(prev, computedMinDate, new Date(8640000000000000)));
-  }, [computedMinDate]);
 
   // Build time rows depending on mode
   const timeRows = useMemo(() => {
@@ -149,6 +169,72 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const canGoNext = true; // no forward limit
 
+  // Fetch busy times when calendar integration is enabled or date window changes
+  useEffect(() => {
+    if (calendarIntegration?.enabled) {
+      const fetchBusyTimes = async () => {
+        setIsLoadingBusyTimes(true);
+        try {
+          const timeMin = windowStartDate.toISOString();
+          const timeMax = addDays(windowStartDate, CALENDAR_CONSTANTS.DAYS_TO_SHOW).toISOString();
+          const response = await api.getBusyTimes(timeMin, timeMax);
+          
+          // Separate all-day events from timed events
+          const allDayMap = new Map<string, AllDayEvent[]>();
+          const timedEvents: BusyPeriod[] = [];
+          
+          (response.busyPeriods || [])
+            .filter((p: components['schemas']['ApiCalendarBusyPeriod']) => p.start && p.end)
+            .forEach((p: components['schemas']['ApiCalendarBusyPeriod']) => {
+              const start = moment(p.start!);
+              const end = moment(p.end!);
+              const title = p.title || 'Busy';
+              
+              // Check if this is an all-day event (starts at midnight and duration is in whole days)
+              const isAllDay = start.hours() === 0 && start.minutes() === 0 && 
+                               end.hours() === 0 && end.minutes() === 0 &&
+                               end.diff(start, 'hours') >= 24;
+              
+              if (isAllDay) {
+                // Add to all-day events for each day it spans
+                let currentDate = start.clone().startOf('day');
+                while (currentDate.isBefore(end)) {
+                  const dateKey = currentDate.format('YYYY-MM-DD');
+                  if (!allDayMap.has(dateKey)) {
+                    allDayMap.set(dateKey, []);
+                  }
+                  allDayMap.get(dateKey)!.push({
+                    date: dateKey,
+                    title: title,
+                  });
+                  currentDate = currentDate.add(1, 'day');
+                }
+              } else {
+                // Regular timed event
+                timedEvents.push({
+                  start: p.start!,
+                  end: p.end!,
+                  title: title,
+                });
+              }
+            });
+          
+          setBusyTimes(timedEvents);
+          setAllDayEvents(allDayMap);
+        } catch (error) {
+          console.error('Failed to fetch busy times:', error);
+        } finally {
+          setIsLoadingBusyTimes(false);
+        }
+      };
+      fetchBusyTimes();
+    } else {
+      setBusyTimes([]);
+      setAllDayEvents(new Map());
+    }
+  }, [calendarIntegration?.enabled, windowStartDate, api]);
+
+
   const goPrev = useCallback(() => {
     if (!canGoPrev) return;
     const next = addDays(windowStartDate, -7);
@@ -162,38 +248,77 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   const isSelected = useCallback((utcIso: string) => selectedSet.has(utcIso), [selectedSet]);
 
+  // Precompute busy periods as moment objects for efficiency
+  const busyPeriods = useMemo(
+    () =>
+      busyTimes.map(busyPeriod => ({
+        start: moment(busyPeriod.start),
+        end: moment(busyPeriod.end),
+      })),
+    [busyTimes]
+  );
+
+  // Get event info and determine if should show title for this slot
+  const getSlotEvent = useCallback((localDateTime: Date): { event: BusyPeriod | null; showTitle: boolean } => {
+    if (busyPeriods.length === 0) {
+      return { event: null, showTitle: false };
+    }
+    const slotStart = moment(localDateTime);
+    const slotEnd = slotStart.clone().add(stepMinutes, 'minutes');
+
+    // Find first overlapping event
+    const event = busyTimes.find(busyPeriod => {
+      const periodStart = moment(busyPeriod.start);
+      const periodEnd = moment(busyPeriod.end);
+      // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
+      return slotStart.isBefore(periodEnd) && slotEnd.isAfter(periodStart);
+    });
+
+    if (!event) {
+      return { event: null, showTitle: false };
+    }
+
+    // Show title only if this is the first slot of the event (or close to it)
+    const eventStart = moment(event.start);
+    const showTitle = slotStart.isSameOrAfter(eventStart) && 
+                      slotStart.isBefore(eventStart.clone().add(stepMinutes, 'minutes'));
+
+    return { event, showTitle };
+  }, [busyTimes, stepMinutes, busyPeriods.length]);
+
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
-    
+
     const localDateTime = makeLocalDateTime(dateOnly, minutesFromMidnight);
-    
+
     // Validate this isn't a past date/time
     if (!isValidFutureDate(localDateTime, computedMinDate)) {
       return;
     }
-    
+
+    // Allow selection even if there's a calendar event (user can choose to overbook)
     const utcIso = localDateTime.toISOString();
     const currentSelected = new Set(value);
-    
+
     if (currentSelected.has(utcIso)) {
       currentSelected.delete(utcIso);
     } else {
       currentSelected.add(utcIso);
     }
-    
+
     memoizedOnChange(Array.from(currentSelected));
   }, [disabled, computedMinDate, value, memoizedOnChange]);
 
   const clearSelection = useCallback(() => {
-    if (disabled || value.length === 0) return;
+    if (disabled || !value || value.length === 0) return;
     memoizedOnChange([]);
-  }, [disabled, value.length, memoizedOnChange]);
+  }, [disabled, value, memoizedOnChange]);
 
 
 
   // Memoize whether any slots are selected for performance
-  const hasSelection = useMemo(() => value.length > 0, [value.length]);
-  
+  const hasSelection = useMemo(() => value && value.length > 0, [value]);
+
   // Generate ARIA label for the calendar
   const calendarAriaLabel = useMemo(() => {
     const modeText = nightOnly ? 'night hours only' : 'daytime hours';
@@ -210,9 +335,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               className="btn btn-outline-secondary btn-sm shadow-none"
               onMouseDown={(e) => e.preventDefault()}
               onTouchStart={(e) => e.preventDefault()}
-              onClick={(e) => { 
+              onClick={(e) => {
                 if (!disabled) {
-                  goPrev(); 
+                  goPrev();
                   (e.currentTarget as HTMLButtonElement).blur();
                 }
               }}
@@ -232,7 +357,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
               className="btn btn-outline-secondary btn-sm shadow-none"
               onMouseDown={(e) => e.preventDefault()}
               onTouchStart={(e) => e.preventDefault()}
-              onClick={(e) => { 
+              onClick={(e) => {
                 if (!disabled) {
                   goNext();
                   (e.currentTarget as HTMLButtonElement).blur();
@@ -255,7 +380,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
             className="btn btn-outline-secondary btn-sm shadow-none ms-2"
             onMouseDown={(e) => e.preventDefault()}
             onTouchStart={(e) => e.preventDefault()}
-            onClick={(e) => { 
+            onClick={(e) => {
               if (!disabled) {
                 clearSelection();
                 (e.currentTarget as HTMLButtonElement).blur();
@@ -271,27 +396,46 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       </div>
 
       <div className="table-responsive" style={{ maxHeight: CALENDAR_CONSTANTS.MAX_CALENDAR_HEIGHT }}>
-        <table className="table table-sm table-borderless align-middle mb-0" role="grid">
+        <table className="table table-sm table-borderless align-middle mb-0" role="grid" style={{ tableLayout: 'fixed' }}>
           <thead className="table-light position-sticky top-0" style={{ zIndex: 1 }}>
             <tr role="row">
-              {dayCols.map((d, idx) => (
-                <th
-                  key={idx}
-                  className="text-center small"
-                  style={{ minWidth: CALENDAR_CONSTANTS.MIN_COLUMN_WIDTH, padding: '2px 2px' }}
-                  scope="col"
-                  role="columnheader"
-                >
-                  <div className="d-flex flex-column align-items-center lh-1">
-                    <span className="text-uppercase small">
-                      {d.toLocaleDateString(undefined, { weekday: 'short' })}
-                    </span>
-                    <span className="small text-muted">
-                      {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-                </th>
-              ))}
+              {dayCols.map((d, idx) => {
+                const dateKey = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                const dayEvents = allDayEvents.get(dateKey) || [];
+                
+                return (
+                  <th
+                    key={idx}
+                    className="text-center small p-1"
+                    scope="col"
+                    role="columnheader"
+                  >
+                    <div className="d-flex flex-column align-items-center lh-1">
+                      <span className="text-uppercase small">
+                        {d.toLocaleDateString(undefined, { weekday: 'short' })}
+                      </span>
+                      <span className="small text-muted">
+                        {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    {/* All-day events */}
+                    {dayEvents.length > 0 && (
+                      <div className="mt-1">
+                        {dayEvents.map((evt, evtIdx) => (
+                          <div 
+                            key={evtIdx}
+                            className="badge bg-secondary-subtle text-secondary-emphasis text-truncate w-100 mb-1"
+                            style={{ fontSize: '0.65rem', fontWeight: 'normal' }}
+                            title={evt.title}
+                          >
+                            {evt.title}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -301,25 +445,56 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
+                  const { event: calendarEvent, showTitle } = getSlotEvent(localDateTime);
+                  const hasEvent = !!calendarEvent;
+                  const isPast = !isValidFutureDate(localDateTime, computedMinDate);
+                  const isDisabled = disabled || isPast || isLoadingBusyTimes;
+
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
                         type="button"
-                        className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
-                          selectedNow 
-                            ? 'bg-primary text-white' 
-                            : disabled 
-                            ? 'bg-transparent text-muted' 
+                        className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-1 shadow-none small position-relative ${
+                          selectedNow
+                            ? 'bg-primary text-white'
+                            : hasEvent
+                            ? 'bg-secondary-subtle text-body'
+                            : isPast
+                            ? 'bg-transparent text-muted'
+                            : disabled
+                            ? 'bg-transparent text-muted'
                             : 'bg-transparent text-body'
                         }`}
-                        style={{ minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT }}
+                        style={{
+                          minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT,
+                          ...(hasEvent && !selectedNow ? {
+                            borderLeft: '3px solid var(--bs-secondary)',
+                          } : {}),
+                           ...(isLoadingBusyTimes ? { cursor: 'wait' } : {})
+                        }}
                         onClick={() => toggleCell(d, m)}
-                        disabled={disabled}
+                        disabled={isDisabled}
                         aria-pressed={selectedNow}
-                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}`}
+                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${hasEvent ? ` (${calendarEvent.title})` : ''}`}
                         tabIndex={0}
+                        title={hasEvent ? calendarEvent.title : undefined}
                       >
-                        {formatTimeDisplay(m)}
+                        <span className="d-block" style={{ fontSize: '0.85rem' }}>
+                          {formatTimeDisplay(m)}
+                        </span>
+                        {hasEvent && showTitle && (
+                          <span 
+                            className="d-block text-secondary-emphasis text-truncate fw-medium" 
+                            style={{ 
+                              fontSize: '0.65rem',
+                              lineHeight: '1',
+                              marginTop: '2px',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {calendarEvent.title}
+                          </span>
+                        )}
                       </button>
                     </td>
                   );

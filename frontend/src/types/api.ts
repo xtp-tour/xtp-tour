@@ -80,4 +80,29 @@ export interface APIClient {
     requestData?: unknown;
     responseData?: string;
   }): Promise<void>;
+
+  // Calendar integration methods
+  getCalendarAuthURL(): Promise<CalendarAuthURLResponse>;
+  handleCalendarCallback(request: CalendarCallbackRequest): Promise<void>;
+  /**
+	 * Get calendar connection status
+	 */
+	getCalendarConnectionStatus(): Promise<CalendarConnectionStatusResponse>;
+	disconnectCalendar(): Promise<void>;
+	getBusyTimes(timeMin: string, timeMax: string): Promise<components['schemas']['ApiCalendarBusyTimesResponse']>;
+	getCalendars(): Promise<ApiUserCalendar[]>;
+	getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
+	updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
+}
+
+// Calendar integration types using schema types
+export type ApiUserCalendar = components['schemas']['ApiUserCalendar'];
+export type CalendarAuthURLResponse = components['schemas']['ApiCalendarAuthURLResponse'];
+export type CalendarConnectionStatusResponse = components['schemas']['ApiCalendarConnectionStatusResponse'];
+export type CalendarPreferencesResponse = components['schemas']['ApiCalendarPreferencesResponse'];
+export type CalendarPreferencesRequest = components['schemas']['UpdateCalendarPreferencesHandler-FmInput'];
+
+export interface CalendarCallbackRequest {
+  code: string;
+  state: string;
 }

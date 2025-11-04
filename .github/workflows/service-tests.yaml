@@ -103,6 +103,7 @@ jobs:
           DB_PORT: 53306
           SERVICE_PORT: 58080
           METRICS_PORT: 51025
+          TOKEN_ENCRYPTION_KEY: sRMufszenT/pOV8bE2vIqqtWNjxrhhlfvPHdz0cBBTY=
         run: |
           go run cmd/server/main.go &
           SERVER_PID=$!

@@ -33,7 +33,6 @@ func (db *Db) EnqueueNotification(userId string, data NotificationQueueData) err
 
 func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 	logCtx := slog.With("method", "GetNextNotification")
-	logCtx.Debug("Getting next notification")
 
 	tx, err := db.conn.Beginx()
 	if err != nil {
@@ -57,7 +56,9 @@ func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
+
 		logCtx.Error("Failed to get next notification", "error", err)
+		db.rollback(logCtx, tx)
 		return nil, err
 	}
 
