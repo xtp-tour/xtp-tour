@@ -938,6 +938,8 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBu
 		})
 	}
 
+	slog.Info("!!! Calendar busy times", "busyPeriods", busyPeriods, "calendarID", busyTimesResponse.CalendarID, "syncedAt", busyTimesResponse.SyncedAt)
+
 	return &api.CalendarBusyTimesResponse{
 		BusyPeriods: busyPeriods,
 		CalendarID:  busyTimesResponse.CalendarID,

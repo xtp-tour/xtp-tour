@@ -133,54 +133,111 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 	return s.db.UpsertCalendarConnection(ctx, connection)
 }
 
-// GetBusyTimes retrieves busy periods from Google Calendar
+// GetBusyTimes retrieves busy periods from all visible Google Calendars
 func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, timeMax time.Time) (*FreeBusyResponse, error) {
 
-	calendarService, calendarId, err := s.getCalendarService(ctx, userID)
+	calendarService, _, err := s.getCalendarService(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Query free/busy information
+	// Get list of all calendars for the user
+	calendars, err := s.getVisibleCalendars(ctx, calendarService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get calendar list: %w", err)
+	}
+
+	if len(calendars) == 0 {
+		slog.Warn("No visible calendars found for user", "userID", userID)
+		return &FreeBusyResponse{
+			BusyPeriods: []BusyPeriod{},
+			CalendarID:  "none",
+			SyncedAt:    time.Now(),
+		}, nil
+	}
+
+	slog.Debug("Found calendars for user", "count", len(calendars), "calendars", calendars)
+
+	// Build FreeBusy request for all calendars
+	var freeBusyItems []*calendar.FreeBusyRequestItem
+	for _, cal := range calendars {
+		freeBusyItems = append(freeBusyItems, &calendar.FreeBusyRequestItem{
+			Id: cal.ID,
+		})
+	}
+
 	freeBusyRequest := &calendar.FreeBusyRequest{
 		TimeMin: timeMin.Format(time.RFC3339),
 		TimeMax: timeMax.Format(time.RFC3339),
-		Items: []*calendar.FreeBusyRequestItem{
-			{Id: calendarId},
-		},
+		Items:   freeBusyItems,
 	}
+
+	slog.Debug("Querying FreeBusy API for all calendars", 
+		"calendarCount", len(freeBusyItems),
+		"timeMin", timeMin.Format(time.RFC3339), 
+		"timeMax", timeMax.Format(time.RFC3339))
 
 	freeBusyResponse, err := calendarService.Freebusy.Query(freeBusyRequest).Do()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query free/busy: %w", err)
 	}
 
-	// Parse busy periods
+	slog.Debug("FreeBusy API response", 
+		"calendarsCount", len(freeBusyResponse.Calendars))
+
+	// Parse busy periods from FreeBusy API for all calendars
 	var busyPeriods []BusyPeriod
-	if calendarData, exists := freeBusyResponse.Calendars[calendarId]; exists {
+	for calendarId, calendarData := range freeBusyResponse.Calendars {
+		slog.Debug("Processing calendar", 
+			"calendarId", calendarId,
+			"busyCount", len(calendarData.Busy),
+			"errors", calendarData.Errors)
+			
 		for _, busyTime := range calendarData.Busy {
 			startTime, err := time.Parse(time.RFC3339, busyTime.Start)
 			if err != nil {
-				slog.Error("Failed to parse start time", "error", err)
+				slog.Error("Failed to parse start time", "error", err, "calendarId", calendarId)
 				continue
 			}
 			endTime, err := time.Parse(time.RFC3339, busyTime.End)
 			if err != nil {
-				slog.Error("Failed to parse end time", "error", err)
+				slog.Error("Failed to parse end time", "error", err, "calendarId", calendarId)
 				continue
 			}
 
 			busyPeriods = append(busyPeriods, BusyPeriod{
 				Start: startTime,
 				End:   endTime,
-				Title: "Busy", // We'll get event details in a separate call if needed
+				Title: "Busy",
 			})
 		}
 	}
 
+	slog.Debug("FreeBusy returned busy periods", "count", len(busyPeriods))
+
+	// Always fetch actual events from all calendars to get event titles and transparent events
+	// FreeBusy only returns time ranges without titles, and only shows "opaque" events
+	slog.Debug("Fetching events directly from all calendars to get event details")
+	var allEventPeriods []BusyPeriod
+	for _, cal := range calendars {
+		eventBusyPeriods, err := s.getEventBusyTimes(ctx, calendarService, cal.ID, timeMin, timeMax)
+		if err != nil {
+			slog.Warn("Failed to fetch events for calendar", "error", err, "calendarId", cal.ID)
+			continue
+		}
+		allEventPeriods = append(allEventPeriods, eventBusyPeriods...)
+		slog.Debug("Fetched events from calendar", "calendarId", cal.ID, "count", len(eventBusyPeriods))
+	}
+	
+	// Use events with titles instead of FreeBusy results (which lack titles)
+	if len(allEventPeriods) > 0 {
+		busyPeriods = allEventPeriods
+		slog.Debug("Using event-based busy periods with titles", "count", len(busyPeriods))
+	}
+
 	response := &FreeBusyResponse{
 		BusyPeriods: busyPeriods,
-		CalendarID:  calendarId,
+		CalendarID:  "all",
 		SyncedAt:    time.Now(),
 	}
 
@@ -192,6 +249,162 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 	}
 
 	return response, nil
+}
+
+// getVisibleCalendars fetches all calendars that are visible/selected by the user
+func (s *Service) getVisibleCalendars(ctx context.Context, calendarService *calendar.Service) ([]UserCalendar, error) {
+	calendarList, err := calendarService.CalendarList.List().Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list calendars: %w", err)
+	}
+
+	var calendars []UserCalendar
+	for _, item := range calendarList.Items {
+		// Only include calendars that are selected (visible in the user's calendar list)
+		if item.Selected {
+			calendars = append(calendars, UserCalendar{
+				ID:      item.Id,
+				Summary: item.Summary,
+				Primary: item.Primary,
+			})
+			slog.Debug("Including calendar", 
+				"id", item.Id, 
+				"summary", item.Summary, 
+				"primary", item.Primary,
+				"selected", item.Selected)
+		} else {
+			slog.Debug("Skipping unselected calendar", 
+				"id", item.Id, 
+				"summary", item.Summary)
+		}
+	}
+
+	return calendars, nil
+}
+
+// getEventBusyTimes fetches busy periods by listing actual events from the calendar
+// This is used as a fallback when FreeBusy API returns no results (which happens when events are "transparent")
+// All-day events are included and marked as busy for the entire day period
+func (s *Service) getEventBusyTimes(ctx context.Context, calendarService *calendar.Service, calendarId string, timeMin, timeMax time.Time) ([]BusyPeriod, error) {
+	// List events in the time range
+	slog.Debug("Listing events from calendar", 
+		"calendarId", calendarId,
+		"timeMin", timeMin.Format(time.RFC3339),
+		"timeMax", timeMax.Format(time.RFC3339))
+		
+	events, err := calendarService.Events.List(calendarId).
+		TimeMin(timeMin.Format(time.RFC3339)).
+		TimeMax(timeMax.Format(time.RFC3339)).
+		SingleEvents(true).
+		OrderBy("startTime").
+		Do()
+	
+	if err != nil {
+		return nil, fmt.Errorf("failed to list events: %w", err)
+	}
+
+	slog.Debug("Events.List response", 
+		"totalItems", len(events.Items),
+		"summary", events.Summary)
+
+	var busyPeriods []BusyPeriod
+	skippedCancelled := 0
+	allDayEvents := 0
+	
+	for _, event := range events.Items {
+		slog.Debug("Processing event", 
+			"id", event.Id,
+			"summary", event.Summary,
+			"status", event.Status,
+			"startDateTime", event.Start.DateTime,
+			"startDate", event.Start.Date,
+			"endDateTime", event.End.DateTime,
+			"endDate", event.End.Date)
+			
+		// Skip cancelled events
+		if event.Status == "cancelled" {
+			skippedCancelled++
+			continue
+		}
+
+		title := event.Summary
+		if title == "" {
+			title = "Busy"
+		}
+
+		// Handle all-day events
+		if event.Start.DateTime == "" || event.End.DateTime == "" {
+			allDayEvents++
+			// All-day events use Date field instead of DateTime
+			// Format is YYYY-MM-DD
+			if event.Start.Date == "" || event.End.Date == "" {
+				slog.Warn("All-day event missing date fields", "eventId", event.Id)
+				continue
+			}
+
+			// Parse the date (format: YYYY-MM-DD)
+			startDate, err := time.Parse("2006-01-02", event.Start.Date)
+			if err != nil {
+				slog.Warn("Failed to parse all-day event start date", "error", err, "eventId", event.Id, "date", event.Start.Date)
+				continue
+			}
+
+			endDate, err := time.Parse("2006-01-02", event.End.Date)
+			if err != nil {
+				slog.Warn("Failed to parse all-day event end date", "error", err, "eventId", event.Id, "date", event.End.Date)
+				continue
+			}
+
+			// For all-day events, mark the entire day as busy (00:00 to 23:59:59)
+			// The end date is exclusive in Google Calendar, so we don't need to add a day
+			startTime := startDate.UTC()
+			endTime := endDate.UTC()
+
+			busyPeriods = append(busyPeriods, BusyPeriod{
+				Start: startTime,
+				End:   endTime,
+				Title: title,
+			})
+
+			slog.Debug("Added all-day busy period", 
+				"title", title,
+				"start", startTime.Format(time.RFC3339),
+				"end", endTime.Format(time.RFC3339))
+			continue
+		}
+
+		// Handle regular timed events
+		startTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
+		if err != nil {
+			slog.Warn("Failed to parse event start time", "error", err, "eventId", event.Id)
+			continue
+		}
+
+		endTime, err := time.Parse(time.RFC3339, event.End.DateTime)
+		if err != nil {
+			slog.Warn("Failed to parse event end time", "error", err, "eventId", event.Id)
+			continue
+		}
+
+		busyPeriods = append(busyPeriods, BusyPeriod{
+			Start: startTime,
+			End:   endTime,
+			Title: title,
+		})
+		
+		slog.Debug("Added timed busy period", 
+			"title", title,
+			"start", startTime.Format(time.RFC3339),
+			"end", endTime.Format(time.RFC3339))
+	}
+
+	slog.Debug("Event processing summary",
+		"totalEvents", len(events.Items),
+		"skippedCancelled", skippedCancelled,
+		"allDayEvents", allDayEvents,
+		"busyPeriods", len(busyPeriods))
+
+	return busyPeriods, nil
 }
 
 // getCalendarService retrieves a Google Calendar service client for a user

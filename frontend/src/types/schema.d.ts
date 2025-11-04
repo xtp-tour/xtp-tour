@@ -680,7 +680,10 @@ export interface operations {
     };
     "getCalendarBusyTimesHandler-fm": {
         parameters: {
-            query?: never;
+            query?: {
+                timeMax?: string;
+                timeMin?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

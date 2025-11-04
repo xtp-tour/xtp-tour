@@ -55,6 +55,12 @@ function getTomorrowLocal(): Date {
 interface BusyPeriod {
   start: string; // UTC ISO
   end: string;   // UTC ISO
+  title?: string;
+}
+
+interface AllDayEvent {
+  date: string; // YYYY-MM-DD in local timezone
+  title: string;
 }
 
 /** Validate that a date is not in the past */
@@ -111,6 +117,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   const api = useAPI();
   const [busyTimes, setBusyTimes] = useState<BusyPeriod[]>([]);
   const [isLoadingBusyTimes, setIsLoadingBusyTimes] = useState(false);
+  const [allDayEvents, setAllDayEvents] = useState<Map<string, AllDayEvent[]>>(new Map());
 
   const computedMinDate = useMemo(() => {
     return (minDate ? new Date(minDate) : getTomorrowLocal());
@@ -171,25 +178,59 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
           const timeMin = windowStartDate.toISOString();
           const timeMax = addDays(windowStartDate, CALENDAR_CONSTANTS.DAYS_TO_SHOW).toISOString();
           const response = await api.getBusyTimes(timeMin, timeMax);
-          const validBusyPeriods = (response.busyPeriods || [])
+          
+          // Separate all-day events from timed events
+          const allDayMap = new Map<string, AllDayEvent[]>();
+          const timedEvents: BusyPeriod[] = [];
+          
+          (response.busyPeriods || [])
             .filter((p: components['schemas']['ApiCalendarBusyPeriod']) => p.start && p.end)
-            .map((p: components['schemas']['ApiCalendarBusyPeriod']) => ({
-              ...p,
-              start: p.start!,
-              end: p.end!,
-              title: p.title || 'Busy',
-            }));
-          setBusyTimes(validBusyPeriods);
+            .forEach((p: components['schemas']['ApiCalendarBusyPeriod']) => {
+              const start = moment(p.start!);
+              const end = moment(p.end!);
+              const title = p.title || 'Busy';
+              
+              // Check if this is an all-day event (starts at midnight and duration is in whole days)
+              const isAllDay = start.hours() === 0 && start.minutes() === 0 && 
+                               end.hours() === 0 && end.minutes() === 0 &&
+                               end.diff(start, 'hours') >= 24;
+              
+              if (isAllDay) {
+                // Add to all-day events for each day it spans
+                let currentDate = start.clone().startOf('day');
+                while (currentDate.isBefore(end)) {
+                  const dateKey = currentDate.format('YYYY-MM-DD');
+                  if (!allDayMap.has(dateKey)) {
+                    allDayMap.set(dateKey, []);
+                  }
+                  allDayMap.get(dateKey)!.push({
+                    date: dateKey,
+                    title: title,
+                  });
+                  currentDate.add(1, 'day');
+                }
+              } else {
+                // Regular timed event
+                timedEvents.push({
+                  start: p.start!,
+                  end: p.end!,
+                  title: title,
+                });
+              }
+            });
+          
+          setBusyTimes(timedEvents);
+          setAllDayEvents(allDayMap);
         } catch (error) {
           console.error('Failed to fetch busy times:', error);
-          // Optionally, show a toast or other error indicator
         } finally {
           setIsLoadingBusyTimes(false);
         }
       };
       fetchBusyTimes();
     } else {
-      setBusyTimes([]); // Clear busy times if integration is disabled
+      setBusyTimes([]);
+      setAllDayEvents(new Map());
     }
   }, [calendarIntegration?.enabled, windowStartDate, api]);
 
@@ -217,19 +258,33 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     [busyTimes]
   );
 
-  // Check if a time slot conflicts with calendar busy times
-  const isSlotBusy = useCallback((localDateTime: Date): boolean => {
+  // Get event info and determine if should show title for this slot
+  const getSlotEvent = useCallback((localDateTime: Date): { event: BusyPeriod | null; showTitle: boolean } => {
     if (busyPeriods.length === 0) {
-      return false;
+      return { event: null, showTitle: false };
     }
     const slotStart = moment(localDateTime);
     const slotEnd = slotStart.clone().add(stepMinutes, 'minutes');
 
-    return busyPeriods.some(busyPeriod => {
+    // Find first overlapping event
+    const event = busyTimes.find(busyPeriod => {
+      const periodStart = moment(busyPeriod.start);
+      const periodEnd = moment(busyPeriod.end);
       // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
-      return slotStart.isBefore(busyPeriod.end) && slotEnd.isAfter(busyPeriod.start);
+      return slotStart.isBefore(periodEnd) && slotEnd.isAfter(periodStart);
     });
-  }, [busyPeriods, stepMinutes]);
+
+    if (!event) {
+      return { event: null, showTitle: false };
+    }
+
+    // Show title only if this is the first slot of the event (or close to it)
+    const eventStart = moment(event.start);
+    const showTitle = slotStart.isSameOrAfter(eventStart) && 
+                      slotStart.isBefore(eventStart.clone().add(stepMinutes, 'minutes'));
+
+    return { event, showTitle };
+  }, [busyTimes, stepMinutes, busyPeriods.length]);
 
   const toggleCell = useCallback((dateOnly: Date, minutesFromMidnight: number) => {
     if (disabled) return;
@@ -241,11 +296,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       return;
     }
 
-    // Prevent selection of busy slots
-    if (isSlotBusy(localDateTime)) {
-      return;
-    }
-
+    // Allow selection even if there's a calendar event (user can choose to overbook)
     const utcIso = localDateTime.toISOString();
     const currentSelected = new Set(value);
 
@@ -256,7 +307,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     }
 
     memoizedOnChange(Array.from(currentSelected));
-  }, [disabled, computedMinDate, value, memoizedOnChange, isSlotBusy]);
+  }, [disabled, computedMinDate, value, memoizedOnChange]);
 
   const clearSelection = useCallback(() => {
     if (disabled || !value || value.length === 0) return;
@@ -345,27 +396,46 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       </div>
 
       <div className="table-responsive" style={{ maxHeight: CALENDAR_CONSTANTS.MAX_CALENDAR_HEIGHT }}>
-        <table className="table table-sm table-borderless align-middle mb-0" role="grid">
+        <table className="table table-sm table-borderless align-middle mb-0" role="grid" style={{ tableLayout: 'fixed' }}>
           <thead className="table-light position-sticky top-0" style={{ zIndex: 1 }}>
             <tr role="row">
-              {dayCols.map((d, idx) => (
-                <th
-                  key={idx}
-                  className="text-center small"
-                  style={{ minWidth: CALENDAR_CONSTANTS.MIN_COLUMN_WIDTH, padding: '2px 2px' }}
-                  scope="col"
-                  role="columnheader"
-                >
-                  <div className="d-flex flex-column align-items-center lh-1">
-                    <span className="text-uppercase small">
-                      {d.toLocaleDateString(undefined, { weekday: 'short' })}
-                    </span>
-                    <span className="small text-muted">
-                      {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-                </th>
-              ))}
+              {dayCols.map((d, idx) => {
+                const dateKey = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                const dayEvents = allDayEvents.get(dateKey) || [];
+                
+                return (
+                  <th
+                    key={idx}
+                    className="text-center small p-1"
+                    scope="col"
+                    role="columnheader"
+                  >
+                    <div className="d-flex flex-column align-items-center lh-1">
+                      <span className="text-uppercase small">
+                        {d.toLocaleDateString(undefined, { weekday: 'short' })}
+                      </span>
+                      <span className="small text-muted">
+                        {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    {/* All-day events */}
+                    {dayEvents.length > 0 && (
+                      <div className="mt-1">
+                        {dayEvents.map((evt, evtIdx) => (
+                          <div 
+                            key={evtIdx}
+                            className="badge bg-secondary-subtle text-secondary-emphasis text-truncate w-100 mb-1"
+                            style={{ fontSize: '0.65rem', fontWeight: 'normal' }}
+                            title={evt.title}
+                          >
+                            {evt.title}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -375,19 +445,20 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                   const localDateTime = makeLocalDateTime(d, m);
                   const iso = localDateTime.toISOString();
                   const selectedNow = isSelected(iso);
-                  const isBusy = isSlotBusy(localDateTime);
+                  const { event: calendarEvent, showTitle } = getSlotEvent(localDateTime);
+                  const hasEvent = !!calendarEvent;
                   const isPast = !isValidFutureDate(localDateTime, computedMinDate);
-                  const isDisabled = disabled || isBusy || isPast || isLoadingBusyTimes;
+                  const isDisabled = disabled || isPast || isLoadingBusyTimes;
 
                   return (
                     <td key={idx} className="p-0" role="gridcell">
                       <button
                         type="button"
-                        className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-2 shadow-none small ${
+                        className={`btn btn-sm w-100 border-0 rounded-0 py-2 px-1 shadow-none small position-relative ${
                           selectedNow
                             ? 'bg-primary text-white'
-                            : isBusy
-                            ? 'bg-warning bg-opacity-25 text-muted position-relative'
+                            : hasEvent
+                            ? 'bg-secondary-subtle text-body'
                             : isPast
                             ? 'bg-transparent text-muted'
                             : disabled
@@ -396,21 +467,33 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         }`}
                         style={{
                           minHeight: CALENDAR_CONSTANTS.MIN_BUTTON_HEIGHT,
-                          ...(isBusy ? {
-                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,.1) 4px, rgba(0,0,0,.1) 8px)'
+                          ...(hasEvent && !selectedNow ? {
+                            borderLeft: '3px solid var(--bs-secondary)',
                           } : {}),
                            ...(isLoadingBusyTimes ? { cursor: 'wait' } : {})
                         }}
                         onClick={() => toggleCell(d, m)}
                         disabled={isDisabled}
                         aria-pressed={selectedNow}
-                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${isBusy ? ` (${t('calendar.busySlot')})` : ''}`}
+                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${hasEvent ? ` (${calendarEvent.title})` : ''}`}
                         tabIndex={0}
-                        title={isBusy ? t('calendar.conflictWarning') : undefined}
+                        title={hasEvent ? calendarEvent.title : undefined}
                       >
-                        {formatTimeDisplay(m)}
-                        {isBusy && (
-                          <i className="bi bi-calendar-x position-absolute top-0 end-0 me-1 mt-1" style={{ fontSize: '0.7rem', opacity: 0.7 }}></i>
+                        <span className="d-block" style={{ fontSize: '0.85rem' }}>
+                          {formatTimeDisplay(m)}
+                        </span>
+                        {hasEvent && showTitle && (
+                          <span 
+                            className="d-block text-secondary-emphasis text-truncate fw-medium" 
+                            style={{ 
+                              fontSize: '0.65rem',
+                              lineHeight: '1',
+                              marginTop: '2px',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {calendarEvent.title}
+                          </span>
                         )}
                       </button>
                     </td>

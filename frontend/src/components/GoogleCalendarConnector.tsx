@@ -234,26 +234,23 @@ const GoogleCalendarConnector: React.FC<GoogleCalendarConnectorProps> = ({
     }
 
     return (
-      <div className="d-flex flex-column gap-2">
-        <div className="d-flex align-items-center justify-content-between">
-          <div className="d-flex align-items-center">
-            <i className="bi bi-calendar-check text-success me-2"></i>
-            <span className="text-success">{t('calendar.connected')}</span>
-          </div>
-          <button
-            className="btn btn-outline-secondary btn-sm"
-            onClick={handleDisconnect}
-            disabled={isLoading}
-          >
-            {t('calendar.disconnect')}
-          </button>
+      <div className="d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center">
+          <i className="bi bi-calendar-check text-success me-2"></i>
+          <span className="text-success fw-medium">{t('calendar.connected')}</span>
+          {connectionStatus.provider && (
+            <small className="text-muted ms-2">
+              ({connectionStatus.provider})
+            </small>
+          )}
         </div>
-
-        {connectionStatus.provider && (
-          <small className="text-muted">
-            {t('calendar.provider')}: {connectionStatus.provider}
-          </small>
-        )}
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={handleDisconnect}
+          disabled={isLoading}
+        >
+          {t('calendar.disconnect')}
+        </button>
       </div>
     );
   };

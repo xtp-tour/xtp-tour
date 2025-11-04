@@ -27,8 +27,8 @@ type CalendarConnectionStatusResponse struct {
 
 // CalendarBusyTimesRequest represents request for busy times
 type CalendarBusyTimesRequest struct {
-	TimeMin time.Time `json:"timeMin"`
-	TimeMax time.Time `json:"timeMax"`
+	TimeMin time.Time `query:"timeMin"`
+	TimeMax time.Time `query:"timeMax"`
 }
 
 // CalendarBusyPeriod represents a busy time period

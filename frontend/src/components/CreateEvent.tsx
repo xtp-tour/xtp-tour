@@ -551,14 +551,18 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   </label>
                 </div>
 
-                <div className="mb-3 p-3 bg-light rounded">
-                  <h6 className="mb-2 d-flex align-items-center">
-                    <i className="bi bi-calendar-plus me-2"></i>
-                    {t('createEvent.form.calendarIntegration')}
-                  </h6>
-                  <p className="small text-muted mb-2">
-                    {t('createEvent.form.calendarIntegrationDesc')}
-                  </p>
+                <div className={`mb-3 ${calendarConnected ? 'p-2' : 'p-3'} bg-light rounded`}>
+                  {!calendarConnected && (
+                    <>
+                      <h6 className="mb-2 d-flex align-items-center">
+                        <i className="bi bi-calendar-plus me-2"></i>
+                        {t('createEvent.form.calendarIntegration')}
+                      </h6>
+                      <p className="small text-muted mb-2">
+                        {t('createEvent.form.calendarIntegrationDesc')}
+                      </p>
+                    </>
+                  )}
                   <GoogleCalendarConnector
                     onConnectionChange={setCalendarConnected}
                     className="mb-0"
