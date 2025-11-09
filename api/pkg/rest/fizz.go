@@ -36,7 +36,9 @@ func NewFizzRouter(httpConfig *pkg.HttpConfig, isDebug bool) *fizz.Fizz {
 	}
 
 	g := gin.Default()
-	g.Use(gin.Logger())
+	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipPaths: []string{"/api/ping"},
+	}))
 	g.Use(cors.New(*httpConfig.Cors))
 
 	m := ginmetrics.GetMonitor()
