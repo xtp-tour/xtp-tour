@@ -14,9 +14,10 @@ import { useTranslation } from 'react-i18next';
 
 interface Props {
   onEventJoined?: () => void;
+  layout?: 'list' | 'grid';
 }
 
-const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
+const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) => {
   const { t } = useTranslation();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
@@ -82,91 +83,107 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined }) => {
     );
   }
 
+  const renderEvent = (event: ApiEvent) => {
+    // Convert event time slots to the format expected by BaseEventItem
+    const timeSlots: TimeSlot[] = event.timeSlots.map(slot =>
+      timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
+    );
+
+    // Handle share functionality
+    const handleShareEvent = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setShareEventId(event.id || '');
+      setShowShareModal(true);
+    };
+
+    // Get share button
+    const getShareButton = () => {
+      return <ShareButton onClick={handleShareEvent} />;
+    };
+
+    // Get action button for joining
+    const getActionButton = () => {
+      if (!isSignedIn) {
+        return {
+          variant: 'outline-secondary',
+          icon: 'bi-person-plus',
+          label: t('eventActions.signInToJoin'),
+          onClick: () => {
+            // This will be handled by the SignInButton in the header
+          }
+        };
+      }
+
+      // Check if user is the event owner
+      const isOwner = user?.id === event.userId;
+
+      // Check if event is open for joining
+      const isEventOpen = event.status === 'OPEN';
+
+      // Check if user has already joined the event (only count explicitly accepted requests)
+      const hasAlreadyJoined = event.joinRequests?.some(
+        req => req.userId === user?.id && req.isRejected === false
+      );
+
+      // Hide button if user owns the event, event is not open, or user has already joined
+      if (isOwner || !isEventOpen || hasAlreadyJoined) {
+        return {
+          variant: 'outline-primary',
+          icon: 'bi-plus-circle',
+          label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
+          onClick: () => {},
+          hidden: true
+        };
+      }
+
+      return {
+        variant: 'outline-primary',
+        icon: 'bi-plus-circle',
+        label: t('eventActions.join'),
+        onClick: () => handleJoinEvent(event)
+      };
+    };
+
+    return (
+      <BaseEventItem
+        event={event}
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
+        headerSubtitle={
+          <HostDisplay
+            userId={event.userId || ''}
+            fallback={t('host.unknownUser')}
+            showAsPlainText={!isSignedIn}
+          />
+        }
+        colorClass="text-primary"
+        timeSlots={timeSlots}
+        timestamp={moment(event.createdAt)}
+        actionButton={getActionButton()}
+        shareButton={getShareButton()}
+        defaultCollapsed={true}
+      />
+    );
+  };
+
   return (
-    <div>      {events.map(event => {
-        // Convert event time slots to the format expected by BaseEventItem
-        const timeSlots: TimeSlot[] = event.timeSlots.map(slot =>
-          timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
-        );
-
-        // Handle share functionality
-        const handleShareEvent = (e: React.MouseEvent) => {
-          e.stopPropagation();
-          e.preventDefault();
-          setShareEventId(event.id || '');
-          setShowShareModal(true);
-        };
-
-        // Get share button
-        const getShareButton = () => {
-          return <ShareButton onClick={handleShareEvent} />;
-        };
-
-        // Get action button for joining
-        const getActionButton = () => {
-          if (!isSignedIn) {
-            return {
-              variant: 'outline-secondary',
-              icon: 'bi-person-plus',
-              label: t('eventActions.signInToJoin'),
-              onClick: () => {
-                // This will be handled by the SignInButton in the header
-              }
-            };
-          }
-
-          // Check if user is the event owner
-          const isOwner = user?.id === event.userId;
-
-          // Check if event is open for joining
-          const isEventOpen = event.status === 'OPEN';
-
-          // Check if user has already joined the event (only count explicitly accepted requests)
-          const hasAlreadyJoined = event.joinRequests?.some(
-            req => req.userId === user?.id && req.isRejected === false
-          );
-
-          // Hide button if user owns the event, event is not open, or user has already joined
-          if (isOwner || !isEventOpen || hasAlreadyJoined) {
-            return {
-              variant: 'outline-primary',
-              icon: 'bi-plus-circle',
-              label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
-              onClick: () => {},
-              hidden: true
-            };
-          }
-
-          return {
-            variant: 'outline-primary',
-            icon: 'bi-plus-circle',
-            label: t('eventActions.join'),
-            onClick: () => handleJoinEvent(event)
-          };
-        };
-
-        return (
+    <div>
+      {/* Mobile: Always list view */}
+      <div className="d-md-none">
+        {events.map(event => (
           <div key={event.id} className="mb-3">
-            <BaseEventItem
-              event={event}
-              headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
-              headerSubtitle={
-                <HostDisplay
-                  userId={event.userId || ''}
-                  fallback={t('host.unknownUser')}
-                  showAsPlainText={!isSignedIn}
-                />
-              }
-                colorClass="text-primary"
-                timeSlots={timeSlots}
-              timestamp={moment(event.createdAt)}
-              actionButton={getActionButton()}
-              shareButton={getShareButton()}
-              defaultCollapsed={true}
-            />
+            {renderEvent(event)}
           </div>
-        );
-      })}
+        ))}
+      </div>
+      {/* Desktop: Grid or list based on toggle */}
+      <div className={layout === 'grid' ? 'row g-3 d-none d-md-flex' : 'd-none d-md-block'}>
+        {events.map(event => (
+          <div key={event.id} className={layout === 'grid' ? 'col-md-6' : 'mb-3'}>
+            {renderEvent(event)}
+          </div>
+        ))}
+      </div>
 
       {selectedEvent && selectedEvent.id && isSignedIn && (
         <JoinEventModal

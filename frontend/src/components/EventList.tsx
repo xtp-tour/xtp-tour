@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import MyEventItem from './MyEventItem';
 import JoinedEventItem from './JoinedEventItem';
@@ -42,31 +42,6 @@ const transformEventData = (event: Event): DisplayEvent => {
   };
 };
 
-interface SectionHeaderProps {
-  title: string;
-  count: number;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, isExpanded, onToggle }) => (
-  <div
-    className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom cursor-pointer"
-    onClick={onToggle}
-    style={{ cursor: 'pointer', borderBottomColor: 'var(--tennis-light)' }}
-  >
-    <div className="d-flex align-items-center gap-2">
-      <h2 className="h4 mb-0" style={{ color: 'var(--tennis-navy)' }}>{title}</h2>
-      <span className="badge rounded-pill" style={{
-        backgroundColor: 'var(--tennis-accent)',
-        color: 'var(--tennis-navy)',
-        minWidth: '24px'
-      }}>{count}</span>
-    </div>
-    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} fs-4`} style={{ color: 'var(--tennis-navy)' }}></i>
-  </div>
-);
-
 const EventList = forwardRef<EventListRef>((_, ref) => {
   const { t } = useTranslation();
   const api = useAPI();
@@ -76,22 +51,11 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
   const [joinedEvents, setJoinedEvents] = useState<DisplayEvent[]>([]);
   const [availableEvents, setAvailableEvents] = useState<DisplayEvent[]>([]);
 
-  // State for section expansion
-  const [expandedSections, setExpandedSections] = useState({
-    myEvents: true,
-    joinedEvents: true,
-    availableEvents: true
-  });
-
   // State for active tab
   const [activeTab, setActiveTab] = useState<'toJoin' | 'myEvents' | 'joinedEvents'>('toJoin');
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  // State for layout (list or grid) - only applies on desktop
+  const [layout, setLayout] = useState<'list' | 'grid'>('list');
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -126,7 +90,7 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
   // Filter events based on their status and ownership
   const myOpenEvents = myEvents
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
-  
+
   const joinedEventsSorted = joinedEvents
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
@@ -152,7 +116,9 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
     <div className="mt-4">
       {/* Tab Navigation */}
       <div className="mb-4">
-        <ul className="nav nav-pills nav-fill" role="tablist">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="flex-grow-1">
+            <ul className="nav nav-pills nav-fill" role="tablist">
           <li className="nav-item" role="presentation">
             <button
               className={`nav-link d-flex align-items-center justify-content-center flex-wrap gap-1 ${activeTab === 'toJoin' ? 'active' : ''}`}
@@ -245,6 +211,29 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
             </button>
           </li>
         </ul>
+          </div>
+          {/* Layout Toggle - Only visible on desktop */}
+          <div className="d-none d-md-flex ms-3 align-items-center gap-2">
+            <button
+              type="button"
+              className={`btn btn-sm ${layout === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setLayout('list')}
+              aria-label="List view"
+              title="List view"
+            >
+              <i className="bi bi-list-ul"></i>
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${layout === 'grid' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setLayout('grid')}
+              aria-label="Grid view"
+              title="Grid view"
+            >
+              <i className="bi bi-grid-3x2-gap"></i>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Tab Content */}
@@ -252,49 +241,34 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
         {/* Events to Join Tab */}
         {activeTab === 'toJoin' && (
           <div className="tab-pane fade show active">
-            <section className="mb-5">
-              <SectionHeader
-                title={t('eventList.sections.availableEventsToJoin')}
-                count={availableEvents.length}
-                isExpanded={expandedSections.availableEvents}
-                onToggle={() => toggleSection('availableEvents')}
-              />
-              {expandedSections.availableEvents && (
-                <PublicEventList
-                  onEventJoined={() => {
-                    // Refresh joined events when a user joins an event
-                    api.listJoinedEvents()
-                      .then(response => {
-                        setJoinedEvents((response.events || []).map(transformEventData));
-                      })
-                      .catch(err => {
-                        console.error("Failed to refresh joined events:", err);
-                      });
-                  }}
-                />
-              )}
-            </section>
+            <PublicEventList
+              layout={layout}
+              onEventJoined={() => {
+                // Refresh joined events when a user joins an event
+                api.listJoinedEvents()
+                  .then(response => {
+                    setJoinedEvents((response.events || []).map(transformEventData));
+                  })
+                  .catch(err => {
+                    console.error("Failed to refresh joined events:", err);
+                  });
+              }}
+            />
           </div>
         )}
 
         {/* My Events Tab */}
         {activeTab === 'myEvents' && (
           <div className="tab-pane fade show active">
-            <section className="mb-5">
-              <SectionHeader
-                title={t('eventList.sections.yourEvents')}
-                count={myOpenEvents.length}
-                isExpanded={expandedSections.myEvents}
-                onToggle={() => toggleSection('myEvents')}
-              />
-              {expandedSections.myEvents && (
-                myOpenEvents.length === 0 ? (
-                  <p className="text-muted">{t('eventList.empty.noEventsCreated')}</p>
-                ) : (
-                  <div>
-                    {myOpenEvents.map(event => (
+            {myOpenEvents.length === 0 ? (
+              <p className="text-muted">{t('eventList.empty.noEventsCreated')}</p>
+            ) : (
+              <>
+                {/* Mobile: Always list view */}
+                <div className="d-md-none">
+                  {myOpenEvents.map(event => (
+                    <div key={event.id} className="mb-3">
                       <MyEventItem
-                        key={event.id}
                         event={event}
                         onDelete={async (id) => {
                           try {
@@ -315,32 +289,54 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
                             });
                         }}
                       />
-                    ))}
-                  </div>
-                )
-              )}
-            </section>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: Grid or list based on toggle */}
+                <div className={layout === 'grid' ? 'row g-3 d-none d-md-flex' : 'd-none d-md-block'}>
+                  {myOpenEvents.map(event => (
+                    <div key={event.id} className={layout === 'grid' ? 'col-md-6' : 'mb-3'}>
+                      <MyEventItem
+                        event={event}
+                        onDelete={async (id) => {
+                          try {
+                            await api.deleteEvent(id);
+                            setMyEvents(prev => prev.filter(ev => ev.id !== id));
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : 'Failed to delete event');
+                          }
+                        }}
+                        onEventUpdated={() => {
+                          // Refresh all event lists when an event is confirmed
+                          api.listEvents()
+                            .then(response => {
+                              setMyEvents((response.events || []).map(transformEventData));
+                            })
+                            .catch(err => {
+                              console.error("Failed to refresh events:", err);
+                            });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
         {/* Joined Events Tab */}
         {activeTab === 'joinedEvents' && (
           <div className="tab-pane fade show active">
-            <section className="mb-5">
-              <SectionHeader
-                title={t('eventList.sections.joinedEvents')}
-                count={joinedEventsSorted.length}
-                isExpanded={expandedSections.joinedEvents}
-                onToggle={() => toggleSection('joinedEvents')}
-              />
-              {expandedSections.joinedEvents && (
-                joinedEventsSorted.length === 0 ? (
-                  <p className="text-muted">{t('eventList.empty.noEventsJoined')}</p>
-                ) : (
-                  <div>
-                    {joinedEventsSorted.map(event => (
+            {joinedEventsSorted.length === 0 ? (
+              <p className="text-muted">{t('eventList.empty.noEventsJoined')}</p>
+            ) : (
+              <>
+                {/* Mobile: Always list view */}
+                <div className="d-md-none">
+                  {joinedEventsSorted.map(event => (
+                    <div key={event.id} className="mb-3">
                       <JoinedEventItem
-                        key={event.id}
                         event={event}
                         onCancelled={() => {
                           // Refresh joined events after cancellation
@@ -353,11 +349,31 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
                             });
                         }}
                       />
-                    ))}
-                  </div>
-                )
-              )}
-            </section>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: Grid or list based on toggle */}
+                <div className={layout === 'grid' ? 'row g-3 d-none d-md-flex' : 'd-none d-md-block'}>
+                  {joinedEventsSorted.map(event => (
+                    <div key={event.id} className={layout === 'grid' ? 'col-md-6' : 'mb-3'}>
+                      <JoinedEventItem
+                        event={event}
+                        onCancelled={() => {
+                          // Refresh joined events after cancellation
+                          api.listJoinedEvents()
+                            .then(response => {
+                              setJoinedEvents((response.events || []).map(transformEventData));
+                            })
+                            .catch(err => {
+                              console.error("Failed to refresh joined events:", err);
+                            });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
