@@ -8,7 +8,7 @@ import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
-import { useShareEvent } from '../hooks/useShareEvent';
+import ShareEventModal from './ShareEventModal';
 import { BADGE_STYLES } from '../styles/badgeStyles';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
@@ -27,16 +27,12 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const [error, setError] = useState<string | null>(null);
   const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
   const [showToast, setShowToast] = useState(false);
-  
-  const { shareEvent } = useShareEvent({
-    eventId: event.id || '',
-    onSuccess: () => setShowToast(true)
-  });
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Find the user's join request
   useEffect(() => {
     if (event.joinRequests?.length && user?.id) {
-      const foundRequest = event.joinRequests.find(req => 
+      const foundRequest = event.joinRequests.find(req =>
         req.userId === user.id
       );
       setUserJoinRequest(foundRequest || null);
@@ -93,10 +89,10 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   const timeSlots: TimeSlot[] = event.timeSlots.map(slot => {
     // Check if this slot is in the user's selected time slots
     const isUserSelected = userJoinRequest?.timeSlots?.includes(slot);
-    
+
     // Use the existing function with enhanced logic to consider user's selection
     return timeSlotFromDateAndConfirmation(
-      slot, 
+      slot,
       event.confirmation,
       isTimeSlotAvailable,
       isUserSelected
@@ -111,7 +107,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   // Get user's join request status with badge info
   const getJoinRequestStatus = () => {
     if (!userJoinRequest) return { text: '', variant: 'text-bg-secondary' };
-    
+
     if (userJoinRequest.isRejected === true) {
       return { text: t('joinRequests.rejected'), variant: 'text-bg-danger' };
     } else if (userJoinRequest.isRejected === false) {
@@ -160,7 +156,12 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
   };
 
   const getShareButton = () => {
-    return <ShareButton onClick={shareEvent} />;
+    const handleShareEvent = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setShowShareModal(true);
+    };
+    return <ShareButton onClick={handleShareEvent} />;
   };
 
   return (
@@ -240,8 +241,16 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         onHide={() => setShowToast(false)}
         type="success"
       />
+
+      {/* Share Event Modal */}
+      <ShareEventModal
+        show={showShareModal}
+        onHide={() => setShowShareModal(false)}
+        eventId={event.id || ''}
+        onShared={() => setShowToast(true)}
+      />
     </>
   );
 };
 
-export default JoinedEventItem; 
+export default JoinedEventItem;

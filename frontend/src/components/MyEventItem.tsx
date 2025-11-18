@@ -8,7 +8,7 @@ import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
-import { useShareEvent } from '../hooks/useShareEvent';
+import ShareEventModal from './ShareEventModal';
 import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -25,14 +25,10 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  
-  const { shareEvent } = useShareEvent({
-    eventId: event.id || '',
-    onSuccess: () => setShowToast(true)
-  });
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Convert event time slots to the format expected by BaseEventItem
-  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation, true));  
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => timeSlotFromDateAndConfirmation(slot, event.confirmation, true));
 
   const handleDelete = async () => {
     setShowDeleteModal(true);
@@ -60,9 +56,9 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
 
   // Determine if the event can be confirmed
   const canConfirmEvent = () => {
-    return (event.status === 'OPEN' || event.status === 'ACCEPTED') && 
-           !event.confirmation && 
-           event.joinRequests && 
+    return (event.status === 'OPEN' || event.status === 'ACCEPTED') &&
+           !event.confirmation &&
+           event.joinRequests &&
            event.joinRequests.length > 0;
   };
 
@@ -79,7 +75,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         hidden: true // This will be used to completely hide the button
       };
     }
-    
+
     if (canConfirmEvent()) {
       return {
         variant: 'outline-success',
@@ -88,7 +84,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         onClick: handleConfirmEvent
       };
     }
-    
+
     return {
       variant: 'outline-danger',
       icon: 'bi-x-circle',
@@ -98,7 +94,12 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
   };
 
   const getShareButton = () => {
-    return <ShareButton onClick={shareEvent} />;
+    const handleShareEvent = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setShowShareModal(true);
+    };
+    return <ShareButton onClick={handleShareEvent} />;
   };
 
   // Get color based on event status
@@ -161,8 +162,16 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         onHide={() => setShowToast(false)}
         type="success"
       />
+
+      {/* Share Event Modal */}
+      <ShareEventModal
+        show={showShareModal}
+        onHide={() => setShowShareModal(false)}
+        eventId={event.id || ''}
+        onShared={() => setShowToast(true)}
+      />
     </>
   );
 };
 
-export default MyEventItem; 
+export default MyEventItem;
