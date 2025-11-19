@@ -11,7 +11,7 @@
   "landing": {
     "hero": {
       "title": "Tennis scheduling made simple",
-      "subtitle": "No more back-and-forth texting to arrange tennis games. Set your availability, share your session, and let players book time with you automatically.",
+      "subtitle": "No more back-and-forth texting to arrange tennis games. Set your availability, share your session, and let players book time with you.",
       "createLink": "Create Your Tennis Link",
       "findPartners": "Find Tennis Partners",
       "alreadyHaveAccount": "Already have an account?",
@@ -55,7 +55,7 @@
     },
     "gameTypes": {
       "title": "Your tennis, your way",
-      "subtitle": "Set your preferences once and let players book the perfect session with you automatically.",
+      "subtitle": "Set your preferences once and let players book the perfect session with you.",
       "competitive": "Competitive matches - Singles games with scoring",
       "training": "Training sessions - Practice and skill development",
       "doubles": "Doubles matches - 4-player team games",
