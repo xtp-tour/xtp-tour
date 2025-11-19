@@ -14,6 +14,7 @@ import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
+import logoImage from './assets/xtp-tour-logo.png';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -30,9 +31,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="container py-4">
         <header className="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center">
-            <i className="bi bi-trophy-fill tennis-accent me-2 fs-3"></i>
+            <img src={logoImage} alt="XTP Tour Logo" className="me-2" style={{ height: '32px', width: 'auto', maxWidth: '120px' }} />
             <Link to="/" className="text-decoration-none">
-              <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>{t('app.title')}</h1>
+              <h1 className="h2 mb-0" style={{
+                color: 'var(--tennis-navy)',
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                fontSize: '1.75rem',
+                lineHeight: '1.0',
+                textTransform: 'uppercase'
+              }}>{t('app.title')}</h1>
             </Link>
           </div>
           <div className="d-flex align-items-center gap-2">

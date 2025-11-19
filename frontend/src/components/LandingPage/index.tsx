@@ -2,13 +2,14 @@ import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
+import logoImage from '../../assets/xtp-tour-logo.png';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const LandingPage: React.FC = () => {
   const { t } = useTranslation();
-  
+
   const flowSteps = [
     {
       icon: 'bi-calendar-plus',
@@ -37,7 +38,7 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <div className="hero-section text-center mb-5">
         <div className="hero-icon mb-3">
-          <i className="bi bi-trophy-fill tennis-accent" style={{ fontSize: '4rem' }}></i>
+          <img src={logoImage} alt="XTP Tour Logo" style={{ height: '80px', width: 'auto', maxWidth: '300px' }} />
         </div>
         <h1 className="display-4 mb-3" style={{ color: 'var(--tennis-navy)' }}>
           {t('landing.hero.title')}
@@ -87,7 +88,7 @@ const LandingPage: React.FC = () => {
               </button>
             )}
           </div>
-          
+
           <div className="text-center">
             {isClerkAvailable ? (
               <SignInButton mode="modal">
@@ -218,7 +219,7 @@ const LandingPage: React.FC = () => {
         <div className="cta-section text-center mt-5 p-5 rounded-3">
           <h3 className="mb-3">{t('landing.cta.title')}</h3>
           <p className="mb-4">{t('landing.cta.subtitle')}</p>
-          
+
           <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
             {isClerkAvailable ? (
               <>

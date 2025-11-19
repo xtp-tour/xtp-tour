@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "Xtp Tour",
-    "version": "Xtp Tour v{{version}}"
+    "title": "XTP Tour",
+    "version": "XTP Tour v{{version}}"
   },
   "auth": {
     "signIn": "Se connecter",
