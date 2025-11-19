@@ -1,266 +1,204 @@
 import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
-import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
-import logoImage from '../../assets/xtp-tour-logo.png';
 
-// Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const LandingPage: React.FC = () => {
-  const { t } = useTranslation();
-
-  const flowSteps = [
+  const steps = [
     {
-      icon: 'bi-calendar-plus',
-      title: t('landing.howItWorks.steps.step1.title'),
-      description: t('landing.howItWorks.steps.step1.description')
+      icon: 'bi-calendar3',
+      title: 'Set the session',
+      description: 'Choose format, preferred courts, time windows, player count, and an NTRP range.'
     },
     {
-      icon: 'bi-share',
-      title: t('landing.howItWorks.steps.step2.title'),
-      description: t('landing.howItWorks.steps.step2.description')
+      icon: 'bi-link-45deg',
+      title: 'Share the link',
+      description: 'Send it to friends or keep it discoverable for nearby players.'
     },
     {
-      icon: 'bi-calendar-check',
-      title: t('landing.howItWorks.steps.step3.title'),
-      description: t('landing.howItWorks.steps.step3.description')
+      icon: 'bi-clipboard-check',
+      title: 'Review requests',
+      description: 'See who matches your slots and confirm the lineup.'
     },
     {
-      icon: 'bi-trophy',
-      title: t('landing.howItWorks.steps.step4.title'),
-      description: t('landing.howItWorks.steps.step4.description')
+      icon: 'bi-balloon-heart',
+      title: 'Sync & play',
+      description: 'Send confirmations and push the session to Google Calendar.'
     }
   ];
 
+  const features = [
+    {
+      icon: 'bi-star',
+      title: 'Easy coordination',
+      description: 'Manage time windows, courts, and flexible player counts in minutes.'
+    },
+    {
+      icon: 'bi-shuffle',
+      title: 'Partner matching',
+      description: 'NTRP filters and join requests keep skill levels predictable.'
+    },
+    {
+      icon: 'bi-calendar-week',
+      title: 'Calendar integration',
+      description: 'Optional Google Calendar sync blocks conflicts automatically.'
+    },
+    {
+      icon: 'bi-translate',
+      title: 'Share anywhere',
+      description: 'A single link works for chats, clubs, or public discovery pages.'
+    }
+  ];
+
+  const gameTypes = [
+    { label: 'Singles matches', description: 'Straightforward two-player challenges.' },
+    { label: 'Training sessions', description: 'Hitting practice, drills, or coaching time.' },
+    {
+      label: 'Doubles & group play (coming soon)',
+      description: 'Flexible slots for up to four players when doubles support lands.'
+    }
+  ];
+
+  const controls = [
+    'Multiple venues in one invite',
+    '7-day availability grid',
+    'Session length control (1–4 hours)',
+    'Player count from 1-on-1 to four players',
+    'NTRP filters for every level',
+    'Optional notes for drills or match details'
+  ];
+
+  const disabledTitle = 'Coming soon';
+
+  const renderPrimaryButton = (label: string, icon: string) =>
+    isClerkAvailable ? (
+      <SignUpButton mode="modal">
+        <button className="lp-btn lp-btn-primary">
+          <i className={`bi ${icon} me-2`} />
+          {label}
+        </button>
+      </SignUpButton>
+    ) : (
+      <button className="lp-btn lp-btn-primary" disabled title={disabledTitle}>
+        <i className={`bi ${icon} me-2`} />
+        {label}
+      </button>
+    );
+
+  const renderSecondaryButton = (label: string, icon: string) =>
+    isClerkAvailable ? (
+      <SignUpButton mode="modal">
+        <button className="lp-btn lp-btn-secondary">
+          <i className={`bi ${icon} me-2`} />
+          {label}
+        </button>
+      </SignUpButton>
+    ) : (
+      <button className="lp-btn lp-btn-secondary" disabled title={disabledTitle}>
+        <i className={`bi ${icon} me-2`} />
+        {label}
+      </button>
+    );
+
   return (
-    <div className="landing-page">
-      {/* Hero Section */}
-      <div className="hero-section text-center mb-5">
-        <div className="hero-icon mb-3">
-          <img src={logoImage} alt="XTP Tour Logo" style={{ height: '80px', width: 'auto', maxWidth: '300px' }} />
-        </div>
-        <h1 className="display-4 mb-3" style={{ color: 'var(--tennis-navy)' }}>
-          {t('landing.hero.title')}
-        </h1>
-        <p className="lead text-muted mb-4">
-          {t('landing.hero.subtitle')}
+    <div className="landing">
+      <header className="lp-hero text-center">
+        <h1 className="lp-hero-title">Schedule tennis without the group chat</h1>
+        <p className="lp-hero-subtitle">
+          Set your courts, time windows, and player level once. Share a link so partners pick the slot
+          that works.
         </p>
-
-        {/* Action Buttons */}
-        <div className="hero-actions">
-          <div className="d-flex flex-column flex-md-row justify-content-center gap-3 mb-4">
-            {isClerkAvailable ? (
-              <SignUpButton mode="modal">
-                <button className="btn btn-primary btn-lg px-5 py-3">
-                  <i className="bi bi-calendar-plus me-2"></i>
-                  {t('landing.hero.createLink')}
-                </button>
-              </SignUpButton>
-            ) : (
-              <button
-                className="btn btn-primary btn-lg px-5 py-3"
-                disabled
-                style={{ opacity: 0.6 }}
-                title={t('auth.comingSoon')}
-              >
-                <i className="bi bi-calendar-plus me-2"></i>
-                {t('landing.hero.createLink')}
+        <div className="lp-hero-actions">
+          {renderPrimaryButton('Create a session', 'bi-calendar-plus')}
+          {renderSecondaryButton('Browse public sessions', 'bi-search')}
+        </div>
+        <p className="lp-microcopy">No login needed to view public events.</p>
+        <div className="lp-signin">
+          {isClerkAvailable ? (
+            <SignInButton mode="modal">
+              <button className="lp-link">
+                Already using XTP Tour? <span>Sign in</span>
               </button>
-            )}
-
-            {isClerkAvailable ? (
-              <SignUpButton mode="modal">
-                <button className="btn btn-outline-primary btn-lg px-5 py-3">
-                  <i className="bi bi-search me-2"></i>
-                  {t('landing.hero.findPartners')}
-                </button>
-              </SignUpButton>
-            ) : (
-              <button
-                className="btn btn-outline-primary btn-lg px-5 py-3"
-                disabled
-                style={{ opacity: 0.6 }}
-                title={t('auth.comingSoon')}
-              >
-                <i className="bi bi-search me-2"></i>
-                {t('landing.hero.findPartners')}
-              </button>
-            )}
-          </div>
-
-          <div className="text-center">
-            {isClerkAvailable ? (
-              <SignInButton mode="modal">
-                <button className="btn btn-link text-muted">
-                  {t('landing.hero.alreadyHaveAccount')} <span className="text-primary fw-semibold">{t('landing.hero.signInLink')}</span>
-                </button>
-              </SignInButton>
-            ) : (
-              <button
-                className="btn btn-link text-muted"
-                disabled
-                style={{ opacity: 0.6 }}
-                title={t('auth.comingSoon')}
-              >
-                {t('landing.hero.alreadyHaveAccount')} <span className="text-primary fw-semibold">{t('landing.hero.signInLink')}</span>
-              </button>
-            )}
-          </div>
+            </SignInButton>
+          ) : (
+            <button className="lp-link" disabled title={disabledTitle}>
+              Already using XTP Tour? <span>Sign in</span>
+            </button>
+          )}
         </div>
-      </div>
+      </header>
 
-      {/* How It Works Section */}
-      <div className="how-it-works">
-        <div className="text-center mb-4">
-          <h2 className="h3 mb-3" style={{ color: 'var(--tennis-navy)' }}>{t('landing.howItWorks.title')}</h2>
-          <p className="text-muted">{t('landing.howItWorks.subtitle')}</p>
-        </div>
-
-        <div className="flow-container">
-          <div className="flow-steps">
-            {flowSteps.map((step, index) => (
-              <React.Fragment key={index}>
-                <div className="flow-step">
-                  <div className="step-icon">
-                    <i className={`bi ${step.icon}`}></i>
-                  </div>
-                  <div className="step-content">
-                    <h6 className="step-title">{step.title}</h6>
-                    <p className="step-description">{step.description}</p>
-                  </div>
-                </div>
-                {index < flowSteps.length - 1 && (
-                  <div className="flow-connector" />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="features mt-5">
-          <div className="row">
-            <div className="col-md-4 mb-4">
-              <div className="feature-card text-center">
-                <div className="feature-icon">
-                  <i className="bi bi-clock-history" style={{ fontSize: '2.8rem' }}></i>
-                </div>
-                <h5>{t('landing.features.saveTime.title')}</h5>
-                <p className="text-muted">{t('landing.features.saveTime.description')}</p>
+      <section className="lp-section">
+        <p className="lp-eyebrow">How it works</p>
+        <h2 className="lp-section-title">A quick flow built for real players.</h2>
+        <div className="lp-steps">
+          {steps.map((step) => (
+            <div key={step.title} className="lp-card lp-step-card">
+              <div className="lp-step-icon">
+                <i className={`bi ${step.icon}`} />
               </div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
             </div>
-            <div className="col-md-4 mb-4">
-              <div className="feature-card text-center">
-                <div className="feature-icon">
-                  <i className="bi bi-people-fill" style={{ fontSize: '2.8rem' }}></i>
-                </div>
-                <h5>{t('landing.features.workTogether.title')}</h5>
-                <p className="text-muted">{t('landing.features.workTogether.description')}</p>
+          ))}
+        </div>
+      </section>
+
+      <section className="lp-section">
+        <p className="lp-eyebrow">Why players stick around</p>
+        <h2 className="lp-section-title">Everything you need for fast coordination.</h2>
+        <div className="lp-features">
+          {features.map((feature) => (
+            <div key={feature.title} className="lp-card lp-feature-card">
+              <div className="lp-feature-icon">
+                <i className={`bi ${feature.icon}`} />
               </div>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
             </div>
-            <div className="col-md-4 mb-4">
-              <div className="feature-card text-center">
-                <div className="feature-icon">
-                  <i className="bi bi-graph-up" style={{ fontSize: '2.8rem' }}></i>
+          ))}
+        </div>
+      </section>
+
+      <section className="lp-section lp-game-types">
+        <div className="lp-game-content lp-card">
+          <div>
+            <p className="lp-eyebrow">Game types</p>
+            <h2 className="lp-section-title">Pick the format and number of players.</h2>
+            <div className="lp-game-list">
+              {gameTypes.map((type) => (
+                <div key={type.label}>
+                  <strong>{type.label}</strong>
+                  <p>{type.description}</p>
                 </div>
-                <h5>{t('landing.features.playMore.title')}</h5>
-                <p className="text-muted">{t('landing.features.playMore.description')}</p>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* Game Types Section */}
-        <div className="training-section text-center py-5 px-4 mb-4">
-          <div className="row align-items-center">
-            <div className="col-md-6 mb-4 mb-md-0">
-              <h3 className="h2 mb-3" style={{ color: 'var(--tennis-navy)' }}>{t('landing.gameTypes.title')}</h3>
-              <p className="text-muted mb-4">{t('landing.gameTypes.subtitle')}</p>
-              <div className="d-flex flex-column gap-2 text-start">
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-trophy text-primary me-3"></i>
-                  <div>
-                    <strong>{t('landing.gameTypes.competitive')}</strong>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-target text-primary me-3"></i>
-                  <div>
-                    <strong>{t('landing.gameTypes.training')}</strong>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center">
-                  <i className="bi bi-people text-primary me-3"></i>
-                  <div>
-                    <strong>{t('landing.gameTypes.doubles')}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="game-features">
-                <div className="feature-highlight p-4 rounded">
-                  <h5 className="mb-3">{t('landing.gameTypes.whatYouCanSet')}</h5>
-                  <ul className="list-unstyled text-start">
-                    <li className="mb-2"><i className="bi bi-geo-alt text-primary me-2"></i>{t('landing.gameTypes.features.multipleVenues')}</li>
-                    <li className="mb-2"><i className="bi bi-clock text-primary me-2"></i>{t('landing.gameTypes.features.flexibleTimeSlots')}</li>
-                    <li className="mb-2"><i className="bi bi-speedometer text-primary me-2"></i>{t('landing.gameTypes.features.skillLevelMatching')}</li>
-                    <li className="mb-2"><i className="bi bi-hourglass text-primary me-2"></i>{t('landing.gameTypes.features.sessionDuration')}</li>
-                    <li className="mb-2"><i className="bi bi-people text-primary me-2"></i>{t('landing.gameTypes.features.singlesOnly')}</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+          <div className="lp-controls">
+            <h3>What you control</h3>
+            <ul>
+              {controls.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <div className="lp-badge">Syncs with Google Calendar — optional but handy.</div>
           </div>
         </div>
+      </section>
 
-        {/* Call to Action */}
-        <div className="cta-section text-center mt-5 p-5 rounded-3">
-          <h3 className="mb-3">{t('landing.cta.title')}</h3>
-          <p className="mb-4">{t('landing.cta.subtitle')}</p>
-
-          <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            {isClerkAvailable ? (
-              <>
-                <SignUpButton mode="modal">
-                  <button className="btn btn-primary btn-lg px-4">
-                    <i className="bi bi-calendar-plus me-2"></i>
-                    {t('landing.cta.startScheduling')}
-                  </button>
-                </SignUpButton>
-                <SignUpButton mode="modal">
-                  <button className="btn btn-outline-light btn-lg px-4">
-                    <i className="bi bi-search me-2"></i>
-                    {t('landing.cta.findPartners')}
-                  </button>
-                </SignUpButton>
-              </>
-            ) : (
-              <>
-                <button
-                  className="btn btn-primary btn-lg px-4"
-                  disabled
-                  style={{ opacity: 0.6 }}
-                  title={t('auth.comingSoon')}
-                >
-                  <i className="bi bi-calendar-plus me-2"></i>
-                  {t('landing.cta.startScheduling')}
-                </button>
-                <button
-                  className="btn btn-outline-light btn-lg px-4"
-                  disabled
-                  style={{ opacity: 0.6 }}
-                  title={t('auth.comingSoon')}
-                >
-                  <i className="bi bi-search me-2"></i>
-                  {t('landing.cta.findPartners')}
-                </button>
-              </>
-            )}
-          </div>
+      <section className="lp-section lp-cta">
+        <p className="lp-eyebrow">Final serve</p>
+        <h2 className="lp-section-title">Plan your next session</h2>
+        <p className="lp-cta-text">
+          Share one link to line up the right time, place, and partners. Less chat, more court time.
+        </p>
+        <div className="lp-hero-actions">
+          {renderPrimaryButton('Start scheduling', 'bi-calendar-plus')}
+          {renderSecondaryButton('Find partners', 'bi-people')}
         </div>
-      </div>
+        <p className="lp-microcopy">Just browsing? View public sessions first.</p>
+      </section>
     </div>
   );
 };
