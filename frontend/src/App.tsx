@@ -23,7 +23,7 @@ if (!isClerkAvailable) {
   console.log('Clerk is not available');
 }
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = ({ children, showLanguageSwitcherInFooter = false }: { children: React.ReactNode, showLanguageSwitcherInFooter?: boolean }) => {
   const { t } = useTranslation();
 
   return (
@@ -44,17 +44,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               }}>{t('app.title')}</h1>
             </Link>
           </div>
-          <div className="d-flex align-items-center gap-2">
-            <LanguageSwitcherSimple />
+          <div className="d-flex align-items-center gap-1 ms-auto">
             {isClerkAvailable ? (
               <>
                 <SignedOut>
-                  <div className="d-flex gap-2">
+                  <div className="d-flex gap-1 gap-md-2">
                     <SignInButton mode="modal">
-                      <button className="btn btn-outline-primary" style={{ minWidth: '100px' }}>{t('auth.signIn')}</button>
+                      <button className="btn btn-outline-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>{t('auth.signIn')}</button>
                     </SignInButton>
                     <SignUpButton mode="modal">
-                      <button className="btn btn-primary" style={{ minWidth: '100px' }}>{t('auth.signUp')}</button>
+                      <button className="btn btn-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>{t('auth.signUp')}</button>
                     </SignUpButton>
                   </div>
                 </SignedOut>
@@ -63,18 +62,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </SignedIn>
               </>
             ) : (
-                            <div className="d-flex gap-2">
+                            <div className="d-flex gap-1 gap-md-2">
                 <button
-                  className="btn btn-outline-primary"
-                  style={{ minWidth: '100px', opacity: 0.6 }}
+                  className="btn btn-outline-primary btn-sm"
+                  style={{ minWidth: '70px', fontSize: '0.875rem', opacity: 0.6 }}
                   disabled
                   title={t('auth.comingSoon')}
                 >
                   {t('auth.signIn')}
                 </button>
                 <button
-                  className="btn btn-primary"
-                  style={{ minWidth: '100px', opacity: 0.6 }}
+                  className="btn btn-primary btn-sm"
+                  style={{ minWidth: '70px', fontSize: '0.875rem', opacity: 0.6 }}
                   disabled
                   title={t('auth.comingSoon')}
                 >
@@ -82,6 +81,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </button>
               </div>
             )}
+            {!showLanguageSwitcherInFooter && <LanguageSwitcherSimple />}
           </div>
         </header>
         <main>
@@ -89,6 +89,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </main>
         <footer className="mt-5 pt-3 border-top">
           <div className="text-center">
+            {showLanguageSwitcherInFooter && (
+              <div className="mb-3">
+                <LanguageSwitcherSimple />
+              </div>
+            )}
             <small className="text-muted">
               {t('app.version', { version: __APP_VERSION__ })}
             </small>
@@ -121,20 +126,24 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={
-        <Layout>
-          {isClerkAvailable ? (
-            <>
-              <SignedIn>
+        isClerkAvailable ? (
+          <>
+            <SignedIn>
+              <Layout>
                 <AuthenticatedContent />
-              </SignedIn>
-              <SignedOut>
+              </Layout>
+            </SignedIn>
+            <SignedOut>
+              <Layout showLanguageSwitcherInFooter={true}>
                 <LandingPage />
-              </SignedOut>
-            </>
-          ) : (
+              </Layout>
+            </SignedOut>
+          </>
+        ) : (
+          <Layout showLanguageSwitcherInFooter={true}>
             <LandingPage />
-          )}
-        </Layout>
+          </Layout>
+        )
       } />
       <Route path="/profile" element={
         <Layout>

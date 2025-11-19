@@ -31,7 +31,7 @@ const UserMenu: React.FC = () => {
         className="d-flex align-items-center gap-2"
       >
         <i className="bi bi-person-circle"></i>
-        <span>{displayName}</span>
+        <span className="d-none d-md-inline">{displayName}</span>
       </Dropdown.Toggle>
 
       <Dropdown.Menu align="end">
