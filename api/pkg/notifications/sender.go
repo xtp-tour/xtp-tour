@@ -61,6 +61,7 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 		"topic", notification.Data.Topic,
 	)
 
+	logCtx.Debug("Preparing notification to send", "channels", userPrefs.GetEnabledChannels())
 	sentCount := 0
 
 	for _, sender := range f.specificSenders {
@@ -69,12 +70,15 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 
 		switch sender.GetDeliveryMethod() {
 		case "email":
+			logCtx.Debug("Sending email notification", "address", userPrefs.Email)
 			address = userPrefs.Email
 			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelEmail)
 		case "sms":
+			logCtx.Debug("Sending SMS notification", "address", userPrefs.PhoneNumber)
 			address = userPrefs.PhoneNumber
 			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelSMS)
 		case "debug":
+			logCtx.Debug("Sending debug notification", "address", userPrefs.DebugAddress)
 			address = userPrefs.DebugAddress
 			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelDebug)
 		default:
