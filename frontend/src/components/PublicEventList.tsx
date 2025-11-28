@@ -34,13 +34,19 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
     try {
       setLoading(true);
       const response = await api.listPublicEvents();
-      setEvents(response.events || []);
+      let fetchedEvents = response.events || [];
+      if (user?.id) {
+        fetchedEvents = fetchedEvents.filter(event =>
+          !(event.joinRequests?.some(req => req.userId === user.id && req.isRejected !== true))
+        );
+      }
+      setEvents(fetchedEvents);
     } catch {
       setError(t('common.loading')); // Reusing common error message
     } finally {
       setLoading(false);
     }
-  }, [api, t]);
+  }, [api, t, user?.id]);
 
   useEffect(() => {
     loadEvents();
@@ -121,9 +127,9 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
       // Check if event is open for joining
       const isEventOpen = event.status === 'OPEN';
 
-      // Check if user has already joined the event (only count explicitly accepted requests)
+      // Check if user has already joined the event (pending or accepted requests)
       const hasAlreadyJoined = event.joinRequests?.some(
-        req => req.userId === user?.id && req.isRejected === false
+        req => req.userId === user?.id && req.isRejected !== true
       );
 
       // Hide button if user owns the event, event is not open, or user has already joined

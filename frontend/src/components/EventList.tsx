@@ -1,4 +1,5 @@
 import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import MyEventItem from './MyEventItem';
 import JoinedEventItem from './JoinedEventItem';
@@ -45,6 +46,7 @@ const transformEventData = (event: Event): DisplayEvent => {
 const EventList = forwardRef<EventListRef>((_, ref) => {
   const { t } = useTranslation();
   const api = useAPI();
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [myEvents, setMyEvents] = useState<DisplayEvent[]>([]);
@@ -56,6 +58,16 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
   // State for layout (list or grid) - only applies on desktop
   const [layout, setLayout] = useState<'list' | 'grid'>('list');
+
+  const filterJoinableEvents = useCallback((events: DisplayEvent[]) => {
+    if (!user?.id) {
+      return events;
+    }
+
+    return events.filter(event =>
+      !(event.joinRequests?.some(req => req.userId === user.id && req.isRejected !== true))
+    );
+  }, [user?.id]);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -69,15 +81,15 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
 
       setMyEvents((myEventsResponse.events || []).map(transformEventData));
       setJoinedEvents((joinedEventsResponse.events || []).map(transformEventData));
-      setAvailableEvents((availableEventsResponse.events || [])
+      setAvailableEvents(filterJoinableEvents((availableEventsResponse.events || [])
         .map(transformEventData)
-        .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()));
+        .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load events');
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, filterJoinableEvents]);
 
   useImperativeHandle(ref, () => ({
     refreshEvents: fetchEvents
@@ -244,13 +256,16 @@ const EventList = forwardRef<EventListRef>((_, ref) => {
             <PublicEventList
               layout={layout}
               onEventJoined={() => {
-                // Refresh joined events when a user joins an event
-                api.listJoinedEvents()
-                  .then(response => {
-                    setJoinedEvents((response.events || []).map(transformEventData));
+                // Refresh joined and available events when a user joins an event
+                Promise.all([api.listJoinedEvents(), api.listPublicEvents()])
+                  .then(([joinedResponse, availableResponse]) => {
+                    setJoinedEvents((joinedResponse.events || []).map(transformEventData));
+                    setAvailableEvents(filterJoinableEvents((availableResponse.events || [])
+                      .map(transformEventData)
+                      .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())));
                   })
                   .catch(err => {
-                    console.error("Failed to refresh joined events:", err);
+                    console.error("Failed to refresh events:", err);
                   });
               }}
             />

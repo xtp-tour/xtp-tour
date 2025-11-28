@@ -113,9 +113,9 @@ const PublicEventPage: React.FC = () => {
     // Check if event is open for joining
     const isEventOpen = event?.status === 'OPEN';
 
-    // Check if user has already joined the event (only count explicitly accepted requests)
+    // Check if user has already joined the event (pending or accepted requests)
     const hasAlreadyJoined = event?.joinRequests?.some(
-      req => req.userId === user?.id && req.isRejected === false
+      req => req.userId === user?.id && req.isRejected !== true
     );
 
     // Hide button if user owns the event, event is not open, or user has already joined
