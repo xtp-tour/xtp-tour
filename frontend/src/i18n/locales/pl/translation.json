@@ -10,69 +10,69 @@
   },
   "landing": {
     "hero": {
-      "title": "Proste planowanie tenisa",
-      "subtitle": "Koniec z ciągłym pisaniem w celu umówienia gry w tenisa. Ustaw swoją dostępność, udostępnij sesję i pozwól graczom automatycznie rezerwować czas z tobą.",
-      "createLink": "Utwórz Swój Link Tenisowy",
-      "findPartners": "Znajdź Partnerów do Tenisa",
+      "title": "Umawiaj mecze tenisowe bez całej logistyki",
+      "subtitle": "Zapomnij o niekończących się wiadomościach – pokaż swoją dostępność, podziel się wyzwaniem i pozwól innym zarezerwować pasujący termin.",
+      "createLink": "Stwórz swój link tenisowy",
+      "findPartners": "Znajdź sparingpartnerów",
       "alreadyHaveAccount": "Masz już konto?",
       "signInLink": "Zaloguj się"
     },
     "howItWorks": {
-      "title": "Łatwe planowanie dla każdego",
-      "subtitle": "Jak Calendly, ale dla graczy tenisa",
+      "title": "Planowanie w czterech krokach",
+      "subtitle": "Działa jak Calendly, ale powstało z myślą o tenisistach",
       "steps": {
         "step1": {
-          "title": "1. Ustaw swoją dostępność",
-          "description": "Wybierz preferowane korty, godziny i preferencje gry (singiel, debel, poziom umiejętności)"
+          "title": "1. Określ gdzie i kiedy grasz",
+          "description": "Dodaj ulubione korty, godziny i format gry (singiel, debel, poziom)."
         },
         "step2": {
-          "title": "2. Udostępnij swój link tenisowy",
-          "description": "Wyślij link znajomym lub upublicznij go, aby inni gracze mogli cię znaleźć"
+          "title": "2. Udostępnij wyzwanie",
+          "description": "Wyślij link znajomym albo udostępnij go dla lokalnej społeczności."
         },
         "step3": {
-          "title": "3. Odbieraj rezerwacje",
-          "description": "Gracze wybierają preferowany termin i proszą o dołączenie do twojej sesji"
+          "title": "3. Zbieraj zgłoszenia",
+          "description": "Zawodnicy wybierają pasujący termin i wysyłają prośbę o udział."
         },
         "step4": {
-          "title": "4. Graj w tenisa",
-          "description": "Spotkajcie się na korcie i cieszcie się grą - bez problemów z planowaniem"
+          "title": "4. Wejdź na kort",
+          "description": "Potwierdź termin, spotkajcie się na miejscu i grajcie bez zamieszania."
         }
       }
     },
     "features": {
       "saveTime": {
         "title": "Oszczędzaj czas",
-        "description": "Wyeliminuj ciągłe ustalanie terminu, który pasuje wszystkim"
+        "description": "Koniec z ustalaniem przez komunikatory i maile – wszyscy widzą twoją dostępność w jednym miejscu."
       },
       "workTogether": {
-        "title": "Współpracuj lepiej",
-        "description": "Połącz się z graczami na swoim poziomie dla lepszych meczów i treningów"
+        "title": "Dobierz właściwego partnera",
+        "description": "Filtruj po poziomie NTRP i preferencjach, aby każdy mecz był wyrównany i satysfakcjonujący."
       },
       "playMore": {
-        "title": "Graj więcej w tenisa",
-        "description": "Poświęć mniej czasu na koordynację, a więcej na korcie doskonaląc swoją grę"
+        "title": "Graj częściej",
+        "description": "Mniej organizacji, więcej godzin na serwis, wolejkę i topspiny."
       }
     },
     "gameTypes": {
-      "title": "Twój tenis, na swój sposób",
-      "subtitle": "Ustaw swoje preferencje raz i pozwól graczom automatycznie rezerwować idealną sesję z tobą.",
-      "competitive": "Mecze konkurencyjne - Gry singlowe z punktacją",
-      "training": "Sesje treningowe - Praktyka i rozwój umiejętności",
-      "doubles": "Mecze deblowe - Gry zespołowe 4-osobowe",
-      "whatYouCanSet": "Co Możesz Ustawić:",
+      "title": "Tenis dopasowany do ciebie",
+      "subtitle": "Ustaw preferencje tylko raz i pozwól innym rezerwować idealną sesję.",
+      "competitive": "Mecze rankingowe – singiel z oficjalnym liczeniem punktów.",
+      "training": "Treningi – sparingi, ćwiczenia lub lekcje z trenerem.",
+      "doubles": "Deble – spotkania towarzyskie albo rywalizacja w czwórkach.",
+      "whatYouCanSet": "Co możesz ustawić:",
       "features": {
-        "multipleVenues": "Wiele opcji miejsc",
-        "flexibleTimeSlots": "Elastyczne terminy (kalendarz 7-dniowy)",
-        "skillLevelMatching": "Dopasowanie poziomem umiejętności (oparte na NTRP)",
-        "sessionDuration": "Czas trwania sesji (1-4 godziny)",
-        "singlesOnly": "Singiel (debel wkrótce)"
+        "multipleVenues": "Wiele klubów i lokalizacji w jednym ogłoszeniu",
+        "flexibleTimeSlots": "Elastyczna siatka terminów na 7 kolejnych dni",
+        "skillLevelMatching": "Dobieranie po poziomie NTRP dla lepszych par",
+        "sessionDuration": "Czas trwania od 1 do 4 godzin",
+        "singlesOnly": "Na dziś singiel – opcja debla już w drodze"
       }
     },
     "cta": {
-      "title": "Łatwo naprzód",
-      "subtitle": "My zajmujemy się pracą związaną z łączeniem w tenisa. Twój harmonogram, twój link, na twój sposób.",
-      "startScheduling": "Rozpocznij planowanie",
-      "findPartners": "Znajdź partnerów"
+      "title": "Reszta przebiega gładko",
+      "subtitle": "My pilnujemy logistyki, ty udostępniasz jeden link i masz kalendarz pod kontrolą.",
+      "startScheduling": "Zacznij planować",
+      "findPartners": "Szukaj partnerów"
     }
   },
   "createEvent": {

@@ -10,69 +10,69 @@
   },
   "landing": {
     "hero": {
-      "title": "Programación de tenis simplificada",
-      "subtitle": "No más mensajes de ida y vuelta para organizar partidos de tenis. Establece tu disponibilidad, comparte tu sesión y permite que los jugadores reserven automáticamente contigo.",
-      "createLink": "Crear Tu Enlace de Tenis",
-      "findPartners": "Encontrar Compañeros de Tenis",
+      "title": "Organiza tus partidos de tenis sin complicaciones",
+      "subtitle": "Despídete de los chats interminables: publica tu disponibilidad, comparte tu reto y deja que otros jugadores reserven el turno que mejor les encaje.",
+      "createLink": "Crea tu enlace de tenis",
+      "findPartners": "Encuentra compañeros de juego",
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",
-      "signInLink": "Iniciar Sesión"
+      "signInLink": "Inicia sesión"
     },
     "howItWorks": {
-      "title": "Programación fácil para todos",
-      "subtitle": "Como Calendly, pero para jugadores de tenis",
+      "title": "Agendar partidos es fácil",
+      "subtitle": "Igual que Calendly, pero diseñado para la comunidad tenista",
       "steps": {
         "step1": {
-          "title": "1. Establece tu disponibilidad",
-          "description": "Elige tus pistas preferidas, horarios y preferencias de juego (individuales, dobles, nivel de habilidad)"
+          "title": "1. Elige cuándo y dónde juegas",
+          "description": "Define tus pistas favoritas, horarios y tipo de encuentro (singles, dobles, nivel)."
         },
         "step2": {
-          "title": "2. Comparte tu enlace de tenis",
-          "description": "Envía tu enlace a amigos o hazlo visible para que otros jugadores te encuentren"
+          "title": "2. Comparte tu reto",
+          "description": "Envía el enlace a amigos o hazlo visible para que nuevos jugadores se apunten."
         },
         "step3": {
-          "title": "3. Recibe reservas",
-          "description": "Los jugadores seleccionan su horario preferido y solicitan unirse a tu sesión"
+          "title": "3. Recibe solicitudes",
+          "description": "Los jugadores seleccionan el horario que les funciona y te envían una petición."
         },
         "step4": {
-          "title": "4. Juega tenis",
-          "description": "Encuéntrense en la pista y disfruten del juego - no más problemas de programación"
+          "title": "4. Sal a la pista",
+          "description": "Confirma el turno, queda en la cancha y disfruta el partido sin fricción."
         }
       }
     },
     "features": {
       "saveTime": {
-        "title": "Ahorra tiempo",
-        "description": "Elimina las idas y venidas para encontrar un horario que funcione para todos"
+        "title": "Gana tiempo",
+        "description": "Evita coordinar por chats o correo; en un par de clics todos ven tu disponibilidad."
       },
       "workTogether": {
-        "title": "Trabaja mejor en equipo",
-        "description": "Conecta con jugadores de tu nivel de habilidad para mejores partidos y entrenamientos"
+        "title": "Encuentra el partner adecuado",
+        "description": "Filtra por nivel NTRP y preferencias para que cada partido sea competitivo y divertido."
       },
       "playMore": {
-        "title": "Juega más tenis",
-        "description": "Pasa menos tiempo coordinando y más tiempo en la pista mejorando tu juego"
+        "title": "Juega más seguido",
+        "description": "Dedica menos energía a organizar y más a mejorar tu saque y tu revés."
       }
     },
     "gameTypes": {
-      "title": "Tu tenis, a tu manera",
-      "subtitle": "Establece tus preferencias una vez y permite que los jugadores reserven automáticamente la sesión perfecta contigo.",
-      "competitive": "Partidos competitivos - Juegos individuales con puntuación",
-      "training": "Sesiones de entrenamiento - Práctica y desarrollo de habilidades",
-      "doubles": "Partidos de dobles - Juegos de equipos de 4 jugadores",
-      "whatYouCanSet": "Lo Que Puedes Establecer:",
+      "title": "Tu tenis, a tu ritmo",
+      "subtitle": "Configura una sola vez tus preferencias y deja que otros reserven la sesión ideal contigo.",
+      "competitive": "Partidos competitivos: singles con tanteador oficial.",
+      "training": "Sesiones de entrenamiento: drills, coaching o peloteo libre.",
+      "doubles": "Dobles sociales o competitivos con cuatro jugadores.",
+      "whatYouCanSet": "Qué puedes configurar:",
       "features": {
-        "multipleVenues": "Múltiples opciones de lugares",
-        "flexibleTimeSlots": "Horarios flexibles (calendario de 7 días)",
-        "skillLevelMatching": "Emparejamiento por nivel de habilidad (basado en NTRP)",
-        "sessionDuration": "Duración de la sesión (1-4 horas)",
-        "singlesOnly": "Individuales (dobles próximamente)"
+        "multipleVenues": "Varias sedes o clubes en una sola invitación",
+        "flexibleTimeSlots": "Agenda flexible de 7 días con bloques ajustables",
+        "skillLevelMatching": "Filtro por nivel NTRP para emparejar mejor",
+        "sessionDuration": "Duración de 1 a 4 horas según tu plan",
+        "singlesOnly": "Por ahora singles; dobles llega muy pronto"
       }
     },
     "cta": {
-      "title": "Fácil por delante",
-      "subtitle": "Nos encargamos del trabajo de conectar para tenis. Tu horario, tu enlace, a tu manera.",
-      "startScheduling": "Comenzar programación",
-      "findPartners": "Encontrar compañeros"
+      "title": "Lo difícil ya quedó atrás",
+      "subtitle": "Nosotros hacemos la coordinación; tú comparte un enlace y mantén tu agenda bajo control.",
+      "startScheduling": "Empieza a agendar",
+      "findPartners": "Buscar compañeros"
     }
   },
   "createEvent": {
