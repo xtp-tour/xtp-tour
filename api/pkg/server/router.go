@@ -921,10 +921,22 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBu
 	ctx := context.Background()
 	busyTimesResponse, err := r.calendarService.GetBusyTimes(ctx, userId.(string), timeMin, timeMax)
 	if err != nil {
-		slog.Error("Failed to get calendar busy times", "error", err)
+		slog.Error("Failed to get calendar busy times", "error", err, "userID", userId.(string))
+
+		// Check if this is a user-facing error (connection issues)
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "calendar not connected") ||
+			strings.Contains(errMsg, "calendar connection has been deactivated") ||
+			strings.Contains(errMsg, "authorization has expired or been revoked") {
+			return nil, rest.HttpError{
+				HttpCode: http.StatusBadRequest,
+				Message:  errMsg,
+			}
+		}
+
 		return nil, rest.HttpError{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "Failed to get busy times",
+			Message:  "Failed to get busy times from calendar",
 		}
 	}
 

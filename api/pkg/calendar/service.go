@@ -172,9 +172,9 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		Items:   freeBusyItems,
 	}
 
-	slog.Debug("Querying FreeBusy API for all calendars", 
+	slog.Debug("Querying FreeBusy API for all calendars",
 		"calendarCount", len(freeBusyItems),
-		"timeMin", timeMin.Format(time.RFC3339), 
+		"timeMin", timeMin.Format(time.RFC3339),
 		"timeMax", timeMax.Format(time.RFC3339))
 
 	freeBusyResponse, err := calendarService.Freebusy.Query(freeBusyRequest).Do()
@@ -182,17 +182,17 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		return nil, fmt.Errorf("failed to query free/busy: %w", err)
 	}
 
-	slog.Debug("FreeBusy API response", 
+	slog.Debug("FreeBusy API response",
 		"calendarsCount", len(freeBusyResponse.Calendars))
 
 	// Parse busy periods from FreeBusy API for all calendars
 	var busyPeriods []BusyPeriod
 	for calendarId, calendarData := range freeBusyResponse.Calendars {
-		slog.Debug("Processing calendar", 
+		slog.Debug("Processing calendar",
 			"calendarId", calendarId,
 			"busyCount", len(calendarData.Busy),
 			"errors", calendarData.Errors)
-			
+
 		for _, busyTime := range calendarData.Busy {
 			startTime, err := time.Parse(time.RFC3339, busyTime.Start)
 			if err != nil {
@@ -228,7 +228,7 @@ func (s *Service) GetBusyTimes(ctx context.Context, userID string, timeMin, time
 		allEventPeriods = append(allEventPeriods, eventBusyPeriods...)
 		slog.Debug("Fetched events from calendar", "calendarId", cal.ID, "count", len(eventBusyPeriods))
 	}
-	
+
 	// Use events with titles instead of FreeBusy results (which lack titles)
 	if len(allEventPeriods) > 0 {
 		busyPeriods = allEventPeriods
@@ -267,14 +267,14 @@ func (s *Service) getVisibleCalendars(ctx context.Context, calendarService *cale
 				Summary: item.Summary,
 				Primary: item.Primary,
 			})
-			slog.Debug("Including calendar", 
-				"id", item.Id, 
-				"summary", item.Summary, 
+			slog.Debug("Including calendar",
+				"id", item.Id,
+				"summary", item.Summary,
 				"primary", item.Primary,
 				"selected", item.Selected)
 		} else {
-			slog.Debug("Skipping unselected calendar", 
-				"id", item.Id, 
+			slog.Debug("Skipping unselected calendar",
+				"id", item.Id,
 				"summary", item.Summary)
 		}
 	}
@@ -287,32 +287,32 @@ func (s *Service) getVisibleCalendars(ctx context.Context, calendarService *cale
 // All-day events are included and marked as busy for the entire day period
 func (s *Service) getEventBusyTimes(ctx context.Context, calendarService *calendar.Service, calendarId string, timeMin, timeMax time.Time) ([]BusyPeriod, error) {
 	// List events in the time range
-	slog.Debug("Listing events from calendar", 
+	slog.Debug("Listing events from calendar",
 		"calendarId", calendarId,
 		"timeMin", timeMin.Format(time.RFC3339),
 		"timeMax", timeMax.Format(time.RFC3339))
-		
+
 	events, err := calendarService.Events.List(calendarId).
 		TimeMin(timeMin.Format(time.RFC3339)).
 		TimeMax(timeMax.Format(time.RFC3339)).
 		SingleEvents(true).
 		OrderBy("startTime").
 		Do()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to list events: %w", err)
 	}
 
-	slog.Debug("Events.List response", 
+	slog.Debug("Events.List response",
 		"totalItems", len(events.Items),
 		"summary", events.Summary)
 
 	var busyPeriods []BusyPeriod
 	skippedCancelled := 0
 	allDayEvents := 0
-	
+
 	for _, event := range events.Items {
-		slog.Debug("Processing event", 
+		slog.Debug("Processing event",
 			"id", event.Id,
 			"summary", event.Summary,
 			"status", event.Status,
@@ -320,7 +320,7 @@ func (s *Service) getEventBusyTimes(ctx context.Context, calendarService *calend
 			"startDate", event.Start.Date,
 			"endDateTime", event.End.DateTime,
 			"endDate", event.End.Date)
-			
+
 		// Skip cancelled events
 		if event.Status == "cancelled" {
 			skippedCancelled++
@@ -366,7 +366,7 @@ func (s *Service) getEventBusyTimes(ctx context.Context, calendarService *calend
 				Title: title,
 			})
 
-			slog.Debug("Added all-day busy period", 
+			slog.Debug("Added all-day busy period",
 				"title", title,
 				"start", startTime.Format(time.RFC3339),
 				"end", endTime.Format(time.RFC3339))
@@ -391,8 +391,8 @@ func (s *Service) getEventBusyTimes(ctx context.Context, calendarService *calend
 			End:   endTime,
 			Title: title,
 		})
-		
-		slog.Debug("Added timed busy period", 
+
+		slog.Debug("Added timed busy period",
 			"title", title,
 			"start", startTime.Format(time.RFC3339),
 			"end", endTime.Format(time.RFC3339))
@@ -412,11 +412,14 @@ func (s *Service) getCalendarService(ctx context.Context, userID string) (*calen
 	// Get user's calendar connection
 	connection, err := s.db.GetCalendarConnection(ctx, userID, "google")
 	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return nil, "", fmt.Errorf("calendar not connected - please connect your calendar in settings")
+		}
 		return nil, "", fmt.Errorf("failed to get calendar connection: %w", err)
 	}
 
 	if !connection.IsActive {
-		return nil, "", fmt.Errorf("calendar connection is not active")
+		return nil, "", fmt.Errorf("calendar connection has been deactivated - please reconnect your calendar in settings")
 	}
 
 	// Decrypt tokens
@@ -511,6 +514,22 @@ func (s *Service) refreshToken(ctx context.Context, userID string, token *oauth2
 	tokenSource := s.config.TokenSource(ctx, token)
 	newToken, err := tokenSource.Token()
 	if err != nil {
+		// Check if this is an invalid_grant error (token revoked, expired, or invalid)
+		if strings.Contains(err.Error(), "invalid_grant") {
+			slog.Warn("OAuth refresh token is invalid (revoked or expired), deactivating calendar connection",
+				"userID", userID,
+				"error", err)
+
+			// Deactivate the connection so user knows they need to re-authorize
+			if deactivateErr := s.db.DeactivateCalendarConnection(ctx, userID, "google"); deactivateErr != nil {
+				slog.Error("Failed to deactivate calendar connection after invalid_grant",
+					"userID", userID,
+					"error", deactivateErr)
+			}
+
+			return nil, fmt.Errorf("calendar authorization has expired or been revoked - please reconnect your calendar in settings")
+		}
+
 		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
 
@@ -520,13 +539,30 @@ func (s *Service) refreshToken(ctx context.Context, userID string, token *oauth2
 		return nil, fmt.Errorf("failed to encrypt new access token: %w", err)
 	}
 
-	encryptedRefreshToken, err := s.encryption.EncryptToken(newToken.RefreshToken)
+	// Important: Google doesn't always return a new refresh token on refresh
+	// Only update the refresh token if a new one was provided
+	var encryptedRefreshToken string
+	var refreshTokenToUse string
+
+	if newToken.RefreshToken != "" {
+		// Google provided a new refresh token
+		refreshTokenToUse = newToken.RefreshToken
+		slog.Debug("Received new refresh token from Google", "userID", userID)
+	} else {
+		// Google didn't provide a new refresh token - keep the existing one
+		refreshTokenToUse = token.RefreshToken
+		newToken.RefreshToken = token.RefreshToken // Update the return object
+		slog.Debug("No new refresh token from Google, preserving existing one", "userID", userID)
+	}
+
+	// Encrypt the refresh token (whether new or existing)
+	encryptedRefreshToken, err = s.encryption.EncryptToken(refreshTokenToUse)
 	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt new refresh token: %w", err)
+		return nil, fmt.Errorf("failed to encrypt refresh token: %w", err)
 	}
 
 	// Update token in database with encrypted values
-	connection := &db.UserCalendarConnectionRow{
+	updatedConnection := &db.UserCalendarConnectionRow{
 		UserId:       userID,
 		Provider:     "google",
 		AccessToken:  encryptedAccessToken,
@@ -535,11 +571,12 @@ func (s *Service) refreshToken(ctx context.Context, userID string, token *oauth2
 		UpdatedAt:    time.Now(),
 	}
 
-	err = s.db.UpdateCalendarConnectionTokens(ctx, connection)
+	err = s.db.UpdateCalendarConnectionTokens(ctx, updatedConnection)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update tokens in database: %w", err)
 	}
 
+	slog.Debug("Successfully refreshed OAuth token", "userID", userID)
 	return newToken, nil
 }
 
