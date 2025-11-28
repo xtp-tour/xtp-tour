@@ -109,13 +109,14 @@ func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinReque
 	}
 }
 
-func (d *Notifier) UserJoined(logCtx slog.Logger, userId string, joinRequest api.JoinRequestData) {
+func (d *Notifier) UserJoined(log slog.Logger, userId string, joinRequest api.JoinRequestData) {
 	ctx := context.Background()
+	logCtx := log.With("userId", userId, "eventId", joinRequest.EventId)
 
 	// Get event owner to notify them about the new join request
 	eventOwnerId, err := d.db.GetEventOwner(ctx, joinRequest.EventId)
 	if err != nil {
-		logCtx.Error("Error getting event owner", "error", err, "eventId", joinRequest.EventId)
+		logCtx.Error("Error getting event owner", "error", err)
 		return
 	}
 
@@ -145,16 +146,9 @@ func (d *Notifier) UserJoined(logCtx slog.Logger, userId string, joinRequest api
 	// Enqueue notification for event owner
 	err = d.queue.Enqueue(ctx, eventOwnerId, notificationData)
 	if err != nil {
-		logCtx.Error("Failed to enqueue user joined notification",
-			"error", err,
-			"eventOwnerId", eventOwnerId,
-			"joiningUserId", userId,
-			"topic", notificationData.Topic)
+		logCtx.Error("Failed to enqueue user joined notification", "error", err)
 		return
 	}
 
-	logCtx.Info("UserJoined notification sent successfully",
-		"joiningUserId", userId,
-		"eventOwnerId", eventOwnerId,
-		"eventId", joinRequest.EventId)
+	logCtx.Info("UserJoined notification enqueued")
 }

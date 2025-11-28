@@ -35,7 +35,8 @@ func NewFizzRouter(httpConfig *pkg.HttpConfig, isDebug bool) *fizz.Fizz {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	g := gin.Default()
+	g := gin.New()
+	g.Use(gin.Recovery())
 	g.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/api/ping"},
 	}))
