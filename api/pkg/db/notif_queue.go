@@ -35,8 +35,18 @@ func (db *Db) GetNextNotification() (*NotificationQueueRow, error) {
 	logCtx := slog.With("method", "GetNextNotification")
 
 	tx, err := db.conn.Beginx()
+	defer func() {
+		err := tx.Commit()
+		if err != nil {
+			logCtx.Error("Failed to commit transaction", "error", err)
+		}
+	}()
 	if err != nil {
 		logCtx.Error("Failed to begin transaction", "error", err)
+		terr := tx.Rollback()
+		if terr != nil {
+			logCtx.Error("Failed to rollback transaction", "error", err)
+		}
 		return nil, err
 	}
 
