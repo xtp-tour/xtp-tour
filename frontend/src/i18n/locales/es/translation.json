@@ -290,7 +290,33 @@
     "navigation": "Navegación del calendario",
     "previousWeek": "Semana anterior",
     "nextWeek": "Siguiente semana",
-    "clearAll": "Limpiar todos los horarios seleccionados"
+    "clearAll": "Limpiar selección",
+    "connect": "Conectar Google Calendar",
+    "disconnect": "Desconectar",
+    "connected": "Google Calendar Conectado",
+    "notConnected": "Calendario no conectado",
+    "connecting": "Conectando...",
+    "provider": "Proveedor",
+    "conflictWarning": "Este horario entra en conflicto con tu calendario",
+    "busySlot": "Ocupado (Calendario)",
+    "preferences": {
+      "title": "Configuración de Calendario",
+      "syncEnabled": "Habilitar sincronización de calendario",
+      "syncFrequency": "Frecuencia de sincronización",
+      "showEventDetails": "Mostrar detalles del evento",
+      "every15min": "Cada 15 minutos",
+      "every30min": "Cada 30 minutos",
+      "every1hour": "Cada hora"
+    },
+    "errors": {
+      "connectionCheck": "Error al verificar la conexión del calendario",
+      "connectionFailed": "Error al conectar el calendario",
+      "authFailed": "Error de autorización del calendario",
+      "authCallback": "Error al completar la autorización",
+      "disconnectFailed": "Error al desconectar el calendario",
+      "preferencesUpdateFailed": "Error al actualizar las preferencias",
+      "busyTimesFailed": "Error al cargar los eventos del calendario"
+    }
   },
   "publicEvent": {
     "notFound": "El evento que buscas no existe o ha sido eliminado.",

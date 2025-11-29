@@ -290,7 +290,33 @@
     "navigation": "Navigation du calendrier",
     "previousWeek": "Semaine précédente",
     "nextWeek": "Semaine suivante",
-    "clearAll": "Effacer tous les créneaux sélectionnés"
+    "clearAll": "Effacer la sélection",
+    "connect": "Connecter Google Calendar",
+    "disconnect": "Déconnecter",
+    "connected": "Google Calendar Connecté",
+    "notConnected": "Calendrier non connecté",
+    "connecting": "Connexion en cours...",
+    "provider": "Fournisseur",
+    "conflictWarning": "Ce créneau est en conflit avec votre calendrier",
+    "busySlot": "Occupé (Calendrier)",
+    "preferences": {
+      "title": "Paramètres du Calendrier",
+      "syncEnabled": "Activer la synchronisation du calendrier",
+      "syncFrequency": "Fréquence de synchronisation",
+      "showEventDetails": "Afficher les détails de l'événement",
+      "every15min": "Toutes les 15 minutes",
+      "every30min": "Toutes les 30 minutes",
+      "every1hour": "Toutes les heures"
+    },
+    "errors": {
+      "connectionCheck": "Échec de la vérification de la connexion du calendrier",
+      "connectionFailed": "Échec de la connexion du calendrier",
+      "authFailed": "Échec de l'autorisation du calendrier",
+      "authCallback": "Échec de la finalisation de l'autorisation",
+      "disconnectFailed": "Échec de la déconnexion du calendrier",
+      "preferencesUpdateFailed": "Échec de la mise à jour des préférences",
+      "busyTimesFailed": "Échec du chargement des événements du calendrier"
+    }
   },
   "publicEvent": {
     "notFound": "L'événement que vous recherchez n'existe pas ou a été supprimé.",
