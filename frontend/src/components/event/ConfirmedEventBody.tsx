@@ -86,7 +86,7 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
                 <i className={`bi bi-people ${colorClass} me-2`}></i>
                 <span className="fw-medium">Players:</span>
                 <span className="ms-2">
-                  {event.joinRequests?.filter(jr => jr.isRejected === false).length || 0} confirmed
+                  {event.joinRequests?.filter(jr => jr.isRejected !== true).length || 0} confirmed
                 </span>
               </div>
             </div>

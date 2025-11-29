@@ -64,7 +64,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           subtitle={headerSubtitle}
           actionButton={actionButton}
           timeSlotSummary={formatTimeSlotSummary(timeSlots, t)}
-          joinedCount={event.joinRequests?.filter(req => req.isRejected === false).length || 0}
+          joinedCount={event.joinRequests?.filter(req => req.isRejected !== true).length || 0}
           event={event}
           shareButton={shareButton}
         />
