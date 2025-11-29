@@ -81,7 +81,7 @@ type NotificationSettings struct {
 	Email        string `json:"email,omitempty"`
 	PhoneNumber  string `json:"phone_number,omitempty"`
 	DebugAddress string `json:"debug_address,omitempty"`
-	Channels     uint8  `json:"channels" db:"channels"` // Bit flags for enabled channels
+	Channels     uint8  `json:"channels"` // Bit flags for enabled channels
 }
 
 // IsChannelEnabled checks if a specific notification channel is enabled

@@ -911,6 +911,9 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		logCtx.Error("Failed to get user profile", "error", err, "userId", userId)
 		return nil, err
 	}
+
+	logCtx = logCtx.With("user_name", profile.FirstName)
+	logCtx.Debug("Notification settings", "settings", dbNotificationSettings)
 	profile.Notifications = api.NotificationSettings{
 		Email:        dbNotificationSettings.Email,
 		PhoneNumber:  dbNotificationSettings.PhoneNumber,
