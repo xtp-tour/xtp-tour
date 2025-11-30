@@ -10,6 +10,7 @@ import (
 	"github.com/wneessen/go-mail/smtp"
 
 	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 )
 
 // EmailSender handles email notifications via SMTP with connection pooling
@@ -181,6 +182,6 @@ func (s *EmailSender) Send(ctx context.Context, address, topic, message string) 
 	return fmt.Errorf("failed to send email to %s after %d attempts: %w", address, s.maxRetries+1, lastErr)
 }
 
-func (s *EmailSender) GetDeliveryMethod() string {
-	return "email"
+func (s *EmailSender) GetDeliveryMethod() uint8 {
+	return db.NotificationChannelEmail
 }

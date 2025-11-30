@@ -14,7 +14,7 @@ type Sender interface {
 // SpecificSender handles a single delivery method (email, SMS, etc.)
 type SpecificSender interface {
 	Send(ctx context.Context, address, topic, message string) error
-	GetDeliveryMethod() string
+	GetDeliveryMethod() uint8
 }
 
 type LogSender struct {
@@ -65,46 +65,32 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 	sentCount := 0
 
 	for _, sender := range f.specificSenders {
+		// Get address based on delivery method
 		var address string
-		var channelEnabled bool
-
 		switch sender.GetDeliveryMethod() {
-		case "email":
-			logCtx.Debug("Sending email notification", "address", userPrefs.Email)
+		case db.NotificationChannelEmail:
 			address = userPrefs.Email
-			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelEmail)
-		case "sms":
-			logCtx.Debug("Sending SMS notification", "address", userPrefs.PhoneNumber)
+		case db.NotificationChannelSMS:
 			address = userPrefs.PhoneNumber
-			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelSMS)
-		case "debug":
-			logCtx.Debug("Sending debug notification", "address", userPrefs.DebugAddress)
+		case db.NotificationChannelDebug:
 			address = userPrefs.DebugAddress
-			channelEnabled = userPrefs.IsChannelEnabled(db.NotificationChannelDebug)
-		default:
-			logCtx.Warn("Unknown delivery method", "method", sender.GetDeliveryMethod())
+		}
+
+		if !userPrefs.IsChannelEnabled(sender.GetDeliveryMethod()) || address == "" {
+			logCtx.Debug("Skipping delivery method - channel not enabled or no address configured",
+				"deliveryMethod", sender.GetDeliveryMethod(), "address", address)
 			continue
 		}
 
 		// Only send if channel is enabled AND address is configured
-		if channelEnabled && address != "" {
-			if err := sender.Send(ctx, address, notification.Data.Topic, notification.Data.Message); err != nil {
-				logCtx.Error("Failed to send notification via specific sender",
-					"error", err,
-					"deliveryMethod", sender.GetDeliveryMethod(),
-					"address", address)
-				return err
-			}
-			sentCount++
-		} else {
-			if !channelEnabled {
-				logCtx.Debug("Skipping delivery method - channel not enabled",
-					"deliveryMethod", sender.GetDeliveryMethod())
-			} else {
-				logCtx.Debug("Skipping delivery method - no address configured",
-					"deliveryMethod", sender.GetDeliveryMethod())
-			}
+		if err := sender.Send(ctx, address, notification.Data.Topic, notification.Data.Message); err != nil {
+			logCtx.Error("Failed to send notification via specific sender",
+				"error", err,
+				"deliveryMethod", sender.GetDeliveryMethod(),
+				"address", address)
+			return err
 		}
+		sentCount++
 	}
 
 	if sentCount == 0 {
@@ -141,8 +127,8 @@ func (s *SMSSender) Send(ctx context.Context, address, topic, message string) er
 	return nil
 }
 
-func (s *SMSSender) GetDeliveryMethod() string {
-	return "sms"
+func (s *SMSSender) GetDeliveryMethod() uint8 {
+	return db.NotificationChannelSMS
 }
 
 // DebugSender handles debug notifications (logging)
@@ -171,6 +157,6 @@ func (s *DebugSender) Send(ctx context.Context, address, topic, message string) 
 	return nil
 }
 
-func (s *DebugSender) GetDeliveryMethod() string {
-	return "debug"
+func (s *DebugSender) GetDeliveryMethod() uint8 {
+	return db.NotificationChannelDebug
 }

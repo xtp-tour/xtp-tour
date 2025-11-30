@@ -80,7 +80,11 @@ func startNotificationWorker(dbConf *pkg.DbConfig) {
 	debugSender := notifications.NewDebugSender()
 
 	// Create fan-out sender that routes based on user preferences
-	fanOutSender := notifications.NewFanOutSender(emailSender, smsSender, debugSender)
+	fanOutSender := notifications.NewFanOutSender(
+		emailSender,
+		smsSender,
+		debugSender,
+	)
 
 	worker := notifications.NewNotificationWorker(queue, fanOutSender, serviceConfig.Notifications)
 

@@ -1,0 +1,19 @@
+all: false
+dir: '{{.InterfaceDir}}/mocks'
+filename: '{{.InterfaceName}}.go'
+force-file-write: true
+formatter: goimports
+generate: true
+include-auto-generated: false
+log-level: info
+structname: 'Mock{{.InterfaceName}}'
+pkgname: 'mocks'
+recursive: false
+require-template-schema-exists: false
+template: testify
+packages:
+  github.com/xtp-tour/xtp-tour/api/pkg/notifications:
+    interfaces:
+      Queue:
+      Sender:
+      SpecificSender:
