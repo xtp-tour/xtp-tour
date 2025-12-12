@@ -53,6 +53,7 @@ func NewTokenEncryption() (*TokenEncryption, error) {
 // EncryptToken encrypts a token string and returns base64 encoded result
 func (te *TokenEncryption) EncryptToken(plaintext string) (string, error) {
 	if plaintext == "" {
+		slog.Warn("EncryptToken called with empty plaintext - returning empty string")
 		return "", nil
 	}
 
@@ -72,6 +73,7 @@ func (te *TokenEncryption) EncryptToken(plaintext string) (string, error) {
 // DecryptToken decrypts a base64 encoded token string
 func (te *TokenEncryption) DecryptToken(ciphertext string) (string, error) {
 	if ciphertext == "" {
+		slog.Warn("DecryptToken called with empty ciphertext - returning empty string")
 		return "", nil
 	}
 

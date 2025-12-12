@@ -100,10 +100,20 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 		return fmt.Errorf("failed to exchange code for token: %w", err)
 	}
 
-	// Check if refresh token is present
+	// Log token details for debugging (without exposing actual values)
+	slog.Info("OAuth token exchange successful",
+		"userID", userID,
+		"hasAccessToken", token.AccessToken != "",
+		"hasRefreshToken", token.RefreshToken != "",
+		"tokenExpiry", token.Expiry.Format(time.RFC3339),
+		"tokenType", token.TokenType)
+
+	// Check if refresh token is present - this is critical for long-term access
 	if token.RefreshToken == "" {
-		slog.Warn("No refresh token received from Google OAuth", "userID", userID)
-		return fmt.Errorf("no refresh token received from Google. The user must revoke the application's access in their Google account and then re-authorize to grant a refresh token.")
+		slog.Error("No refresh token received from Google OAuth",
+			"userID", userID,
+			"tokenExpiry", token.Expiry.Format(time.RFC3339))
+		return fmt.Errorf("no refresh token received from Google, user must revoke the app access in their Google account and re-authorize")
 	}
 
 	// Encrypt tokens before storage
@@ -115,6 +125,14 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 	encryptedRefreshToken, err := s.encryption.EncryptToken(token.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt refresh token: %w", err)
+	}
+
+	// Validate encrypted refresh token is not empty (sanity check)
+	if encryptedRefreshToken == "" {
+		slog.Error("Encrypted refresh token is empty after encryption",
+			"userID", userID,
+			"originalRefreshTokenLength", len(token.RefreshToken))
+		return fmt.Errorf("failed to encrypt refresh token: encrypted value is empty")
 	}
 
 	// Store the connection in database with encrypted tokens
@@ -130,7 +148,20 @@ func (s *Service) HandleCallback(ctx context.Context, userID, code, state string
 		UpdatedAt:    time.Now(),
 	}
 
-	return s.db.UpsertCalendarConnection(ctx, connection)
+	err = s.db.UpsertCalendarConnection(ctx, connection)
+	if err != nil {
+		slog.Error("Failed to store calendar connection in database",
+			"userID", userID,
+			"error", err)
+		return fmt.Errorf("failed to store calendar connection: %w", err)
+	}
+
+	slog.Info("Calendar connection stored successfully",
+		"userID", userID,
+		"provider", "google",
+		"tokenExpiry", token.Expiry.Format(time.RFC3339))
+
+	return nil
 }
 
 // GetBusyTimes retrieves busy periods from all visible Google Calendars
@@ -433,6 +464,18 @@ func (s *Service) getCalendarService(ctx context.Context, userID string) (*calen
 		return nil, "", fmt.Errorf("failed to decrypt refresh token: %w", err)
 	}
 
+	// Validate refresh token is not empty
+	if refreshToken == "" {
+		slog.Error("Refresh token is empty in database", "userID", userID)
+		// Deactivate the connection since it's invalid
+		if deactivateErr := s.db.DeactivateCalendarConnection(ctx, userID, "google"); deactivateErr != nil {
+			slog.Error("Failed to deactivate calendar connection with empty refresh token",
+				"userID", userID,
+				"error", deactivateErr)
+		}
+		return nil, "", fmt.Errorf("calendar connection is invalid (missing refresh token) - please reconnect your calendar in settings")
+	}
+
 	// Create OAuth token
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
@@ -441,7 +484,7 @@ func (s *Service) getCalendarService(ctx context.Context, userID string) (*calen
 		TokenType:    "Bearer",
 	}
 
-	// Check if token needs refresh
+	// Check if token needs refresh - always refresh proactively to ensure we persist new tokens
 	if token.Expiry.Before(time.Now().Add(5 * time.Minute)) {
 		token, err = s.refreshToken(ctx, userID, token)
 		if err != nil {
@@ -449,13 +492,123 @@ func (s *Service) getCalendarService(ctx context.Context, userID string) (*calen
 		}
 	}
 
-	// Create calendar service
-	client := s.config.Client(ctx, token)
+	// Create a persisting token source that saves tokens to database when refreshed
+	// This ensures that if the oauth2 library refreshes the token internally,
+	// the new tokens are persisted to the database
+	persistingTokenSource := &persistingTokenSource{
+		base:      s.config.TokenSource(ctx, token),
+		service:   s,
+		userID:    userID,
+		lastToken: token,
+	}
+
+	// Create HTTP client with the persisting token source
+	client := oauth2.NewClient(ctx, persistingTokenSource)
 	calendarService, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create calendar service: %w", err)
 	}
 	return calendarService, connection.CalendarId, nil
+}
+
+// persistingTokenSource wraps an oauth2.TokenSource and persists new tokens to the database
+// See: https://pkg.go.dev/golang.org/x/oauth2#TokenSource
+type persistingTokenSource struct {
+	base      oauth2.TokenSource
+	service   *Service
+	userID    string
+	lastToken *oauth2.Token
+}
+
+// Token returns a valid token, persisting any new tokens to the database
+// This implements the oauth2.TokenSource interface
+func (pts *persistingTokenSource) Token() (*oauth2.Token, error) {
+	newToken, err := pts.base.Token()
+	if err != nil {
+		// Check if this is an invalid_grant error (token revoked, expired, or invalid)
+		if strings.Contains(err.Error(), "invalid_grant") {
+			slog.Warn("OAuth refresh token is invalid during auto-refresh, deactivating calendar connection",
+				"userID", pts.userID,
+				"error", err)
+
+			// Use background context for cleanup operations - this should succeed
+			// even if the original request context is cancelled
+			bgCtx := context.Background()
+			if deactivateErr := pts.service.db.DeactivateCalendarConnection(bgCtx, pts.userID, "google"); deactivateErr != nil {
+				slog.Error("Failed to deactivate calendar connection after invalid_grant",
+					"userID", pts.userID,
+					"error", deactivateErr)
+			}
+
+			return nil, fmt.Errorf("calendar authorization has expired or been revoked - please reconnect your calendar in settings")
+		}
+		return nil, err
+	}
+
+	// Check if the token has changed (was refreshed)
+	if pts.lastToken == nil || newToken.AccessToken != pts.lastToken.AccessToken {
+		slog.Debug("Token was refreshed by oauth2 library, persisting new tokens",
+			"userID", pts.userID,
+			"hasNewRefreshToken", newToken.RefreshToken != "" && (pts.lastToken == nil || newToken.RefreshToken != pts.lastToken.RefreshToken))
+
+		// Persist the new token to the database using background context
+		// This ensures token persistence succeeds even if the request context is cancelled
+		if err := pts.persistToken(newToken); err != nil {
+			slog.Error("Failed to persist refreshed token to database",
+				"userID", pts.userID,
+				"error", err)
+			// Don't fail the request, just log the error
+			// The token is still valid for this request
+		}
+
+		pts.lastToken = newToken
+	}
+
+	return newToken, nil
+}
+
+// persistToken saves the token to the database
+func (pts *persistingTokenSource) persistToken(token *oauth2.Token) error {
+	// Use background context for database operations - token persistence should
+	// complete even if the original HTTP request context is cancelled
+	ctx := context.Background()
+
+	// Encrypt access token
+	encryptedAccessToken, err := pts.service.encryption.EncryptToken(token.AccessToken)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt access token: %w", err)
+	}
+
+	// Handle refresh token - Google may or may not return a new one
+	// Per Google OAuth2 documentation, refresh tokens are not always returned on refresh
+	var encryptedRefreshToken string
+	if token.RefreshToken != "" {
+		encryptedRefreshToken, err = pts.service.encryption.EncryptToken(token.RefreshToken)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt refresh token: %w", err)
+		}
+	} else if pts.lastToken != nil && pts.lastToken.RefreshToken != "" {
+		// Google didn't return a new refresh token, keep the existing one
+		encryptedRefreshToken, err = pts.service.encryption.EncryptToken(pts.lastToken.RefreshToken)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt existing refresh token: %w", err)
+		}
+	} else {
+		slog.Warn("No refresh token available to persist", "userID", pts.userID)
+		// We still continue to update the access token
+	}
+
+	// Update token in database
+	updatedConnection := &db.UserCalendarConnectionRow{
+		UserId:       pts.userID,
+		Provider:     "google",
+		AccessToken:  encryptedAccessToken,
+		RefreshToken: encryptedRefreshToken,
+		TokenExpiry:  token.Expiry,
+		UpdatedAt:    time.Now(),
+	}
+
+	return pts.service.db.UpdateCalendarConnectionTokens(ctx, updatedConnection)
 }
 
 // ListCalendars retrieves the list of calendars for the user from Google
