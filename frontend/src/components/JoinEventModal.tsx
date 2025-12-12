@@ -98,10 +98,9 @@ export const JoinEventModal: React.FC<Props> = ({
               locations: event.locations,
               timeSlots
             });
-            // Pre-select first location by default
-            if (event.locations.length > 0) {
-              setSelectedLocations([event.locations[0]]);
-            }
+            // Clear any previous selections when loading new event
+            setSelectedLocations([]);
+            setSelectedTimeSlots([]);
           }
         }
       } catch (err) {
