@@ -8,7 +8,7 @@ import (
 
 type Queue interface {
 	Enqueue(ctx context.Context, userId string, data db.NotificationQueueData) error
-	GetNext(ctx context.Context) (*db.NotificationQueueRow, error)
+	GetBatch(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error)
 	MarkCompleted(ctx context.Context, id string) error
 	MarkFailed(ctx context.Context, id string) error
 	IncrementRetryCount(ctx context.Context, id string) error
@@ -28,8 +28,8 @@ func (q *DbQueue) Enqueue(ctx context.Context, userId string, data db.Notificati
 	return q.db.EnqueueNotification(userId, data)
 }
 
-func (q *DbQueue) GetNext(ctx context.Context) (*db.NotificationQueueRow, error) {
-	return q.db.GetNextNotification()
+func (q *DbQueue) GetBatch(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error) {
+	return q.db.GetNotificationBatch(batchSize)
 }
 
 func (q *DbQueue) MarkCompleted(ctx context.Context, id string) error {

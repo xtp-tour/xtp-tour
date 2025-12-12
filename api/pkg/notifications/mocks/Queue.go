@@ -101,64 +101,70 @@ func (_c *MockQueue_Enqueue_Call) RunAndReturn(run func(ctx context.Context, use
 	return _c
 }
 
-// GetNext provides a mock function for the type MockQueue
-func (_mock *MockQueue) GetNext(ctx context.Context) (*db.NotificationQueueRow, error) {
-	ret := _mock.Called(ctx)
+// GetBatch provides a mock function for the type MockQueue
+func (_mock *MockQueue) GetBatch(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error) {
+	ret := _mock.Called(ctx, batchSize)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetNext")
+		panic("no return value specified for GetBatch")
 	}
 
-	var r0 *db.NotificationQueueRow
+	var r0 []*db.NotificationQueueRow
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*db.NotificationQueueRow, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) ([]*db.NotificationQueueRow, error)); ok {
+		return returnFunc(ctx, batchSize)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *db.NotificationQueueRow); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int) []*db.NotificationQueueRow); ok {
+		r0 = returnFunc(ctx, batchSize)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*db.NotificationQueueRow)
+			r0 = ret.Get(0).([]*db.NotificationQueueRow)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = returnFunc(ctx, batchSize)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockQueue_GetNext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNext'
-type MockQueue_GetNext_Call struct {
+// MockQueue_GetBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBatch'
+type MockQueue_GetBatch_Call struct {
 	*mock.Call
 }
 
-// GetNext is a helper method to define mock.On call
+// GetBatch is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockQueue_Expecter) GetNext(ctx interface{}) *MockQueue_GetNext_Call {
-	return &MockQueue_GetNext_Call{Call: _e.mock.On("GetNext", ctx)}
+//   - batchSize int
+func (_e *MockQueue_Expecter) GetBatch(ctx interface{}, batchSize interface{}) *MockQueue_GetBatch_Call {
+	return &MockQueue_GetBatch_Call{Call: _e.mock.On("GetBatch", ctx, batchSize)}
 }
 
-func (_c *MockQueue_GetNext_Call) Run(run func(ctx context.Context)) *MockQueue_GetNext_Call {
+func (_c *MockQueue_GetBatch_Call) Run(run func(ctx context.Context, batchSize int)) *MockQueue_GetBatch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 int
+		if args[1] != nil {
+			arg1 = args[1].(int)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
 }
 
-func (_c *MockQueue_GetNext_Call) Return(notificationQueueRow *db.NotificationQueueRow, err error) *MockQueue_GetNext_Call {
-	_c.Call.Return(notificationQueueRow, err)
+func (_c *MockQueue_GetBatch_Call) Return(notificationQueueRows []*db.NotificationQueueRow, err error) *MockQueue_GetBatch_Call {
+	_c.Call.Return(notificationQueueRows, err)
 	return _c
 }
 
-func (_c *MockQueue_GetNext_Call) RunAndReturn(run func(ctx context.Context) (*db.NotificationQueueRow, error)) *MockQueue_GetNext_Call {
+func (_c *MockQueue_GetBatch_Call) RunAndReturn(run func(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error)) *MockQueue_GetBatch_Call {
 	_c.Call.Return(run)
 	return _c
 }

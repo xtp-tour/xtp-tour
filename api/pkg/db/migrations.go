@@ -67,9 +67,15 @@ func RunMigrations(dbConfig *pkg.DbConfig, args ...string) {
 }
 
 func getDriver(dbConfig *pkg.DbConfig) database.Driver {
+	slog.Info("Getting driver", "connectionString", dbConfig.GetConnectionString())
 	db, err := sql.Open("mysql", dbConfig.GetConnectionString())
 	if err != nil {
 		slog.Error("Failed to open connection", "error", err)
+		os.Exit(1)
+	}
+	err = db.Ping()
+	if err != nil {
+		slog.Error("Failed to ping database", "error", err)
 		os.Exit(1)
 	}
 
