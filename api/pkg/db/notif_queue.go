@@ -35,16 +35,16 @@ func (db *Db) EnqueueNotification(userId string, data NotificationQueueData) err
 }
 
 // GetNotificationBatch claims and returns a batch of pending notifications.
-// This uses a lock-free approach:
-// 1. Atomically UPDATE a batch of pending notifications to 'processing' status
-// 2. SELECT the claimed notifications (no locking needed, they're already ours)
-// 3. Fetch user preferences separately (no transaction/locks)
+// This uses a minimal-lock approach:
+// 1. Transaction: SELECT IDs with FOR UPDATE SKIP LOCKED, UPDATE status, SELECT full data
+// 2. Commit only after all data is fetched (prevents orphaning on failure)
+// 3. Fetch user preferences separately (can fail without orphaning notifications)
 //
 // This eliminates lock contention because:
-// - The UPDATE with LIMIT is atomic and very fast
-// - No SELECT FOR UPDATE is needed
-// - No JOINs during the claim phase
-// - User preferences are fetched outside any transaction
+// - SKIP LOCKED prevents waiting on rows locked by other workers
+// - Batch processing reduces lock frequency by ~20x vs one-at-a-time
+// - No JOINs with user_pref during the transaction
+// - User preferences are fetched outside the transaction
 func (db *Db) GetNotificationBatch(batchSize int) ([]*NotificationQueueRow, error) {
 	logCtx := slog.With("method", "GetNotificationBatch", "batchSize", batchSize)
 
@@ -52,49 +52,83 @@ func (db *Db) GetNotificationBatch(batchSize int) ([]*NotificationQueueRow, erro
 		batchSize = DefaultNotificationBatchSize
 	}
 
-	// Step 1: Atomically claim a batch by updating status from 'pending' to 'processing'
-	// MySQL allows ORDER BY and LIMIT in single-table UPDATE statements.
-	// This is atomic - no other worker can claim the same rows.
-	claimQuery := `UPDATE notification_queue
-		SET status = ?, processed_at = NOW()
+	// Start transaction - we only commit after successfully fetching all data
+	// This prevents orphaning notifications if any step fails
+	tx, err := db.conn.Beginx()
+	if err != nil {
+		logCtx.Error("Failed to begin transaction", "error", err)
+		return nil, err
+	}
+
+	// Step 1: Select IDs to claim with FOR UPDATE SKIP LOCKED
+	// SKIP LOCKED ensures we don't wait on rows locked by other workers
+	var ids []string
+	selectIdsQuery := `SELECT id FROM notification_queue
 		WHERE status = ?
 		ORDER BY created_at ASC
-		LIMIT ?`
+		LIMIT ?
+		FOR UPDATE SKIP LOCKED`
 
-	result, err := db.conn.Exec(claimQuery, NotificationStatusProcessing, NotificationStatusPending, batchSize)
+	err = tx.Select(&ids, selectIdsQuery, NotificationStatusPending, batchSize)
 	if err != nil {
-		logCtx.Error("Failed to claim notification batch", "error", err)
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to select notification IDs", "error", err)
 		return nil, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logCtx.Error("Failed to get rows affected", "error", err)
-		return nil, err
-	}
-
-	if rowsAffected == 0 {
-		// No pending notifications
+	if len(ids) == 0 {
+		db.rollback(logCtx, tx)
 		return nil, nil
 	}
 
-	logCtx.Debug("Claimed notification batch", "count", rowsAffected)
+	// Step 2: Update the claimed rows to 'processing' status
+	updateQuery, args, err := sqlx.In(
+		`UPDATE notification_queue SET status = ?, processed_at = NOW() WHERE id IN (?)`,
+		NotificationStatusProcessing, ids)
+	if err != nil {
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to prepare update query", "error", err)
+		return nil, err
+	}
+	updateQuery = db.conn.Rebind(updateQuery)
 
-	// Step 2: Fetch the notifications we just claimed.
-	// We identify them by status='processing' ordered by processed_at DESC (most recently claimed first).
-	// This is safe because we're the only worker that just updated these rows.
-	selectQuery := `SELECT id, user_id, data, status, created_at, processed_at, retry_count
-		FROM notification_queue
-		WHERE status = ?
-		ORDER BY processed_at DESC
-		LIMIT ?`
+	_, err = tx.Exec(updateQuery, args...)
+	if err != nil {
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to update notification status", "error", err)
+		return nil, err
+	}
+
+	// Step 3: Fetch full notification data WITHIN the transaction
+	// This ensures we don't commit until we have all the data we need
+	selectQuery, args, err := sqlx.In(
+		`SELECT id, user_id, data, status, created_at, processed_at, retry_count
+		FROM notification_queue WHERE id IN (?)`, ids)
+	if err != nil {
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to prepare select query", "error", err)
+		return nil, err
+	}
+	selectQuery = tx.Rebind(selectQuery)
 
 	var notifications []*NotificationQueueRow
-	err = db.conn.Select(&notifications, selectQuery, NotificationStatusProcessing, rowsAffected)
+	err = tx.Select(&notifications, selectQuery, args...)
 	if err != nil {
+		db.rollback(logCtx, tx)
 		logCtx.Error("Failed to fetch claimed notifications", "error", err)
 		return nil, err
 	}
+
+	// Step 4: Commit transaction - only now that we have all the data
+	// If anything above failed, we rolled back and notifications stay 'pending'
+	err = tx.Commit()
+	if err != nil {
+		db.rollback(logCtx, tx)
+		logCtx.Error("Failed to commit transaction", "error", err)
+		return nil, err
+	}
+
+	logCtx.Debug("Claimed notification batch", "count", len(notifications))
 
 	if len(notifications) == 0 {
 		return nil, nil
