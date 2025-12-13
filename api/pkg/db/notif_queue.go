@@ -166,6 +166,10 @@ func (db *Db) GetNotificationBatch(batchSize int) ([]*NotificationQueueRow, erro
 					}
 					userPrefs[uid] = settings
 				}
+				// Check for errors that occurred during iteration
+				if err := rows.Err(); err != nil {
+					logCtx.Warn("Error during user preferences iteration", "error", err)
+				}
 			}
 		}
 	}
