@@ -48,15 +48,16 @@ func TestNotificationWorker_FanOutSender_DebugChannel(t *testing.T) {
 		},
 	}
 
-	// Setup queue mock - return notification once, then nil
-	mockQueue.On("GetNext", ctx).Return(notification, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil)
+	// Setup queue mock - return batch with notification once, then empty batch
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil)
 	mockQueue.On("MarkCompleted", ctx, "notif_123").Return(nil).Once()
 
 	// Create notification worker
 	config := pkg.NotificationConfig{
 		MaxRetries:    3,
 		TickerSeconds: 1,
+		BatchSize:     20,
 	}
 	worker := NewNotificationWorker(mockQueue, fanOutSender, config)
 
@@ -103,14 +104,15 @@ func TestNotificationWorker_FanOutSender_EmailChannel(t *testing.T) {
 	}
 
 	// Setup queue mock
-	mockQueue.On("GetNext", ctx).Return(notification, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil)
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil)
 	mockQueue.On("MarkCompleted", ctx, "notif_456").Return(nil).Once()
 
 	// Create notification worker
 	config := pkg.NotificationConfig{
 		MaxRetries:    3,
 		TickerSeconds: 1,
+		BatchSize:     20,
 	}
 	worker := NewNotificationWorker(mockQueue, fanOutSender, config)
 
@@ -159,14 +161,15 @@ func TestNotificationWorker_FanOutSender_MultipleChannels(t *testing.T) {
 	}
 
 	// Setup queue mock
-	mockQueue.On("GetNext", ctx).Return(notification, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil)
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil)
 	mockQueue.On("MarkCompleted", ctx, "notif_789").Return(nil).Once()
 
 	// Create notification worker
 	config := pkg.NotificationConfig{
 		MaxRetries:    3,
 		TickerSeconds: 1,
+		BatchSize:     20,
 	}
 	worker := NewNotificationWorker(mockQueue, fanOutSender, config)
 
@@ -242,24 +245,25 @@ func TestNotificationWorker_RetryLogic(t *testing.T) {
 	config := pkg.NotificationConfig{
 		MaxRetries:    2,
 		TickerSeconds: 1,
+		BatchSize:     20,
 	}
 	worker := NewNotificationWorker(mockQueue, mockSender, config)
 
 	// First call - should increment retry count
-	mockQueue.On("GetNext", ctx).Return(notification, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil).Once()
 	mockQueue.On("IncrementRetryCount", ctx, "notif_fail").Return(nil).Once()
 	worker.processNotifications(ctx)
 
 	// Second call - should increment retry count again
-	mockQueue.On("GetNext", ctx).Return(notification2, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification2}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil).Once()
 	mockQueue.On("IncrementRetryCount", ctx, "notif_fail").Return(nil).Once()
 	worker.processNotifications(ctx)
 
 	// Third call - should mark as failed (exceeded max retries)
-	mockQueue.On("GetNext", ctx).Return(notification3, nil).Once()
-	mockQueue.On("GetNext", ctx).Return(nil, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{notification3}, nil).Once()
+	mockQueue.On("GetBatch", ctx, 20).Return([]*db.NotificationQueueRow{}, nil).Once()
 	mockQueue.On("MarkFailed", ctx, "notif_fail").Return(nil).Once()
 	worker.processNotifications(ctx)
 
@@ -371,12 +375,13 @@ func TestNotificationWorker_StartStop(t *testing.T) {
 	mockQueue := mocks.NewMockQueue(t)
 	mockSender := mocks.NewMockSender(t)
 
-	// Setup mock to return no notifications
-	mockQueue.On("GetNext", mock.Anything).Return(nil, nil).Maybe()
+	// Setup mock to return no notifications (empty batch)
+	mockQueue.On("GetBatch", mock.Anything, mock.Anything).Return([]*db.NotificationQueueRow{}, nil).Maybe()
 
 	config := pkg.NotificationConfig{
 		MaxRetries:    3,
 		TickerSeconds: 1,
+		BatchSize:     20,
 	}
 	worker := NewNotificationWorker(mockQueue, mockSender, config)
 

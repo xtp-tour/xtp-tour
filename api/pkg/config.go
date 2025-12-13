@@ -19,6 +19,7 @@ type Config struct {
 type NotificationConfig struct {
 	MaxRetries    int         `default:"3" envvar:"NOTIFICATION_MAX_RETRIES"`
 	TickerSeconds int         `default:"5" envvar:"NOTIFICATION_TICKER_SECONDS"`
+	BatchSize     int         `default:"20" envvar:"NOTIFICATION_BATCH_SIZE"`
 	Email         EmailConfig `config:"email"`
 }
 

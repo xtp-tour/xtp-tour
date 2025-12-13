@@ -47,7 +47,7 @@ func (m *MockNotifierDb) GetEventOwner(ctx context.Context, eventId string) (str
 
 type MockQueue struct {
 	EnqueueFunc             func(ctx context.Context, userId string, data db.NotificationQueueData) error
-	GetNextFunc             func(ctx context.Context) (*db.NotificationQueueRow, error)
+	GetBatchFunc            func(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error)
 	MarkCompletedFunc       func(ctx context.Context, id string) error
 	MarkFailedFunc          func(ctx context.Context, id string) error
 	IncrementRetryCountFunc func(ctx context.Context, id string) error
@@ -60,9 +60,9 @@ func (m *MockQueue) Enqueue(ctx context.Context, userId string, data db.Notifica
 	return nil
 }
 
-func (m *MockQueue) GetNext(ctx context.Context) (*db.NotificationQueueRow, error) {
-	if m.GetNextFunc != nil {
-		return m.GetNextFunc(ctx)
+func (m *MockQueue) GetBatch(ctx context.Context, batchSize int) ([]*db.NotificationQueueRow, error) {
+	if m.GetBatchFunc != nil {
+		return m.GetBatchFunc(ctx, batchSize)
 	}
 	return nil, nil
 }

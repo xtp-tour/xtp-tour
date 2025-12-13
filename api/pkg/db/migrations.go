@@ -72,6 +72,11 @@ func getDriver(dbConfig *pkg.DbConfig) database.Driver {
 		slog.Error("Failed to open connection", "error", err)
 		os.Exit(1)
 	}
+	err = db.Ping()
+	if err != nil {
+		slog.Error("Failed to ping database", "error", err)
+		os.Exit(1)
+	}
 
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
