@@ -10,8 +10,8 @@
   },
   "landing": {
     "hero": {
-      "title": "Organiza tus partidos de tenis sin complicaciones",
-      "subtitle": "Despídete de los chats interminables: publica tu disponibilidad, comparte tu reto y deja que otros jugadores reserven el turno que mejor les encaje.",
+      "title": "Menos mensajes, más tenis.",
+      "subtitle": "Define tus canchas, horarios y nivel una sola vez. Comparte un enlace y deja que tus compañeros elijan el turno que les funcione.",
       "createLink": "Crea tu enlace de tenis",
       "findPartners": "Encuentra compañeros de juego",
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",

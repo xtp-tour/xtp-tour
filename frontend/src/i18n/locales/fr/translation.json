@@ -10,8 +10,8 @@
   },
   "landing": {
     "hero": {
-      "title": "Organisez vos matchs de tennis sans prise de tête",
-      "subtitle": "Finis les messages interminables : publiez vos dispos, partagez votre défi et laissez les joueurs réserver le créneau qui leur convient.",
+      "title": "Moins de messages, plus de tennis.",
+      "subtitle": "Définissez vos courts, créneaux et niveau une seule fois. Partagez un lien et laissez vos partenaires choisir le créneau qui leur convient.",
       "createLink": "Créez votre lien tennis",
       "findPartners": "Trouvez des partenaires de jeu",
       "alreadyHaveAccount": "Vous avez déjà un compte ?",

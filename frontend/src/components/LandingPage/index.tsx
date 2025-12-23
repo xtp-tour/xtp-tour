@@ -104,7 +104,7 @@ const LandingPage: React.FC = () => {
   return (
     <div className="landing">
       <header className="lp-hero text-center">
-        <h1 className="lp-hero-title">Schedule tennis without the group chat</h1>
+        <h1 className="lp-hero-title">Skip the back-and-forth. Hit the court.</h1>
         <p className="lp-hero-subtitle">
           Set your courts, time windows, and player level once. Share a link so partners pick the slot
           that works.
@@ -191,7 +191,7 @@ const LandingPage: React.FC = () => {
         <p className="lp-eyebrow">Final serve</p>
         <h2 className="lp-section-title">Plan your next session</h2>
         <p className="lp-cta-text">
-          Share one link to line up the right time, place, and partners. Less chat, more court time.
+          Share one link to line up the right time, place, and partners. Skip the back-and-forth. Hit the court.
         </p>
         <div className="lp-hero-actions">
           {renderPrimaryButton('Start scheduling', 'bi-calendar-plus')}

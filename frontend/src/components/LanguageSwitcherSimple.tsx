@@ -10,6 +10,7 @@ const LanguageSwitcherSimple: React.FC = () => {
     { code: 'es', name: 'Español', flag: '🇪🇸' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
   ];
 
   // Get current language, handling potential language variants (e.g., en-US -> en)

@@ -10,8 +10,8 @@
   },
   "landing": {
     "hero": {
-      "title": "Tennis scheduling made simple",
-      "subtitle": "No more back-and-forth texting to arrange tennis games. Set your availability, share your session, and let players book time with you.",
+      "title": "Skip the back-and-forth. Hit the court.",
+      "subtitle": "Set your courts, time windows, and player level once. Share a link so partners pick the slot that works.",
       "createLink": "Create Your Tennis Link",
       "findPartners": "Find Tennis Partners",
       "alreadyHaveAccount": "Already have an account?",
