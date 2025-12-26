@@ -118,7 +118,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                       borderRadius: '20px',
                       cursor: 'help'
                     }}>
-                <i className="bi bi-trophy me-2"></i>
+                <i className="bi bi-bar-chart-line me-2"></i>
                 {event.skillLevel}
                 <span className="badge bg-light text-dark ms-2"
                       style={{
