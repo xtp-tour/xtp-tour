@@ -59,12 +59,12 @@
       "eventMissing": "Faltan datos del evento",
       "failedToConfirm": "Error al confirmar el evento",
       "selectLocation": "Por favor selecciona una ubicación",
-      "selectPlayers": "Por favor selecciona exactamente {{count}} jugador(es)",
+      "selectPlayers": "Por favor selecciona exactamente {{num}} jugador(es)",
       "selectTimeSlot": "Por favor selecciona un horario"
     },
-    "selectLocation": "Seleccionar Ubicación ({{count}} ubicaciones compatibles)",
+    "selectLocation": "Seleccionar Ubicación ({{total}} ubicaciones compatibles)",
     "selectPlayers": "Seleccionar Jugadores ({{selected}} de {{required}})",
-    "selectTime": "Seleccionar Hora ({{count}} horarios compatibles)",
+    "selectTime": "Seleccionar Hora ({{total}} horarios compatibles)",
     "title": "Confirmar Tu Evento"
   },
   "createEvent": {

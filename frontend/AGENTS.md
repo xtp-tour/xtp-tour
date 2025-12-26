@@ -22,7 +22,7 @@ IMPORTANT! This directory is part of the `xtp-tour` monorepo. Monorepo-wide rule
 - Preview production build: `pnpm preview`
 
 ### Linting
-- Run ESLint: `pnpm lint` or `make lint` (if needed)
+- Run ESLint: `pnpm lint`  and `pnpm i18n:check` completing a task
 
 ### Testing
 - Run unit tests: `pnpm test` or `make test`

@@ -50,7 +50,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
     return z.object({
       selectedJoinRequests: z.array(z.string()).length(
         requiredPlayers,
-        t('confirmEvent.errors.selectPlayers', { count: requiredPlayers })
+        t('confirmEvent.errors.selectPlayers', { num: requiredPlayers })
       ),
       selectedLocation: z.string().min(1, t('confirmEvent.errors.selectLocation')),
       selectedDateTime: z.string().min(1, t('confirmEvent.errors.selectTimeSlot')),
@@ -457,7 +457,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-geo-alt me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>
-                    {t('confirmEvent.selectLocation', { count: getCompatibleLocationsCount() })}
+                    {t('confirmEvent.selectLocation', { total: getCompatibleLocationsCount() })}
                   </span>
                 </h6>
                 {validationErrors.selectedLocation && (
@@ -525,7 +525,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-clock me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>
-                    {t('confirmEvent.selectTime', { count: getCompatibleTimeSlotsCount() })}
+                    {t('confirmEvent.selectTime', { total: getCompatibleTimeSlotsCount() })}
                   </span>
                 </h6>
                 {validationErrors.selectedDateTime && (

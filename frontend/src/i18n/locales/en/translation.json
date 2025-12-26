@@ -59,12 +59,12 @@
       "eventMissing": "Event data is missing",
       "failedToConfirm": "Failed to confirm event",
       "selectLocation": "Please select a location",
-      "selectPlayers": "Please select exactly {{count}} player(s)",
+      "selectPlayers": "Please select exactly {{num}} player(s)",
       "selectTimeSlot": "Please select a time slot"
     },
-    "selectLocation": "Select Location ({{count}} compatible locations)",
+    "selectLocation": "Select Location ({{total}} compatible locations)",
     "selectPlayers": "Select Players ({{selected}} of {{required}})",
-    "selectTime": "Select Time ({{count}} compatible slots)",
+    "selectTime": "Select Time ({{total}} compatible slots)",
     "title": "Confirm Your Event"
   },
   "createEvent": {

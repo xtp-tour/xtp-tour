@@ -59,12 +59,12 @@
       "eventMissing": "Brak danych wydarzenia",
       "failedToConfirm": "Nie udało się potwierdzić wydarzenia",
       "selectLocation": "Wybierz lokalizację",
-      "selectPlayers": "Wybierz dokładnie {{count}} gracza(y)",
+      "selectPlayers": "Wybierz dokładnie {{num}} gracza(y)",
       "selectTimeSlot": "Wybierz termin"
     },
-    "selectLocation": "Wybierz Lokalizację ({{count}} kompatybilnych lokalizacji)",
+    "selectLocation": "Wybierz Lokalizację ({{total}} kompatybilnych lokalizacji)",
     "selectPlayers": "Wybierz Graczy ({{selected}} z {{required}})",
-    "selectTime": "Wybierz Czas ({{count}} kompatybilnych terminów)",
+    "selectTime": "Wybierz Czas ({{total}} kompatybilnych terminów)",
     "title": "Potwierdź Swoje Wydarzenie"
   },
   "createEvent": {
