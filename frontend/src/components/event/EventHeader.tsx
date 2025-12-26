@@ -3,7 +3,7 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { ActionButton, StyleProps } from './types';
 import { components } from '../../types/schema';
 import { formatDuration } from '../../utils/dateUtils';
-import { formatTimeSlotLocalized } from '../../utils/i18nDateUtils';
+import { formatTimeSlotLocalized, formatUtcToLocalI18n } from '../../utils/i18nDateUtils';
 import { LocationBadge } from './EventBadges';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
@@ -41,9 +41,18 @@ const getStatusBadge = (event: ApiEvent, t: (key: string) => string) => {
       return { text: t('eventStatus.cancelled'), variant: 'text-bg-secondary' };
     case 'COMPLETED':
       return { text: t('eventStatus.completed'), variant: 'text-bg-secondary' };
+    case 'EXPIRED':
+      return { text: t('eventStatus.expired'), variant: 'text-bg-secondary' };
     default:
       return { text: event.status, variant: 'text-bg-secondary' };
   }
+};
+
+// Check if expiration time should be displayed
+const shouldShowExpirationTime = (event: ApiEvent): boolean => {
+  if (!event.expirationTime) return false;
+  // Show for active events (OPEN, ACCEPTED) or for expired events
+  return event.status === 'OPEN' || event.status === 'ACCEPTED' || event.status === 'EXPIRED';
 };
 
 
@@ -61,7 +70,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   // Check if the event is confirmed
   const isConfirmed = event.status === 'CONFIRMED';
   const statusBadge = getStatusBadge(event, t);
-  
+
   return (
     <div className="p-4">
       {/* Main Header Row */}
@@ -72,9 +81,9 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: '1.25rem', lineHeight: '1.3' }}>
               {title}
             </h5>
-            <span className={`badge ${statusBadge.variant} px-3 py-2`} 
-                  style={{ 
-                    fontSize: '0.75rem', 
+            <span className={`badge ${statusBadge.variant} px-3 py-2`}
+                  style={{
+                    fontSize: '0.75rem',
                     fontWeight: '600',
                     borderRadius: '20px',
                     textTransform: 'uppercase',
@@ -83,8 +92,8 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               {statusBadge.text}
             </span>
             {typeof joinedCount === 'number' && (
-              <span className="badge bg-light text-dark px-3 py-2" 
-                    style={{ 
+              <span className="badge bg-light text-dark px-3 py-2"
+                    style={{
                       fontSize: '0.75rem',
                       fontWeight: '600',
                       borderRadius: '20px',
@@ -102,8 +111,8 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                 {t(`createEvent.skillHints.${event.skillLevel}`)}
               </Tooltip>}
             >
-              <span className="badge bg-dark text-white px-3 py-2" 
-                    style={{ 
+              <span className="badge bg-dark text-white px-3 py-2"
+                    style={{
                       fontSize: '0.75rem',
                       fontWeight: '600',
                       borderRadius: '20px',
@@ -111,8 +120,8 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                     }}>
                 <i className="bi bi-trophy me-2"></i>
                 {event.skillLevel}
-                <span className="badge bg-light text-dark ms-2" 
-                      style={{ 
+                <span className="badge bg-light text-dark ms-2"
+                      style={{
                         fontSize: '0.7rem',
                         padding: '0.25rem 0.5rem',
                         borderRadius: '8px'
@@ -122,20 +131,41 @@ const EventHeader: React.FC<EventHeaderProps> = ({
               </span>
             </OverlayTrigger>
           </div>
-          
+
           {/* Host Information */}
           {subtitle && (
             <div className="mb-3">
-              <div className="text-muted mb-1" style={{ fontSize: '0.9rem' }}>                
+              <div className="text-muted mb-1" style={{ fontSize: '0.9rem' }}>
                 {subtitle}
               </div>
               <div className="text-muted small">
-                <span className="fw-medium">{t('common.created')}:</span> <TimeAgo date={event.createdAt || new Date()} formatter={getTimeAgoFormatter(i18n.language)} />
+                {t('common.created')} <TimeAgo date={event.createdAt || new Date()} formatter={getTimeAgoFormatter(i18n.language)} />
+                {shouldShowExpirationTime(event) && event.expirationTime && (
+                  <>
+                    {' | '}
+                    {t('common.expires')}{' '}
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={
+                        <Tooltip id={`expiration-tooltip-${event.id}`}>
+                          {formatUtcToLocalI18n(event.expirationTime)}
+                        </Tooltip>
+                      }
+                    >
+                      <span style={{ cursor: 'help', textDecoration: 'underline dotted' }}>
+                        <TimeAgo
+                          date={event.expirationTime}
+                          formatter={getTimeAgoFormatter(i18n.language)}
+                        />
+                      </span>
+                    </OverlayTrigger>
+                  </>
+                )}
               </div>
             </div>
           )}
         </div>
-        
+
         {/* Right: Share Button */}
         <div className="flex-shrink-0">
           {shareButton}
@@ -185,7 +215,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
         </div>
       </div>
 
-      
+
       {/* Action Button */}
       <div className="mt-4">
         {actionButton.customButton || (!actionButton.hidden && (
@@ -193,8 +223,8 @@ const EventHeader: React.FC<EventHeaderProps> = ({
             variant={actionButton.variant}
             onClick={actionButton.onClick}
             className="w-100 d-flex justify-content-center align-items-center"
-            style={{ 
-              minHeight: '48px', 
+            style={{
+              minHeight: '48px',
               fontSize: '0.95rem',
               fontWeight: '600',
               borderRadius: '12px',
@@ -211,4 +241,4 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   );
 };
 
-export default EventHeader; 
+export default EventHeader;

@@ -459,7 +459,7 @@ export interface components {
             /** @enum {string} */
             skillLevel: "ANY" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
             /** @enum {string} */
-            status?: "OPEN" | "ACCEPTED" | "CONFIRMED" | "CANCELLED" | "RESERVATION_FAILED" | "COMPLETED";
+            status?: "OPEN" | "ACCEPTED" | "CONFIRMED" | "CANCELLED" | "RESERVATION_FAILED" | "COMPLETED" | "EXPIRED";
             /** @description Time slots in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) */
             timeSlots: string[];
             userId?: string;

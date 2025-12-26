@@ -142,7 +142,7 @@ type EventData struct {
 // Event represents an internal representation of an event
 type Event struct {
 	EventData
-	Status       EventStatus    `json:"status" enum:"OPEN,ACCEPTED,CONFIRMED,CANCELLED,RESERVATION_FAILED,COMPLETED"`
+	Status       EventStatus    `json:"status" enum:"OPEN,ACCEPTED,CONFIRMED,CANCELLED,RESERVATION_FAILED,COMPLETED,EXPIRED"`
 	CreatedAt    string         `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
 	JoinRequests []*JoinRequest `json:"joinRequests"`
 	Confirmation *Confirmation  `json:"confirmation,omitempty"`

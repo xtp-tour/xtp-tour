@@ -48,6 +48,7 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "error": "Error",
+    "expires": "Expira",
     "hideDetails": "Ocultar Detalles",
     "loading": "Cargando...",
     "save": "Guardar",
@@ -190,6 +191,7 @@
     "cancelled": "Cancelado",
     "completed": "Completado",
     "confirmed": "Confirmado",
+    "expired": "Expirado",
     "open": "Abierto",
     "reservationFailed": "Reserva fallida"
   },

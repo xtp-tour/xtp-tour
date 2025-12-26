@@ -48,6 +48,7 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "error": "Erreur",
+    "expires": "Expire",
     "hideDetails": "Masquer les Détails",
     "loading": "Chargement...",
     "save": "Sauvegarder",
@@ -190,6 +191,7 @@
     "cancelled": "Annulé",
     "completed": "Terminé",
     "confirmed": "Confirmé",
+    "expired": "Expiré",
     "open": "Ouvert",
     "reservationFailed": "Réservation échouée"
   },

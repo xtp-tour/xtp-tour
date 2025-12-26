@@ -64,12 +64,12 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
 
   // Get action button
   const getActionButton = () => {
-    // No action button for confirmed events
-    if (event.status === 'CONFIRMED') {
+    // No action button for confirmed or expired events
+    if (event.status === 'CONFIRMED' || event.status === 'EXPIRED') {
       return {
         variant: 'outline-secondary',
-        icon: 'bi-check-circle-fill',
-        label: t('eventActions.confirmed'),
+        icon: event.status === 'CONFIRMED' ? 'bi-check-circle-fill' : 'bi-clock-history',
+        label: event.status === 'CONFIRMED' ? t('eventActions.confirmed') : t('eventStatus.expired'),
         onClick: () => {},
         disabled: true,
         hidden: true // This will be used to completely hide the button
@@ -110,10 +110,10 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         borderColorClass: 'border-success'
       };
     }
-    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
       return {
-        colorClass: 'text-danger',
-        borderColorClass: 'border-danger'
+        colorClass: 'text-secondary',
+        borderColorClass: 'border-secondary'
       };
     }
     return {

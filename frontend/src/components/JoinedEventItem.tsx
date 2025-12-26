@@ -70,10 +70,10 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         borderColorClass: 'border-success'
       };
     }
-    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
       return {
-        colorClass: 'text-danger',
-        borderColorClass: 'border-danger'
+        colorClass: 'text-secondary',
+        borderColorClass: 'border-secondary'
       };
     }
     return {
@@ -119,9 +119,9 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   const joinRequestStatus = getJoinRequestStatus();
 
-  // Determine which status to show - prioritize event status for confirmed/completed events
+  // Determine which status to show - prioritize event status for confirmed/completed/expired events
   const getDisplayStatus = () => {
-    if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED') {
+    if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
       // Show event status for final states
       return null; // Let EventHeader handle the status display
     } else {
@@ -134,12 +134,12 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
 
   // Get action button based on event status
   const getActionButton = () => {
-    // No action button for confirmed events
-    if (event.status === 'CONFIRMED') {
+    // No action button for confirmed or expired events
+    if (event.status === 'CONFIRMED' || event.status === 'EXPIRED') {
       return {
         variant: 'outline-secondary',
-        icon: 'bi-check-circle-fill',
-        label: t('eventActions.confirmed'),
+        icon: event.status === 'CONFIRMED' ? 'bi-check-circle-fill' : 'bi-clock-history',
+        label: event.status === 'CONFIRMED' ? t('eventActions.confirmed') : t('eventStatus.expired'),
         onClick: () => {},
         disabled: true,
         hidden: true
