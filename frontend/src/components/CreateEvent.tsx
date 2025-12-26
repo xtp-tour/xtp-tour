@@ -5,6 +5,7 @@ import UseBootstrapSelect from 'use-bootstrap-select'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Tooltip, Toast } from 'bootstrap';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { components } from '../types/schema';
 import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
@@ -14,22 +15,6 @@ import GoogleCalendarConnector from './GoogleCalendarConnector';
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
 type SingleDoubleType = 'SINGLE' | 'DOUBLES';
-
-// Duration options will be created with i18n support inside the component
-
-// Skill level labels will be translated using useTranslation hook
-
-// Time slot validation utilities
-const validateTimeSlots = (selectedTimes: string[]): boolean => {
-  if (selectedTimes.length === 0) return false;
-
-  // Validate each selected time is in the future
-  const now = new Date();
-  return selectedTimes.every(timeStr => {
-    const time = new Date(timeStr);
-    return time.getTime() > now.getTime();
-  });
-};
 
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
   const { t } = useTranslation();
@@ -43,8 +28,26 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('INTERMEDIATE');
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
+
+  // Zod schema for form validation
+  const createEventSchema = z.object({
+    selectedLocations: z.array(z.string()).min(1, t('createEvent.errors.selectAtLeastOneLocation')),
+    selectedStartTimes: z.array(z.string())
+      .min(1, t('createEvent.errors.selectAtLeastOneTimeSlot'))
+      .refine(
+        (times) => {
+          const now = new Date();
+          return times.every(timeStr => {
+            const time = new Date(timeStr);
+            return time.getTime() > now.getTime();
+          });
+        },
+        { message: t('createEvent.errors.somePastTimes') }
+      ),
+    description: z.string().max(1000, t('createEvent.errors.descriptionTooLong'))
+  });
 
   // Get skill level labels with translations
   const getSkillLevelLabels = (): Record<SkillLevel, string> => {
@@ -72,8 +75,11 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   // Clear validation errors when user makes changes
   const handleTimeSelectionChange = useCallback((times: string[]) => {
     setSelectedStartTimes(times);
-    if (validationErrors.some(error => error.includes('time slot'))) {
-      setValidationErrors(prev => prev.filter(error => !error.includes('time slot')));
+    if (validationErrors.selectedStartTimes) {
+      setValidationErrors(prev => {
+        const { selectedStartTimes, ...rest } = prev;
+        return rest;
+      });
     }
   }, [validationErrors]);
 
@@ -156,28 +162,24 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     };
   }, [isExpanded, locations, isLoadingLocations, selectedLocations]);
 
-  // Form validation
-  const validateForm = (): boolean => {
-    const errors: string[] = [];
+  // Form validation using Zod
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
+    const result = createEventSchema.safeParse({
+      selectedLocations,
+      selectedStartTimes,
+      description: description.trim()
+    });
 
-    if (selectedLocations.length === 0) {
-      errors.push(t('createEvent.errors.selectAtLeastOneLocation'));
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        errors[path] = error.message;
+      });
+      return { isValid: false, errors };
     }
 
-    if (!validateTimeSlots(selectedStartTimes)) {
-      if (selectedStartTimes.length === 0) {
-        errors.push(t('createEvent.errors.selectAtLeastOneTimeSlot'));
-      } else {
-        errors.push(t('createEvent.errors.somePastTimes'));
-      }
-    }
-
-    if (description.trim().length > 1000) {
-      errors.push(t('createEvent.errors.descriptionTooLong'));
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
+    return { isValid: true, errors: {} };
   };
 
   // Reset form to initial state
@@ -190,7 +192,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setInvitationType('MATCH');
     setRequestType('SINGLE');
     setDescription('');
-    setValidationErrors([]);
+    setValidationErrors({});
   }, []);
 
   const handleNativeLocationChange = (e: Event) => {
@@ -198,12 +200,26 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     if (select) {
       const selected = Array.from(select.selectedOptions, option => option.value);
       setSelectedLocations(selected);
+      // Clear location validation error
+      if (validationErrors.selectedLocations) {
+        setValidationErrors(prev => {
+          const { selectedLocations, ...rest } = prev;
+          return rest;
+        });
+      }
     }
   };
 
   const handleReactLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = Array.from(e.target.selectedOptions, option => option.value);
     setSelectedLocations(selected);
+    // Clear location validation error
+    if (validationErrors.selectedLocations) {
+      setValidationErrors(prev => {
+        const { selectedLocations, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleExpandToggle = () => {
@@ -270,11 +286,17 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     e.preventDefault();
 
     // Validate form before submission
-    if (!validateForm()) {
-      const errorMessage = validationErrors.join('. ');
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Combine all error messages for the toast
+      const errorMessage = Object.values(validation.errors).join('. ');
       showToast(errorMessage);
       return;
     }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
 
     try {
       // Use selected times directly - they're already in ISO format
@@ -326,6 +348,17 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
   const handleRequestTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRequestType(e.target.value as SingleDoubleType);
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
+    // Clear description validation error
+    if (validationErrors.description) {
+      setValidationErrors(prev => {
+        const { description, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   return (
@@ -394,6 +427,12 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                 <label className="form-label d-block">
                   {t('createEvent.form.preferredLocations')}
                 </label>
+                {validationErrors.selectedLocations && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedLocations}</small>
+                  </div>
+                )}
                 {renderLocationSelect()}
               </div>
 
@@ -532,10 +571,10 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
               <div className="mb-3">
                 <label className="form-label">{t('createEvent.form.availability')}</label>
-                {validationErrors.some(error => error.includes('time slot')) && (
+                {validationErrors.selectedStartTimes && (
                   <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
                     <small><i className="bi bi-exclamation-triangle me-1"></i>
-                    {validationErrors.find(error => error.includes('time slot'))}</small>
+                    {validationErrors.selectedStartTimes}</small>
                   </div>
                 )}
                 <div className="form-check form-switch mb-2">
@@ -575,7 +614,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   endHour={21}
                   nightOnly={nightGame}
                   disabled={!isExpanded}
-                  className={`border rounded p-2 ${validationErrors.some(error => error.includes('time slot')) ? 'border-danger' : ''}`}
+                  className={`border rounded p-2 ${validationErrors.selectedStartTimes ? 'border-danger' : ''}`}
                   calendarIntegration={{
                     enabled: calendarConnected
                   }}
@@ -590,14 +629,19 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
               <div className="mb-4">
                 <label htmlFor="description" className="form-label d-flex align-items-center">
                   {t('createEvent.form.description')}
-
                 </label>
+                {validationErrors.description && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.description}</small>
+                  </div>
+                )}
                 <textarea
                   id="description"
-                  className="form-control"
+                  className={`form-control ${validationErrors.description ? 'is-invalid' : ''}`}
                   rows={3}
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={handleDescriptionChange}
                   placeholder={invitationType === 'TRAINING' ? t('createEvent.form.trainingPlaceholder') : t('createEvent.form.generalPlaceholder')}
                 />
               </div>

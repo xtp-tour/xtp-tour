@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAPI, JoinEventRequest, Event } from '../services/apiProvider';
 import TimeSlotLabels from './event/TimeSlotLabels';
 import { EventFlowDiagram } from './EventFlowDiagram';
@@ -38,6 +39,32 @@ export const JoinEventModal: React.FC<Props> = ({
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeSlot[]>([]);
   const [hostProfile, setHostProfile] = useState<ApiUserProfileData | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Zod schema for form validation
+  const joinEventSchema = z.object({
+    selectedLocations: z.array(z.string()).min(1, t('joinModal.selectLocation')),
+    selectedTimeSlots: z.array(z.any()).min(1, t('joinModal.selectTimeSlot')),
+  });
+
+  // Form validation using Zod
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
+    const result = joinEventSchema.safeParse({
+      selectedLocations,
+      selectedTimeSlots,
+    });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        errors[path] = error.message;
+      });
+      return { isValid: false, errors };
+    }
+
+    return { isValid: true, errors: {} };
+  };
 
   // Function to get display name (reused from HostDisplay)
   const getDisplayName = (): string => {
@@ -121,6 +148,13 @@ export const JoinEventModal: React.FC<Props> = ({
         ? [...prev, locationId]
         : prev.filter(id => id !== locationId)
     );
+    // Clear location validation error
+    if (validationErrors.selectedLocations) {
+      setValidationErrors(prev => {
+        const { selectedLocations: _, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleTimeSlotChange = (slot: TimeSlot) => {
@@ -129,20 +163,33 @@ export const JoinEventModal: React.FC<Props> = ({
         ? prev.filter(s => !s.date.isSame(slot.date))
         : [...prev, slot]
     );
+    // Clear time slot validation error
+    if (validationErrors.selectedTimeSlots) {
+      setValidationErrors(prev => {
+        const { selectedTimeSlots: _, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleSubmit = async () => {
+    setError(null);
+
+    // Validate form before submission
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Combine all error messages for the general error display
+      const errorMessage = Object.values(validation.errors).join('. ');
+      setError(errorMessage);
+      return;
+    }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
+
     try {
       setLoading(true);
-      setError(null);
-
-      if (selectedLocations.length === 0) {
-        throw new Error(t('joinModal.selectLocation'));
-      }
-
-      if (selectedTimeSlots.length === 0) {
-        throw new Error(t('joinModal.selectTimeSlot'));
-      }
 
       const request: JoinEventRequest = {
         joinRequest: {
@@ -203,6 +250,12 @@ export const JoinEventModal: React.FC<Props> = ({
                   <i className="bi bi-geo-alt me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.whereToPlay')}</span>
                 </h6>
+                {validationErrors.selectedLocations && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedLocations}</small>
+                  </div>
+                )}
                 <div className="ps-2">
                   <div className="d-flex flex-wrap gap-2">
                     {options.locations.map(locationId => (
@@ -256,6 +309,12 @@ export const JoinEventModal: React.FC<Props> = ({
                   <i className="bi bi-clock me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>{t('joinModal.whenToStart')}</span>
                 </h6>
+                {validationErrors.selectedTimeSlots && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedTimeSlots}</small>
+                  </div>
+                )}
                 <div className="ps-2">
                   <TimeSlotLabels
                     timeSlots={options.timeSlots.map(slot => ({

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAPI } from '../services/apiProvider';
 import { components } from '../types/schema';
 import { formatTimeSlotLocalized } from '../utils/i18nDateUtils';
@@ -28,6 +30,7 @@ export const ConfirmEventModal: React.FC<Props> = ({
   onHide,
   onConfirmed
 }) => {
+  const { t } = useTranslation();
   const api = useAPI();
   const [loading, setLoading] = useState(false);
   const [fetchingEvent, setFetchingEvent] = useState(false);
@@ -39,6 +42,45 @@ export const ConfirmEventModal: React.FC<Props> = ({
   const [availabilityMap, setAvailabilityMap] = useState<AvailabilityMap>({});
   const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Create Zod schema dynamically based on expected players
+  const createConfirmEventSchema = (expectedPlayers: number) => {
+    const requiredPlayers = expectedPlayers - 1;
+    return z.object({
+      selectedJoinRequests: z.array(z.string()).length(
+        requiredPlayers,
+        t('confirmEvent.errors.selectPlayers', { count: requiredPlayers })
+      ),
+      selectedLocation: z.string().min(1, t('confirmEvent.errors.selectLocation')),
+      selectedDateTime: z.string().min(1, t('confirmEvent.errors.selectTimeSlot')),
+    });
+  };
+
+  // Form validation using Zod
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
+    if (!event) {
+      return { isValid: false, errors: { event: t('confirmEvent.errors.eventMissing') } };
+    }
+
+    const schema = createConfirmEventSchema(event.expectedPlayers || 0);
+    const result = schema.safeParse({
+      selectedJoinRequests,
+      selectedLocation,
+      selectedDateTime,
+    });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        errors[path] = error.message;
+      });
+      return { isValid: false, errors };
+    }
+
+    return { isValid: true, errors: {} };
+  };
 
   // Fetch latest event data when modal is shown
   useEffect(() => {
@@ -180,10 +222,24 @@ export const ConfirmEventModal: React.FC<Props> = ({
   const handleLocationChange = (locationId: string) => {
     setSelectedLocation(locationId);
     setSelectedDateTime(''); // Reset time slot when location changes
+    // Clear location validation error
+    if (validationErrors.selectedLocation) {
+      setValidationErrors(prev => {
+        const { selectedLocation: _, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleDateTimeChange = (dateTime: string) => {
     setSelectedDateTime(dateTime);
+    // Clear datetime validation error
+    if (validationErrors.selectedDateTime) {
+      setValidationErrors(prev => {
+        const { selectedDateTime: _, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleJoinRequestChange = (requestId: string, checked: boolean) => {
@@ -192,6 +248,13 @@ export const ConfirmEventModal: React.FC<Props> = ({
         ? [...prev, requestId]
         : prev.filter(id => id !== requestId)
     );
+    // Clear join requests validation error
+    if (validationErrors.selectedJoinRequests) {
+      setValidationErrors(prev => {
+        const { selectedJoinRequests: _, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   // Check if a user has any available locations and time slots
@@ -213,30 +276,23 @@ export const ConfirmEventModal: React.FC<Props> = ({
   };
 
   const handleConfirm = async () => {
+    setError(null);
+
+    // Validate form before submission
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Combine all error messages for the general error display
+      const errorMessage = Object.values(validation.errors).join('. ');
+      setError(errorMessage);
+      return;
+    }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
+
     try {
-      // Validate selections
-      if (!event) {
-        setError('Event data is missing');
-        return;
-      }
-
-      if (!selectedLocation) {
-        setError('Please select a location');
-        return;
-      }
-
-      if (!selectedDateTime) {
-        setError('Please select a time slot');
-        return;
-      }
-
-      if (selectedJoinRequests.length !== (event.expectedPlayers || 0) - 1) {
-        setError(`Please select exactly ${(event.expectedPlayers || 0) - 1} players`);
-        return;
-      }
-
       setLoading(true);
-      setError(null);
 
       const request: ConfirmEventRequest = {
         datetime: selectedDateTime,
@@ -244,11 +300,11 @@ export const ConfirmEventModal: React.FC<Props> = ({
         joinRequestsIds: selectedJoinRequests
       };
 
-      await api.confirmEvent(event.id || '', request);
+      await api.confirmEvent(event!.id || '', request);
       onConfirmed();
       onHide();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to confirm event');
+      setError(err instanceof Error ? err.message : t('confirmEvent.errors.failedToConfirm'));
     } finally {
       setLoading(false);
     }
@@ -329,9 +385,15 @@ export const ConfirmEventModal: React.FC<Props> = ({
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-people me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>
-                    Select Players ({selectedJoinRequests.length} of {(event.expectedPlayers || 0) - 1})
+                    {t('confirmEvent.selectPlayers', { selected: selectedJoinRequests.length, required: (event.expectedPlayers || 0) - 1 })}
                   </span>
                 </h6>
+                {validationErrors.selectedJoinRequests && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedJoinRequests}</small>
+                  </div>
+                )}
 
                 {getValidJoinRequests().length === 0 ? (
                   <div className="alert alert-warning">
@@ -392,9 +454,15 @@ export const ConfirmEventModal: React.FC<Props> = ({
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-geo-alt me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>
-                    Select Location ({getCompatibleLocationsCount()} compatible locations)
+                    {t('confirmEvent.selectLocation', { count: getCompatibleLocationsCount() })}
                   </span>
                 </h6>
+                {validationErrors.selectedLocation && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedLocation}</small>
+                  </div>
+                )}
                 <div className="ps-2">
                   {availableLocations.length > 0 ? (
                     <div className="d-flex flex-wrap gap-2">
@@ -454,9 +522,15 @@ export const ConfirmEventModal: React.FC<Props> = ({
                 <h6 className="card-title d-flex align-items-center mb-3">
                   <i className="bi bi-clock me-2" style={{ color: 'var(--tennis-accent)' }}></i>
                   <span style={{ color: 'var(--tennis-navy)' }}>
-                    Select Time ({getCompatibleTimeSlotsCount()} compatible slots)
+                    {t('confirmEvent.selectTime', { count: getCompatibleTimeSlotsCount() })}
                   </span>
                 </h6>
+                {validationErrors.selectedDateTime && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors.selectedDateTime}</small>
+                  </div>
+                )}
                 <div className="ps-2">
                   {availableTimeSlots.length > 0 ? (
                     <div className="d-flex flex-wrap gap-2">

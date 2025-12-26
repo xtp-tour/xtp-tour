@@ -54,6 +54,19 @@
     "showDetails": "Pokaż Szczegóły",
     "success": "Sukces"
   },
+  "confirmEvent": {
+    "errors": {
+      "eventMissing": "Brak danych wydarzenia",
+      "failedToConfirm": "Nie udało się potwierdzić wydarzenia",
+      "selectLocation": "Wybierz lokalizację",
+      "selectPlayers": "Wybierz dokładnie {{count}} gracza(y)",
+      "selectTimeSlot": "Wybierz termin"
+    },
+    "selectLocation": "Wybierz Lokalizację ({{count}} kompatybilnych lokalizacji)",
+    "selectPlayers": "Wybierz Graczy ({{selected}} z {{required}})",
+    "selectTime": "Wybierz Czas ({{count}} kompatybilnych terminów)",
+    "title": "Potwierdź Swoje Wydarzenie"
+  },
   "createEvent": {
     "close": "Zamknij",
     "errors": {
@@ -327,7 +340,12 @@
       "updateProfile": "Zaktualizuj Profil"
     },
     "errors": {
-      "failedToSave": "Nie udało się zapisać profilu. Spróbuj ponownie."
+      "cityRequired": "Miasto jest wymagane",
+      "failedToSave": "Nie udało się zapisać profilu. Spróbuj ponownie.",
+      "firstNameRequired": "Imię jest wymagane",
+      "lastNameRequired": "Nazwisko jest wymagane",
+      "ntrpInvalid": "Wybierz prawidłowy poziom NTRP",
+      "ntrpRequired": "Wybierz swój poziom NTRP"
     },
     "fields": {
       "firstName": "Imię",
@@ -402,9 +420,14 @@
       "warning": "Ta akcja jest nieodwracalna. Wszystkie Twoje dane, w tym wydarzenia i prośby o dołączenie, zostaną trwale usunięte."
     },
     "errors": {
+      "cityRequired": "Miasto jest wymagane",
+      "emailRequired": "Wprowadź prawidłowy adres e-mail",
       "failedToDelete": "Nie udało się usunąć konta",
       "failedToLoad": "Nie udało się załadować profilu",
-      "failedToUpdate": "Nie udało się zaktualizować profilu"
+      "failedToUpdate": "Nie udało się zaktualizować profilu",
+      "firstNameRequired": "Imię jest wymagane",
+      "lastNameRequired": "Nazwisko jest wymagane",
+      "phoneRequired": "Numer telefonu jest wymagany gdy SMS lub WhatsApp jest włączony"
     },
     "fields": {
       "city": "Miasto",

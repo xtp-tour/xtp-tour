@@ -54,6 +54,19 @@
     "showDetails": "Показать детали",
     "success": "Успешно"
   },
+  "confirmEvent": {
+    "errors": {
+      "eventMissing": "Данные события отсутствуют",
+      "failedToConfirm": "Не удалось подтвердить событие",
+      "selectLocation": "Пожалуйста, выберите площадку",
+      "selectPlayers": "Пожалуйста, выберите ровно {{count}} игрока(ов)",
+      "selectTimeSlot": "Пожалуйста, выберите время"
+    },
+    "selectLocation": "Выберите Площадку ({{count}} подходящих площадок)",
+    "selectPlayers": "Выберите Игроков ({{selected}} из {{required}})",
+    "selectTime": "Выберите Время ({{count}} подходящих слотов)",
+    "title": "Подтвердите Ваше Событие"
+  },
   "createEvent": {
     "close": "Закрыть",
     "errors": {
@@ -327,7 +340,12 @@
       "updateProfile": "Обновить профиль"
     },
     "errors": {
-      "failedToSave": "Не удалось сохранить профиль. Попробуйте снова."
+      "cityRequired": "Город обязателен",
+      "failedToSave": "Не удалось сохранить профиль. Попробуйте снова.",
+      "firstNameRequired": "Имя обязательно",
+      "lastNameRequired": "Фамилия обязательна",
+      "ntrpInvalid": "Пожалуйста, выберите корректный уровень NTRP",
+      "ntrpRequired": "Пожалуйста, выберите ваш уровень NTRP"
     },
     "fields": {
       "firstName": "Имя",
@@ -402,9 +420,14 @@
       "warning": "Это действие необратимо. Все ваши данные, включая события и запросы, будут удалены навсегда."
     },
     "errors": {
+      "cityRequired": "Город обязателен",
+      "emailRequired": "Пожалуйста, введите корректный email",
       "failedToDelete": "Не удалось удалить аккаунт",
       "failedToLoad": "Не удалось загрузить профиль",
-      "failedToUpdate": "Не удалось обновить профиль"
+      "failedToUpdate": "Не удалось обновить профиль",
+      "firstNameRequired": "Имя обязательно",
+      "lastNameRequired": "Фамилия обязательна",
+      "phoneRequired": "Номер телефона обязателен при включенном SMS или WhatsApp"
     },
     "fields": {
       "city": "Город",

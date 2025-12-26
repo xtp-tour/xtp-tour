@@ -54,6 +54,19 @@
     "showDetails": "Afficher les Détails",
     "success": "Succès"
   },
+  "confirmEvent": {
+    "errors": {
+      "eventMissing": "Les données de l'événement sont manquantes",
+      "failedToConfirm": "Échec de la confirmation de l'événement",
+      "selectLocation": "Veuillez sélectionner un lieu",
+      "selectPlayers": "Veuillez sélectionner exactement {{count}} joueur(s)",
+      "selectTimeSlot": "Veuillez sélectionner un créneau horaire"
+    },
+    "selectLocation": "Sélectionner le Lieu ({{count}} lieux compatibles)",
+    "selectPlayers": "Sélectionner les Joueurs ({{selected}} sur {{required}})",
+    "selectTime": "Sélectionner l'Heure ({{count}} créneaux compatibles)",
+    "title": "Confirmer Votre Événement"
+  },
   "createEvent": {
     "close": "Fermer",
     "errors": {
@@ -323,7 +336,12 @@
       "updateProfile": "Mettre à Jour le Profil"
     },
     "errors": {
-      "failedToSave": "Échec de sauvegarde du profil. Veuillez réessayer."
+      "cityRequired": "La ville est obligatoire",
+      "failedToSave": "Échec de sauvegarde du profil. Veuillez réessayer.",
+      "firstNameRequired": "Le prénom est obligatoire",
+      "lastNameRequired": "Le nom de famille est obligatoire",
+      "ntrpInvalid": "Veuillez sélectionner un niveau NTRP valide",
+      "ntrpRequired": "Veuillez sélectionner votre niveau NTRP"
     },
     "fields": {
       "firstName": "Prénom",
@@ -398,9 +416,14 @@
       "warning": "Cette action est irréversible. Toutes vos données, y compris les événements et les demandes de participation, seront définitivement supprimées."
     },
     "errors": {
+      "cityRequired": "La ville est obligatoire",
+      "emailRequired": "Veuillez entrer une adresse e-mail valide",
       "failedToDelete": "Échec de la suppression du compte",
       "failedToLoad": "Échec du chargement du profil",
-      "failedToUpdate": "Échec de la mise à jour du profil"
+      "failedToUpdate": "Échec de la mise à jour du profil",
+      "firstNameRequired": "Le prénom est obligatoire",
+      "lastNameRequired": "Le nom de famille est obligatoire",
+      "phoneRequired": "Le numéro de téléphone est obligatoire lorsque SMS ou WhatsApp est activé"
     },
     "fields": {
       "city": "Ville",
