@@ -4,214 +4,322 @@
     "version": "XTP Tour v{{version}}"
   },
   "auth": {
+    "comingSoon": "Coming in next couple of weeks",
     "signIn": "Sign in",
-    "signUp": "Sign up",
-    "comingSoon": "Coming in next couple of weeks"
+    "signUp": "Sign up"
   },
-  "landing": {
-    "hero": {
-      "title": "Skip the back-and-forth. Hit the court.",
-      "subtitle": "Set your courts, time windows, and player level. Share a link so partners pick the slot that works.",
-      "createSession": "Create a session",
-      "browsePublic": "Browse public sessions",
-      "microcopy": "Browse public sessions without signing up.",
-      "alreadyUsing": "Already using XTP Tour?",
-      "signIn": "Sign in"
+  "calendar": {
+    "busySlot": "Busy (Calendar)",
+    "clearAll": "Clear selection",
+    "conflictWarning": "This time conflicts with your calendar",
+    "connect": "Connect Google Calendar",
+    "connected": "Google Calendar Connected",
+    "connecting": "Connecting...",
+    "disconnect": "Disconnect",
+    "errors": {
+      "authCallback": "Failed to complete authorization",
+      "authFailed": "Calendar authorization failed",
+      "busyTimesFailed": "Failed to load calendar events",
+      "connectionCheck": "Failed to check calendar connection",
+      "connectionFailed": "Failed to connect calendar",
+      "disconnectFailed": "Failed to disconnect calendar",
+      "preferencesUpdateFailed": "Failed to update preferences"
     },
-    "howItWorks": {
-      "eyebrow": "How it works",
-      "title": "Four steps from idea to match.",
-      "steps": {
-        "setSession": {
-          "title": "Set the session",
-          "description": "Define your ideal session—format, courts, times, and who you want to play."
-        },
-        "shareLink": {
-          "title": "Share the link",
-          "description": "Send it to friends or keep it discoverable for nearby players."
-        },
-        "reviewRequests": {
-          "title": "Review requests",
-          "description": "See who's interested and lock in your partner."
-        },
-        "syncPlay": {
-          "title": "Sync & play",
-          "description": "Everyone gets notified. Add it to your calendar with one click."
-        }
-      }
+    "navigation": "Calendar navigation",
+    "nextWeek": "Next week",
+    "notConnected": "Calendar not connected",
+    "preferences": {
+      "every15min": "Every 15 minutes",
+      "every1hour": "Every hour",
+      "every30min": "Every 30 minutes",
+      "showEventDetails": "Show event details",
+      "syncEnabled": "Enable calendar sync",
+      "syncFrequency": "Sync frequency",
+      "title": "Calendar Settings"
     },
-    "features": {
-      "eyebrow": "Why it works",
-      "title": "Less coordinating. More playing.",
-      "easyCoordination": {
-        "title": "Easy coordination",
-        "description": "Set times, courts, and player count in under a minute."
-      },
-      "partnerMatching": {
-        "title": "Partner matching",
-        "description": "NTRP filters help you find players at your level."
-      },
-      "calendarIntegration": {
-        "title": "Calendar integration",
-        "description": "Sync with Google Calendar to avoid double-booking."
-      },
-      "shareAnywhere": {
-        "title": "Share anywhere",
-        "description": "Drop it in any group chat, email, or social feed."
-      }
-    },
-    "gameTypes": {
-      "eyebrow": "Game types",
-      "title": "One tool for singles, training, and doubles.",
-      "singles": {
-        "label": "Singles matches",
-        "description": "One-on-one competitive play."
-      },
-      "training": {
-        "label": "Training sessions",
-        "description": "Hitting practice, drills, or coaching time."
-      },
-      "doubles": {
-        "label": "Doubles & group play",
-        "description": "Flexible slots for up to four players."
-      },
-      "whatYouControl": "What you control",
-      "controls": {
-        "multipleCourts": "Multiple courts in one invite",
-        "weekAvailability": "A week of availability at a glance",
-        "sessionLength": "Sessions from 1 to 4 hours",
-        "playerCount": "Player count from 1-on-1 to four",
-        "ntrpFilters": "NTRP filters for every level",
-        "optionalNotes": "Optional notes for drills or match details"
-      },
-      "calendarBadge": "Syncs with Google Calendar — optional but handy."
-    },
-    "cta": {
-      "eyebrow": "Ready to play?",
-      "title": "Less texting. More tennis.",
-      "subtitle": "Create a session, share a link, and let partners come to you.",
-      "startScheduling": "Start scheduling",
-      "findPartners": "Find partners",
-      "microcopy": "Not ready to sign up? Browse public sessions."
-    },
-    "comingSoon": "Coming soon"
+    "previousWeek": "Previous week",
+    "provider": "Provider"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "created": "Created",
+    "delete": "Delete",
+    "edit": "Edit",
+    "error": "Error",
+    "hideDetails": "Hide Details",
+    "loading": "Loading...",
+    "save": "Save",
+    "showDetails": "Show Details",
+    "success": "Success"
   },
   "createEvent": {
-    "title": "Create Event",
     "close": "Close",
-    "newInvitation": "New Invitation",
-    "form": {
-      "preferredLocations": "Preferred Locations",
-      "requestType": "Request Type",
-      "single": "Single",
-      "doubles": "Doubles",
-      "comingSoon": "Coming soon",
-      "opponentSkillLevel": "Opponent Skill Level",
-      "skillLevelHelper": "Choose the NTRP skill level range for your tennis match.",
-      "ntrpLink": "What's my NTRP level? →",
-      "sessionDuration": "Session Duration",
-      "invitationType": "Invitation Type",
-      "gameOnPoints": "Game on points",
-      "training": "Training",
-      "gameTooltip": "Looking for a person to play a regular tennis match",
-      "trainingTooltip": "Main goal is to improve game skills by playing rallies",
-      "availability": "Your Availability (next 7 days)",
-      "nightGame": "Night game (show only night hours)",
-      "timeSlotSelected": "{{count}} time slot selected",
-      "timeSlotSelected_other": "{{count}} time slots selected",
-      "description": "Description (optional)",
-      "trainingPlaceholder": "Describe your training plan and goals...",
-      "generalPlaceholder": "Add any additional information...",
-      "createInvitation": "Create Invitation",
-      "trainingTip": "Consider adding training plan or goals to description",
-      "calendarIntegration": "Calendar Integration",
-      "calendarIntegrationDesc": "Connect your Google Calendar to automatically avoid scheduling conflicts"
-    },
-    "skillLevels": {
-      "INTERMEDIATE": "Intermediate (NTRP 3.5–5.0)",
-      "BEGINNER": "Beginner (NTRP < 3.5)",
-      "ADVANCED": "Advanced (NTRP > 5.0)",
-      "ANY": "Any Level"
-    },
-    "skillLabels": {
-      "ANY": "Any NTRP",
-      "BEGINNER": "NTRP < 3.5",
-      "INTERMEDIATE": "NTRP 3.5–5.0",
-      "ADVANCED": "NTRP > 5.0"
-    },
-    "skillHints": {
-      "ANY": "Open to all skill levels",
-      "BEGINNER": "New to intermediate players learning fundamentals",
-      "INTERMEDIATE": "Consistent players with developed strokes and strategy",
-      "ADVANCED": "Elite players with tournament experience and advanced skills"
-    },
-    "loading": {
-      "locations": "Loading locations...",
-      "availableLocations": "Loading available locations..."
-    },
     "errors": {
-      "noLocationsAvailable": "No locations available",
+      "descriptionTooLong": "Description must be less than 1000 characters",
       "failedToLoadLocations": "Failed to load locations. Please try again later.",
+      "noLocationsAvailable": "No locations available",
       "selectAtLeastOneLocation": "Please select at least one location",
       "selectAtLeastOneTimeSlot": "Please select at least one time slot",
-      "somePastTimes": "Some selected times are in the past",
-      "descriptionTooLong": "Description must be less than 1000 characters"
+      "somePastTimes": "Some selected times are in the past"
+    },
+    "form": {
+      "availability": "Your Availability (next 7 days)",
+      "calendarIntegration": "Calendar Integration",
+      "calendarIntegrationDesc": "Connect your Google Calendar to automatically avoid scheduling conflicts",
+      "comingSoon": "Coming soon",
+      "createInvitation": "Create Invitation",
+      "description": "Description (optional)",
+      "doubles": "Doubles",
+      "gameOnPoints": "Game on points",
+      "gameTooltip": "Looking for a person to play a regular tennis match",
+      "generalPlaceholder": "Add any additional information...",
+      "invitationType": "Invitation Type",
+      "nightGame": "Night game (show only night hours)",
+      "ntrpLink": "What's my NTRP level? →",
+      "opponentSkillLevel": "Opponent Skill Level",
+      "preferredLocations": "Preferred Locations",
+      "requestType": "Request Type",
+      "sessionDuration": "Session Duration",
+      "single": "Single",
+      "skillLevelHelper": "Choose the NTRP skill level range for your tennis match.",
+      "timeSlotSelected": "{{count}} time slot selected",
+      "timeSlotSelected_one": "",
+      "timeSlotSelected_other": "{{count}} time slots selected",
+      "training": "Training",
+      "trainingPlaceholder": "Describe your training plan and goals...",
+      "trainingTip": "Consider adding training plan or goals to description",
+      "trainingTooltip": "Main goal is to improve game skills by playing rallies"
+    },
+    "loading": {
+      "availableLocations": "Loading available locations...",
+      "locations": "Loading locations..."
+    },
+    "newInvitation": "New Invitation",
+    "skillHints": {
+      "ADVANCED": "Elite players with tournament experience and advanced skills",
+      "ANY": "Open to all skill levels",
+      "BEGINNER": "New to intermediate players learning fundamentals",
+      "INTERMEDIATE": "Consistent players with developed strokes and strategy"
+    },
+    "skillLabels": {
+      "ADVANCED": "NTRP > 5.0",
+      "ANY": "Any NTRP",
+      "BEGINNER": "NTRP < 3.5",
+      "INTERMEDIATE": "NTRP 3.5–5.0"
+    },
+    "skillLevels": {
+      "ADVANCED": "Advanced (NTRP > 5.0)",
+      "ANY": "Any Level",
+      "BEGINNER": "Beginner (NTRP < 3.5)",
+      "INTERMEDIATE": "Intermediate (NTRP 3.5–5.0)"
     },
     "success": {
       "eventCreated": "Event created successfully!"
-    }
-  },
-  "eventList": {
-    "loading": "Loading...",
-    "tabs": {
-      "toJoin": "Events to Join",
-      "toJoinShort": "To Join",
-      "myEvents": "My Events",
-      "joinedEvents": "Joined Events"
     },
-    "sections": {
-      "availableEventsToJoin": "Available Events to Join",
-      "yourEvents": "Your Events",
-      "joinedEvents": "Joined Events"
-    },
-    "empty": {
-      "noEventsCreated": "You haven't created any events yet.",
-      "noEventsJoined": "You haven't joined any events yet."
-    }
-  },
-  "errors": {
-    "somethingWentWrong": "Something went wrong",
-    "tryRefreshing": "Please try refreshing the page.",
-    "reloadPage": "Reload Page"
-  },
-  "common": {
-    "close": "Close",
-    "cancel": "Cancel",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "confirm": "Confirm",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "showDetails": "Show Details",
-    "hideDetails": "Hide Details",
-    "created": "Created"
+    "title": "Create Event"
   },
   "durations": {
     "hour": "1 hour",
-    "hours": "{{count}} hours",
     "hourAndHalf": "1.5 hours",
-    "hoursAndHalf": "{{count}}.5 hours"
+    "hours": "{{count}} hours",
+    "hours_one": "",
+    "hours_other": "",
+    "hoursAndHalf": "{{count}}.5 hours",
+    "hoursAndHalf_one": "",
+    "hoursAndHalf_other": ""
+  },
+  "errors": {
+    "reloadPage": "Reload Page",
+    "somethingWentWrong": "Something went wrong",
+    "tryRefreshing": "Please try refreshing the page."
+  },
+  "eventActions": {
+    "alreadyJoined": "Already Joined",
+    "cancel": "Cancel",
+    "cancelParticipation": "Cancel Participation",
+    "confirm": "Confirm",
+    "confirmed": "Confirmed",
+    "join": "Join Event",
+    "signInToJoin": "Sign in to Join"
+  },
+  "eventLabels": {
+    "availableStartTimes": "Available Start Times",
+    "description": "Description",
+    "preferredLocations": "Preferred Locations",
+    "selectedLocations": "Selected Locations",
+    "startTimes": "Start Times"
+  },
+  "eventList": {
+    "empty": {
+      "noEventsCreated": "You haven't created any events yet.",
+      "noEventsJoined": "You haven't joined any events yet."
+    },
+    "loading": "Loading...",
+    "sections": {
+      "availableEventsToJoin": "Available Events to Join",
+      "joinedEvents": "Joined Events",
+      "yourEvents": "Your Events"
+    },
+    "tabs": {
+      "joinedEvents": "Joined Events",
+      "myEvents": "My Events",
+      "toJoin": "Events to Join",
+      "toJoinShort": "To Join"
+    }
+  },
+  "eventStatus": {
+    "accepted": "Awaiting confirmation",
+    "cancelled": "Cancelled",
+    "completed": "Completed",
+    "confirmed": "Confirmed",
+    "open": "Open",
+    "reservationFailed": "Reservation failed"
+  },
+  "eventTypes": {
+    "doubles": "Doubles",
+    "event": "Event",
+    "groupTraining": "Group Training",
+    "match": "Match",
+    "matchDoubles": "Match Doubles",
+    "matchSingles": "Match Singles",
+    "players": "{{count}} Players",
+    "players_one": "",
+    "players_other": "",
+    "singles": "Singles",
+    "training": "Training",
+    "training1on1": "Training 1 on 1",
+    "unorthodoxMatch": "Unorthodox Match"
+  },
+  "host": {
+    "label": "Host:",
+    "unknown": "Unknown Host",
+    "unknownUser": "Unknown User"
+  },
+  "joinModal": {
+    "failedToJoin": "Failed to join event",
+    "failedToLoadOptions": "Failed to load options",
+    "joinGameSession": "Join Game Session",
+    "loadingText": "Loading available options...",
+    "locationHelp": "Select all locations where you can play.",
+    "selectLocation": "Please select at least one location",
+    "selectTimeSlot": "Please select at least one time slot",
+    "submitting": "Submitting...",
+    "timeSlotHelp": "Select all time slots that work for you. {{hostName}} will choose the final time based on your availability.",
+    "title": "Join {{hostName}}'s Game Session",
+    "whenToStart": "When would you like to start?",
+    "whereToPlay": "Where would you like to play?"
+  },
+  "joinRequests": {
+    "accepted": "Request accepted",
+    "rejected": "Request rejected",
+    "waiting": "Waiting for host approval"
+  },
+  "landing": {
+    "comingSoon": "Coming soon",
+    "cta": {
+      "eyebrow": "Ready to play?",
+      "findPartners": "Find partners",
+      "microcopy": "Not ready to sign up? Browse public sessions.",
+      "startScheduling": "Start scheduling",
+      "subtitle": "Create a session, share a link, and let partners come to you.",
+      "title": "Less texting. More tennis."
+    },
+    "features": {
+      "calendarIntegration": {
+        "description": "Sync with Google Calendar to avoid double-booking.",
+        "title": "Calendar integration"
+      },
+      "easyCoordination": {
+        "description": "Set times, courts, and player count in under a minute.",
+        "title": "Easy coordination"
+      },
+      "eyebrow": "Why it works",
+      "partnerMatching": {
+        "description": "NTRP filters help you find players at your level.",
+        "title": "Partner matching"
+      },
+      "shareAnywhere": {
+        "description": "Drop it in any group chat, email, or social feed.",
+        "title": "Share anywhere"
+      },
+      "title": "Less coordinating. More playing."
+    },
+    "gameTypes": {
+      "calendarBadge": "Syncs with Google Calendar — optional but handy.",
+      "controls": {
+        "multipleCourts": "Multiple courts in one invite",
+        "ntrpFilters": "NTRP filters for every level",
+        "optionalNotes": "Optional notes for drills or match details",
+        "playerCount": "Player count from 1-on-1 to four",
+        "sessionLength": "Sessions from 1 to 4 hours",
+        "weekAvailability": "A week of availability at a glance"
+      },
+      "doubles": {
+        "description": "Flexible slots for up to four players.",
+        "label": "Doubles & group play"
+      },
+      "eyebrow": "Game types",
+      "singles": {
+        "description": "One-on-one competitive play.",
+        "label": "Singles matches"
+      },
+      "title": "One tool for singles, training, and doubles.",
+      "training": {
+        "description": "Hitting practice, drills, or coaching time.",
+        "label": "Training sessions"
+      },
+      "whatYouControl": "What you control"
+    },
+    "hero": {
+      "alreadyUsing": "Already using XTP Tour?",
+      "browsePublic": "Browse public sessions",
+      "createSession": "Create a session",
+      "microcopy": "Browse public sessions without signing up.",
+      "signIn": "Sign in",
+      "subtitle": "Set your courts, time windows, and player level. Share a link so partners pick the slot that works.",
+      "title": "Skip the back-and-forth. Hit the court."
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "steps": {
+        "reviewRequests": {
+          "description": "See who's interested and lock in your partner.",
+          "title": "Review requests"
+        },
+        "setSession": {
+          "description": "Define your ideal session—format, courts, times, and who you want to play.",
+          "title": "Set the session"
+        },
+        "shareLink": {
+          "description": "Send it to friends or keep it discoverable for nearby players.",
+          "title": "Share the link"
+        },
+        "syncPlay": {
+          "description": "Everyone gets notified. Add it to your calendar with one click.",
+          "title": "Sync & play"
+        }
+      },
+      "title": "Four steps from idea to match."
+    }
+  },
+  "language": {
+    "changeLanguage": "Change language",
+    "english": "English",
+    "french": "Français",
+    "polish": "Polski",
+    "russian": "Русский",
+    "spanish": "Español"
   },
   "profileSetup": {
-    "loading": {
-      "title": "Loading Profile...",
-      "text": "Loading..."
+    "buttons": {
+      "createProfile": "Create Profile",
+      "saving": "Saving...",
+      "updateProfile": "Update Profile"
     },
-    "title": {
-      "create": "Create Your Profile",
-      "complete": "Complete Your Profile"
+    "errors": {
+      "failedToSave": "Failed to save profile. Please try again."
     },
     "fields": {
       "firstName": "First Name",
@@ -219,10 +327,13 @@
       "ntrpLevel": "NTRP Level",
       "preferredCity": "Preferred City"
     },
+    "loading": {
+      "text": "Loading...",
+      "title": "Loading Profile..."
+    },
     "ntrp": {
       "description": "The National Tennis Rating Program (NTRP) helps match players of similar skill levels.",
       "learnMore": "Learn more about NTRP ratings →",
-      "selectLevel": "Select your NTRP level",
       "levels": {
         "1.0": "1.0 - New Player: Just starting to learn tennis",
         "1.5": "1.5 - Beginner: Limited experience, working on getting ball in play",
@@ -236,191 +347,87 @@
         "5.5": "5.5 - Elite+: Developed power/consistency as major weapon",
         "6.0": "6.0 - Tournament: Intensive training, sectional/national ranking",
         "7.0": "7.0 - Professional: World-class player"
-      }
+      },
+      "selectLevel": "Select your NTRP level"
     },
     "placeholders": {
       "preferredCity": "Enter your preferred city"
     },
-    "buttons": {
-      "saving": "Saving...",
-      "createProfile": "Create Profile",
-      "updateProfile": "Update Profile"
-    },
-    "errors": {
-      "failedToSave": "Failed to save profile. Please try again."
+    "title": {
+      "complete": "Complete Your Profile",
+      "create": "Create Your Profile"
     }
   },
-  "eventTypes": {
-    "match": "Match",
-    "training": "Training",
-    "singles": "Singles",
-    "doubles": "Doubles",
-    "training1on1": "Training 1 on 1",
-    "groupTraining": "Group Training",
-    "matchSingles": "Match Singles",
-    "matchDoubles": "Match Doubles",
-    "unorthodoxMatch": "Unorthodox Match",
-    "players": "{{count}} Players",
-    "event": "Event"
-  },
-  "eventLabels": {
-    "selectedLocations": "Selected Locations",
-    "preferredLocations": "Preferred Locations",
-    "startTimes": "Start Times",
-    "availableStartTimes": "Available Start Times",
-    "description": "Description"
-  },
-  "eventStatus": {
-    "open": "Open",
-    "accepted": "Awaiting confirmation",
-    "confirmed": "Confirmed",
-    "reservationFailed": "Reservation failed",
-    "cancelled": "Cancelled",
-    "completed": "Completed"
-  },
-  "eventActions": {
-    "cancel": "Cancel",
-    "join": "Join Event",
-    "alreadyJoined": "Already Joined",
-    "confirm": "Confirm",
-    "confirmed": "Confirmed",
-    "signInToJoin": "Sign in to Join",
-    "cancelParticipation": "Cancel Participation"
-  },
-  "joinRequests": {
-    "rejected": "Request rejected",
-    "accepted": "Request accepted",
-    "waiting": "Waiting for host approval"
+  "publicEvent": {
+    "noLongerAvailable": "Event not found or no longer available",
+    "notFound": "The event you are looking for does not exist or has been removed."
   },
   "share": {
-    "title": "Share event",
+    "eventLinkCopied": "Event link copied to clipboard!",
     "linkCopied": "Link copied to clipboard!",
-    "eventLinkCopied": "Event link copied to clipboard!"
-  },
-  "host": {
-    "label": "Host:",
-    "unknown": "Unknown Host",
-    "unknownUser": "Unknown User"
-  },
-  "language": {
-    "changeLanguage": "Change language",
-    "english": "English",
-    "spanish": "Español",
-    "french": "Français",
-    "polish": "Polski",
-    "russian": "Русский"
-  },
-  "publicEvent": {
-    "notFound": "The event you are looking for does not exist or has been removed.",
-    "noLongerAvailable": "Event not found or no longer available"
-  },
-  "joinModal": {
-    "title": "Join {{hostName}}'s Game Session",
-    "loadingText": "Loading available options...",
-    "whereToPlay": "Where would you like to play?",
-    "locationHelp": "Select all locations where you can play.",
-    "whenToStart": "When would you like to start?",
-    "timeSlotHelp": "Select all time slots that work for you. {{hostName}} will choose the final time based on your availability.",
-    "submitting": "Submitting...",
-    "joinGameSession": "Join Game Session",
-    "selectLocation": "Please select at least one location",
-    "selectTimeSlot": "Please select at least one time slot",
-    "failedToJoin": "Failed to join event",
-    "failedToLoadOptions": "Failed to load options"
+    "title": "Share event"
   },
   "timeOfDay": {
-    "morning": "morning",
     "afternoon": "afternoon",
+    "and": "and",
     "evening": "evening",
+    "morning": "morning",
     "night": "night",
-    "wholeDay": "whole day",
-    "and": "and"
+    "wholeDay": "whole day"
   },
   "userMenu": {
     "profile": "Profile",
     "signOut": "Sign Out"
   },
   "userProfile": {
-    "title": "User Profile",
-    "sections": {
-      "personalInfo": "Personal Information",
-      "notifications": "Notification Settings",
-      "dangerZone": "Danger Zone"
+    "buttons": {
+      "cancel": "Cancel",
+      "confirmDelete": "Yes, Delete My Account",
+      "deleteAccount": "Delete Account",
+      "save": "Save Changes",
+      "saving": "Saving..."
+    },
+    "deleteAccount": {
+      "modalBody": "This will permanently delete your account and all associated data.",
+      "modalTitle": "Are you sure?",
+      "title": "Delete Account",
+      "warning": "This action cannot be undone. All your data including events and join requests will be permanently deleted."
+    },
+    "errors": {
+      "failedToDelete": "Failed to delete account",
+      "failedToLoad": "Failed to load profile",
+      "failedToUpdate": "Failed to update profile"
     },
     "fields": {
-      "firstName": "First Name",
-      "lastName": "Last Name",
       "city": "City",
       "country": "Country",
-      "language": "Language",
-      "ntrpLevel": "NTRP Level",
+      "debugAddress": "Debug Address",
       "email": "Email Address",
-      "phoneNumber": "Phone Number",
-      "debugAddress": "Debug Address"
+      "firstName": "First Name",
+      "language": "Language",
+      "lastName": "Last Name",
+      "ntrpLevel": "NTRP Level",
+      "phoneNumber": "Phone Number"
     },
     "notifications": {
       "channels": {
+        "debug": "Debug Notifications (development only)",
         "email": "Email Notifications",
-        "sms": "SMS Notifications",
         "push": "Push Notifications (coming soon)",
-        "whatsapp": "WhatsApp Notifications (coming soon)",
-        "debug": "Debug Notifications (development only)"
+        "sms": "SMS Notifications",
+        "whatsapp": "WhatsApp Notifications (coming soon)"
       },
       "validation": "At least one notification channel must be enabled"
     },
-    "buttons": {
-      "save": "Save Changes",
-      "saving": "Saving...",
-      "deleteAccount": "Delete Account",
-      "confirmDelete": "Yes, Delete My Account",
-      "cancel": "Cancel"
-    },
-    "deleteAccount": {
-      "title": "Delete Account",
-      "warning": "This action cannot be undone. All your data including events and join requests will be permanently deleted.",
-      "modalTitle": "Are you sure?",
-      "modalBody": "This will permanently delete your account and all associated data."
+    "sections": {
+      "dangerZone": "Danger Zone",
+      "notifications": "Notification Settings",
+      "personalInfo": "Personal Information"
     },
     "success": {
-      "profileUpdated": "Profile updated successfully",
-      "accountDeleted": "Account deleted successfully"
+      "accountDeleted": "Account deleted successfully",
+      "profileUpdated": "Profile updated successfully"
     },
-    "errors": {
-      "failedToLoad": "Failed to load profile",
-      "failedToUpdate": "Failed to update profile",
-      "failedToDelete": "Failed to delete account"
-    }
-  },
-  "calendar": {
-    "navigation": "Calendar navigation",
-    "previousWeek": "Previous week",
-    "nextWeek": "Next week",
-    "clearAll": "Clear selection",
-    "connect": "Connect Google Calendar",
-    "disconnect": "Disconnect",
-    "connected": "Google Calendar Connected",
-    "notConnected": "Calendar not connected",
-    "connecting": "Connecting...",
-    "provider": "Provider",
-    "conflictWarning": "This time conflicts with your calendar",
-    "busySlot": "Busy (Calendar)",
-    "preferences": {
-      "title": "Calendar Settings",
-      "syncEnabled": "Enable calendar sync",
-      "syncFrequency": "Sync frequency",
-      "showEventDetails": "Show event details",
-      "every15min": "Every 15 minutes",
-      "every30min": "Every 30 minutes",
-      "every1hour": "Every hour"
-    },
-    "errors": {
-      "connectionCheck": "Failed to check calendar connection",
-      "connectionFailed": "Failed to connect calendar",
-      "authFailed": "Calendar authorization failed",
-      "authCallback": "Failed to complete authorization",
-      "disconnectFailed": "Failed to disconnect calendar",
-      "preferencesUpdateFailed": "Failed to update preferences",
-      "busyTimesFailed": "Failed to load calendar events"
-    }
+    "title": "User Profile"
   }
 }

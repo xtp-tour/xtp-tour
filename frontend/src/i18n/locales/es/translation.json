@@ -4,214 +4,326 @@
     "version": "XTP Tour v{{version}}"
   },
   "auth": {
+    "comingSoon": "Próximamente en las siguientes semanas",
     "signIn": "Iniciar sesión",
-    "signUp": "Registrarse",
-    "comingSoon": "Próximamente en las siguientes semanas"
+    "signUp": "Registrarse"
   },
-  "landing": {
-    "hero": {
-      "title": "Menos mensajes, más tenis.",
-      "subtitle": "Define tus canchas, horarios y nivel. Comparte un enlace y deja que tus compañeros elijan el turno que les funcione.",
-      "createSession": "Crear una sesión",
-      "browsePublic": "Ver sesiones públicas",
-      "microcopy": "Explora sesiones públicas sin registrarte.",
-      "alreadyUsing": "¿Ya usas XTP Tour?",
-      "signIn": "Iniciar sesión"
+  "calendar": {
+    "busySlot": "Ocupado (Calendario)",
+    "clearAll": "Limpiar selección",
+    "conflictWarning": "Este horario entra en conflicto con tu calendario",
+    "connect": "Conectar Google Calendar",
+    "connected": "Google Calendar Conectado",
+    "connecting": "Conectando...",
+    "disconnect": "Desconectar",
+    "errors": {
+      "authCallback": "Error al completar la autorización",
+      "authFailed": "Error de autorización del calendario",
+      "busyTimesFailed": "Error al cargar los eventos del calendario",
+      "connectionCheck": "Error al verificar la conexión del calendario",
+      "connectionFailed": "Error al conectar el calendario",
+      "disconnectFailed": "Error al desconectar el calendario",
+      "preferencesUpdateFailed": "Error al actualizar las preferencias"
     },
-    "howItWorks": {
-      "eyebrow": "Cómo funciona",
-      "title": "Cuatro pasos de la idea al partido.",
-      "steps": {
-        "setSession": {
-          "title": "Define la sesión",
-          "description": "Define tu sesión ideal: formato, canchas, horarios y con quién quieres jugar."
-        },
-        "shareLink": {
-          "title": "Comparte el enlace",
-          "description": "Envíalo a amigos o hazlo visible para jugadores cercanos."
-        },
-        "reviewRequests": {
-          "title": "Revisa solicitudes",
-          "description": "Mira quién está interesado y confirma tu compañero."
-        },
-        "syncPlay": {
-          "title": "Sincroniza y juega",
-          "description": "Todos reciben notificación. Agrégalo a tu calendario con un clic."
-        }
-      }
+    "navigation": "Navegación del calendario",
+    "nextWeek": "Siguiente semana",
+    "notConnected": "Calendario no conectado",
+    "preferences": {
+      "every15min": "Cada 15 minutos",
+      "every1hour": "Cada hora",
+      "every30min": "Cada 30 minutos",
+      "showEventDetails": "Mostrar detalles del evento",
+      "syncEnabled": "Habilitar sincronización de calendario",
+      "syncFrequency": "Frecuencia de sincronización",
+      "title": "Configuración de Calendario"
     },
-    "features": {
-      "eyebrow": "Por qué funciona",
-      "title": "Menos coordinación. Más juego.",
-      "easyCoordination": {
-        "title": "Coordinación fácil",
-        "description": "Define horarios, canchas y número de jugadores en menos de un minuto."
-      },
-      "partnerMatching": {
-        "title": "Encuentra compañeros",
-        "description": "Los filtros NTRP te ayudan a encontrar jugadores de tu nivel."
-      },
-      "calendarIntegration": {
-        "title": "Integración con calendario",
-        "description": "Sincroniza con Google Calendar para evitar conflictos."
-      },
-      "shareAnywhere": {
-        "title": "Comparte donde quieras",
-        "description": "Compártelo en cualquier chat grupal, correo o red social."
-      }
-    },
-    "gameTypes": {
-      "eyebrow": "Tipos de juego",
-      "title": "Una herramienta para singles, entrenamientos y dobles.",
-      "singles": {
-        "label": "Partidos de singles",
-        "description": "Juego competitivo uno contra uno."
-      },
-      "training": {
-        "label": "Sesiones de entrenamiento",
-        "description": "Práctica de golpes, drills o tiempo de coaching."
-      },
-      "doubles": {
-        "label": "Dobles y juego grupal",
-        "description": "Espacios flexibles para hasta cuatro jugadores."
-      },
-      "whatYouControl": "Qué controlas",
-      "controls": {
-        "multipleCourts": "Varias canchas en una invitación",
-        "weekAvailability": "Una semana de disponibilidad de un vistazo",
-        "sessionLength": "Sesiones de 1 a 4 horas",
-        "playerCount": "Número de jugadores de 1 a 4",
-        "ntrpFilters": "Filtros NTRP para cada nivel",
-        "optionalNotes": "Notas opcionales para drills o detalles del partido"
-      },
-      "calendarBadge": "Sincroniza con Google Calendar — opcional pero útil."
-    },
-    "cta": {
-      "eyebrow": "¿Listo para jugar?",
-      "title": "Menos mensajes. Más tenis.",
-      "subtitle": "Crea una sesión, comparte un enlace y deja que los compañeros vengan a ti.",
-      "startScheduling": "Empieza a agendar",
-      "findPartners": "Buscar compañeros",
-      "microcopy": "¿No estás listo para registrarte? Explora sesiones públicas."
-    },
-    "comingSoon": "Próximamente"
+    "previousWeek": "Semana anterior",
+    "provider": "Proveedor"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "created": "Creado",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "error": "Error",
+    "hideDetails": "Ocultar Detalles",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "showDetails": "Mostrar Detalles",
+    "success": "Éxito"
   },
   "createEvent": {
-    "title": "Crear Evento",
     "close": "Cerrar",
-    "newInvitation": "Nueva Invitación",
-    "form": {
-      "preferredLocations": "Ubicaciones Preferidas",
-      "requestType": "Tipo de Solicitud",
-      "single": "Individual",
-      "doubles": "Dobles",
-      "comingSoon": "Próximamente",
-      "opponentSkillLevel": "Nivel de Habilidad del Oponente",
-      "skillLevelHelper": "Elige el rango de nivel de habilidad NTRP para tu partido de tenis.",
-      "ntrpLink": "¿Cuál es mi nivel NTRP? →",
-      "sessionDuration": "Duración de la Sesión",
-      "invitationType": "Tipo de Invitación",
-      "gameOnPoints": "Juego por puntos",
-      "training": "Entrenamiento",
-      "gameTooltip": "Buscando una persona para jugar un partido regular de tenis",
-      "trainingTooltip": "El objetivo principal es mejorar las habilidades del juego jugando rallies",
-      "availability": "Tu Disponibilidad (próximos 7 días)",
-      "nightGame": "Juego nocturno (mostrar solo horas nocturnas)",
-      "timeSlotSelected": "{{count}} horario seleccionado",
-      "timeSlotSelected_other": "{{count}} horarios seleccionados",
-      "description": "Descripción (opcional)",
-      "trainingPlaceholder": "Describe tu plan de entrenamiento y objetivos...",
-      "generalPlaceholder": "Agrega cualquier información adicional...",
-      "createInvitation": "Crear Invitación",
-      "trainingTip": "Considera agregar plan de entrenamiento u objetivos a la descripción",
-      "calendarIntegration": "Integración con Calendario",
-      "calendarIntegrationDesc": "Conecta tu Google Calendar para evitar automáticamente conflictos de horario"
-    },
-    "skillLevels": {
-      "INTERMEDIATE": "Intermedio (NTRP 3.5–5.0)",
-      "BEGINNER": "Principiante (NTRP < 3.5)",
-      "ADVANCED": "Avanzado (NTRP > 5.0)",
-      "ANY": "Cualquier Nivel"
-    },
-    "skillLabels": {
-      "ANY": "Cualquier NTRP",
-      "BEGINNER": "NTRP < 3.5",
-      "INTERMEDIATE": "NTRP 3.5–5.0",
-      "ADVANCED": "NTRP > 5.0"
-    },
-    "skillHints": {
-      "ANY": "Abierto a todos los niveles de habilidad",
-      "BEGINNER": "Jugadores nuevos a intermedios aprendiendo fundamentos",
-      "INTERMEDIATE": "Jugadores consistentes con golpes desarrollados y estrategia",
-      "ADVANCED": "Jugadores elite con experiencia en torneos y habilidades avanzadas"
-    },
-    "loading": {
-      "locations": "Cargando ubicaciones...",
-      "availableLocations": "Cargando ubicaciones disponibles..."
-    },
     "errors": {
-      "noLocationsAvailable": "No hay ubicaciones disponibles",
+      "descriptionTooLong": "La descripción debe tener menos de 1000 caracteres",
       "failedToLoadLocations": "Error al cargar ubicaciones. Por favor intenta más tarde.",
+      "noLocationsAvailable": "No hay ubicaciones disponibles",
       "selectAtLeastOneLocation": "Por favor selecciona al menos una ubicación",
       "selectAtLeastOneTimeSlot": "Por favor selecciona al menos un horario",
-      "somePastTimes": "Algunos horarios seleccionados están en el pasado",
-      "descriptionTooLong": "La descripción debe tener menos de 1000 caracteres"
+      "somePastTimes": "Algunos horarios seleccionados están en el pasado"
+    },
+    "form": {
+      "availability": "Tu Disponibilidad (próximos 7 días)",
+      "calendarIntegration": "Integración con Calendario",
+      "calendarIntegrationDesc": "Conecta tu Google Calendar para evitar automáticamente conflictos de horario",
+      "comingSoon": "Próximamente",
+      "createInvitation": "Crear Invitación",
+      "description": "Descripción (opcional)",
+      "doubles": "Dobles",
+      "gameOnPoints": "Juego por puntos",
+      "gameTooltip": "Buscando una persona para jugar un partido regular de tenis",
+      "generalPlaceholder": "Agrega cualquier información adicional...",
+      "invitationType": "Tipo de Invitación",
+      "nightGame": "Juego nocturno (mostrar solo horas nocturnas)",
+      "ntrpLink": "¿Cuál es mi nivel NTRP? →",
+      "opponentSkillLevel": "Nivel de Habilidad del Oponente",
+      "preferredLocations": "Ubicaciones Preferidas",
+      "requestType": "Tipo de Solicitud",
+      "sessionDuration": "Duración de la Sesión",
+      "single": "Individual",
+      "skillLevelHelper": "Elige el rango de nivel de habilidad NTRP para tu partido de tenis.",
+      "timeSlotSelected": "{{count}} horario seleccionado",
+      "timeSlotSelected_one": "[MISSING: createEvent.form.timeSlotSelected]",
+      "timeSlotSelected_many": "[MISSING: createEvent.form.timeSlotSelected]",
+      "timeSlotSelected_other": "{{count}} horarios seleccionados",
+      "training": "Entrenamiento",
+      "trainingPlaceholder": "Describe tu plan de entrenamiento y objetivos...",
+      "trainingTip": "Considera agregar plan de entrenamiento u objetivos a la descripción",
+      "trainingTooltip": "El objetivo principal es mejorar las habilidades del juego jugando rallies"
+    },
+    "loading": {
+      "availableLocations": "Cargando ubicaciones disponibles...",
+      "locations": "Cargando ubicaciones..."
+    },
+    "newInvitation": "Nueva Invitación",
+    "skillHints": {
+      "ADVANCED": "Jugadores elite con experiencia en torneos y habilidades avanzadas",
+      "ANY": "Abierto a todos los niveles de habilidad",
+      "BEGINNER": "Jugadores nuevos a intermedios aprendiendo fundamentos",
+      "INTERMEDIATE": "Jugadores consistentes con golpes desarrollados y estrategia"
+    },
+    "skillLabels": {
+      "ADVANCED": "NTRP > 5.0",
+      "ANY": "Cualquier NTRP",
+      "BEGINNER": "NTRP < 3.5",
+      "INTERMEDIATE": "NTRP 3.5–5.0"
+    },
+    "skillLevels": {
+      "ADVANCED": "Avanzado (NTRP > 5.0)",
+      "ANY": "Cualquier Nivel",
+      "BEGINNER": "Principiante (NTRP < 3.5)",
+      "INTERMEDIATE": "Intermedio (NTRP 3.5–5.0)"
     },
     "success": {
       "eventCreated": "¡Evento creado exitosamente!"
-    }
-  },
-  "eventList": {
-    "loading": "Cargando...",
-    "tabs": {
-      "toJoin": "Eventos para Unirse",
-      "toJoinShort": "Unirse",
-      "myEvents": "Mis Eventos",
-      "joinedEvents": "Eventos Unidos"
     },
-    "sections": {
-      "availableEventsToJoin": "Eventos Disponibles para Unirse",
-      "yourEvents": "Tus Eventos",
-      "joinedEvents": "Eventos Unidos"
-    },
-    "empty": {
-      "noEventsCreated": "Aún no has creado ningún evento.",
-      "noEventsJoined": "Aún no te has unido a ningún evento."
-    }
-  },
-  "errors": {
-    "somethingWentWrong": "Algo salió mal",
-    "tryRefreshing": "Por favor intenta actualizar la página.",
-    "reloadPage": "Recargar Página"
-  },
-  "common": {
-    "close": "Cerrar",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "confirm": "Confirmar",
-    "loading": "Cargando...",
-    "error": "Error",
-    "success": "Éxito",
-    "showDetails": "Mostrar Detalles",
-    "hideDetails": "Ocultar Detalles",
-    "created": "Creado"
+    "title": "Crear Evento"
   },
   "durations": {
     "hour": "1 hora",
-    "hours": "{{count}} horas",
     "hourAndHalf": "1.5 horas",
-    "hoursAndHalf": "{{count}}.5 horas"
+    "hours": "{{count}} horas",
+    "hours_one": "[MISSING: durations.hours]",
+    "hours_many": "[MISSING: durations.hours]",
+    "hours_other": "[MISSING: durations.hours]",
+    "hoursAndHalf": "{{count}}.5 horas",
+    "hoursAndHalf_one": "[MISSING: durations.hoursAndHalf]",
+    "hoursAndHalf_many": "[MISSING: durations.hoursAndHalf]",
+    "hoursAndHalf_other": "[MISSING: durations.hoursAndHalf]"
+  },
+  "errors": {
+    "reloadPage": "Recargar Página",
+    "somethingWentWrong": "Algo salió mal",
+    "tryRefreshing": "Por favor intenta actualizar la página."
+  },
+  "eventActions": {
+    "alreadyJoined": "Ya Unido",
+    "cancel": "Cancelar",
+    "cancelParticipation": "Cancelar Participación",
+    "confirm": "Confirmar",
+    "confirmed": "Confirmado",
+    "join": "Unirse al Evento",
+    "signInToJoin": "Iniciar sesión para unirse"
+  },
+  "eventLabels": {
+    "availableStartTimes": "Horarios de Inicio Disponibles",
+    "description": "Descripción",
+    "preferredLocations": "Ubicaciones Preferidas",
+    "selectedLocations": "Ubicaciones Seleccionadas",
+    "startTimes": "Horarios de Inicio"
+  },
+  "eventList": {
+    "empty": {
+      "noEventsCreated": "Aún no has creado ningún evento.",
+      "noEventsJoined": "Aún no te has unido a ningún evento."
+    },
+    "loading": "Cargando...",
+    "sections": {
+      "availableEventsToJoin": "Eventos Disponibles para Unirse",
+      "joinedEvents": "Eventos Unidos",
+      "yourEvents": "Tus Eventos"
+    },
+    "tabs": {
+      "joinedEvents": "Eventos Unidos",
+      "myEvents": "Mis Eventos",
+      "toJoin": "Eventos para Unirse",
+      "toJoinShort": "Unirse"
+    }
+  },
+  "eventStatus": {
+    "accepted": "Esperando confirmación",
+    "cancelled": "Cancelado",
+    "completed": "Completado",
+    "confirmed": "Confirmado",
+    "open": "Abierto",
+    "reservationFailed": "Reserva fallida"
+  },
+  "eventTypes": {
+    "doubles": "Dobles",
+    "event": "Evento",
+    "groupTraining": "Entrenamiento Grupal",
+    "match": "Partido",
+    "matchDoubles": "Partido de Dobles",
+    "matchSingles": "Partido Individual",
+    "players": "{{count}} Jugadores",
+    "players_one": "[MISSING: eventTypes.players]",
+    "players_many": "[MISSING: eventTypes.players]",
+    "players_other": "[MISSING: eventTypes.players]",
+    "singles": "Individual",
+    "training": "Entrenamiento",
+    "training1on1": "Entrenamiento 1 a 1",
+    "unorthodoxMatch": "Partido No Convencional"
+  },
+  "host": {
+    "label": "Anfitrión:",
+    "unknown": "Anfitrión Desconocido",
+    "unknownUser": "Usuario Desconocido"
+  },
+  "joinModal": {
+    "failedToJoin": "Error al unirse al evento",
+    "failedToLoadOptions": "Error al cargar opciones",
+    "joinGameSession": "Unirse a la Sesión de Juego",
+    "loadingText": "Cargando opciones disponibles...",
+    "locationHelp": "Selecciona todas las ubicaciones donde puedes jugar.",
+    "selectLocation": "Por favor selecciona al menos una ubicación",
+    "selectTimeSlot": "Por favor selecciona al menos un horario",
+    "submitting": "Enviando...",
+    "timeSlotHelp": "Selecciona todos los horarios que te funcionan. {{hostName}} elegirá el horario final basado en tu disponibilidad.",
+    "title": "Únete a la Sesión de Juego de {{hostName}}",
+    "whenToStart": "¿Cuándo te gustaría empezar?",
+    "whereToPlay": "¿Dónde te gustaría jugar?"
+  },
+  "joinRequests": {
+    "accepted": "Solicitud aceptada",
+    "rejected": "Solicitud rechazada",
+    "waiting": "Esperando aprobación del anfitrión"
+  },
+  "landing": {
+    "comingSoon": "Próximamente",
+    "cta": {
+      "eyebrow": "¿Listo para jugar?",
+      "findPartners": "Buscar compañeros",
+      "microcopy": "¿No estás listo para registrarte? Explora sesiones públicas.",
+      "startScheduling": "Empieza a agendar",
+      "subtitle": "Crea una sesión, comparte un enlace y deja que los compañeros vengan a ti.",
+      "title": "Menos mensajes. Más tenis."
+    },
+    "features": {
+      "calendarIntegration": {
+        "description": "Sincroniza con Google Calendar para evitar conflictos.",
+        "title": "Integración con calendario"
+      },
+      "easyCoordination": {
+        "description": "Define horarios, canchas y número de jugadores en menos de un minuto.",
+        "title": "Coordinación fácil"
+      },
+      "eyebrow": "Por qué funciona",
+      "partnerMatching": {
+        "description": "Los filtros NTRP te ayudan a encontrar jugadores de tu nivel.",
+        "title": "Encuentra compañeros"
+      },
+      "shareAnywhere": {
+        "description": "Compártelo en cualquier chat grupal, correo o red social.",
+        "title": "Comparte donde quieras"
+      },
+      "title": "Menos coordinación. Más juego."
+    },
+    "gameTypes": {
+      "calendarBadge": "Sincroniza con Google Calendar — opcional pero útil.",
+      "controls": {
+        "multipleCourts": "Varias canchas en una invitación",
+        "ntrpFilters": "Filtros NTRP para cada nivel",
+        "optionalNotes": "Notas opcionales para drills o detalles del partido",
+        "playerCount": "Número de jugadores de 1 a 4",
+        "sessionLength": "Sesiones de 1 a 4 horas",
+        "weekAvailability": "Una semana de disponibilidad de un vistazo"
+      },
+      "doubles": {
+        "description": "Espacios flexibles para hasta cuatro jugadores.",
+        "label": "Dobles y juego grupal"
+      },
+      "eyebrow": "Tipos de juego",
+      "singles": {
+        "description": "Juego competitivo uno contra uno.",
+        "label": "Partidos de singles"
+      },
+      "title": "Una herramienta para singles, entrenamientos y dobles.",
+      "training": {
+        "description": "Práctica de golpes, drills o tiempo de coaching.",
+        "label": "Sesiones de entrenamiento"
+      },
+      "whatYouControl": "Qué controlas"
+    },
+    "hero": {
+      "alreadyUsing": "¿Ya usas XTP Tour?",
+      "browsePublic": "Ver sesiones públicas",
+      "createSession": "Crear una sesión",
+      "microcopy": "Explora sesiones públicas sin registrarte.",
+      "signIn": "Iniciar sesión",
+      "subtitle": "Define tus canchas, horarios y nivel. Comparte un enlace y deja que tus compañeros elijan el turno que les funcione.",
+      "title": "Menos mensajes, más tenis."
+    },
+    "howItWorks": {
+      "eyebrow": "Cómo funciona",
+      "steps": {
+        "reviewRequests": {
+          "description": "Mira quién está interesado y confirma tu compañero.",
+          "title": "Revisa solicitudes"
+        },
+        "setSession": {
+          "description": "Define tu sesión ideal: formato, canchas, horarios y con quién quieres jugar.",
+          "title": "Define la sesión"
+        },
+        "shareLink": {
+          "description": "Envíalo a amigos o hazlo visible para jugadores cercanos.",
+          "title": "Comparte el enlace"
+        },
+        "syncPlay": {
+          "description": "Todos reciben notificación. Agrégalo a tu calendario con un clic.",
+          "title": "Sincroniza y juega"
+        }
+      },
+      "title": "Cuatro pasos de la idea al partido."
+    }
+  },
+  "language": {
+    "changeLanguage": "Cambiar idioma",
+    "english": "English",
+    "french": "Français",
+    "polish": "Polski",
+    "russian": "Русский",
+    "spanish": "Español"
   },
   "profileSetup": {
-    "loading": {
-      "title": "Cargando Perfil...",
-      "text": "Cargando..."
+    "buttons": {
+      "createProfile": "Crear Perfil",
+      "saving": "Guardando...",
+      "updateProfile": "Actualizar Perfil"
     },
-    "title": {
-      "create": "Crear Tu Perfil",
-      "complete": "Completar Tu Perfil"
+    "errors": {
+      "failedToSave": "Error al guardar perfil. Inténtalo de nuevo."
     },
     "fields": {
       "firstName": "Nombre",
@@ -219,10 +331,13 @@
       "ntrpLevel": "Nivel NTRP",
       "preferredCity": "Ciudad Preferida"
     },
+    "loading": {
+      "text": "Cargando...",
+      "title": "Cargando Perfil..."
+    },
     "ntrp": {
       "description": "El Programa Nacional de Clasificación de Tenis (NTRP) ayuda a emparejar jugadores de niveles similares.",
       "learnMore": "Aprender más sobre las calificaciones NTRP →",
-      "selectLevel": "Selecciona tu nivel NTRP",
       "levels": {
         "1.0": "1.0 - Nuevo Jugador: Recién empezando a aprender tenis",
         "1.5": "1.5 - Principiante: Experiencia limitada, trabajando en poner la pelota en juego",
@@ -236,191 +351,87 @@
         "5.5": "5.5 - Élite+: Potencia/consistencia desarrollada como arma principal",
         "6.0": "6.0 - Torneo: Entrenamiento intensivo, ranking seccional/nacional",
         "7.0": "7.0 - Profesional: Jugador de clase mundial"
-      }
+      },
+      "selectLevel": "Selecciona tu nivel NTRP"
     },
     "placeholders": {
       "preferredCity": "Ingresa tu ciudad preferida"
     },
-    "buttons": {
-      "saving": "Guardando...",
-      "createProfile": "Crear Perfil",
-      "updateProfile": "Actualizar Perfil"
-    },
-    "errors": {
-      "failedToSave": "Error al guardar perfil. Inténtalo de nuevo."
-    }
-  },
-  "eventTypes": {
-    "match": "Partido",
-    "training": "Entrenamiento",
-    "singles": "Individual",
-    "doubles": "Dobles",
-    "training1on1": "Entrenamiento 1 a 1",
-    "groupTraining": "Entrenamiento Grupal",
-    "matchSingles": "Partido Individual",
-    "matchDoubles": "Partido de Dobles",
-    "unorthodoxMatch": "Partido No Convencional",
-    "players": "{{count}} Jugadores",
-    "event": "Evento"
-  },
-  "eventLabels": {
-    "selectedLocations": "Ubicaciones Seleccionadas",
-    "preferredLocations": "Ubicaciones Preferidas",
-    "startTimes": "Horarios de Inicio",
-    "availableStartTimes": "Horarios de Inicio Disponibles",
-    "description": "Descripción"
-  },
-  "eventStatus": {
-    "open": "Abierto",
-    "accepted": "Esperando confirmación",
-    "confirmed": "Confirmado",
-    "reservationFailed": "Reserva fallida",
-    "cancelled": "Cancelado",
-    "completed": "Completado"
-  },
-  "eventActions": {
-    "cancel": "Cancelar",
-    "join": "Unirse al Evento",
-    "alreadyJoined": "Ya Unido",
-    "confirm": "Confirmar",
-    "confirmed": "Confirmado",
-    "signInToJoin": "Iniciar sesión para unirse",
-    "cancelParticipation": "Cancelar Participación"
-  },
-  "joinRequests": {
-    "rejected": "Solicitud rechazada",
-    "accepted": "Solicitud aceptada",
-    "waiting": "Esperando aprobación del anfitrión"
-  },
-  "share": {
-    "title": "Compartir evento",
-    "linkCopied": "¡Enlace copiado al portapapeles!",
-    "eventLinkCopied": "¡Enlace del evento copiado al portapapeles!"
-  },
-  "host": {
-    "label": "Anfitrión:",
-    "unknown": "Anfitrión Desconocido",
-    "unknownUser": "Usuario Desconocido"
-  },
-  "language": {
-    "changeLanguage": "Cambiar idioma",
-    "english": "English",
-    "spanish": "Español",
-    "french": "Français",
-    "polish": "Polski",
-    "russian": "Русский"
-  },
-  "calendar": {
-    "navigation": "Navegación del calendario",
-    "previousWeek": "Semana anterior",
-    "nextWeek": "Siguiente semana",
-    "clearAll": "Limpiar selección",
-    "connect": "Conectar Google Calendar",
-    "disconnect": "Desconectar",
-    "connected": "Google Calendar Conectado",
-    "notConnected": "Calendario no conectado",
-    "connecting": "Conectando...",
-    "provider": "Proveedor",
-    "conflictWarning": "Este horario entra en conflicto con tu calendario",
-    "busySlot": "Ocupado (Calendario)",
-    "preferences": {
-      "title": "Configuración de Calendario",
-      "syncEnabled": "Habilitar sincronización de calendario",
-      "syncFrequency": "Frecuencia de sincronización",
-      "showEventDetails": "Mostrar detalles del evento",
-      "every15min": "Cada 15 minutos",
-      "every30min": "Cada 30 minutos",
-      "every1hour": "Cada hora"
-    },
-    "errors": {
-      "connectionCheck": "Error al verificar la conexión del calendario",
-      "connectionFailed": "Error al conectar el calendario",
-      "authFailed": "Error de autorización del calendario",
-      "authCallback": "Error al completar la autorización",
-      "disconnectFailed": "Error al desconectar el calendario",
-      "preferencesUpdateFailed": "Error al actualizar las preferencias",
-      "busyTimesFailed": "Error al cargar los eventos del calendario"
+    "title": {
+      "complete": "Completar Tu Perfil",
+      "create": "Crear Tu Perfil"
     }
   },
   "publicEvent": {
-    "notFound": "El evento que buscas no existe o ha sido eliminado.",
-    "noLongerAvailable": "Evento no encontrado o ya no disponible"
+    "noLongerAvailable": "Evento no encontrado o ya no disponible",
+    "notFound": "El evento que buscas no existe o ha sido eliminado."
   },
-  "joinModal": {
-    "title": "Únete a la Sesión de Juego de {{hostName}}",
-    "loadingText": "Cargando opciones disponibles...",
-    "whereToPlay": "¿Dónde te gustaría jugar?",
-    "locationHelp": "Selecciona todas las ubicaciones donde puedes jugar.",
-    "whenToStart": "¿Cuándo te gustaría empezar?",
-    "timeSlotHelp": "Selecciona todos los horarios que te funcionan. {{hostName}} elegirá el horario final basado en tu disponibilidad.",
-    "submitting": "Enviando...",
-    "joinGameSession": "Unirse a la Sesión de Juego",
-    "selectLocation": "Por favor selecciona al menos una ubicación",
-    "selectTimeSlot": "Por favor selecciona al menos un horario",
-    "failedToJoin": "Error al unirse al evento",
-    "failedToLoadOptions": "Error al cargar opciones"
+  "share": {
+    "eventLinkCopied": "¡Enlace del evento copiado al portapapeles!",
+    "linkCopied": "¡Enlace copiado al portapapeles!",
+    "title": "Compartir evento"
   },
   "timeOfDay": {
-    "morning": "mañana",
     "afternoon": "tarde",
+    "and": "y",
     "evening": "noche",
+    "morning": "mañana",
     "night": "madrugada",
-    "wholeDay": "todo el día",
-    "and": "y"
+    "wholeDay": "todo el día"
   },
   "userMenu": {
     "profile": "Perfil",
     "signOut": "Cerrar Sesión"
   },
   "userProfile": {
-    "title": "Perfil de Usuario",
-    "sections": {
-      "personalInfo": "Información Personal",
-      "notifications": "Configuración de Notificaciones",
-      "dangerZone": "Zona de Peligro"
+    "buttons": {
+      "cancel": "Cancelar",
+      "confirmDelete": "Sí, Eliminar Mi Cuenta",
+      "deleteAccount": "Eliminar Cuenta",
+      "save": "Guardar Cambios",
+      "saving": "Guardando..."
+    },
+    "deleteAccount": {
+      "modalBody": "Esto eliminará permanentemente tu cuenta y todos los datos asociados.",
+      "modalTitle": "¿Estás seguro?",
+      "title": "Eliminar Cuenta",
+      "warning": "Esta acción no se puede deshacer. Todos tus datos, incluidos eventos y solicitudes de unión, se eliminarán permanentemente."
+    },
+    "errors": {
+      "failedToDelete": "Error al eliminar la cuenta",
+      "failedToLoad": "Error al cargar el perfil",
+      "failedToUpdate": "Error al actualizar el perfil"
     },
     "fields": {
-      "firstName": "Nombre",
-      "lastName": "Apellido",
       "city": "Ciudad",
       "country": "País",
-      "language": "Idioma",
-      "ntrpLevel": "Nivel NTRP",
+      "debugAddress": "Dirección de Depuración",
       "email": "Correo Electrónico",
-      "phoneNumber": "Número de Teléfono",
-      "debugAddress": "Dirección de Depuración"
+      "firstName": "Nombre",
+      "language": "Idioma",
+      "lastName": "Apellido",
+      "ntrpLevel": "Nivel NTRP",
+      "phoneNumber": "Número de Teléfono"
     },
     "notifications": {
       "channels": {
+        "debug": "Notificaciones de Depuración (solo desarrollo)",
         "email": "Notificaciones por Correo",
-        "sms": "Notificaciones por SMS",
         "push": "Notificaciones Push (próximamente)",
-        "whatsapp": "Notificaciones por WhatsApp (próximamente)",
-        "debug": "Notificaciones de Depuración (solo desarrollo)"
+        "sms": "Notificaciones por SMS",
+        "whatsapp": "Notificaciones por WhatsApp (próximamente)"
       },
       "validation": "Al menos un canal de notificación debe estar habilitado"
     },
-    "buttons": {
-      "save": "Guardar Cambios",
-      "saving": "Guardando...",
-      "deleteAccount": "Eliminar Cuenta",
-      "confirmDelete": "Sí, Eliminar Mi Cuenta",
-      "cancel": "Cancelar"
-    },
-    "deleteAccount": {
-      "title": "Eliminar Cuenta",
-      "warning": "Esta acción no se puede deshacer. Todos tus datos, incluidos eventos y solicitudes de unión, se eliminarán permanentemente.",
-      "modalTitle": "¿Estás seguro?",
-      "modalBody": "Esto eliminará permanentemente tu cuenta y todos los datos asociados."
+    "sections": {
+      "dangerZone": "Zona de Peligro",
+      "notifications": "Configuración de Notificaciones",
+      "personalInfo": "Información Personal"
     },
     "success": {
-      "profileUpdated": "Perfil actualizado exitosamente",
-      "accountDeleted": "Cuenta eliminada exitosamente"
+      "accountDeleted": "Cuenta eliminada exitosamente",
+      "profileUpdated": "Perfil actualizado exitosamente"
     },
-    "errors": {
-      "failedToLoad": "Error al cargar el perfil",
-      "failedToUpdate": "Error al actualizar el perfil",
-      "failedToDelete": "Error al eliminar la cuenta"
-    }
+    "title": "Perfil de Usuario"
   }
 }
