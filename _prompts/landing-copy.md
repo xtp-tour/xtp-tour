@@ -7,7 +7,7 @@ Copy aligns with `copywriting-brief.md`. Tone: humble, witty, benefit-focused, r
 ## 1. Hero
 
 - **Headline:** “Schedule tennis without the group chat”
-- **Subheadline:** “Set your courts, time windows, and player level once. Share a link so partners pick the slot that works.”
+- **Subheadline:** “Set your courts, time windows, and player level. Share a link so partners pick the slot that works.”
 - **Primary CTA (button):** “Create a session”
 - **Secondary CTA (button):** “Browse public sessions”
 - **Supporting microcopy:** “No login needed to view public events.”

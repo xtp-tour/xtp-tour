@@ -11,69 +11,90 @@
   "landing": {
     "hero": {
       "title": "Moins de messages, plus de tennis.",
-      "subtitle": "Définissez vos courts, créneaux et niveau une seule fois. Partagez un lien et laissez vos partenaires choisir le créneau qui leur convient.",
-      "createLink": "Créez votre lien tennis",
-      "findPartners": "Trouvez des partenaires de jeu",
-      "alreadyHaveAccount": "Vous avez déjà un compte ?",
-      "signInLink": "Connectez-vous"
+      "subtitle": "Définissez vos courts, créneaux et niveau. Partagez un lien et laissez vos partenaires choisir le créneau qui leur convient.",
+      "createSession": "Créer une session",
+      "browsePublic": "Voir les sessions publiques",
+      "microcopy": "Parcourez les sessions publiques sans vous inscrire.",
+      "alreadyUsing": "Déjà sur XTP Tour ?",
+      "signIn": "Se connecter"
     },
     "howItWorks": {
-      "title": "Programmer un match devient simple",
-      "subtitle": "L'expérience Calendly taillée pour les joueuses et joueurs de tennis",
+      "eyebrow": "Comment ça marche",
+      "title": "Quatre étapes de l'idée au match.",
       "steps": {
-        "step1": {
-          "title": "1. Choisissez vos disponibilités",
-          "description": "Indiquez vos clubs favoris, créneaux horaires et format de jeu (simple, double, niveau)."
+        "setSession": {
+          "title": "Définissez la session",
+          "description": "Créez votre session idéale : format, courts, horaires et partenaire souhaité."
         },
-        "step2": {
-          "title": "2. Partagez votre défi",
-          "description": "Envoyez le lien à vos amis ou rendez-le visible pour la communauté locale."
+        "shareLink": {
+          "title": "Partagez le lien",
+          "description": "Envoyez-le à vos amis ou rendez-le visible pour les joueurs à proximité."
         },
-        "step3": {
-          "title": "3. Recevez des demandes",
-          "description": "Les joueurs sélectionnent le créneau qui leur convient et vous adressent une requête."
+        "reviewRequests": {
+          "title": "Examinez les demandes",
+          "description": "Voyez qui est intéressé et confirmez votre partenaire."
         },
-        "step4": {
-          "title": "4. Prenez le court",
-          "description": "Validez le créneau, retrouvez-vous sur place et profitez du match sans friction."
+        "syncPlay": {
+          "title": "Synchronisez et jouez",
+          "description": "Tout le monde est notifié. Ajoutez au calendrier en un clic."
         }
       }
     },
     "features": {
-      "saveTime": {
-        "title": "Gagnez du temps",
-        "description": "Plus besoin de jongler entre SMS et e-mails : tout le monde voit vos dispos en un coup d'œil."
+      "eyebrow": "Pourquoi ça marche",
+      "title": "Moins de coordination. Plus de jeu.",
+      "easyCoordination": {
+        "title": "Coordination facile",
+        "description": "Définissez horaires, courts et nombre de joueurs en moins d'une minute."
       },
-      "workTogether": {
-        "title": "Trouvez le bon partenaire",
-        "description": "Filtrez par niveau NTRP pour garantir des matchs équilibrés et stimulants."
+      "partnerMatching": {
+        "title": "Trouver des partenaires",
+        "description": "Les filtres NTRP vous aident à trouver des joueurs de votre niveau."
       },
-      "playMore": {
-        "title": "Jouez plus souvent",
-        "description": "Moins d'organisation, plus d'heures pour travailler votre service et votre revers."
+      "calendarIntegration": {
+        "title": "Intégration calendrier",
+        "description": "Synchronisez avec Google Calendar pour éviter les conflits."
+      },
+      "shareAnywhere": {
+        "title": "Partagez partout",
+        "description": "Partagez dans n'importe quel chat, email ou réseau social."
       }
     },
     "gameTypes": {
-      "title": "Votre tennis, à votre rythme",
-      "subtitle": "Définissez vos préférences une fois et laissez la communauté réserver la session idéale.",
-      "competitive": "Matchs compétitifs : simples avec comptage officiel.",
-      "training": "Séances d'entraînement : drills, coaching ou pelote libre.",
-      "doubles": "Matchs en double : rencontres sociales ou compétitives à 4.",
-      "whatYouCanSet": "Ce que vous pouvez paramétrer :",
-      "features": {
-        "multipleVenues": "Plusieurs clubs ou sites dans une même invitation",
-        "flexibleTimeSlots": "Agenda flexible sur 7 jours avec blocs ajustables",
-        "skillLevelMatching": "Filtre par niveau NTRP pour matcher au plus juste",
-        "sessionDuration": "Durée modulable de 1 à 4 heures",
-        "singlesOnly": "Singles disponibles aujourd'hui ; le double arrive très bientôt"
-      }
+      "eyebrow": "Types de jeu",
+      "title": "Un outil pour simples, entraînements et doubles.",
+      "singles": {
+        "label": "Matchs en simple",
+        "description": "Jeu compétitif en un contre un."
+      },
+      "training": {
+        "label": "Sessions d'entraînement",
+        "description": "Pratique de frappes, drills ou temps de coaching."
+      },
+      "doubles": {
+        "label": "Doubles et jeu en groupe",
+        "description": "Créneaux flexibles pour jusqu'à quatre joueurs."
+      },
+      "whatYouControl": "Ce que vous contrôlez",
+      "controls": {
+        "multipleCourts": "Plusieurs courts dans une invitation",
+        "weekAvailability": "Une semaine de disponibilité en un coup d'œil",
+        "sessionLength": "Sessions de 1 à 4 heures",
+        "playerCount": "Nombre de joueurs de 1 à 4",
+        "ntrpFilters": "Filtres NTRP pour chaque niveau",
+        "optionalNotes": "Notes optionnelles pour drills ou détails du match"
+      },
+      "calendarBadge": "Synchronise avec Google Calendar — optionnel mais pratique."
     },
     "cta": {
-      "title": "La suite est fluide",
-      "subtitle": "On s'occupe de la coordination ; vous partagez un lien et gardez la main sur votre planning.",
-      "startScheduling": "Lancer la planification",
-      "findPartners": "Chercher des partenaires"
-    }
+      "eyebrow": "Prêt à jouer ?",
+      "title": "Moins de messages. Plus de tennis.",
+      "subtitle": "Créez une session, partagez un lien et laissez les partenaires venir à vous.",
+      "startScheduling": "Commencer à planifier",
+      "findPartners": "Trouver des partenaires",
+      "microcopy": "Pas encore prêt à vous inscrire ? Parcourez les sessions publiques."
+    },
+    "comingSoon": "Bientôt disponible"
   },
   "createEvent": {
     "title": "Créer un Événement",
@@ -102,7 +123,9 @@
       "trainingPlaceholder": "Décrivez votre plan d'entraînement et vos objectifs...",
       "generalPlaceholder": "Ajoutez toute information supplémentaire...",
       "createInvitation": "Créer une Invitation",
-      "trainingTip": "Considérez ajouter un plan d'entraînement ou des objectifs à la description"
+      "trainingTip": "Considérez ajouter un plan d'entraînement ou des objectifs à la description",
+      "calendarIntegration": "Intégration Calendrier",
+      "calendarIntegrationDesc": "Connectez votre Google Calendar pour éviter automatiquement les conflits d'horaire"
     },
     "skillLevels": {
       "INTERMEDIATE": "Intermédiaire (NTRP 3.5–5.0)",
@@ -284,7 +307,8 @@
     "english": "English",
     "spanish": "Español",
     "french": "Français",
-    "polish": "Polski"
+    "polish": "Polski",
+    "russian": "Русский"
   },
   "calendar": {
     "navigation": "Navigation du calendrier",

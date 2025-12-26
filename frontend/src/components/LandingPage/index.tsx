@@ -1,161 +1,167 @@
 import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
+import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
 
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const LandingPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const steps = [
     {
       icon: 'bi-calendar3',
-      title: 'Set the session',
-      description: 'Choose format, preferred courts, time windows, player count, and an NTRP range.'
+      titleKey: 'landing.howItWorks.steps.setSession.title',
+      descriptionKey: 'landing.howItWorks.steps.setSession.description'
     },
     {
       icon: 'bi-link-45deg',
-      title: 'Share the link',
-      description: 'Send it to friends or keep it discoverable for nearby players.'
+      titleKey: 'landing.howItWorks.steps.shareLink.title',
+      descriptionKey: 'landing.howItWorks.steps.shareLink.description'
     },
     {
       icon: 'bi-clipboard-check',
-      title: 'Review requests',
-      description: 'See who matches your slots and confirm the lineup.'
+      titleKey: 'landing.howItWorks.steps.reviewRequests.title',
+      descriptionKey: 'landing.howItWorks.steps.reviewRequests.description'
     },
     {
       icon: 'bi-balloon-heart',
-      title: 'Sync & play',
-      description: 'Send confirmations and push the session to Google Calendar.'
+      titleKey: 'landing.howItWorks.steps.syncPlay.title',
+      descriptionKey: 'landing.howItWorks.steps.syncPlay.description'
     }
   ];
 
   const features = [
     {
       icon: 'bi-star',
-      title: 'Easy coordination',
-      description: 'Manage time windows, courts, and flexible player counts in minutes.'
+      titleKey: 'landing.features.easyCoordination.title',
+      descriptionKey: 'landing.features.easyCoordination.description'
     },
     {
       icon: 'bi-shuffle',
-      title: 'Partner matching',
-      description: 'NTRP filters and join requests keep skill levels predictable.'
+      titleKey: 'landing.features.partnerMatching.title',
+      descriptionKey: 'landing.features.partnerMatching.description'
     },
     {
       icon: 'bi-calendar-week',
-      title: 'Calendar integration',
-      description: 'Optional Google Calendar sync blocks conflicts automatically.'
+      titleKey: 'landing.features.calendarIntegration.title',
+      descriptionKey: 'landing.features.calendarIntegration.description'
     },
     {
-      icon: 'bi-translate',
-      title: 'Share anywhere',
-      description: 'A single link works for chats, clubs, or public discovery pages.'
+      icon: 'bi-share',
+      titleKey: 'landing.features.shareAnywhere.title',
+      descriptionKey: 'landing.features.shareAnywhere.description'
     }
   ];
 
   const gameTypes = [
-    { label: 'Singles matches', description: 'Straightforward two-player challenges.' },
-    { label: 'Training sessions', description: 'Hitting practice, drills, or coaching time.' },
     {
-      label: 'Doubles & group play (coming soon)',
-      description: 'Flexible slots for up to four players when doubles support lands.'
+      labelKey: 'landing.gameTypes.singles.label',
+      descriptionKey: 'landing.gameTypes.singles.description'
+    },
+    {
+      labelKey: 'landing.gameTypes.training.label',
+      descriptionKey: 'landing.gameTypes.training.description'
+    },
+    {
+      labelKey: 'landing.gameTypes.doubles.label',
+      descriptionKey: 'landing.gameTypes.doubles.description'
     }
   ];
 
-  const controls = [
-    'Multiple venues in one invite',
-    '7-day availability grid',
-    'Session length control (1–4 hours)',
-    'Player count from 1-on-1 to four players',
-    'NTRP filters for every level',
-    'Optional notes for drills or match details'
+  const controlKeys = [
+    'landing.gameTypes.controls.multipleCourts',
+    'landing.gameTypes.controls.weekAvailability',
+    'landing.gameTypes.controls.sessionLength',
+    'landing.gameTypes.controls.playerCount',
+    'landing.gameTypes.controls.ntrpFilters',
+    'landing.gameTypes.controls.optionalNotes'
   ];
 
-  const disabledTitle = 'Coming soon';
+  const disabledTitle = t('landing.comingSoon');
 
-  const renderPrimaryButton = (label: string, icon: string) =>
+  const renderPrimaryButton = (labelKey: string, icon: string) =>
     isClerkAvailable ? (
       <SignUpButton mode="modal">
         <button className="lp-btn lp-btn-primary">
           <i className={`bi ${icon} me-2`} />
-          {label}
+          {t(labelKey)}
         </button>
       </SignUpButton>
     ) : (
       <button className="lp-btn lp-btn-primary" disabled title={disabledTitle}>
         <i className={`bi ${icon} me-2`} />
-        {label}
+        {t(labelKey)}
       </button>
     );
 
-  const renderSecondaryButton = (label: string, icon: string) =>
+  const renderSecondaryButton = (labelKey: string, icon: string) =>
     isClerkAvailable ? (
       <SignUpButton mode="modal">
         <button className="lp-btn lp-btn-secondary">
           <i className={`bi ${icon} me-2`} />
-          {label}
+          {t(labelKey)}
         </button>
       </SignUpButton>
     ) : (
       <button className="lp-btn lp-btn-secondary" disabled title={disabledTitle}>
         <i className={`bi ${icon} me-2`} />
-        {label}
+        {t(labelKey)}
       </button>
     );
 
   return (
     <div className="landing">
       <header className="lp-hero text-center">
-        <h1 className="lp-hero-title">Skip the back-and-forth. Hit the court.</h1>
-        <p className="lp-hero-subtitle">
-          Set your courts, time windows, and player level once. Share a link so partners pick the slot
-          that works.
-        </p>
+        <h1 className="lp-hero-title">{t('landing.hero.title')}</h1>
+        <p className="lp-hero-subtitle">{t('landing.hero.subtitle')}</p>
         <div className="lp-hero-actions">
-          {renderPrimaryButton('Create a session', 'bi-calendar-plus')}
-          {renderSecondaryButton('Browse public sessions', 'bi-search')}
+          {renderPrimaryButton('landing.hero.createSession', 'bi-calendar-plus')}
+          {renderSecondaryButton('landing.hero.browsePublic', 'bi-search')}
         </div>
-        <p className="lp-microcopy">No login needed to view public events.</p>
+        <p className="lp-microcopy">{t('landing.hero.microcopy')}</p>
         <div className="lp-signin">
           {isClerkAvailable ? (
             <SignInButton mode="modal">
               <button className="lp-link">
-                Already using XTP Tour? <span>Sign in</span>
+                {t('landing.hero.alreadyUsing')} <span>{t('landing.hero.signIn')}</span>
               </button>
             </SignInButton>
           ) : (
             <button className="lp-link" disabled title={disabledTitle}>
-              Already using XTP Tour? <span>Sign in</span>
+              {t('landing.hero.alreadyUsing')} <span>{t('landing.hero.signIn')}</span>
             </button>
           )}
         </div>
       </header>
 
       <section className="lp-section">
-        <p className="lp-eyebrow">How it works</p>
-        <h2 className="lp-section-title">A quick flow built for real players.</h2>
+        <p className="lp-eyebrow">{t('landing.howItWorks.eyebrow')}</p>
+        <h2 className="lp-section-title">{t('landing.howItWorks.title')}</h2>
         <div className="lp-steps">
           {steps.map((step) => (
-            <div key={step.title} className="lp-card lp-step-card">
+            <div key={step.titleKey} className="lp-card lp-step-card">
               <div className="lp-step-icon">
                 <i className={`bi ${step.icon}`} />
               </div>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
+              <h3>{t(step.titleKey)}</h3>
+              <p>{t(step.descriptionKey)}</p>
             </div>
           ))}
         </div>
       </section>
 
       <section className="lp-section">
-        <p className="lp-eyebrow">Why players stick around</p>
-        <h2 className="lp-section-title">Everything you need for fast coordination.</h2>
+        <p className="lp-eyebrow">{t('landing.features.eyebrow')}</p>
+        <h2 className="lp-section-title">{t('landing.features.title')}</h2>
         <div className="lp-features">
           {features.map((feature) => (
-            <div key={feature.title} className="lp-card lp-feature-card">
+            <div key={feature.titleKey} className="lp-card lp-feature-card">
               <div className="lp-feature-icon">
                 <i className={`bi ${feature.icon}`} />
               </div>
-              <h3>{feature.title}</h3>
-              <p>{feature.description}</p>
+              <h3>{t(feature.titleKey)}</h3>
+              <p>{t(feature.descriptionKey)}</p>
             </div>
           ))}
         </div>
@@ -164,40 +170,38 @@ const LandingPage: React.FC = () => {
       <section className="lp-section lp-game-types">
         <div className="lp-game-content lp-card">
           <div>
-            <p className="lp-eyebrow">Game types</p>
-            <h2 className="lp-section-title">Pick the format and number of players.</h2>
+            <p className="lp-eyebrow">{t('landing.gameTypes.eyebrow')}</p>
+            <h2 className="lp-section-title">{t('landing.gameTypes.title')}</h2>
             <div className="lp-game-list">
               {gameTypes.map((type) => (
-                <div key={type.label}>
-                  <strong>{type.label}</strong>
-                  <p>{type.description}</p>
+                <div key={type.labelKey}>
+                  <strong>{t(type.labelKey)}</strong>
+                  <p>{t(type.descriptionKey)}</p>
                 </div>
               ))}
             </div>
           </div>
           <div className="lp-controls">
-            <h3>What you control</h3>
+            <h3>{t('landing.gameTypes.whatYouControl')}</h3>
             <ul>
-              {controls.map((item) => (
-                <li key={item}>{item}</li>
+              {controlKeys.map((key) => (
+                <li key={key}>{t(key)}</li>
               ))}
             </ul>
-            <div className="lp-badge">Syncs with Google Calendar — optional but handy.</div>
+            <div className="lp-badge">{t('landing.gameTypes.calendarBadge')}</div>
           </div>
         </div>
       </section>
 
       <section className="lp-section lp-cta">
-        <p className="lp-eyebrow">Final serve</p>
-        <h2 className="lp-section-title">Plan your next session</h2>
-        <p className="lp-cta-text">
-          Share one link to line up the right time, place, and partners. Skip the back-and-forth. Hit the court.
-        </p>
+        <p className="lp-eyebrow">{t('landing.cta.eyebrow')}</p>
+        <h2 className="lp-section-title">{t('landing.cta.title')}</h2>
+        <p className="lp-cta-text">{t('landing.cta.subtitle')}</p>
         <div className="lp-hero-actions">
-          {renderPrimaryButton('Start scheduling', 'bi-calendar-plus')}
-          {renderSecondaryButton('Find partners', 'bi-people')}
+          {renderPrimaryButton('landing.cta.startScheduling', 'bi-calendar-plus')}
+          {renderSecondaryButton('landing.cta.findPartners', 'bi-people')}
         </div>
-        <p className="lp-microcopy">Just browsing? View public sessions first.</p>
+        <p className="lp-microcopy">{t('landing.cta.microcopy')}</p>
       </section>
     </div>
   );

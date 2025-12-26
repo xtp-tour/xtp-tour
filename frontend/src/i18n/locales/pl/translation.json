@@ -11,69 +11,90 @@
   "landing": {
     "hero": {
       "title": "Mniej pisania, więcej grania.",
-      "subtitle": "Ustaw korty, godziny i poziom gry jeden raz. Udostępnij link i pozwól partnerom wybrać pasujący termin.",
-      "createLink": "Stwórz swój link tenisowy",
-      "findPartners": "Znajdź sparingpartnerów",
-      "alreadyHaveAccount": "Masz już konto?",
-      "signInLink": "Zaloguj się"
+      "subtitle": "Ustaw korty, godziny i poziom gry. Udostępnij link i pozwól partnerom wybrać pasujący termin.",
+      "createSession": "Utwórz sesję",
+      "browsePublic": "Przeglądaj publiczne sesje",
+      "microcopy": "Przeglądaj publiczne sesje bez rejestracji.",
+      "alreadyUsing": "Już korzystasz z XTP Tour?",
+      "signIn": "Zaloguj się"
     },
     "howItWorks": {
-      "title": "Planowanie w czterech krokach",
-      "subtitle": "Działa jak Calendly, ale powstało z myślą o tenisistach",
+      "eyebrow": "Jak to działa",
+      "title": "Cztery kroki od pomysłu do meczu.",
       "steps": {
-        "step1": {
-          "title": "1. Określ gdzie i kiedy grasz",
-          "description": "Dodaj ulubione korty, godziny i format gry (singiel, debel, poziom)."
+        "setSession": {
+          "title": "Ustaw sesję",
+          "description": "Zdefiniuj idealną sesję: format, korty, godziny i z kim chcesz grać."
         },
-        "step2": {
-          "title": "2. Udostępnij wyzwanie",
-          "description": "Wyślij link znajomym albo udostępnij go dla lokalnej społeczności."
+        "shareLink": {
+          "title": "Udostępnij link",
+          "description": "Wyślij znajomym lub udostępnij dla graczy w okolicy."
         },
-        "step3": {
-          "title": "3. Zbieraj zgłoszenia",
-          "description": "Zawodnicy wybierają pasujący termin i wysyłają prośbę o udział."
+        "reviewRequests": {
+          "title": "Przeglądaj zgłoszenia",
+          "description": "Zobacz kto jest zainteresowany i potwierdź partnera."
         },
-        "step4": {
-          "title": "4. Wejdź na kort",
-          "description": "Potwierdź termin, spotkajcie się na miejscu i grajcie bez zamieszania."
+        "syncPlay": {
+          "title": "Synchronizuj i graj",
+          "description": "Wszyscy dostają powiadomienie. Dodaj do kalendarza jednym kliknięciem."
         }
       }
     },
     "features": {
-      "saveTime": {
-        "title": "Oszczędzaj czas",
-        "description": "Koniec z ustalaniem przez komunikatory i maile – wszyscy widzą twoją dostępność w jednym miejscu."
+      "eyebrow": "Dlaczego działa",
+      "title": "Mniej koordynacji. Więcej gry.",
+      "easyCoordination": {
+        "title": "Łatwa koordynacja",
+        "description": "Ustaw godziny, korty i liczbę graczy w niecałą minutę."
       },
-      "workTogether": {
-        "title": "Dobierz właściwego partnera",
-        "description": "Filtruj po poziomie NTRP i preferencjach, aby każdy mecz był wyrównany i satysfakcjonujący."
+      "partnerMatching": {
+        "title": "Dobieranie partnerów",
+        "description": "Filtry NTRP pomagają znaleźć graczy na twoim poziomie."
       },
-      "playMore": {
-        "title": "Graj częściej",
-        "description": "Mniej organizacji, więcej godzin na serwis, wolejkę i topspiny."
+      "calendarIntegration": {
+        "title": "Integracja z kalendarzem",
+        "description": "Synchronizuj z Google Calendar, aby uniknąć konfliktów."
+      },
+      "shareAnywhere": {
+        "title": "Udostępniaj wszędzie",
+        "description": "Wrzuć do dowolnego czatu, maila lub mediów społecznościowych."
       }
     },
     "gameTypes": {
-      "title": "Tenis dopasowany do ciebie",
-      "subtitle": "Ustaw preferencje tylko raz i pozwól innym rezerwować idealną sesję.",
-      "competitive": "Mecze rankingowe – singiel z oficjalnym liczeniem punktów.",
-      "training": "Treningi – sparingi, ćwiczenia lub lekcje z trenerem.",
-      "doubles": "Deble – spotkania towarzyskie albo rywalizacja w czwórkach.",
-      "whatYouCanSet": "Co możesz ustawić:",
-      "features": {
-        "multipleVenues": "Wiele klubów i lokalizacji w jednym ogłoszeniu",
-        "flexibleTimeSlots": "Elastyczna siatka terminów na 7 kolejnych dni",
-        "skillLevelMatching": "Dobieranie po poziomie NTRP dla lepszych par",
-        "sessionDuration": "Czas trwania od 1 do 4 godzin",
-        "singlesOnly": "Na dziś singiel – opcja debla już w drodze"
-      }
+      "eyebrow": "Typy gry",
+      "title": "Jedno narzędzie dla singla, treningu i debla.",
+      "singles": {
+        "label": "Mecze singlowe",
+        "description": "Rywalizacja jeden na jeden."
+      },
+      "training": {
+        "label": "Sesje treningowe",
+        "description": "Praktyka uderzeń, ćwiczenia lub czas z trenerem."
+      },
+      "doubles": {
+        "label": "Deble i gra grupowa",
+        "description": "Elastyczne sloty dla maksymalnie czterech graczy."
+      },
+      "whatYouControl": "Co kontrolujesz",
+      "controls": {
+        "multipleCourts": "Wiele kortów w jednym zaproszeniu",
+        "weekAvailability": "Tydzień dostępności w jednym widoku",
+        "sessionLength": "Sesje od 1 do 4 godzin",
+        "playerCount": "Liczba graczy od 1 do 4",
+        "ntrpFilters": "Filtry NTRP dla każdego poziomu",
+        "optionalNotes": "Opcjonalne notatki do ćwiczeń lub szczegółów meczu"
+      },
+      "calendarBadge": "Synchronizuje z Google Calendar — opcjonalne, ale przydatne."
     },
     "cta": {
-      "title": "Reszta przebiega gładko",
-      "subtitle": "My pilnujemy logistyki, ty udostępniasz jeden link i masz kalendarz pod kontrolą.",
+      "eyebrow": "Gotowy do gry?",
+      "title": "Mniej pisania. Więcej tenisa.",
+      "subtitle": "Utwórz sesję, udostępnij link i pozwól partnerom przyjść do ciebie.",
       "startScheduling": "Zacznij planować",
-      "findPartners": "Szukaj partnerów"
-    }
+      "findPartners": "Znajdź partnerów",
+      "microcopy": "Nie gotowy na rejestrację? Przeglądaj publiczne sesje."
+    },
+    "comingSoon": "Wkrótce"
   },
   "createEvent": {
     "title": "Utwórz Wydarzenie",
@@ -102,7 +123,9 @@
       "trainingPlaceholder": "Opisz swój plan treningowy i cele...",
       "generalPlaceholder": "Dodaj dodatkowe informacje...",
       "createInvitation": "Utwórz Zaproszenie",
-      "trainingTip": "Rozważ dodanie planu treningowego lub celów do opisu"
+      "trainingTip": "Rozważ dodanie planu treningowego lub celów do opisu",
+      "calendarIntegration": "Integracja z Kalendarzem",
+      "calendarIntegrationDesc": "Połącz swój Google Calendar, aby automatycznie unikać konfliktów terminów"
     },
     "skillLevels": {
       "INTERMEDIATE": "Średniozaawansowany (NTRP 3.5–5.0)",
@@ -284,7 +307,8 @@
     "english": "English",
     "spanish": "Español",
     "french": "Français",
-    "polish": "Polski"
+    "polish": "Polski",
+    "russian": "Русский"
   },
   "calendar": {
     "navigation": "Nawigacja kalendarza",

@@ -11,69 +11,90 @@
   "landing": {
     "hero": {
       "title": "Skip the back-and-forth. Hit the court.",
-      "subtitle": "Set your courts, time windows, and player level once. Share a link so partners pick the slot that works.",
-      "createLink": "Create Your Tennis Link",
-      "findPartners": "Find Tennis Partners",
-      "alreadyHaveAccount": "Already have an account?",
-      "signInLink": "Sign In"
+      "subtitle": "Set your courts, time windows, and player level. Share a link so partners pick the slot that works.",
+      "createSession": "Create a session",
+      "browsePublic": "Browse public sessions",
+      "microcopy": "Browse public sessions without signing up.",
+      "alreadyUsing": "Already using XTP Tour?",
+      "signIn": "Sign in"
     },
     "howItWorks": {
-      "title": "Easy scheduling for everyone",
-      "subtitle": "Just like Calendly, but for tennis players",
+      "eyebrow": "How it works",
+      "title": "Four steps from idea to match.",
       "steps": {
-        "step1": {
-          "title": "1. Set your availability",
-          "description": "Choose your preferred courts, times, and game preferences (singles, doubles, skill level)"
+        "setSession": {
+          "title": "Set the session",
+          "description": "Define your ideal session—format, courts, times, and who you want to play."
         },
-        "step2": {
-          "title": "2. Share your challenge with others",
-          "description": "Send your link to friends or make it discoverable for other players to find"
+        "shareLink": {
+          "title": "Share the link",
+          "description": "Send it to friends or keep it discoverable for nearby players."
         },
-        "step3": {
-          "title": "3. Get booked",
-          "description": "Players select their preferred time slot and request to join your session"
+        "reviewRequests": {
+          "title": "Review requests",
+          "description": "See who's interested and lock in your partner."
         },
-        "step4": {
-          "title": "4. Play tennis",
-          "description": "Meet at the court and enjoy your game - no more scheduling hassles"
+        "syncPlay": {
+          "title": "Sync & play",
+          "description": "Everyone gets notified. Add it to your calendar with one click."
         }
       }
     },
     "features": {
-      "saveTime": {
-        "title": "Save time",
-        "description": "Eliminate the back-and-forth of finding a time that works for everyone"
+      "eyebrow": "Why it works",
+      "title": "Less coordinating. More playing.",
+      "easyCoordination": {
+        "title": "Easy coordination",
+        "description": "Set times, courts, and player count in under a minute."
       },
-      "workTogether": {
-        "title": "Work better together",
-        "description": "Connect with players at your skill level for better matches and training"
+      "partnerMatching": {
+        "title": "Partner matching",
+        "description": "NTRP filters help you find players at your level."
       },
-      "playMore": {
-        "title": "Play more tennis",
-        "description": "Spend less time coordinating and more time on the court improving your game"
+      "calendarIntegration": {
+        "title": "Calendar integration",
+        "description": "Sync with Google Calendar to avoid double-booking."
+      },
+      "shareAnywhere": {
+        "title": "Share anywhere",
+        "description": "Drop it in any group chat, email, or social feed."
       }
     },
     "gameTypes": {
-      "title": "Your tennis, your way",
-      "subtitle": "Set your preferences once and let players book the perfect session with you.",
-      "competitive": "Competitive matches - Singles games with scoring",
-      "training": "Training sessions - Practice and skill development",
-      "doubles": "Doubles matches - 4-player team games",
-      "whatYouCanSet": "What You Can Set:",
-      "features": {
-        "multipleVenues": "Multiple venue options",
-        "flexibleTimeSlots": "Flexible time slots (7-day calendar)",
-        "skillLevelMatching": "Skill level matching (NTRP-based)",
-        "sessionDuration": "Session duration (1-4 hours)",
-        "singlesOnly": "Singles (doubles coming soon)"
-      }
+      "eyebrow": "Game types",
+      "title": "One tool for singles, training, and doubles.",
+      "singles": {
+        "label": "Singles matches",
+        "description": "One-on-one competitive play."
+      },
+      "training": {
+        "label": "Training sessions",
+        "description": "Hitting practice, drills, or coaching time."
+      },
+      "doubles": {
+        "label": "Doubles & group play",
+        "description": "Flexible slots for up to four players."
+      },
+      "whatYouControl": "What you control",
+      "controls": {
+        "multipleCourts": "Multiple courts in one invite",
+        "weekAvailability": "A week of availability at a glance",
+        "sessionLength": "Sessions from 1 to 4 hours",
+        "playerCount": "Player count from 1-on-1 to four",
+        "ntrpFilters": "NTRP filters for every level",
+        "optionalNotes": "Optional notes for drills or match details"
+      },
+      "calendarBadge": "Syncs with Google Calendar — optional but handy."
     },
     "cta": {
-      "title": "Easy ahead",
-      "subtitle": "We take the work out of connecting for tennis. Your schedule, your link, your way.",
+      "eyebrow": "Ready to play?",
+      "title": "Less texting. More tennis.",
+      "subtitle": "Create a session, share a link, and let partners come to you.",
       "startScheduling": "Start scheduling",
-      "findPartners": "Find partners"
-    }
+      "findPartners": "Find partners",
+      "microcopy": "Not ready to sign up? Browse public sessions."
+    },
+    "comingSoon": "Coming soon"
   },
   "createEvent": {
     "title": "Create Event",
@@ -286,7 +307,8 @@
     "english": "English",
     "spanish": "Español",
     "french": "Français",
-    "polish": "Polski"
+    "polish": "Polski",
+    "russian": "Русский"
   },
   "publicEvent": {
     "notFound": "The event you are looking for does not exist or has been removed.",
