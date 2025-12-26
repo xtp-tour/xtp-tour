@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
@@ -14,6 +15,7 @@ type Config struct {
 	Service       HttpConfig
 	Db            DbConfig
 	Notifications NotificationConfig
+	Expiration    JobsConfig
 }
 
 type NotificationConfig struct {
@@ -30,6 +32,10 @@ type EmailConfig struct {
 	Password string `envvar:"EMAIL_PASSWORD"`
 	From     string `envvar:"EMAIL_FROM"`
 	Enabled  bool   `default:"false" envvar:"EMAIL_ENABLED"`
+}
+
+type JobsConfig struct {
+	Interval time.Duration `default:"1m" envvar:"JOBS_INTERVAL"`
 }
 
 type HttpConfig struct {

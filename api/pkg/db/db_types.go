@@ -252,3 +252,9 @@ type CalendarBusyTimeRow struct {
 	EventTitle string    `db:"event_title"`
 	SyncedAt   time.Time `db:"synced_at"`
 }
+
+// ExpiredEventInfo contains info about an expired event for notification purposes
+type ExpiredEventInfo struct {
+	EventId string `db:"id"`
+	UserId  string `db:"user_id"`
+}

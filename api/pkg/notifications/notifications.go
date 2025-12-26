@@ -152,3 +152,22 @@ func (d *Notifier) UserJoined(log slog.Logger, userId string, joinRequest api.Jo
 
 	logCtx.Info("UserJoined notification enqueued")
 }
+
+// EventExpired notifies the event owner that their event has expired without any participants
+func (d *Notifier) EventExpired(userId string, eventId string) {
+	ctx := context.Background()
+	logCtx := slog.With("userId", userId, "eventId", eventId)
+
+	notificationData := db.NotificationQueueData{
+		Topic:   "Event Expired",
+		Message: "Your event has expired without any participants joining. You can create a new event whenever you're ready to play again.",
+	}
+
+	err := d.queue.Enqueue(ctx, userId, notificationData)
+	if err != nil {
+		logCtx.Error("Failed to enqueue event expired notification", "error", err)
+		return
+	}
+
+	logCtx.Debug("EventExpired notification enqueued")
+}

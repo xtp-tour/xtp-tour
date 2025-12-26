@@ -1285,3 +1285,57 @@ func (db *Db) GetCachedBusyTimes(ctx context.Context, userID string, timeMin, ti
 	err := db.conn.SelectContext(ctx, &busyTimes, query, userID, timeMax, timeMin)
 	return busyTimes, err
 }
+
+// MarkExpiredEvents finds and marks up to `limit` events as EXPIRED when:
+// - expiration_time has passed
+// - status is OPEN
+// - no join requests exist
+// Returns the list of expired events with their owner user IDs for notifications.
+func (db *Db) MarkExpiredEvents(ctx context.Context, limit int) ([]ExpiredEventInfo, error) {
+	logCtx := slog.With("method", "MarkExpiredEvents")
+	logCtx.Debug("Marking expired events", "limit", limit)
+
+	selectQuery := `
+		SELECT e.id, e.user_id
+		FROM events e
+		LEFT JOIN join_requests jr ON e.id = jr.event_id
+		WHERE e.status = ?
+		  AND e.expiration_time < NOW()
+		  AND jr.id IS NULL
+		LIMIT ?
+	`
+
+	var expiredEvents []ExpiredEventInfo
+	err := db.conn.SelectContext(ctx, &expiredEvents, selectQuery, api.EventStatusOpen, limit)
+	if err != nil {
+		logCtx.Error("Failed to select expired events", "error", err)
+		return nil, err
+	}
+
+	if len(expiredEvents) == 0 {
+		return nil, nil
+	}
+
+	eventIds := make([]string, len(expiredEvents))
+	for i, e := range expiredEvents {
+		eventIds[i] = e.EventId
+	}
+
+	updateQuery, args, err := sqlx.In(
+		`UPDATE events SET status = ? WHERE id IN (?)`,
+		api.EventStatusExpired, eventIds)
+	if err != nil {
+		logCtx.Error("Failed to prepare update query", "error", err)
+		return nil, err
+	}
+	updateQuery = db.conn.Rebind(updateQuery)
+
+	_, err = db.conn.ExecContext(ctx, updateQuery, args...)
+	if err != nil {
+		logCtx.Error("Failed to update expired events", "error", err)
+		return nil, err
+	}
+
+	logCtx.Debug("Marked events as expired", "count", len(expiredEvents))
+	return expiredEvents, nil
+}

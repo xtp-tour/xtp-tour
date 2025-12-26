@@ -17,3 +17,7 @@ packages:
       Queue:
       Sender:
       SpecificSender:
+  github.com/xtp-tour/xtp-tour/api/pkg/jobs:
+    interfaces:
+      ExpirationDb:
+      ExpirationNotifier:

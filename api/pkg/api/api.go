@@ -53,6 +53,7 @@ const (
 	EventStatusCancelled         EventStatus = "CANCELLED"
 	EventStatusReservationFailed EventStatus = "RESERVATION_FAILED"
 	EventStatusCompleted         EventStatus = "COMPLETED"
+	EventStatusExpired           EventStatus = "EXPIRED" // when expiration time is reached and no confirmation has been made
 )
 
 // Ack status constants

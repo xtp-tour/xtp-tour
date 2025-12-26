@@ -9,6 +9,7 @@ import (
 	"github.com/num30/config"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
+	"github.com/xtp-tour/xtp-tour/api/pkg/jobs"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
 	"github.com/xtp-tour/xtp-tour/api/pkg/notifications"
 
@@ -50,6 +51,7 @@ func main() {
 	// Setup notification system
 	notifier := notifications.NewNotifier(dbConn, notifications.NewDbQueue(dbConn))
 	startNotificationWorker(&serviceConfig.Db)
+	startExpirationWorker(&serviceConfig.Db, notifier)
 
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
 	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifier)
@@ -64,7 +66,6 @@ func startNotificationWorker(dbConf *pkg.DbConfig) {
 		os.Exit(1)
 	}
 
-	//consider using separate db connection here
 	queue := notifications.NewDbQueue(dbConn)
 
 	// Create specific senders
@@ -92,6 +93,21 @@ func startNotificationWorker(dbConf *pkg.DbConfig) {
 	ctx := context.Background()
 	go worker.Start(ctx)
 
+}
+
+// Processes expired events on schedule
+func startExpirationWorker(dbConf *pkg.DbConfig, notifier jobs.ExpirationNotifier) {
+	dbConn, err := db.GetDB(dbConf)
+	if err != nil {
+		slog.Error("Failed to initialize database connection for expiration worker", "error", err)
+		os.Exit(1)
+	}
+
+	worker := jobs.NewExpirationWorker(dbConn, notifier)
+
+	// Start background expiration worker
+	ctx := context.Background()
+	go worker.Start(ctx, serviceConfig.Expiration.Interval)
 }
 
 // loadConfig reads in config file, ENV variables, and flags if set.
