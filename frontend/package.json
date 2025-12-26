@@ -17,9 +17,8 @@
     "test:e2e:debug": "playwright test --debug",
     "playwright:install": "playwright install",
     "generate-types": "npx openapi-typescript http://localhost:8080/openapi.json -o ./src/types/schema.d.ts",
-    "i18n:check": "node scripts/check-translations.cjs",
-    "i18n:fix": "node scripts/check-translations.cjs --fix",
-    "i18n:extract": "i18next 'src/**/*.{ts,tsx}'"
+    "i18n:check": "i18next 'src/**/*.{ts,tsx}' --fail-on-update",
+    "i18n:sync": "i18next 'src/**/*.{ts,tsx}'"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.23.0",

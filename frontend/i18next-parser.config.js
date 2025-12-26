@@ -1,43 +1,44 @@
-module.exports = {
+export default {
   locales: ['en', 'es', 'fr', 'pl', 'ru'],
 
-  // Where to write the translation files
+  // Where translation files are located
   output: 'src/i18n/locales/$LOCALE/translation.json',
 
   // Where to look for translation keys in code
   input: ['src/**/*.{ts,tsx}'],
 
-  // Use the existing translation files as source
-  // Don't create new keys from code scanning - we manage keys manually
-  createOldCatalogs: false,
-
-  // Keep existing translations
+  // Keep existing translations (don't remove keys not found in code)
   keepRemoved: true,
+
+  // Don't create backup files
+  createOldCatalogs: false,
 
   // Formatting
   indentation: 2,
   lineEnding: 'lf',
   sort: true,
 
-  // Key separator (for nested keys like "landing.hero.title")
+  // Key separators
   keySeparator: '.',
   namespaceSeparator: ':',
-
-  // Default namespace
   defaultNamespace: 'translation',
 
-  // Fail on warnings (missing keys)
-  failOnWarnings: false,
-  failOnUpdate: false,
-
-  // i18next options
-  i18nextOptions: {
-    compatibilityJSON: 'v4',
+  // Default value for new keys
+  defaultValue: (locale, namespace, key) => {
+    return locale === 'en' ? '' : `[MISSING: ${key}]`;
   },
 
-  // Lexers for different file types
+  // i18next function names to look for
   lexers: {
     ts: ['JavascriptLexer'],
-    tsx: ['JsxLexer'],
+    tsx: [
+      {
+        lexer: 'JsxLexer',
+        attr: 'i18nKey',
+      },
+    ],
   },
+
+  // Trans component settings
+  transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', 'b', 'em'],
 };
