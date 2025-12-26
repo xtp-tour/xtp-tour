@@ -218,6 +218,18 @@ const EventHeader: React.FC<EventHeaderProps> = ({
 
       {/* Action Button */}
       <div className="mt-4">
+        {actionButton.statusBadge && (
+          <div className="d-flex justify-content-center mb-2">
+            <span className={`badge ${actionButton.statusBadge.variant} text-dark w-100 px-3 py-2 d-inline-flex align-items-center justify-content-center`}
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    borderRadius: '20px'
+                  }}>
+              {actionButton.statusBadge.text}
+            </span>
+          </div>
+        )}
         {actionButton.customButton || (!actionButton.hidden && (
           <Button
             variant={actionButton.variant}

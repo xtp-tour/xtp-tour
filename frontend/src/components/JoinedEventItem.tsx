@@ -9,7 +9,6 @@ import { useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
 import ShareEventModal from './ShareEventModal';
-import { BADGE_STYLES } from '../styles/badgeStyles';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
 
@@ -113,24 +112,22 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
     } else if (userJoinRequest.isRejected === false) {
       return { text: t('joinRequests.accepted'), variant: 'text-bg-success' };
     } else {
-      return { text: t('joinRequests.waiting'), variant: 'text-bg-warning' };
+      return { text: t('joinRequests.waiting'), variant: 'bg-light text-secondary border' };
     }
   };
 
   const joinRequestStatus = getJoinRequestStatus();
 
-  // Determine which status to show - prioritize event status for confirmed/completed/expired events
-  const getDisplayStatus = () => {
+  // Determine which status to show for the action button area
+  // Only show for ongoing events (not for final states)
+  const getActionButtonStatus = () => {
     if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
-      // Show event status for final states
-      return null; // Let EventHeader handle the status display
-    } else {
-      // Show join request status for ongoing events
-      return joinRequestStatus;
+      return null;
     }
+    return joinRequestStatus;
   };
 
-  const displayStatus = getDisplayStatus();
+  const actionButtonStatus = getActionButtonStatus();
 
   // Get action button based on event status
   const getActionButton = () => {
@@ -151,7 +148,11 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
       icon: 'bi-x-circle',
       label: t('eventActions.cancel'),
       onClick: () => setShowConfirmModal(true),
-      disabled: cancelling || event.status !== 'OPEN'
+      disabled: cancelling || event.status !== 'OPEN',
+      statusBadge: actionButtonStatus ? {
+        text: actionButtonStatus.text,
+        variant: actionButtonStatus.variant
+      } : undefined
     };
   };
 
@@ -170,14 +171,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         event={event}
         headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
         headerSubtitle={
-          <div className="d-flex align-items-center gap-2 flex-wrap">
-            <HostDisplay userId={event.userId || ''} fallback={t('host.unknown')} />
-            {displayStatus && (
-              <span className={`badge ${displayStatus.variant}`} style={BADGE_STYLES}>
-                {displayStatus.text}
-              </span>
-            )}
-          </div>
+          <HostDisplay userId={event.userId || ''} fallback={t('host.unknown')} />
         }
         colorClass={colorClass}
         timeSlots={timeSlots}

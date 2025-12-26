@@ -21,6 +21,10 @@ export interface ActionButton {
   disabled?: boolean;
   hidden?: boolean;
   customButton?: React.ReactNode;
+  statusBadge?: {
+    text: string;
+    variant: string;
+  };
 }
 
 export interface StyleProps {
@@ -107,17 +111,17 @@ export const getSectionTitleKey = (section: 'selectedLocations' | 'preferredLoca
 };
 
 export const timeSlotFromDateAndConfirmation = (
-  date: string, 
-  confirmation?: ApiConfirmation, 
+  date: string,
+  confirmation?: ApiConfirmation,
   isAvailable: boolean = true,
   isUserSelected?: boolean
 ): TimeSlot => {
   // Parse UTC date string into moment object and convert to local time
   const dateObj = moment.utc(date).local();
-  
+
   // Check if the date matches the confirmation datetime
-  const isSelected = confirmation ? 
-    moment.utc(confirmation.datetime).isSame(moment.utc(date)) : 
+  const isSelected = confirmation ?
+    moment.utc(confirmation.datetime).isSame(moment.utc(date)) :
     false;
 
   return {
@@ -126,4 +130,4 @@ export const timeSlotFromDateAndConfirmation = (
     isAvailable,
     isUserSelected
   };
-}; 
+};
