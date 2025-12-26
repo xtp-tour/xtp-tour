@@ -193,8 +193,9 @@ const UserProfile: React.FC = () => {
     // Clear validation error for this field
     if (validationErrors[name]) {
       setValidationErrors(prev => {
-        const { [name]: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
       });
     }
   };
@@ -212,8 +213,9 @@ const UserProfile: React.FC = () => {
     const errorKey = `notification_settings.${name}`;
     if (validationErrors[errorKey]) {
       setValidationErrors(prev => {
-        const { [errorKey]: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
       });
     }
   };
@@ -238,8 +240,9 @@ const UserProfile: React.FC = () => {
 
       // Clear channels validation error
       setValidationErrors(prevErrors => {
-        const { 'notification_settings.channels': _, ...rest } = prevErrors;
-        return rest;
+        const newErrors = { ...prevErrors };
+        delete newErrors['notification_settings.channels'];
+        return newErrors;
       });
       return {
         ...prev,

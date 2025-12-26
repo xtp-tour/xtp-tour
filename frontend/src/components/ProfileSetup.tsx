@@ -138,8 +138,9 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     // Clear validation error for this field
     if (validationErrors[name]) {
       setValidationErrors(prev => {
-        const { [name]: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
       });
     }
   };

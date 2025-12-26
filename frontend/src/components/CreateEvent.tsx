@@ -77,8 +77,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setSelectedStartTimes(times);
     if (validationErrors.selectedStartTimes) {
       setValidationErrors(prev => {
-        const { selectedStartTimes, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedStartTimes;
+        return newErrors;
       });
     }
   }, [validationErrors]);
@@ -160,6 +161,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
         UseBootstrapSelect.clearAll();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExpanded, locations, isLoadingLocations, selectedLocations]);
 
   // Form validation using Zod
@@ -203,8 +205,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
       // Clear location validation error
       if (validationErrors.selectedLocations) {
         setValidationErrors(prev => {
-          const { selectedLocations, ...rest } = prev;
-          return rest;
+          const newErrors = { ...prev };
+          delete newErrors.selectedLocations;
+          return newErrors;
         });
       }
     }
@@ -216,8 +219,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     // Clear location validation error
     if (validationErrors.selectedLocations) {
       setValidationErrors(prev => {
-        const { selectedLocations, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedLocations;
+        return newErrors;
       });
     }
   };
@@ -355,8 +359,9 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     // Clear description validation error
     if (validationErrors.description) {
       setValidationErrors(prev => {
-        const { description, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.description;
+        return newErrors;
       });
     }
   };

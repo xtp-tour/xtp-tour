@@ -225,8 +225,9 @@ export const ConfirmEventModal: React.FC<Props> = ({
     // Clear location validation error
     if (validationErrors.selectedLocation) {
       setValidationErrors(prev => {
-        const { selectedLocation: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedLocation;
+        return newErrors;
       });
     }
   };
@@ -236,8 +237,9 @@ export const ConfirmEventModal: React.FC<Props> = ({
     // Clear datetime validation error
     if (validationErrors.selectedDateTime) {
       setValidationErrors(prev => {
-        const { selectedDateTime: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedDateTime;
+        return newErrors;
       });
     }
   };
@@ -251,8 +253,9 @@ export const ConfirmEventModal: React.FC<Props> = ({
     // Clear join requests validation error
     if (validationErrors.selectedJoinRequests) {
       setValidationErrors(prev => {
-        const { selectedJoinRequests: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedJoinRequests;
+        return newErrors;
       });
     }
   };

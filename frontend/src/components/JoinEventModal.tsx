@@ -151,8 +151,9 @@ export const JoinEventModal: React.FC<Props> = ({
     // Clear location validation error
     if (validationErrors.selectedLocations) {
       setValidationErrors(prev => {
-        const { selectedLocations: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedLocations;
+        return newErrors;
       });
     }
   };
@@ -166,8 +167,9 @@ export const JoinEventModal: React.FC<Props> = ({
     // Clear time slot validation error
     if (validationErrors.selectedTimeSlots) {
       setValidationErrors(prev => {
-        const { selectedTimeSlots: _, ...rest } = prev;
-        return rest;
+        const newErrors = { ...prev };
+        delete newErrors.selectedTimeSlots;
+        return newErrors;
       });
     }
   };
