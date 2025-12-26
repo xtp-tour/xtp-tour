@@ -11,7 +11,7 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
 	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gin-gonic/gin"
-	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
+	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 )
 
 type JWKStore interface {
@@ -57,7 +57,7 @@ func CreateClerkAuthMiddleware(clerkConfig string) func(c *gin.Context) {
 			})
 			if err != nil {
 				slog.Error("Error decoding JWT", "error", err)
-				c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
+				c.AbortWithStatusJSON(http.StatusForbidden, api.ErrorResponse{Error: "Unauthorized"})
 				return
 			}
 
@@ -68,7 +68,7 @@ func CreateClerkAuthMiddleware(clerkConfig string) func(c *gin.Context) {
 			})
 			if err != nil {
 				slog.Error("Error fetching JWK", "error", err)
-				c.AbortWithStatusJSON(http.StatusInternalServerError, rest.ErrorResponse{Error: "Error fetching JWK"})
+				c.AbortWithStatusJSON(http.StatusInternalServerError, api.ErrorResponse{Error: "Error fetching JWK"})
 				return
 			}
 		}
@@ -85,14 +85,14 @@ func CreateClerkAuthMiddleware(clerkConfig string) func(c *gin.Context) {
 		})
 		if err != nil {
 			slog.Error("Error verifying JWT", "error", err)
-			c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusForbidden, api.ErrorResponse{Error: "Unauthorized"})
 			return
 		}
 
 		usr, err := userClient.Get(c.Request.Context(), claims.Subject)
 		if err != nil {
 			slog.Error("Error getting user", "error", err)
-			c.AbortWithStatusJSON(http.StatusForbidden, rest.ErrorResponse{Error: "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusForbidden, api.ErrorResponse{Error: "Unauthorized"})
 			return
 		}
 		c.Set("user", usr)

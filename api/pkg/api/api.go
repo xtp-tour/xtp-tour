@@ -7,6 +7,15 @@ type HealthResponse struct {
 	Service string `json:"service"`
 }
 
+type ErrorMessage struct {
+	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error,omitempty"`
+}
+
 // Skill level constants
 type SkillLevel string
 

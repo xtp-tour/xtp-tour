@@ -19,8 +19,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 	"github.com/xtp-tour/xtp-tour/api/pkg/calendar"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
-	"github.com/xtp-tour/xtp-tour/api/pkg/rest"
-	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
+	"github.com/xtp-tour/xtp-tour/api/pkg/server/auth"
 
 	"github.com/wI2L/fizz"
 	"github.com/wI2L/fizz/openapi"
@@ -51,7 +50,7 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier N
 	slog.Info("Cors Config", "cors", config.Cors)
 	slog.Info("Auth config type", "type", config.AuthConfig.Type)
 
-	f := rest.NewFizzRouter(config, debugMode)
+	f := NewFizzRouter(config, debugMode)
 
 	// Initialize calendar service
 	calendarConfig := calendar.AuthConfig{
@@ -195,7 +194,7 @@ func (r *Router) listLocationsHandler(c *gin.Context, req *api.ListLocationsRequ
 	facilities, err := r.db.GetAllFacilities(ctx)
 	if err != nil {
 		slog.Error("Failed to get facilities", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to retrieve locations",
 		}
@@ -212,7 +211,7 @@ func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest)
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -224,7 +223,7 @@ func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest)
 	err := r.db.CreateEvent(context.Background(), &req.Event)
 	if err != nil {
 		logCtx.Error("Failed to create event", "error", err, "event", req.Event)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create event",
 		}
@@ -240,7 +239,7 @@ func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest)
 func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (*api.ListEventsResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -251,7 +250,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 	events, err := r.db.GetEventsOfUser(context.Background(), userId.(string))
 	if err != nil {
 		logCtx.Error("Failed to get events of user", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
 		}
@@ -264,7 +263,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 	joinRequests, err := r.db.GetJoinRequests(context.Background(), eventIds...)
 	if err != nil {
 		logCtx.Error("Failed to get join requests", "error", err, "eventIds", eventIds)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get join requests",
 		}
@@ -282,7 +281,7 @@ func (r *Router) listEventsHandler(c *gin.Context, req *api.ListEventsRequest) (
 func (r *Router) listJoinedEventsHandler(c *gin.Context, req *api.ListJoinedEventsRequest) (*api.ListEventsResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -301,7 +300,7 @@ func (r *Router) listPublicEventsHandler(c *gin.Context, req *api.ListPublicEven
 	events, err := r.db.GetPublicEvents(context.Background(), userId)
 	if err != nil {
 		slog.Error("Failed to get public events", "error", err, "userId", userId)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
 		}
@@ -319,7 +318,7 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 	events, err := r.db.GetJoinedEvents(context.Background(), userId)
 	if err != nil {
 		logCtx.Error("Failed to get joined events", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get events",
 		}
@@ -338,7 +337,7 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 		myReq, err = r.db.GetJoinRequest(context.Background(), myReq.Id)
 		if err != nil {
 			logCtx.Error("Failed to get join request", "error", err, "joinRequestId", myReq.Id)
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusInternalServerError,
 				Message:  "Failed to get join request",
 			}
@@ -362,7 +361,7 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -373,14 +372,14 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		logCtx.Error("Failed to get my event", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
 		}
 	}
 
 	if event == nil {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
 		}
@@ -389,7 +388,7 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 	joinRequests, err := r.db.GetJoinRequests(context.Background(), event.Id)
 	if err != nil {
 		logCtx.Error("Failed to get join requests", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get join requests",
 		}
@@ -408,7 +407,7 @@ func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest)
 	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {
 		logCtx.Error("Failed to get public event", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
 		}
@@ -423,7 +422,7 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -434,21 +433,21 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		logCtx.Error("Failed to get my event for deletion", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
 		}
 	}
 
 	if event == nil {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
 		}
 	}
 
 	if event.Status == api.EventStatusConfirmed {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Cannot delete confirmed event",
 		}
@@ -457,14 +456,14 @@ func (r *Router) deleteEventHandler(c *gin.Context, req *api.DeleteEventRequest)
 	err = r.db.DeleteEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return rest.HttpError{
+			return HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  "Event not found",
 			}
 		}
 
 		logCtx.Error("Failed to delete event", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete event",
 		}
@@ -477,7 +476,7 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -488,13 +487,13 @@ func (r *Router) joinEventHandler(c *gin.Context, req *api.JoinRequestRequest) (
 	joinRequestId, err := r.db.CreateJoinRequest(context.Background(), req.EventId, userId.(string), &req.JoinRequest)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  "Event not found",
 			}
 		}
 		logCtx.Error("Failed to create join request", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create join request",
 		}
@@ -520,7 +519,7 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -531,21 +530,21 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return rest.HttpError{
+			return HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  "Event not found",
 			}
 		}
 
 		logCtx.Error("Failed to get public event for cancel join request", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
 		}
 	}
 
 	if event.Status != api.EventStatusOpen {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Cannot cancel join request for non-open event",
 		}
@@ -554,13 +553,13 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 	err = r.db.DeleteJoinRequest(context.Background(), userId.(string), req.JoinRequestId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return rest.HttpError{
+			return HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  "Join request not found",
 			}
 		}
 		logCtx.Error("Failed to delete join request", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete join request",
 		}
@@ -573,7 +572,7 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -584,28 +583,28 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 	event, err := r.db.GetMyEvent(context.Background(), userId.(string), req.EventId)
 	if err != nil {
 		logCtx.Error("error to get event", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
 		}
 	}
 
 	if event == nil {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
 		}
 	}
 
 	if !slices.Contains(event.Locations, req.LocationId) {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Location not found",
 		}
 	}
 
 	if !slices.Contains(event.TimeSlots, req.DateTime) {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Time slot not found",
 		}
@@ -614,13 +613,13 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 	confirmation, err := r.db.ConfirmEvent(context.Background(), userId.(string), req.EventId, req)
 	if err != nil {
 		if validationErr, ok := err.(*db.ValidationError); ok {
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusBadRequest,
 				Message:  validationErr.Message,
 			}
 		}
 		logCtx.Error("Failed to confirm event", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to confirm event",
 		}
@@ -638,7 +637,7 @@ func (r *Router) getMyProfileHandler(c *gin.Context, req *api.GetMyProfileReques
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -658,14 +657,14 @@ func (r *Router) getUserProfile(c *gin.Context, userId string) (*api.GetUserProf
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
 			logCtx.Info("Profile not found")
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  fmt.Sprintf("Profile not found for user %s", userId),
 			}
 		}
 
 		logCtx.Error("Failed to get user profile", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get profile",
 		}
@@ -681,7 +680,7 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -725,7 +724,7 @@ func (r *Router) createUserProfileHandler(c *gin.Context, req *api.CreateUserPro
 	_, profile, err := r.db.CreateUserProfile(c, userId.(string), req)
 	if err != nil {
 		logCtx.Error("Failed to create profile", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to create profile",
 		}
@@ -741,7 +740,7 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -752,13 +751,13 @@ func (r *Router) updateUserProfileHandler(c *gin.Context, req *api.UpdateUserPro
 	profile, err := r.db.UpdateUserProfile(context.Background(), userId.(string), &req.UserProfileData)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusNotFound,
 				Message:  "Profile not found",
 			}
 		}
 		logCtx.Error("Failed to update user profile", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to update profile",
 		}
@@ -774,7 +773,7 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
 		slog.Info("User ID not found in context")
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -783,7 +782,7 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 	err := r.db.DeleteUserProfile(context.Background(), userId.(string))
 	if err != nil {
 		logCtx.Error("Failed to delete user profile", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to delete profile",
 		}
@@ -797,7 +796,7 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 func (r *Router) getCalendarAuthURLHandler(c *gin.Context) (*api.CalendarAuthURLResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -814,14 +813,14 @@ func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallba
 
 	// Validate request parameters
 	if req.Code == "" {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Authorization code is required",
 		}
 	}
 
 	if req.State == "" {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "State parameter is required",
 		}
@@ -829,7 +828,7 @@ func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallba
 
 	stateParts := strings.Split(req.State, ":")
 	if len(stateParts) != 2 {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Invalid state parameter format",
 		}
@@ -840,7 +839,7 @@ func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallba
 	err := r.calendarService.HandleCallback(ctx, userId, req.Code, req.State)
 	if err != nil {
 		slog.Error("Failed to handle calendar callback", "error", err, "userID", userId)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to connect calendar",
 		}
@@ -852,7 +851,7 @@ func (r *Router) calendarCallbackHandler(c *gin.Context, req *api.CalendarCallba
 func (r *Router) getCalendarConnectionStatusHandler(c *gin.Context) (*api.CalendarConnectionStatusResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -862,7 +861,7 @@ func (r *Router) getCalendarConnectionStatusHandler(c *gin.Context) (*api.Calend
 	connection, err := r.calendarService.GetConnectionStatus(ctx, userId.(string))
 	if err != nil {
 		slog.Error("Failed to get calendar connection status", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get connection status",
 		}
@@ -886,7 +885,7 @@ func (r *Router) getCalendarConnectionStatusHandler(c *gin.Context) (*api.Calend
 func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -896,7 +895,7 @@ func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
 	err := r.calendarService.DisconnectCalendar(ctx, userId.(string))
 	if err != nil {
 		slog.Error("Failed to disconnect calendar", "error", err)
-		return rest.HttpError{
+		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to disconnect calendar",
 		}
@@ -908,7 +907,7 @@ func (r *Router) disconnectCalendarHandler(c *gin.Context) error {
 func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBusyTimesRequest) (*api.CalendarBusyTimesResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -928,13 +927,13 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBu
 		if strings.Contains(errMsg, "calendar not connected") ||
 			strings.Contains(errMsg, "calendar connection has been deactivated") ||
 			strings.Contains(errMsg, "authorization has expired or been revoked") {
-			return nil, rest.HttpError{
+			return nil, HttpError{
 				HttpCode: http.StatusBadRequest,
 				Message:  errMsg,
 			}
 		}
 
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get busy times from calendar",
 		}
@@ -962,7 +961,7 @@ func (r *Router) getCalendarBusyTimesHandler(c *gin.Context, req *api.CalendarBu
 func (r *Router) getCalendarsHandler(c *gin.Context) (*api.UserCalendarsResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -972,7 +971,7 @@ func (r *Router) getCalendarsHandler(c *gin.Context) (*api.UserCalendarsResponse
 	calendars, err := r.calendarService.ListCalendars(ctx, userId.(string))
 	if err != nil {
 		slog.Error("Failed to list calendars", "error", err, "userID", userId.(string))
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to list calendars",
 		}
@@ -993,7 +992,7 @@ func (r *Router) getCalendarsHandler(c *gin.Context) (*api.UserCalendarsResponse
 func (r *Router) getCalendarPreferencesHandler(c *gin.Context) (*api.CalendarPreferencesResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -1003,7 +1002,7 @@ func (r *Router) getCalendarPreferencesHandler(c *gin.Context) (*api.CalendarPre
 	prefs, err := r.db.GetCalendarPreferences(ctx, userId.(string))
 	if err != nil {
 		slog.Error("Failed to get calendar preferences", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get preferences",
 		}
@@ -1020,7 +1019,7 @@ func (r *Router) getCalendarPreferencesHandler(c *gin.Context) (*api.CalendarPre
 func (r *Router) updateCalendarPreferencesHandler(c *gin.Context, req *api.CalendarPreferencesRequest) (*api.CalendarPreferencesResponse, error) {
 	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
 	if !ok {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusUnauthorized,
 			Message:  "User ID not found",
 		}
@@ -1037,7 +1036,7 @@ func (r *Router) updateCalendarPreferencesHandler(c *gin.Context, req *api.Calen
 	}
 
 	if !isValidFreq {
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusBadRequest,
 			Message:  "Invalid sync frequency. Must be one of: 15, 30, 60, 120, 240, 480, 720, 1440 minutes",
 		}
@@ -1056,7 +1055,7 @@ func (r *Router) updateCalendarPreferencesHandler(c *gin.Context, req *api.Calen
 	err := r.db.UpsertCalendarPreferences(ctx, prefs)
 	if err != nil {
 		slog.Error("Failed to update calendar preferences", "error", err)
-		return nil, rest.HttpError{
+		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to update preferences",
 		}

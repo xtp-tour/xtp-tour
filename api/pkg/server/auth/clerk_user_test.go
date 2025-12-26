@@ -1,4 +1,4 @@
-package server
+package auth
 
 import (
 	"net/http"
@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
-	"github.com/xtp-tour/xtp-tour/api/pkg/rest/auth"
 )
 
 func Test_ClerkEmailPhoneExtraction(t *testing.T) {
@@ -35,7 +34,7 @@ func Test_ClerkEmailPhoneExtraction(t *testing.T) {
 		}
 
 		c.Set("user", clerkUser)
-		c.Set(auth.USER_ID_CONTEXT_KEY, "test-user-123")
+		c.Set(USER_ID_CONTEXT_KEY, "test-user-123")
 
 		req := &api.CreateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
@@ -96,7 +95,7 @@ func Test_ClerkEmailPhoneExtraction(t *testing.T) {
 		}
 
 		c.Set("user", clerkUser)
-		c.Set(auth.USER_ID_CONTEXT_KEY, "test-user-123")
+		c.Set(USER_ID_CONTEXT_KEY, "test-user-123")
 
 		req := &api.CreateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
@@ -153,7 +152,7 @@ func Test_ClerkEmailPhoneExtraction(t *testing.T) {
 		}
 
 		c.Set("user", clerkUser)
-		c.Set(auth.USER_ID_CONTEXT_KEY, "test-user-123")
+		c.Set(USER_ID_CONTEXT_KEY, "test-user-123")
 
 		req := &api.CreateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
@@ -196,7 +195,7 @@ func Test_ClerkEmailPhoneExtraction(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		// No Clerk user set in context
-		c.Set(auth.USER_ID_CONTEXT_KEY, "test-user-123")
+		c.Set(USER_ID_CONTEXT_KEY, "test-user-123")
 
 		req := &api.CreateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
@@ -244,7 +243,7 @@ func Test_ClerkEmailPhoneExtraction(t *testing.T) {
 		}
 
 		c.Set("user", clerkUser)
-		c.Set(auth.USER_ID_CONTEXT_KEY, "test-user-123")
+		c.Set(USER_ID_CONTEXT_KEY, "test-user-123")
 
 		req := &api.CreateUserProfileRequest{
 			UserProfileData: api.UserProfileData{
