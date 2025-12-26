@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { Form, Button, Row, Col, Card, Modal, Alert } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAPI } from '../services/apiProvider';
 import { ApiUserProfileData } from '../types/api';
 
@@ -51,6 +52,7 @@ const UserProfile: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Profile data
   const [formData, setFormData] = useState<ApiUserProfileData>({
@@ -80,6 +82,66 @@ const UserProfile: React.FC = () => {
         label: translation
       };
     });
+  };
+
+  // Zod schema for form validation
+  const createProfileSchema = () => z.object({
+    firstName: z.string().min(1, t('userProfile.errors.firstNameRequired')),
+    lastName: z.string().min(1, t('userProfile.errors.lastNameRequired')),
+    city: z.string().min(1, t('userProfile.errors.cityRequired')),
+    notification_settings: z.object({
+      channels: z.number().min(1, t('userProfile.notifications.validation')),
+      email: z.string().optional().default(''),
+      phone_number: z.string().optional().default(''),
+      debug_address: z.string().optional().default(''),
+    }).refine(
+      (settings) => {
+        // If email channel is enabled, email must be valid
+        if ((settings.channels & CHANNEL_EMAIL) !== 0) {
+          const email = settings.email || '';
+          return email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        return true;
+      },
+      { message: t('userProfile.errors.emailRequired'), path: ['email'] }
+    ).refine(
+      (settings) => {
+        // If SMS or WhatsApp channel is enabled, phone number must be provided
+        if ((settings.channels & CHANNEL_SMS) !== 0 || (settings.channels & CHANNEL_WHATSAPP) !== 0) {
+          const phone = settings.phone_number || '';
+          return phone.length > 0;
+        }
+        return true;
+      },
+      { message: t('userProfile.errors.phoneRequired'), path: ['phone_number'] }
+    ),
+  });
+
+  // Form validation using Zod
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
+    const schema = createProfileSchema();
+    const result = schema.safeParse({
+      firstName: formData.firstName || '',
+      lastName: formData.lastName || '',
+      city: formData.city || '',
+      notification_settings: {
+        channels: formData.notification_settings?.channels ?? CHANNEL_EMAIL,
+        email: formData.notification_settings?.email ?? '',
+        phone_number: formData.notification_settings?.phone_number ?? '',
+        debug_address: formData.notification_settings?.debug_address ?? '',
+      },
+    });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        errors[path] = error.message;
+      });
+      return { isValid: false, errors };
+    }
+
+    return { isValid: true, errors: {} };
   };
 
   const loadProfile = useCallback(async () => {
@@ -128,6 +190,14 @@ const UserProfile: React.FC = () => {
       ...prev,
       [name]: name === 'ntrpLevel' ? parseFloat(value) : value
     }));
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleNotificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +209,15 @@ const UserProfile: React.FC = () => {
         [name]: value
       }
     }));
+    // Clear validation error for this notification field
+    const errorKey = `notification_settings.${name}`;
+    if (validationErrors[errorKey]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
   };
 
   const isChannelEnabled = (channel: number): boolean => {
@@ -152,11 +231,19 @@ const UserProfile: React.FC = () => {
 
       // Ensure at least one channel is enabled
       if (newChannels === 0) {
-        setError(t('userProfile.notifications.validation'));
+        setValidationErrors(prevErrors => ({
+          ...prevErrors,
+          'notification_settings.channels': t('userProfile.notifications.validation')
+        }));
         return prev;
       }
 
-      setError('');
+      // Clear channels validation error
+      setValidationErrors(prevErrors => {
+        const newErrors = { ...prevErrors };
+        delete newErrors['notification_settings.channels'];
+        return newErrors;
+      });
       return {
         ...prev,
         notification_settings: {
@@ -171,16 +258,22 @@ const UserProfile: React.FC = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Validate form before submission
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Combine all error messages for the general error display
+      const errorMessage = Object.values(validation.errors).join('. ');
+      setError(errorMessage);
+      return;
+    }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
     setSaving(true);
 
     try {
-      // Validate at least one channel is enabled
-      if (!formData.notification_settings?.channels || formData.notification_settings.channels === 0) {
-        setError(t('userProfile.notifications.validation'));
-        setSaving(false);
-        return;
-      }
-
       await api.updateUserProfile({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -249,7 +342,7 @@ const UserProfile: React.FC = () => {
           {error && <Alert variant="danger" dismissible onClose={() => setError('')}>{error}</Alert>}
           {success && <Alert variant="success" dismissible onClose={() => setSuccess('')}>{success}</Alert>}
 
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} noValidate>
             {/* Personal Information Section */}
             <Card className="mb-4">
               <Card.Header>
@@ -260,11 +353,18 @@ const UserProfile: React.FC = () => {
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>{t('userProfile.fields.firstName')}</Form.Label>
+                      {validationErrors.firstName && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors.firstName}</small>
+                        </div>
+                      )}
                       <Form.Control
                         type="text"
                         name="firstName"
                         value={formData.firstName || ''}
                         onChange={handleChange}
+                        isInvalid={!!validationErrors.firstName}
                         required
                       />
                     </Form.Group>
@@ -272,11 +372,18 @@ const UserProfile: React.FC = () => {
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>{t('userProfile.fields.lastName')}</Form.Label>
+                      {validationErrors.lastName && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors.lastName}</small>
+                        </div>
+                      )}
                       <Form.Control
                         type="text"
                         name="lastName"
                         value={formData.lastName || ''}
                         onChange={handleChange}
+                        isInvalid={!!validationErrors.lastName}
                         required
                       />
                     </Form.Group>
@@ -287,11 +394,18 @@ const UserProfile: React.FC = () => {
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>{t('userProfile.fields.city')}</Form.Label>
+                      {validationErrors.city && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors.city}</small>
+                        </div>
+                      )}
                       <Form.Control
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
+                        isInvalid={!!validationErrors.city}
                         required
                       />
                     </Form.Group>
@@ -360,6 +474,12 @@ const UserProfile: React.FC = () => {
                 <h5 className="mb-0">{t('userProfile.sections.notifications')}</h5>
               </Card.Header>
               <Card.Body>
+                {validationErrors['notification_settings.channels'] && (
+                  <div className="alert alert-danger alert-sm py-1 px-2 mb-3" role="alert">
+                    <small><i className="bi bi-exclamation-triangle me-1"></i>
+                    {validationErrors['notification_settings.channels']}</small>
+                  </div>
+                )}
                 {/* Email Notifications */}
                 <Form.Group className="mb-3">
                   <Form.Check
@@ -370,15 +490,24 @@ const UserProfile: React.FC = () => {
                     onChange={() => toggleChannel(CHANNEL_EMAIL)}
                   />
                   {isChannelEnabled(CHANNEL_EMAIL) && (
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      placeholder={t('userProfile.fields.email')}
-                      value={formData.notification_settings?.email || ''}
-                      onChange={handleNotificationChange}
-                      className="mt-2"
-                      required={isChannelEnabled(CHANNEL_EMAIL)}
-                    />
+                    <>
+                      {validationErrors['notification_settings.email'] && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mt-2 mb-1" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors['notification_settings.email']}</small>
+                        </div>
+                      )}
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        placeholder={t('userProfile.fields.email')}
+                        value={formData.notification_settings?.email || ''}
+                        onChange={handleNotificationChange}
+                        className="mt-2"
+                        isInvalid={!!validationErrors['notification_settings.email']}
+                        required={isChannelEnabled(CHANNEL_EMAIL)}
+                      />
+                    </>
                   )}
                 </Form.Group>
 
@@ -392,15 +521,24 @@ const UserProfile: React.FC = () => {
                     onChange={() => toggleChannel(CHANNEL_SMS)}
                   />
                   {isChannelEnabled(CHANNEL_SMS) && (
-                    <Form.Control
-                      type="tel"
-                      name="phone_number"
-                      placeholder={t('userProfile.fields.phoneNumber')}
-                      value={formData.notification_settings?.phone_number || ''}
-                      onChange={handleNotificationChange}
-                      className="mt-2"
-                      required={isChannelEnabled(CHANNEL_SMS)}
-                    />
+                    <>
+                      {validationErrors['notification_settings.phone_number'] && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mt-2 mb-1" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors['notification_settings.phone_number']}</small>
+                        </div>
+                      )}
+                      <Form.Control
+                        type="tel"
+                        name="phone_number"
+                        placeholder={t('userProfile.fields.phoneNumber')}
+                        value={formData.notification_settings?.phone_number || ''}
+                        onChange={handleNotificationChange}
+                        className="mt-2"
+                        isInvalid={!!validationErrors['notification_settings.phone_number']}
+                        required={isChannelEnabled(CHANNEL_SMS)}
+                      />
+                    </>
                   )}
                 </Form.Group>
 
@@ -425,14 +563,23 @@ const UserProfile: React.FC = () => {
                     onChange={() => toggleChannel(CHANNEL_WHATSAPP)}
                   />
                   {isChannelEnabled(CHANNEL_WHATSAPP) && (
-                    <Form.Control
-                      type="tel"
-                      name="phone_number"
-                      placeholder={t('userProfile.fields.phoneNumber')}
-                      value={formData.notification_settings?.phone_number || ''}
-                      onChange={handleNotificationChange}
-                      className="mt-2"
-                    />
+                    <>
+                      {validationErrors['notification_settings.phone_number'] && !isChannelEnabled(CHANNEL_SMS) && (
+                        <div className="alert alert-danger alert-sm py-1 px-2 mt-2 mb-1" role="alert">
+                          <small><i className="bi bi-exclamation-triangle me-1"></i>
+                          {validationErrors['notification_settings.phone_number']}</small>
+                        </div>
+                      )}
+                      <Form.Control
+                        type="tel"
+                        name="phone_number"
+                        placeholder={t('userProfile.fields.phoneNumber')}
+                        value={formData.notification_settings?.phone_number || ''}
+                        onChange={handleNotificationChange}
+                        className="mt-2"
+                        isInvalid={!!validationErrors['notification_settings.phone_number']}
+                      />
+                    </>
                   )}
                 </Form.Group>
 

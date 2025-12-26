@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAPI } from '../services/apiProvider';
 
 interface ProfileSetupProps {
@@ -30,6 +31,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [profileExists, setProfileExists] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Get NTRP levels with translations
   const getNtrpLevels = () => {
@@ -45,6 +47,41 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         label: translation
       };
     });
+  };
+
+  // Zod schema for form validation
+  const profileSetupSchema = z.object({
+    firstName: z.string().min(1, t('profileSetup.errors.firstNameRequired')),
+    lastName: z.string().min(1, t('profileSetup.errors.lastNameRequired')),
+    ntrpLevel: z.string().min(1, t('profileSetup.errors.ntrpRequired')).refine(
+      (val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 1.0 && num <= 7.0;
+      },
+      { message: t('profileSetup.errors.ntrpInvalid') }
+    ),
+    city: z.string().min(1, t('profileSetup.errors.cityRequired')),
+  });
+
+  // Form validation using Zod
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
+    const result = profileSetupSchema.safeParse({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      ntrpLevel: formData.ntrpLevel,
+      city: formData.city,
+    });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const path = error.path.join('.');
+        errors[path] = error.message;
+      });
+      return { isValid: false, errors };
+    }
+
+    return { isValid: true, errors: {} };
   };
 
   useEffect(() => {
@@ -98,11 +135,32 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
       ...prev,
       [name]: value
     }));
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate form before submission
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      // Combine all error messages for the general error display
+      const errorMessage = Object.values(validation.errors).join('. ');
+      setError(errorMessage);
+      return;
+    }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
     setLoading(true);
 
     try {
@@ -165,25 +223,39 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                 {profileExists ? t('profileSetup.title.complete') : t('profileSetup.title.create')}
               </h2>
               {error && <div className="alert alert-danger">{error}</div>}
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={handleSubmit} noValidate>
                 <Form.Group className="mb-3">
                   <Form.Label>{t('profileSetup.fields.firstName')}</Form.Label>
+                  {validationErrors.firstName && (
+                    <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                      <small><i className="bi bi-exclamation-triangle me-1"></i>
+                      {validationErrors.firstName}</small>
+                    </div>
+                  )}
                   <Form.Control
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
+                    isInvalid={!!validationErrors.firstName}
                     required
                   />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label>{t('profileSetup.fields.lastName')}</Form.Label>
+                  {validationErrors.lastName && (
+                    <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                      <small><i className="bi bi-exclamation-triangle me-1"></i>
+                      {validationErrors.lastName}</small>
+                    </div>
+                  )}
                   <Form.Control
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
+                    isInvalid={!!validationErrors.lastName}
                     required
                   />
                 </Form.Group>
@@ -201,10 +273,17 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                       {t('profileSetup.ntrp.learnMore')}
                     </a>
                   </Form.Text>
+                  {validationErrors.ntrpLevel && (
+                    <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                      <small><i className="bi bi-exclamation-triangle me-1"></i>
+                      {validationErrors.ntrpLevel}</small>
+                    </div>
+                  )}
                   <Form.Select
                     name="ntrpLevel"
                     value={formData.ntrpLevel}
                     onChange={handleChange}
+                    isInvalid={!!validationErrors.ntrpLevel}
                     required
                   >
                     <option value="">{t('profileSetup.ntrp.selectLevel')}</option>
@@ -218,11 +297,18 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
 
                 <Form.Group className="mb-4">
                   <Form.Label>{t('profileSetup.fields.preferredCity')}</Form.Label>
+                  {validationErrors.city && (
+                    <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                      <small><i className="bi bi-exclamation-triangle me-1"></i>
+                      {validationErrors.city}</small>
+                    </div>
+                  )}
                   <Form.Control
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
+                    isInvalid={!!validationErrors.city}
                     required
                     placeholder={t('profileSetup.placeholders.preferredCity')}
                   />

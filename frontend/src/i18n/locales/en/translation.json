@@ -54,6 +54,19 @@
     "showDetails": "Show Details",
     "success": "Success"
   },
+  "confirmEvent": {
+    "errors": {
+      "eventMissing": "Event data is missing",
+      "failedToConfirm": "Failed to confirm event",
+      "selectLocation": "Please select a location",
+      "selectPlayers": "Please select exactly {{num}} player(s)",
+      "selectTimeSlot": "Please select a time slot"
+    },
+    "selectLocation": "Select Location ({{total}} compatible locations)",
+    "selectPlayers": "Select Players ({{selected}} of {{required}})",
+    "selectTime": "Select Time ({{total}} compatible slots)",
+    "title": "Confirm Your Event"
+  },
   "createEvent": {
     "close": "Close",
     "errors": {
@@ -319,7 +332,12 @@
       "updateProfile": "Update Profile"
     },
     "errors": {
-      "failedToSave": "Failed to save profile. Please try again."
+      "cityRequired": "City is required",
+      "failedToSave": "Failed to save profile. Please try again.",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "ntrpInvalid": "Please select a valid NTRP level",
+      "ntrpRequired": "Please select your NTRP level"
     },
     "fields": {
       "firstName": "First Name",
@@ -394,9 +412,14 @@
       "warning": "This action cannot be undone. All your data including events and join requests will be permanently deleted."
     },
     "errors": {
+      "cityRequired": "City is required",
+      "emailRequired": "Please enter a valid email address",
       "failedToDelete": "Failed to delete account",
       "failedToLoad": "Failed to load profile",
-      "failedToUpdate": "Failed to update profile"
+      "failedToUpdate": "Failed to update profile",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "phoneRequired": "Phone number is required when SMS or WhatsApp is enabled"
     },
     "fields": {
       "city": "City",

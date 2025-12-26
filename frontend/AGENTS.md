@@ -22,7 +22,7 @@ IMPORTANT! This directory is part of the `xtp-tour` monorepo. Monorepo-wide rule
 - Preview production build: `pnpm preview`
 
 ### Linting
-- Run ESLint: `pnpm lint` or `make lint` (if needed)
+- Run ESLint: `pnpm lint`  and `pnpm i18n:check` completing a task
 
 ### Testing
 - Run unit tests: `pnpm test` or `make test`
@@ -141,6 +141,10 @@ src/
 - Use `ErrorBoundary` component for catching React errors
 - HTTP errors are wrapped in `HTTPError` class with status codes
 
+### Validation
+- Use Zod for validation
+
+
 ## Important Notes
 
 - This is part of the xtp-tour monorepo (see `../AGENTS.md`)
@@ -148,3 +152,7 @@ src/
 - Follow YAGNI, KISS, DRY, SOLID principles
 - Use 5 Whys technique for root cause analysis
 - Check dependencies in `package.json` before adding new ones
+
+
+- Don't create MD files without permission
+- Make sure you update AGENTS.md files when significant architecture changes are made

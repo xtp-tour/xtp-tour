@@ -54,6 +54,19 @@
     "showDetails": "Mostrar Detalles",
     "success": "Éxito"
   },
+  "confirmEvent": {
+    "errors": {
+      "eventMissing": "Faltan datos del evento",
+      "failedToConfirm": "Error al confirmar el evento",
+      "selectLocation": "Por favor selecciona una ubicación",
+      "selectPlayers": "Por favor selecciona exactamente {{num}} jugador(es)",
+      "selectTimeSlot": "Por favor selecciona un horario"
+    },
+    "selectLocation": "Seleccionar Ubicación ({{total}} ubicaciones compatibles)",
+    "selectPlayers": "Seleccionar Jugadores ({{selected}} de {{required}})",
+    "selectTime": "Seleccionar Hora ({{total}} horarios compatibles)",
+    "title": "Confirmar Tu Evento"
+  },
   "createEvent": {
     "close": "Cerrar",
     "errors": {
@@ -323,7 +336,12 @@
       "updateProfile": "Actualizar Perfil"
     },
     "errors": {
-      "failedToSave": "Error al guardar perfil. Inténtalo de nuevo."
+      "cityRequired": "La ciudad es obligatoria",
+      "failedToSave": "Error al guardar perfil. Inténtalo de nuevo.",
+      "firstNameRequired": "El nombre es obligatorio",
+      "lastNameRequired": "El apellido es obligatorio",
+      "ntrpInvalid": "Por favor selecciona un nivel NTRP válido",
+      "ntrpRequired": "Por favor selecciona tu nivel NTRP"
     },
     "fields": {
       "firstName": "Nombre",
@@ -398,9 +416,14 @@
       "warning": "Esta acción no se puede deshacer. Todos tus datos, incluidos eventos y solicitudes de unión, se eliminarán permanentemente."
     },
     "errors": {
+      "cityRequired": "La ciudad es obligatoria",
+      "emailRequired": "Por favor introduce una dirección de correo válida",
       "failedToDelete": "Error al eliminar la cuenta",
       "failedToLoad": "Error al cargar el perfil",
-      "failedToUpdate": "Error al actualizar el perfil"
+      "failedToUpdate": "Error al actualizar el perfil",
+      "firstNameRequired": "El nombre es obligatorio",
+      "lastNameRequired": "El apellido es obligatorio",
+      "phoneRequired": "El número de teléfono es obligatorio cuando SMS o WhatsApp está habilitado"
     },
     "fields": {
       "city": "Ciudad",
