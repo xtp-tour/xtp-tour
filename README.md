@@ -2,6 +2,20 @@
 
 Tennis hitting partner finder
 
+## Event Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> OPEN: Create Event
+    OPEN --> OPEN: Receive Join Requests
+    OPEN --> CONFIRMED: Confirm (accept request + set time/location)
+    OPEN --> CANCELLED: Cancel Event
+    CONFIRMED --> COMPLETED: Event Time Passes
+    CONFIRMED --> RESERVATION_FAILED: Reservation Fails
+```
+
+**Flow:** Creator creates event → Users send join requests → Creator confirms with selected request → Event completes after scheduled time.
+
 
 
 ### Environment Variables
