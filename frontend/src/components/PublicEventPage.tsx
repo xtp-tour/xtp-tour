@@ -5,7 +5,6 @@ import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
-import moment from 'moment';
 import { SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
@@ -192,7 +191,6 @@ const PublicEventPage: React.FC = () => {
                 }
                   colorClass="text-primary"
                   timeSlots={timeSlots}
-                timestamp={moment(event.createdAt)}
                 actionButton={getActionButton()}
                 defaultCollapsed={false}
               />

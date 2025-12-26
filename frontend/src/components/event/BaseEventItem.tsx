@@ -5,7 +5,6 @@ import DefaultEventBody from './DefaultEventBody';
 import ConfirmedEventBody from './ConfirmedEventBody';
 import { ActionButton, StyleProps, TimeSlot } from './types';
 import { formatTimeSlotSummary } from '../../utils/dateUtils';
-import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -15,7 +14,6 @@ interface BaseEventItemProps extends StyleProps {
   headerTitle: string;
   headerSubtitle?: string | React.ReactNode;
   timeSlots: TimeSlot[];
-  timestamp: moment.Moment;
   actionButton: ActionButton;
   userSelectedLocations?: string[];
   onLocationClick?: (location: string) => void;
@@ -32,7 +30,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   headerSubtitle,
   colorClass = 'text-primary',
   timeSlots,
-  timestamp,
   actionButton,
   userSelectedLocations,
   onLocationClick,
@@ -45,14 +42,14 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const isConfirmed = event.status === 'CONFIRMED';
-  
+
   // Update color classes for confirmed events - use navy instead of green
   if (isConfirmed) {
     colorClass = 'text-primary';
   }
 
   return (
-    <div className="card mb-4 shadow-sm border-0" style={{ 
+    <div className="card mb-4 shadow-sm border-0" style={{
       borderRadius: '16px',
       overflow: 'hidden',
       transition: 'all 0.2s ease-in-out'
@@ -78,7 +75,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
               event={event}
               colorClass={colorClass}
               timeSlots={timeSlots}
-              timestamp={timestamp}
             >
               {children}
             </ConfirmedEventBody>
@@ -86,7 +82,6 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
             <DefaultEventBody
               event={event}
               timeSlots={timeSlots}
-              timestamp={timestamp}
               userSelectedLocations={userSelectedLocations}
               onLocationClick={onLocationClick}
               onTimeSlotClick={onTimeSlotClick}
@@ -97,13 +92,13 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           )}
         </div>
       )}
-      
+
       {/* Modern Expand/Collapse Button */}
       <div className="card-footer bg-white border-0 p-0">
         <button
           type="button"
           className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted hover-bg-light"
-          style={{ 
+          style={{
             borderTop: '1px solid #f0f0f0',
             padding: '12px 20px',
             cursor: 'pointer',
@@ -124,8 +119,8 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
             e.currentTarget.style.backgroundColor = 'transparent';
           }}
         >
-          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`} 
-             aria-hidden="true" 
+          <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'} me-2`}
+             aria-hidden="true"
              style={{ fontSize: '0.875rem', color: 'var(--tennis-navy)' }}></i>
           <span style={{ color: 'var(--tennis-navy)' }}>
             {isCollapsed ? t('common.showDetails') : t('common.hideDetails')}
@@ -136,4 +131,4 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   );
 };
 
-export default BaseEventItem; 
+export default BaseEventItem;

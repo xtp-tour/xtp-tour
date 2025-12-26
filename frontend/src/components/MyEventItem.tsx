@@ -3,7 +3,6 @@ import { components } from '../types/schema';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation } from './event/types';
 import { getEventTypeLabel } from './event/EventBadges';
-import moment from 'moment';
 import ConfirmEventModal from './ConfirmEventModal';
 import CancelEventModal from './event/CancelEventModal';
 import Toast from './Toast';
@@ -131,7 +130,6 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         headerTitle={getEventTypeLabel(event.eventType, t)}
         colorClass={colorClass}
         timeSlots={timeSlots}
-        timestamp={moment(event.createdAt || '')}
         actionButton={getActionButton()}
         shareButton={getShareButton()}
         defaultCollapsed={true}

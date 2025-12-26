@@ -4,7 +4,6 @@ import { useAPI } from '../services/apiProvider';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import { ApiEvent, ApiJoinRequest } from '../types/api';
-import moment from 'moment';
 import { useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
@@ -175,7 +174,6 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         }
         colorClass={colorClass}
         timeSlots={timeSlots}
-        timestamp={moment(event.createdAt)}
         userSelectedLocations={userSelectedLocations}
         actionButton={getActionButton()}
         shareButton={getShareButton()}

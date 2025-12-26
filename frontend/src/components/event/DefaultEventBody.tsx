@@ -6,11 +6,7 @@ import EventDescription from './EventDescription';
 import JoinedUsers from './JoinedUsers';
 import UserDisplay from '../UserDisplay';
 import { TimeSlot } from './types';
-import moment from 'moment';
-import TimeAgo from 'react-timeago';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BADGE_STYLES } from '../../styles/badgeStyles';
-import { useTranslation } from 'react-i18next';
 import { formatTimeSlotLocalized } from '../../utils/i18nDateUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -18,7 +14,6 @@ type ApiEvent = components['schemas']['ApiEvent'];
 interface DefaultEventBodyProps {
   event: ApiEvent;
   timeSlots: TimeSlot[];
-  timestamp: moment.Moment;
   userSelectedLocations?: string[];
   onLocationClick?: (location: string) => void;
   onTimeSlotClick?: (timeSlot: TimeSlot) => void;
@@ -26,42 +21,17 @@ interface DefaultEventBodyProps {
   isMyEvent?: boolean;
 }
 
-const formatFullTimestamp = (timestamp: moment.Moment): string => {
-  return timestamp.format('LLLL');
-};
-
 const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
   event,
   timeSlots,
-  timestamp,
   userSelectedLocations,
   onLocationClick,
   onTimeSlotClick,
   children,
   isMyEvent = false,
 }) => {
-  const { t } = useTranslation();
-  const momentTimestamp = moment.isMoment(timestamp) ? timestamp : moment(timestamp);
-
   return (
     <div className="card-body pt-2">
-      {/* Created At Timestamp */}
-      <div className="mb-3">
-        <OverlayTrigger
-          placement="bottom"
-          overlay={
-            <Tooltip id={`timestamp-tooltip-${momentTimestamp.valueOf()}`}>
-              {formatFullTimestamp(momentTimestamp)}
-            </Tooltip>
-          }
-        >
-          <div className="d-flex align-items-center small text-muted">
-            <i className="bi bi-clock-history me-2"></i>
-            <span>{t('common.created')} <TimeAgo date={momentTimestamp.toDate()} /></span>
-          </div>
-        </OverlayTrigger>
-      </div>
-
       <EventLocations
         locations={event.locations}
         selectedLocations={event.confirmation?.location ? [event.confirmation.location] : undefined}
@@ -99,8 +69,8 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
                 {event.joinRequests.map(jr => (
                   <tr key={jr.id}>
                     <td>
-                      <UserDisplay 
-                        userId={jr.userId || ''} 
+                      <UserDisplay
+                        userId={jr.userId || ''}
                         fallback="Unknown User"
                       />
                     </td>
@@ -128,4 +98,4 @@ const DefaultEventBody: React.FC<DefaultEventBodyProps> = ({
   );
 };
 
-export default DefaultEventBody; 
+export default DefaultEventBody;
