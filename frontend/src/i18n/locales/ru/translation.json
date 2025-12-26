@@ -4,195 +4,330 @@
     "version": "XTP Tour v{{version}}"
   },
   "auth": {
+    "comingSoon": "Скоро будет доступно",
     "signIn": "Войти",
-    "signUp": "Зарегистрироваться",
-    "comingSoon": "Скоро будет доступно"
+    "signUp": "Зарегистрироваться"
   },
-  "landing": {
-    "hero": {
-      "title": "Меньше переписки — больше тенниса.",
-      "subtitle": "Укажите корты, время и уровень один раз. Поделитесь ссылкой, и партнёры выберут удобный слот.",
-      "createLink": "Создать теннисную ссылку",
-      "findPartners": "Найти партнёров",
-      "alreadyHaveAccount": "Уже есть аккаунт?",
-      "signInLink": "Войти"
+  "calendar": {
+    "busySlot": "Занято (Календарь)",
+    "clearAll": "Очистить выбор",
+    "conflictWarning": "Это время конфликтует с вашим календарём",
+    "connect": "Подключить Google Календарь",
+    "connected": "Google Календарь подключён",
+    "connecting": "Подключение...",
+    "disconnect": "Отключить",
+    "errors": {
+      "authCallback": "Не удалось завершить авторизацию",
+      "authFailed": "Ошибка авторизации календаря",
+      "busyTimesFailed": "Не удалось загрузить события календаря",
+      "connectionCheck": "Не удалось проверить подключение календаря",
+      "connectionFailed": "Не удалось подключить календарь",
+      "disconnectFailed": "Не удалось отключить календарь",
+      "preferencesUpdateFailed": "Не удалось обновить настройки"
     },
-    "howItWorks": {
-      "title": "Простое планирование для всех",
-      "subtitle": "Как Calendly, но для теннисистов",
-      "steps": {
-        "step1": {
-          "title": "1. Укажите доступность",
-          "description": "Выберите предпочитаемые корты, время и формат игры (одиночная, парная, уровень)"
-        },
-        "step2": {
-          "title": "2. Поделитесь приглашением",
-          "description": "Отправьте ссылку друзьям или сделайте её доступной для других игроков"
-        },
-        "step3": {
-          "title": "3. Получайте заявки",
-          "description": "Игроки выбирают удобное время и отправляют запрос на участие"
-        },
-        "step4": {
-          "title": "4. Играйте в теннис",
-          "description": "Встречайтесь на корте и наслаждайтесь игрой — никаких хлопот с планированием"
-        }
-      }
+    "navigation": "Навигация по календарю",
+    "nextWeek": "Следующая неделя",
+    "notConnected": "Календарь не подключён",
+    "preferences": {
+      "every15min": "Каждые 15 минут",
+      "every1hour": "Каждый час",
+      "every30min": "Каждые 30 минут",
+      "showEventDetails": "Показывать детали событий",
+      "syncEnabled": "Включить синхронизацию",
+      "syncFrequency": "Частота синхронизации",
+      "title": "Настройки календаря"
     },
-    "features": {
-      "saveTime": {
-        "title": "Экономьте время",
-        "description": "Забудьте о бесконечных переписках — все видят вашу доступность в одном месте"
-      },
-      "workTogether": {
-        "title": "Найдите подходящего партнёра",
-        "description": "Фильтруйте по уровню NTRP для равных и интересных матчей"
-      },
-      "playMore": {
-        "title": "Играйте больше",
-        "description": "Меньше организации — больше времени на корте для улучшения игры"
-      }
-    },
-    "gameTypes": {
-      "title": "Ваш теннис — ваши правила",
-      "subtitle": "Настройте предпочтения один раз — игроки сами забронируют идеальную сессию.",
-      "competitive": "Соревновательные матчи — одиночные игры со счётом",
-      "training": "Тренировки — практика и развитие навыков",
-      "doubles": "Парные матчи — командные игры вчетвером",
-      "whatYouCanSet": "Что можно настроить:",
-      "features": {
-        "multipleVenues": "Несколько площадок в одном приглашении",
-        "flexibleTimeSlots": "Гибкие слоты на 7 дней",
-        "skillLevelMatching": "Подбор по уровню (NTRP)",
-        "sessionDuration": "Длительность сессии (1-4 часа)",
-        "singlesOnly": "Одиночные (парные скоро)"
-      }
-    },
-    "cta": {
-      "title": "Всё просто",
-      "subtitle": "Мы берём на себя координацию. Ваше расписание, ваша ссылка, ваши правила.",
-      "startScheduling": "Начать планирование",
-      "findPartners": "Найти партнёров"
-    }
+    "previousWeek": "Предыдущая неделя",
+    "provider": "Провайдер"
+  },
+  "common": {
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "confirm": "Подтвердить",
+    "created": "Создано",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "error": "Ошибка",
+    "hideDetails": "Скрыть детали",
+    "loading": "Загрузка...",
+    "save": "Сохранить",
+    "showDetails": "Показать детали",
+    "success": "Успешно"
   },
   "createEvent": {
-    "title": "Создать событие",
     "close": "Закрыть",
-    "newInvitation": "Новое приглашение",
-    "form": {
-      "preferredLocations": "Предпочитаемые площадки",
-      "requestType": "Тип запроса",
-      "single": "Одиночная",
-      "doubles": "Парная",
-      "comingSoon": "Скоро",
-      "opponentSkillLevel": "Уровень соперника",
-      "skillLevelHelper": "Выберите диапазон уровня NTRP для матча.",
-      "ntrpLink": "Какой у меня уровень NTRP? →",
-      "sessionDuration": "Длительность сессии",
-      "invitationType": "Тип приглашения",
-      "gameOnPoints": "Игра на очки",
-      "training": "Тренировка",
-      "gameTooltip": "Ищу партнёра для обычного теннисного матча",
-      "trainingTooltip": "Главная цель — улучшить навыки игры через розыгрыши",
-      "availability": "Ваша доступность (следующие 7 дней)",
-      "nightGame": "Ночная игра (показать только ночные часы)",
-      "timeSlotSelected": "{{count}} слот выбран",
-      "timeSlotSelected_few": "{{count}} слота выбрано",
-      "timeSlotSelected_many": "{{count}} слотов выбрано",
-      "description": "Описание (необязательно)",
-      "trainingPlaceholder": "Опишите план тренировки и цели...",
-      "generalPlaceholder": "Добавьте дополнительную информацию...",
-      "createInvitation": "Создать приглашение",
-      "trainingTip": "Добавьте план тренировки или цели в описание",
-      "calendarIntegration": "Интеграция с календарём",
-      "calendarIntegrationDesc": "Подключите Google Календарь для автоматического избежания конфликтов"
-    },
-    "skillLevels": {
-      "INTERMEDIATE": "Средний (NTRP 3.5–5.0)",
-      "BEGINNER": "Начинающий (NTRP < 3.5)",
-      "ADVANCED": "Продвинутый (NTRP > 5.0)",
-      "ANY": "Любой уровень"
-    },
-    "skillLabels": {
-      "ANY": "Любой NTRP",
-      "BEGINNER": "NTRP < 3.5",
-      "INTERMEDIATE": "NTRP 3.5–5.0",
-      "ADVANCED": "NTRP > 5.0"
-    },
-    "skillHints": {
-      "ANY": "Открыто для всех уровней",
-      "BEGINNER": "Новички, осваивающие основы",
-      "INTERMEDIATE": "Стабильные игроки с развитой техникой и стратегией",
-      "ADVANCED": "Элитные игроки с турнирным опытом"
-    },
-    "loading": {
-      "locations": "Загрузка площадок...",
-      "availableLocations": "Загрузка доступных площадок..."
-    },
     "errors": {
-      "noLocationsAvailable": "Нет доступных площадок",
+      "descriptionTooLong": "Описание должно быть короче 1000 символов",
       "failedToLoadLocations": "Не удалось загрузить площадки. Попробуйте позже.",
+      "noLocationsAvailable": "Нет доступных площадок",
       "selectAtLeastOneLocation": "Выберите хотя бы одну площадку",
       "selectAtLeastOneTimeSlot": "Выберите хотя бы один слот",
-      "somePastTimes": "Некоторые выбранные слоты в прошлом",
-      "descriptionTooLong": "Описание должно быть короче 1000 символов"
+      "somePastTimes": "Некоторые выбранные слоты в прошлом"
+    },
+    "form": {
+      "availability": "Ваша доступность (следующие 7 дней)",
+      "calendarIntegration": "Интеграция с календарём",
+      "calendarIntegrationDesc": "Подключите Google Календарь для автоматического избежания конфликтов",
+      "comingSoon": "Скоро",
+      "createInvitation": "Создать приглашение",
+      "description": "Описание (необязательно)",
+      "doubles": "Парная",
+      "gameOnPoints": "Игра на очки",
+      "gameTooltip": "Ищу партнёра для обычного теннисного матча",
+      "generalPlaceholder": "Добавьте дополнительную информацию...",
+      "invitationType": "Тип приглашения",
+      "nightGame": "Ночная игра (показать только ночные часы)",
+      "ntrpLink": "Какой у меня уровень NTRP? →",
+      "opponentSkillLevel": "Уровень соперника",
+      "preferredLocations": "Предпочитаемые площадки",
+      "requestType": "Тип запроса",
+      "sessionDuration": "Длительность сессии",
+      "single": "Одиночная",
+      "skillLevelHelper": "Выберите диапазон уровня NTRP для матча.",
+      "timeSlotSelected": "{{count}} слот выбран",
+      "timeSlotSelected_one": "{{count}} слот выбран",
+      "timeSlotSelected_few": "{{count}} слота выбрано",
+      "timeSlotSelected_many": "{{count}} слотов выбрано",
+      "timeSlotSelected_other": "{{count}} слотов выбрано",
+      "training": "Тренировка",
+      "trainingPlaceholder": "Опишите план тренировки и цели...",
+      "trainingTip": "Добавьте план тренировки или цели в описание",
+      "trainingTooltip": "Главная цель — улучшить навыки игры через розыгрыши"
+    },
+    "loading": {
+      "availableLocations": "Загрузка доступных площадок...",
+      "locations": "Загрузка площадок..."
+    },
+    "newInvitation": "Новое приглашение",
+    "skillHints": {
+      "ADVANCED": "Элитные игроки с турнирным опытом",
+      "ANY": "Открыто для всех уровней",
+      "BEGINNER": "Новички, осваивающие основы",
+      "INTERMEDIATE": "Стабильные игроки с развитой техникой и стратегией"
+    },
+    "skillLabels": {
+      "ADVANCED": "NTRP > 5.0",
+      "ANY": "Любой NTRP",
+      "BEGINNER": "NTRP < 3.5",
+      "INTERMEDIATE": "NTRP 3.5–5.0"
+    },
+    "skillLevels": {
+      "ADVANCED": "Продвинутый (NTRP > 5.0)",
+      "ANY": "Любой уровень",
+      "BEGINNER": "Начинающий (NTRP < 3.5)",
+      "INTERMEDIATE": "Средний (NTRP 3.5–5.0)"
     },
     "success": {
       "eventCreated": "Событие успешно создано!"
-    }
-  },
-  "eventList": {
-    "loading": "Загрузка...",
-    "tabs": {
-      "toJoin": "Доступные события",
-      "toJoinShort": "Присоединиться",
-      "myEvents": "Мои события",
-      "joinedEvents": "Участвую"
     },
-    "sections": {
-      "availableEventsToJoin": "Доступные события",
-      "yourEvents": "Ваши события",
-      "joinedEvents": "События, в которых вы участвуете"
-    },
-    "empty": {
-      "noEventsCreated": "Вы ещё не создали событий.",
-      "noEventsJoined": "Вы ещё не присоединились к событиям."
-    }
-  },
-  "errors": {
-    "somethingWentWrong": "Что-то пошло не так",
-    "tryRefreshing": "Попробуйте обновить страницу.",
-    "reloadPage": "Обновить страницу"
-  },
-  "common": {
-    "close": "Закрыть",
-    "cancel": "Отмена",
-    "save": "Сохранить",
-    "edit": "Редактировать",
-    "delete": "Удалить",
-    "confirm": "Подтвердить",
-    "loading": "Загрузка...",
-    "error": "Ошибка",
-    "success": "Успешно",
-    "showDetails": "Показать детали",
-    "hideDetails": "Скрыть детали",
-    "created": "Создано"
+    "title": "Создать событие"
   },
   "durations": {
     "hour": "1 час",
-    "hours": "{{count}} часа",
-    "hours_many": "{{count}} часов",
     "hourAndHalf": "1.5 часа",
-    "hoursAndHalf": "{{count}}.5 часа"
+    "hours": "{{count}} часа",
+    "hours_one": "{{count}} час",
+    "hours_few": "{{count}} часа",
+    "hours_many": "{{count}} часов",
+    "hours_other": "{{count}} часов",
+    "hoursAndHalf": "{{count}}.5 часа",
+    "hoursAndHalf_one": "{{count}}.5 часа",
+    "hoursAndHalf_few": "{{count}}.5 часа",
+    "hoursAndHalf_many": "{{count}}.5 часа",
+    "hoursAndHalf_other": "{{count}}.5 часа"
+  },
+  "errors": {
+    "reloadPage": "Обновить страницу",
+    "somethingWentWrong": "Что-то пошло не так",
+    "tryRefreshing": "Попробуйте обновить страницу."
+  },
+  "eventActions": {
+    "alreadyJoined": "Уже участвуете",
+    "cancel": "Отменить",
+    "cancelParticipation": "Отменить участие",
+    "confirm": "Подтвердить",
+    "confirmed": "Подтверждено",
+    "join": "Присоединиться",
+    "signInToJoin": "Войдите для участия"
+  },
+  "eventLabels": {
+    "availableStartTimes": "Доступное время начала",
+    "description": "Описание",
+    "preferredLocations": "Предпочитаемые площадки",
+    "selectedLocations": "Выбранные площадки",
+    "startTimes": "Время начала"
+  },
+  "eventList": {
+    "empty": {
+      "noEventsCreated": "Вы ещё не создали событий.",
+      "noEventsJoined": "Вы ещё не присоединились к событиям."
+    },
+    "loading": "Загрузка...",
+    "sections": {
+      "availableEventsToJoin": "Доступные события",
+      "joinedEvents": "События, в которых вы участвуете",
+      "yourEvents": "Ваши события"
+    },
+    "tabs": {
+      "joinedEvents": "Участвую",
+      "myEvents": "Мои события",
+      "toJoin": "Доступные события",
+      "toJoinShort": "Присоединиться"
+    }
+  },
+  "eventStatus": {
+    "accepted": "Ожидает подтверждения",
+    "cancelled": "Отменено",
+    "completed": "Завершено",
+    "confirmed": "Подтверждено",
+    "open": "Открыто",
+    "reservationFailed": "Бронирование не удалось"
+  },
+  "eventTypes": {
+    "doubles": "Парная",
+    "event": "Событие",
+    "groupTraining": "Групповая тренировка",
+    "match": "Матч",
+    "matchDoubles": "Парный матч",
+    "matchSingles": "Одиночный матч",
+    "players": "{{count}} игрока",
+    "players_one": "{{count}} игрок",
+    "players_few": "{{count}} игрока",
+    "players_many": "{{count}} игроков",
+    "players_other": "{{count}} игроков",
+    "singles": "Одиночная",
+    "training": "Тренировка",
+    "training1on1": "Тренировка 1 на 1",
+    "unorthodoxMatch": "Нестандартный матч"
+  },
+  "host": {
+    "label": "Организатор:",
+    "unknown": "Неизвестный организатор",
+    "unknownUser": "Неизвестный пользователь"
+  },
+  "joinModal": {
+    "failedToJoin": "Не удалось присоединиться",
+    "failedToLoadOptions": "Не удалось загрузить опции",
+    "joinGameSession": "Присоединиться к игре",
+    "loadingText": "Загрузка доступных опций...",
+    "locationHelp": "Выберите все подходящие площадки.",
+    "selectLocation": "Выберите хотя бы одну площадку",
+    "selectTimeSlot": "Выберите хотя бы один слот",
+    "submitting": "Отправка...",
+    "timeSlotHelp": "Выберите все подходящие слоты. {{hostName}} выберет итоговое время на основе вашей доступности.",
+    "title": "Присоединиться к игре {{hostName}}",
+    "whenToStart": "Когда вы хотите начать?",
+    "whereToPlay": "Где вы хотите играть?"
+  },
+  "joinRequests": {
+    "accepted": "Запрос принят",
+    "rejected": "Запрос отклонён",
+    "waiting": "Ожидание одобрения организатора"
+  },
+  "landing": {
+    "comingSoon": "Скоро",
+    "cta": {
+      "eyebrow": "Готовы играть?",
+      "findPartners": "Найти партнёров",
+      "microcopy": "Не готовы регистрироваться? Смотрите публичные сессии.",
+      "startScheduling": "Начать планирование",
+      "subtitle": "Создайте сессию, поделитесь ссылкой — партнёры сами найдут вас.",
+      "title": "Меньше переписки. Больше тенниса."
+    },
+    "features": {
+      "calendarIntegration": {
+        "description": "Синхронизируйте с Google Calendar, чтобы избежать накладок.",
+        "title": "Интеграция с календарём"
+      },
+      "easyCoordination": {
+        "description": "Укажите время, корты и количество игроков за минуту.",
+        "title": "Простая координация"
+      },
+      "eyebrow": "Почему это работает",
+      "partnerMatching": {
+        "description": "Фильтры NTRP помогут найти игроков вашего уровня.",
+        "title": "Подбор партнёров"
+      },
+      "shareAnywhere": {
+        "description": "Отправьте в любой чат, email или соцсети.",
+        "title": "Делитесь где угодно"
+      },
+      "title": "Меньше координации. Больше игры."
+    },
+    "gameTypes": {
+      "calendarBadge": "Синхронизируется с Google Calendar — опционально, но удобно.",
+      "controls": {
+        "multipleCourts": "Несколько кортов в одном приглашении",
+        "ntrpFilters": "Фильтры NTRP для любого уровня",
+        "optionalNotes": "Заметки для упражнений или деталей матча",
+        "playerCount": "Количество игроков от 1 до 4",
+        "sessionLength": "Сессии от 1 до 4 часов",
+        "weekAvailability": "Неделя доступности одним взглядом"
+      },
+      "doubles": {
+        "description": "Гибкие слоты для четырёх игроков.",
+        "label": "Парные и групповые игры"
+      },
+      "eyebrow": "Типы игры",
+      "singles": {
+        "description": "Соревновательная игра один на один.",
+        "label": "Одиночные матчи"
+      },
+      "title": "Один инструмент для одиночных, тренировок и парных.",
+      "training": {
+        "description": "Отработка ударов, упражнения или время с тренером.",
+        "label": "Тренировки"
+      },
+      "whatYouControl": "Что вы контролируете"
+    },
+    "hero": {
+      "alreadyUsing": "Уже используете XTP Tour?",
+      "browsePublic": "Смотреть публичные сессии",
+      "createSession": "Создать сессию",
+      "microcopy": "Смотрите публичные сессии без регистрации.",
+      "signIn": "Войти",
+      "subtitle": "Укажите корты, время и уровень. Поделитесь ссылкой, и партнёры выберут удобный слот.",
+      "title": "Меньше переписки — больше тенниса."
+    },
+    "howItWorks": {
+      "eyebrow": "Как это работает",
+      "steps": {
+        "reviewRequests": {
+          "description": "Посмотрите, кто заинтересован, и подтвердите партнёра.",
+          "title": "Просмотрите заявки"
+        },
+        "setSession": {
+          "description": "Определите идеальную сессию: формат, корты, время и с кем хотите играть.",
+          "title": "Настройте сессию"
+        },
+        "shareLink": {
+          "description": "Отправьте друзьям или сделайте видимой для игроков поблизости.",
+          "title": "Поделитесь ссылкой"
+        },
+        "syncPlay": {
+          "description": "Все получат уведомление. Добавьте в календарь одним кликом.",
+          "title": "Синхронизируйте и играйте"
+        }
+      },
+      "title": "Четыре шага от идеи до матча."
+    }
+  },
+  "language": {
+    "changeLanguage": "Сменить язык",
+    "english": "English",
+    "french": "Français",
+    "polish": "Polski",
+    "russian": "Русский",
+    "spanish": "Español"
   },
   "profileSetup": {
-    "loading": {
-      "title": "Загрузка профиля...",
-      "text": "Загрузка..."
+    "buttons": {
+      "createProfile": "Создать профиль",
+      "saving": "Сохранение...",
+      "updateProfile": "Обновить профиль"
     },
-    "title": {
-      "create": "Создайте профиль",
-      "complete": "Заполните профиль"
+    "errors": {
+      "failedToSave": "Не удалось сохранить профиль. Попробуйте снова."
     },
     "fields": {
       "firstName": "Имя",
@@ -200,10 +335,13 @@
       "ntrpLevel": "Уровень NTRP",
       "preferredCity": "Предпочитаемый город"
     },
+    "loading": {
+      "text": "Загрузка...",
+      "title": "Загрузка профиля..."
+    },
     "ntrp": {
       "description": "Национальная программа рейтинга тенниса (NTRP) помогает подбирать игроков схожего уровня.",
       "learnMore": "Подробнее о рейтингах NTRP →",
-      "selectLevel": "Выберите уровень NTRP",
       "levels": {
         "1.0": "1.0 - Новичок: Только начинает учиться",
         "1.5": "1.5 - Начинающий: Ограниченный опыт, учится вводить мяч в игру",
@@ -217,192 +355,87 @@
         "5.5": "5.5 - Элита+: Развитая сила/стабильность как главное оружие",
         "6.0": "6.0 - Турнирный: Интенсивные тренировки, региональный/национальный рейтинг",
         "7.0": "7.0 - Профессионал: Игрок мирового класса"
-      }
+      },
+      "selectLevel": "Выберите уровень NTRP"
     },
     "placeholders": {
       "preferredCity": "Введите предпочитаемый город"
     },
-    "buttons": {
-      "saving": "Сохранение...",
-      "createProfile": "Создать профиль",
-      "updateProfile": "Обновить профиль"
-    },
-    "errors": {
-      "failedToSave": "Не удалось сохранить профиль. Попробуйте снова."
+    "title": {
+      "complete": "Заполните профиль",
+      "create": "Создайте профиль"
     }
   },
-  "eventTypes": {
-    "match": "Матч",
-    "training": "Тренировка",
-    "singles": "Одиночная",
-    "doubles": "Парная",
-    "training1on1": "Тренировка 1 на 1",
-    "groupTraining": "Групповая тренировка",
-    "matchSingles": "Одиночный матч",
-    "matchDoubles": "Парный матч",
-    "unorthodoxMatch": "Нестандартный матч",
-    "players": "{{count}} игрока",
-    "players_many": "{{count}} игроков",
-    "event": "Событие"
-  },
-  "eventLabels": {
-    "selectedLocations": "Выбранные площадки",
-    "preferredLocations": "Предпочитаемые площадки",
-    "startTimes": "Время начала",
-    "availableStartTimes": "Доступное время начала",
-    "description": "Описание"
-  },
-  "eventStatus": {
-    "open": "Открыто",
-    "accepted": "Ожидает подтверждения",
-    "confirmed": "Подтверждено",
-    "reservationFailed": "Бронирование не удалось",
-    "cancelled": "Отменено",
-    "completed": "Завершено"
-  },
-  "eventActions": {
-    "cancel": "Отменить",
-    "join": "Присоединиться",
-    "alreadyJoined": "Уже участвуете",
-    "confirm": "Подтвердить",
-    "confirmed": "Подтверждено",
-    "signInToJoin": "Войдите для участия",
-    "cancelParticipation": "Отменить участие"
-  },
-  "joinRequests": {
-    "rejected": "Запрос отклонён",
-    "accepted": "Запрос принят",
-    "waiting": "Ожидание одобрения организатора"
+  "publicEvent": {
+    "noLongerAvailable": "Событие не найдено или недоступно",
+    "notFound": "Событие не найдено или удалено."
   },
   "share": {
-    "title": "Поделиться событием",
+    "eventLinkCopied": "Ссылка на событие скопирована!",
     "linkCopied": "Ссылка скопирована!",
-    "eventLinkCopied": "Ссылка на событие скопирована!"
-  },
-  "host": {
-    "label": "Организатор:",
-    "unknown": "Неизвестный организатор",
-    "unknownUser": "Неизвестный пользователь"
-  },
-  "language": {
-    "changeLanguage": "Сменить язык",
-    "english": "English",
-    "spanish": "Español",
-    "french": "Français",
-    "polish": "Polski",
-    "russian": "Русский"
-  },
-  "publicEvent": {
-    "notFound": "Событие не найдено или удалено.",
-    "noLongerAvailable": "Событие не найдено или недоступно"
-  },
-  "joinModal": {
-    "title": "Присоединиться к игре {{hostName}}",
-    "loadingText": "Загрузка доступных опций...",
-    "whereToPlay": "Где вы хотите играть?",
-    "locationHelp": "Выберите все подходящие площадки.",
-    "whenToStart": "Когда вы хотите начать?",
-    "timeSlotHelp": "Выберите все подходящие слоты. {{hostName}} выберет итоговое время на основе вашей доступности.",
-    "submitting": "Отправка...",
-    "joinGameSession": "Присоединиться к игре",
-    "selectLocation": "Выберите хотя бы одну площадку",
-    "selectTimeSlot": "Выберите хотя бы один слот",
-    "failedToJoin": "Не удалось присоединиться",
-    "failedToLoadOptions": "Не удалось загрузить опции"
+    "title": "Поделиться событием"
   },
   "timeOfDay": {
-    "morning": "утро",
     "afternoon": "день",
+    "and": "и",
     "evening": "вечер",
+    "morning": "утро",
     "night": "ночь",
-    "wholeDay": "весь день",
-    "and": "и"
+    "wholeDay": "весь день"
   },
   "userMenu": {
     "profile": "Профиль",
     "signOut": "Выйти"
   },
   "userProfile": {
-    "title": "Профиль пользователя",
-    "sections": {
-      "personalInfo": "Личная информация",
-      "notifications": "Настройки уведомлений",
-      "dangerZone": "Опасная зона"
+    "buttons": {
+      "cancel": "Отмена",
+      "confirmDelete": "Да, удалить мой аккаунт",
+      "deleteAccount": "Удалить аккаунт",
+      "save": "Сохранить изменения",
+      "saving": "Сохранение..."
+    },
+    "deleteAccount": {
+      "modalBody": "Это навсегда удалит ваш аккаунт и все связанные данные.",
+      "modalTitle": "Вы уверены?",
+      "title": "Удаление аккаунта",
+      "warning": "Это действие необратимо. Все ваши данные, включая события и запросы, будут удалены навсегда."
+    },
+    "errors": {
+      "failedToDelete": "Не удалось удалить аккаунт",
+      "failedToLoad": "Не удалось загрузить профиль",
+      "failedToUpdate": "Не удалось обновить профиль"
     },
     "fields": {
-      "firstName": "Имя",
-      "lastName": "Фамилия",
       "city": "Город",
       "country": "Страна",
-      "language": "Язык",
-      "ntrpLevel": "Уровень NTRP",
+      "debugAddress": "Отладочный адрес",
       "email": "Email",
-      "phoneNumber": "Телефон",
-      "debugAddress": "Отладочный адрес"
+      "firstName": "Имя",
+      "language": "Язык",
+      "lastName": "Фамилия",
+      "ntrpLevel": "Уровень NTRP",
+      "phoneNumber": "Телефон"
     },
     "notifications": {
       "channels": {
+        "debug": "Отладочные уведомления (только для разработки)",
         "email": "Email-уведомления",
-        "sms": "SMS-уведомления",
         "push": "Push-уведомления (скоро)",
-        "whatsapp": "WhatsApp-уведомления (скоро)",
-        "debug": "Отладочные уведомления (только для разработки)"
+        "sms": "SMS-уведомления",
+        "whatsapp": "WhatsApp-уведомления (скоро)"
       },
       "validation": "Должен быть включён хотя бы один канал уведомлений"
     },
-    "buttons": {
-      "save": "Сохранить изменения",
-      "saving": "Сохранение...",
-      "deleteAccount": "Удалить аккаунт",
-      "confirmDelete": "Да, удалить мой аккаунт",
-      "cancel": "Отмена"
-    },
-    "deleteAccount": {
-      "title": "Удаление аккаунта",
-      "warning": "Это действие необратимо. Все ваши данные, включая события и запросы, будут удалены навсегда.",
-      "modalTitle": "Вы уверены?",
-      "modalBody": "Это навсегда удалит ваш аккаунт и все связанные данные."
+    "sections": {
+      "dangerZone": "Опасная зона",
+      "notifications": "Настройки уведомлений",
+      "personalInfo": "Личная информация"
     },
     "success": {
-      "profileUpdated": "Профиль успешно обновлён",
-      "accountDeleted": "Аккаунт успешно удалён"
+      "accountDeleted": "Аккаунт успешно удалён",
+      "profileUpdated": "Профиль успешно обновлён"
     },
-    "errors": {
-      "failedToLoad": "Не удалось загрузить профиль",
-      "failedToUpdate": "Не удалось обновить профиль",
-      "failedToDelete": "Не удалось удалить аккаунт"
-    }
-  },
-  "calendar": {
-    "navigation": "Навигация по календарю",
-    "previousWeek": "Предыдущая неделя",
-    "nextWeek": "Следующая неделя",
-    "clearAll": "Очистить выбор",
-    "connect": "Подключить Google Календарь",
-    "disconnect": "Отключить",
-    "connected": "Google Календарь подключён",
-    "notConnected": "Календарь не подключён",
-    "connecting": "Подключение...",
-    "provider": "Провайдер",
-    "conflictWarning": "Это время конфликтует с вашим календарём",
-    "busySlot": "Занято (Календарь)",
-    "preferences": {
-      "title": "Настройки календаря",
-      "syncEnabled": "Включить синхронизацию",
-      "syncFrequency": "Частота синхронизации",
-      "showEventDetails": "Показывать детали событий",
-      "every15min": "Каждые 15 минут",
-      "every30min": "Каждые 30 минут",
-      "every1hour": "Каждый час"
-    },
-    "errors": {
-      "connectionCheck": "Не удалось проверить подключение календаря",
-      "connectionFailed": "Не удалось подключить календарь",
-      "authFailed": "Ошибка авторизации календаря",
-      "authCallback": "Не удалось завершить авторизацию",
-      "disconnectFailed": "Не удалось отключить календарь",
-      "preferencesUpdateFailed": "Не удалось обновить настройки",
-      "busyTimesFailed": "Не удалось загрузить события календаря"
-    }
+    "title": "Профиль пользователя"
   }
 }
