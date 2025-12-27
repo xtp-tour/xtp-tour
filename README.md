@@ -2,6 +2,25 @@
 
 Tennis hitting partner finder
 
+## Event Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant U1 as User1 (Host)
+    participant App
+    participant U2 as User2
+    participant U3 as User3
+
+    U1->>App: Create Event
+    App-->>U1: Event OPEN
+    U2->>App: Send Join Request
+    U3->>App: Send Join Request
+    U1->>App: Confirm Event (select User2)
+    App-->>U2: Confirmation Notification
+    App-->>U3: Rejection Notification
+    Note over App: Event CONFIRMED → COMPLETED after event time
+```
+
 
 
 ### Environment Variables
