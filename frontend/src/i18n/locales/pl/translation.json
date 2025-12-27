@@ -215,6 +215,9 @@
     "training1on1": "Trening 1 na 1",
     "unorthodoxMatch": "Mecz Niekonwencjonalny"
   },
+  "event": {
+    "lookingFor": "Szukam"
+  },
   "host": {
     "label": "Gospodarz:",
     "unknown": "Nieznany Gospodarz",

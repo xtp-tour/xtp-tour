@@ -1,18 +1,18 @@
 import React from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { ActionButton, StyleProps } from './types';
+import { ActionButton } from './types';
 import { components } from '../../types/schema';
 import { formatDuration } from '../../utils/dateUtils';
 import { formatTimeSlotLocalized, formatUtcToLocalI18n } from '../../utils/i18nDateUtils';
-import { LocationBadge } from './EventBadges';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import TimeAgo from 'react-timeago';
 import { getTimeAgoFormatter } from '../../utils/timeAgoFormatters';
+import { getStatusInfo, formatLocationsList, shouldShowExpirationTime } from '../../utils/eventStatusUtils';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
-interface EventHeaderProps extends StyleProps {
+interface EventHeaderProps {
   title: string;
   subtitle?: string | React.ReactNode;
   actionButton: ActionButton;
@@ -21,41 +21,6 @@ interface EventHeaderProps extends StyleProps {
   event: ApiEvent;
   shareButton?: React.ReactNode;
 }
-
-const formatConfirmedDateTime = (datetime: string): string => {
-  return formatTimeSlotLocalized(datetime);
-};
-
-// Get status badge info based on event status
-const getStatusBadge = (event: ApiEvent, t: (key: string) => string) => {
-  switch (event.status) {
-    case 'OPEN':
-      return { text: t('eventStatus.open'), variant: 'text-bg-primary' };
-    case 'ACCEPTED':
-      return { text: t('eventStatus.accepted'), variant: 'text-bg-warning' };
-    case 'CONFIRMED':
-      return { text: t('eventStatus.confirmed'), variant: 'text-bg-success' };
-    case 'RESERVATION_FAILED':
-      return { text: t('eventStatus.reservationFailed'), variant: 'text-bg-danger' };
-    case 'CANCELLED':
-      return { text: t('eventStatus.cancelled'), variant: 'text-bg-secondary' };
-    case 'COMPLETED':
-      return { text: t('eventStatus.completed'), variant: 'text-bg-secondary' };
-    case 'EXPIRED':
-      return { text: t('eventStatus.expired'), variant: 'text-bg-secondary' };
-    default:
-      return { text: event.status, variant: 'text-bg-secondary' };
-  }
-};
-
-// Check if expiration time should be displayed
-const shouldShowExpirationTime = (event: ApiEvent): boolean => {
-  if (!event.expirationTime) return false;
-  // Show for active events (OPEN, ACCEPTED) or for expired events
-  return event.status === 'OPEN' || event.status === 'ACCEPTED' || event.status === 'EXPIRED';
-};
-
-
 
 const EventHeader: React.FC<EventHeaderProps> = ({
   title,
@@ -67,184 +32,209 @@ const EventHeader: React.FC<EventHeaderProps> = ({
   shareButton,
 }) => {
   const { t } = useTranslation();
-  // Check if the event is confirmed
   const isConfirmed = event.status === 'CONFIRMED';
-  const statusBadge = getStatusBadge(event, t);
+  const statusInfo = getStatusInfo(event.status, t);
+
+  const dateTimeDisplay = isConfirmed && event.confirmation?.datetime
+    ? formatTimeSlotLocalized(event.confirmation.datetime)
+    : timeSlotSummary;
+
+  const locationsToShow = isConfirmed && event.confirmation?.location
+    ? [event.confirmation.location]
+    : event.locations || [];
+
+  const { display: locationDisplay, overflow: locationOverflow } = formatLocationsList(locationsToShow, 5);
 
   return (
-    <div className="p-4">
-      {/* Main Header Row */}
-      <div className="d-flex align-items-start justify-content-between mb-3">
-        {/* Left: Event Title and Status */}
-        <div className="flex-grow-1 me-3">
-          <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
-            <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: '1.25rem', lineHeight: '1.3' }}>
+    <div className="zone-card">
+      {/* === ZONE 1: Identity === */}
+      <div className="py-3">
+        {/* Row 1: Title + Status + Share */}
+        <div className="d-flex align-items-center justify-content-between mb-2">
+          <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ minWidth: 0 }}>
+            <h5 className="mb-0 fw-bold text-truncate"
+                style={{ fontSize: '1.1rem', color: 'var(--tennis-navy)' }}>
               {title}
             </h5>
-            <span className={`badge ${statusBadge.variant} px-3 py-2`}
+            <span className={`badge ${statusInfo.badgeVariant} flex-shrink-0`}
                   style={{
-                    fontSize: '0.75rem',
-                    fontWeight: '600',
-                    borderRadius: '20px',
+                    fontSize: '0.65rem',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '10px',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.3px',
+                    fontWeight: 600
                   }}>
-              {statusBadge.text}
+              {statusInfo.text}
             </span>
-            {typeof joinedCount === 'number' && (
-              <span className="badge bg-light text-dark px-3 py-2"
+          </div>
+          <div className="flex-shrink-0 ms-2">
+            {shareButton}
+          </div>
+        </div>
+
+        {/* Row 2: Host */}
+        {subtitle && (
+          <div className="d-flex align-items-center text-muted mb-1"
+               style={{ fontSize: '0.85rem' }}>
+            <span className="d-flex align-items-center">
+              <i className="bi bi-person me-1" style={{ fontSize: '0.9rem' }}></i>
+              {subtitle}
+            </span>
+          </div>
+        )}
+
+        {/* Row 3: Looking for opponent level */}
+        <div className="d-flex align-items-center"
+             style={{ fontSize: '0.85rem' }}>
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`skill-${event.id}`}>
+                {t(`createEvent.skillHints.${event.skillLevel}`)}
+              </Tooltip>
+            }
+          >
+            <span
+              className="d-inline-flex align-items-center px-2 py-1"
+              style={{
+                cursor: 'help',
+                backgroundColor: 'var(--navy-tint)',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: 500
+              }}
+            >
+              <i className="bi bi-search me-1" style={{ fontSize: '0.7rem', color: 'var(--tennis-navy)' }}></i>
+              <span style={{ color: 'var(--tennis-gray)' }}>{t('event.lookingFor')}:</span>
+              <span className="ms-1" style={{ color: 'var(--tennis-navy)', fontWeight: 600 }}>
+                {event.skillLevel}
+              </span>
+            </span>
+          </OverlayTrigger>
+        </div>
+      </div>
+
+      <div className="zone-divider" />
+
+      {/* === ZONE 2: When/Where === */}
+      <div className="py-3">
+        {/* Date/Time Row */}
+        <div className="d-flex align-items-start mb-2"
+             style={{ fontSize: '0.9rem', color: 'var(--tennis-navy)' }}>
+          <i className={`bi ${isConfirmed ? 'bi-calendar-check text-success' : 'bi-calendar-event'} me-2`}
+             style={{ fontSize: '1rem', marginTop: '1px' }}></i>
+          <div>
+            <span className="fw-medium">{dateTimeDisplay}</span>
+            <span className="text-muted ms-1">({formatDuration(event.sessionDuration)})</span>
+          </div>
+        </div>
+
+        {/* Location Row */}
+        {locationsToShow.length > 0 && (
+          <div className="d-flex align-items-start"
+               style={{ fontSize: '0.9rem', color: 'var(--tennis-navy)' }}>
+            <i className="bi bi-geo-alt me-2 flex-shrink-0" style={{ fontSize: '1rem', marginTop: '2px' }}></i>
+            <div className="d-flex flex-wrap gap-1 align-items-center">
+              {locationsToShow.slice(0, 5).map((location, index) => (
+                <React.Fragment key={location}>
+                  {index > 0 && <span className="text-muted mx-1">·</span>}
+                  <span
+                    className="location-link"
                     style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      borderRadius: '20px',
-                      border: '1px solid #dee2e6'
+                      borderBottom: '1px dotted var(--tennis-navy)',
+                      cursor: 'pointer'
                     }}
-                    title={`${joinedCount} ${joinedCount === 1 ? 'ack' : 'acks'}`}>
-                <i className="bi bi-people me-1" style={{ fontSize: '0.875rem' }}></i>
+                    role="button"
+                    tabIndex={0}
+                  >
+                    {location}
+                  </span>
+                </React.Fragment>
+              ))}
+              {locationOverflow > 0 && (
+                <span className="text-muted ms-1">+{locationOverflow} more</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="zone-divider" />
+
+      {/* === ZONE 3: Meta & Actions === */}
+      <div className="py-3">
+        {/* Meta Row */}
+        <div className="d-flex flex-wrap align-items-center gap-1 mb-3 text-muted"
+             style={{ fontSize: '0.8rem' }}>
+          <span>
+            {t('common.created')}{' '}
+            <TimeAgo
+              date={event.createdAt || new Date()}
+              formatter={getTimeAgoFormatter(i18n.language)}
+            />
+          </span>
+
+          {shouldShowExpirationTime(event) && event.expirationTime && (
+            <>
+              <span>·</span>
+              <span>
+                {t('common.expires')}{' '}
+                <OverlayTrigger
+                  placement="top"
+                  overlay={
+                    <Tooltip id={`exp-${event.id}`}>
+                      {formatUtcToLocalI18n(event.expirationTime)}
+                    </Tooltip>
+                  }
+                >
+                  <span style={{ cursor: 'help', textDecoration: 'underline dotted' }}>
+                    <TimeAgo
+                      date={event.expirationTime}
+                      formatter={getTimeAgoFormatter(i18n.language)}
+                    />
+                  </span>
+                </OverlayTrigger>
+              </span>
+            </>
+          )}
+
+          {typeof joinedCount === 'number' && (
+            <>
+              <span>·</span>
+              <span>
+                <i className="bi bi-people me-1"></i>
                 {joinedCount} {joinedCount === 1 ? 'ack' : 'acks'}
               </span>
-            )}
-            {/* Skill Level Badge */}
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip id={`skill-level-tooltip-header-${event.skillLevel}`}>
-                {t(`createEvent.skillHints.${event.skillLevel}`)}
-              </Tooltip>}
-            >
-              <span className="badge bg-dark text-white px-3 py-2"
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      borderRadius: '20px',
-                      cursor: 'help'
-                    }}>
-                <i className="bi bi-bar-chart-line me-2"></i>
-                {event.skillLevel}
-                <span className="badge bg-light text-dark ms-2"
-                      style={{
-                        fontSize: '0.7rem',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '8px'
-                      }}>
-                  {t(`createEvent.skillLabels.${event.skillLevel}`)}
-                </span>
-              </span>
-            </OverlayTrigger>
-          </div>
-
-          {/* Host Information */}
-          {subtitle && (
-            <div className="mb-3">
-              <div className="text-muted mb-1" style={{ fontSize: '0.9rem' }}>
-                {subtitle}
-              </div>
-              <div className="text-muted small">
-                {t('common.created')} <TimeAgo date={event.createdAt || new Date()} formatter={getTimeAgoFormatter(i18n.language)} />
-                {shouldShowExpirationTime(event) && event.expirationTime && (
-                  <>
-                    {' | '}
-                    {t('common.expires')}{' '}
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={
-                        <Tooltip id={`expiration-tooltip-${event.id}`}>
-                          {formatUtcToLocalI18n(event.expirationTime)}
-                        </Tooltip>
-                      }
-                    >
-                      <span style={{ cursor: 'help', textDecoration: 'underline dotted' }}>
-                        <TimeAgo
-                          date={event.expirationTime}
-                          formatter={getTimeAgoFormatter(i18n.language)}
-                        />
-                      </span>
-                    </OverlayTrigger>
-                  </>
-                )}
-              </div>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Right: Share Button */}
-        <div className="flex-shrink-0">
-          {shareButton}
-        </div>
-      </div>
-
-      {/* Event Details Grid */}
-      <div className="row g-3 mb-3">
-        {/* Date & Time */}
-        <div className="col-12 col-md-6">
-          <div>
-            <div className="fw-semibold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
-              {isConfirmed && event.confirmation ? (
-                <>
-                  <i className="bi bi-calendar-check me-2 text-success"></i>
-                  {formatConfirmedDateTime(event.confirmation.datetime || '')}
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-calendar-event me-2 text-primary"></i>
-                  {timeSlotSummary}
-                </>
-              )}
-            </div>
-            <div className="fw-semibold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
-              <i className="bi bi-stopwatch me-2 text-primary"></i>
-              {formatDuration(event.sessionDuration)}
-            </div>
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="col-12 col-md-6">
-          <div className="flex-grow-1">
-            {isConfirmed && event.confirmation?.location ? (
-              <LocationBadge location={event.confirmation.location} />
-            ) : (
-              event.locations && event.locations.length > 0 && (
-                <div className="d-flex flex-wrap gap-1">
-                  {event.locations.map((location, index) => (
-                    <LocationBadge key={`location-${index}`} location={location} />
-                  ))}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      </div>
-
-
-      {/* Action Button */}
-      <div className="mt-4">
+        {/* Status Badge (if present) */}
         {actionButton.statusBadge && (
-          <div className="d-flex justify-content-center mb-2">
-            <span className={`badge ${actionButton.statusBadge.variant} text-dark w-100 px-3 py-2 d-inline-flex align-items-center justify-content-center`}
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: '600',
-                    borderRadius: '20px'
-                  }}>
+          <div className="mb-2">
+            <span className={`badge ${actionButton.statusBadge.variant} w-100 py-2 d-flex justify-content-center`}
+                  style={{ fontSize: '0.75rem', borderRadius: '8px' }}>
               {actionButton.statusBadge.text}
             </span>
           </div>
         )}
+
+        {/* Action Button */}
         {actionButton.customButton || (!actionButton.hidden && (
           <Button
             variant={actionButton.variant}
             onClick={actionButton.onClick}
-            className="w-100 d-flex justify-content-center align-items-center"
+            className="w-100"
             style={{
-              minHeight: '48px',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-              borderRadius: '12px',
-              textTransform: 'none'
+              minHeight: '44px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              borderRadius: '10px'
             }}
             disabled={actionButton.disabled}
           >
-            <i className={`bi ${actionButton.icon} me-2`} style={{ fontSize: '1.1rem' }}></i>
+            <i className={`bi ${actionButton.icon} me-2`}></i>
             {actionButton.label}
           </Button>
         ))}

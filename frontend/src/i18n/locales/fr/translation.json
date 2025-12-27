@@ -211,6 +211,9 @@
     "training1on1": "Entraînement 1 contre 1",
     "unorthodoxMatch": "Match Non Conventionnel"
   },
+  "event": {
+    "lookingFor": "Recherche"
+  },
   "host": {
     "label": "Hôte :",
     "unknown": "Hôte Inconnu",

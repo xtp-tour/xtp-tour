@@ -50,12 +50,12 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
 
   return (
     <div className="card mb-4 shadow-sm border-0" style={{
-      borderRadius: '16px',
+      borderRadius: '12px',
       overflow: 'hidden',
-      transition: 'all 0.2s ease-in-out'
+      transition: 'box-shadow 0.2s ease-in-out'
     }}>
-      {/* Modern Card Header */}
-      <div className="card-header bg-white border-0 p-0">
+      {/* Card Header - EventHeader handles its own padding */}
+      <div className="bg-white border-0">
         <EventHeader
           title={headerTitle}
           subtitle={headerSubtitle}

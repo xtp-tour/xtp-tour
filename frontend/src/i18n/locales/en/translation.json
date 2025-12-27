@@ -207,6 +207,9 @@
     "training1on1": "Training 1 on 1",
     "unorthodoxMatch": "Unorthodox Match"
   },
+  "event": {
+    "lookingFor": "Looking for"
+  },
   "host": {
     "label": "Host:",
     "unknown": "Unknown Host",

@@ -215,6 +215,9 @@
     "training1on1": "Тренировка 1 на 1",
     "unorthodoxMatch": "Нестандартный матч"
   },
+  "event": {
+    "lookingFor": "Ищу"
+  },
   "host": {
     "label": "Организатор:",
     "unknown": "Неизвестный организатор",

@@ -27,6 +27,10 @@
   --tennis-danger: #DC3545;     /* Red for errors/cancel */
   --tennis-warning: #FFC107;    /* Amber for warnings */
 
+  /* Zone Spacing */
+  --zone-padding-mobile: 0.875rem;
+  --zone-padding-desktop: 1rem;
+
   /* Legacy Support - Point old variables to navy tints */
   --tennis-accent: var(--navy-tint);     /* Now points to navy tint background */
   --tennis-blue: var(--navy-soft);       /* Navy soft for badge text */
@@ -172,6 +176,27 @@ a:hover {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   Zoned Card Layout - Mobile First
+   ======================================== */
+
+.zone-card {
+  padding: var(--zone-padding-mobile);
+}
+
+/* Zone divider */
+.zone-divider {
+  border-top: 1px solid var(--tennis-border);
+  margin: 0;
+}
+
+/* Desktop enhancements */
+@media (min-width: 768px) {
+  .zone-card {
+    padding: var(--zone-padding-desktop);
   }
 }
 
