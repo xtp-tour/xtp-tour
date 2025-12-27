@@ -74,17 +74,17 @@ func getDriver(dbConfig *pkg.DbConfig) database.Driver {
 	}
 	err = db.Ping()
 	if err != nil {
+		if strings.Contains(err.Error(), "Error 1049") { // Unknown database
+			createDbIfNotExist(dbConfig)
+			return getDriver(dbConfig)
+		}
+
 		slog.Error("Failed to ping database", "error", err)
 		os.Exit(1)
 	}
 
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
-		if strings.Contains(err.Error(), "Error 1049") { // Unknown database
-			createDbIfNotExist(dbConfig)
-			return getDriver(dbConfig)
-		}
-
 		slog.Error("Failed creating go-migrate driver", "error", err)
 		os.Exit(1)
 	}
