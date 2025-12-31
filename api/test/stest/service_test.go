@@ -790,6 +790,140 @@ func Test_ProfileAPI(t *testing.T) {
 	})
 }
 
+// Test private events functionality
+func Test_PrivateEventAPI(t *testing.T) {
+	// Use simple string user IDs (similar to Test_CancelJoinRequest)
+	user := "private-event-owner"
+	user2 := "private-event-joiner"
+
+	timeSlots := getRelativeTimeSlots()
+	var privateEventId string
+
+	// Create a private event
+	t.Run("CreatePrivateEvent", func(tt *testing.T) {
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
+				Locations:       []string{"matchpoint", "spartan-pultuska"},
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
+				ExpectedPlayers: 2,
+				SessionDuration: 60,
+				TimeSlots:       timeSlots,
+				Description:     "Private event - invite only",
+				Visibility:      api.EventVisibilityPrivate, // PRIVATE event
+			},
+		}
+
+		var response api.CreateEventResponse
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetBody(eventData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Event) {
+				privateEventId = response.Event.Id
+				assert.Equal(tt, api.EventVisibilityPrivate, response.Event.Visibility, "Event should be private")
+			}
+		}
+	})
+
+	t.Logf("Private Event ID: %s", privateEventId)
+
+	// Verify private event does NOT appear in public events list
+	t.Run("PrivateEventNotInPublicList", func(tt *testing.T) {
+		var response api.ListEventsResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/public")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			found := slices.ContainsFunc(response.Events, func(e *api.Event) bool {
+				return e.Id == privateEventId
+			})
+			assert.False(tt, found, "Private event should NOT appear in public events list")
+		}
+	})
+
+	// Verify private event CAN be accessed via direct link
+	t.Run("PrivateEventAccessibleViaDirectLink", func(tt *testing.T) {
+		var response api.GetEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/public/" + privateEventId)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Private event should be accessible via direct link. Response body: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Event) {
+				assert.Equal(tt, privateEventId, response.Event.Id)
+				assert.Equal(tt, api.EventVisibilityPrivate, response.Event.Visibility)
+			}
+		}
+	})
+
+	// Verify user can join private event via direct link
+	t.Run("JoinPrivateEvent", func(tt *testing.T) {
+		if privateEventId == "" {
+			assert.Fail(tt, "Event ID is not available")
+			return
+		}
+
+		joinRequestData := api.JoinRequestRequest{
+			JoinRequest: api.JoinRequestData{
+				Locations: []string{"matchpoint"},
+				TimeSlots: []string{timeSlots[0]},
+				Comment:   "Joining private event via link",
+			},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", user2).
+			SetBody(joinRequestData).
+			Post(tConfig.ServiceHost + "/api/events/public/" + privateEventId + "/joins")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Should be able to join private event. Response body: %s", string(r.Body()))
+		}
+	})
+
+	// Verify host can see private event in their events list
+	t.Run("HostCanSeePrivateEventInMyEvents", func(tt *testing.T) {
+		var response api.ListEventsResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			found := slices.ContainsFunc(response.Events, func(e *api.Event) bool {
+				return e.Id == privateEventId
+			})
+			assert.True(tt, found, "Host should see private event in their events list")
+		}
+	})
+
+	// Verify private event has join request from user2
+	t.Run("PrivateEventHasJoinRequest", func(tt *testing.T) {
+		var response api.GetEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", user).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/" + privateEventId)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Invalid status code. Response body: %s", string(r.Body()))
+			assert.Len(tt, response.Event.JoinRequests, 1, "Private event should have one join request")
+		}
+	})
+}
+
 func Test_CancelJoinRequest(t *testing.T) {
 	usrOwner := "join-event-owner"
 	usrJoiner := "join-event-joiner"

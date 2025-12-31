@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 type ApiEvent = components['schemas']['ApiEvent'];
 type ApiEventType = ApiEvent['eventType'];
 type ApiSkillLevel = ApiEvent['skillLevel'];
+type ApiVisibility = ApiEvent['visibility'];
 
 interface EventBadgesProps {
   skillLevel: ApiSkillLevel;
@@ -73,6 +74,26 @@ const EventTypeBadge: React.FC<{ eventType: ApiEventType }> = ({ eventType }) =>
     <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: 'var(--tennis-accent)', color: 'var(--tennis-navy)' }}>
       {getEventTypeLabel(eventType, t)}
     </span>
+  );
+};
+
+const PrivateBadge: React.FC<{ visibility: ApiVisibility }> = ({ visibility }) => {
+  const { t } = useTranslation();
+
+  if (visibility !== 'PRIVATE') {
+    return null;
+  }
+
+  return (
+    <OverlayTrigger
+      placement="top"
+      overlay={<Tooltip id="private-tooltip">{t('eventLabels.privateTooltip')}</Tooltip>}
+    >
+      <span className="badge" style={{ ...BADGE_STYLES, backgroundColor: '#6c757d', color: 'white' }}>
+        <i className="bi bi-lock-fill me-1"></i>
+        {t('eventLabels.private')}
+      </span>
+    </OverlayTrigger>
   );
 };
 
@@ -164,4 +185,4 @@ const EventBadges: React.FC<EventBadgesProps> = ({
 );
 
 export default EventBadges;
-export { LocationBadge, EventTypeBadge, RequestTypeBadge, SkillLevelBadge, DurationBadge };
+export { LocationBadge, EventTypeBadge, RequestTypeBadge, SkillLevelBadge, DurationBadge, PrivateBadge };

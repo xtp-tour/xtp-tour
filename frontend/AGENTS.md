@@ -121,6 +121,33 @@ src/
 - Email: "user2@example.com" Password: "biAShy=8&Q,%g~T"
 - Email: "test3@example.com" Password: "aZKymXAlzB1Cp8"
 
+## Event Features
+
+### Event Visibility
+Events support two visibility modes:
+- **PUBLIC**: Visible in the public events list, accessible to all users
+- **PRIVATE**: Not visible in public list, only accessible via direct link (share URL)
+
+Private events:
+- Do not appear in `/api/events/public` list response
+- Are accessible via `/api/events/public/{eventId}` direct link
+- Can be joined by anyone with the link
+- Show a "Private" badge indicator in the UI
+- Are visible to the host in "My Events" list
+
+### Join Request State Handling
+When a user joins an event, the UI tracks this via `joinRequests` on the event object:
+- **Already Joined**: Shows disabled green "Already Joined" button when user has a pending or accepted join request
+- **Join detection**: Uses `req.isRejected !== true` check (handles undefined/null/false values correctly)
+- **Rejected requests**: Users with rejected requests can re-join the event
+
+The join state check is implemented in both `PublicEventPage.tsx` and `PublicEventList.tsx`:
+```tsx
+const hasAlreadyJoined = event.joinRequests?.some(
+  req => req.userId === user?.id && req.isRejected !== true
+);
+```
+
 ## Common Patterns
 
 ### Adding New API Endpoints

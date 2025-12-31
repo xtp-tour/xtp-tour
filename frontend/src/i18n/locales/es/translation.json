@@ -94,6 +94,8 @@
       "ntrpLink": "¿Cuál es mi nivel NTRP? →",
       "opponentSkillLevel": "Nivel de Habilidad del Oponente",
       "preferredLocations": "Ubicaciones Preferidas",
+      "privateEvent": "Evento privado (solo con invitación)",
+      "privateEventTooltip": "Los eventos privados solo son accesibles mediante enlace directo y no aparecen en las listas públicas",
       "requestType": "Tipo de Solicitud",
       "sessionDuration": "Duración de la Sesión",
       "single": "Individual",
@@ -165,6 +167,8 @@
     "availableStartTimes": "Horarios de Inicio Disponibles",
     "description": "Descripción",
     "preferredLocations": "Ubicaciones Preferidas",
+    "private": "Privado",
+    "privateTooltip": "Este evento es privado y solo accesible mediante enlace directo",
     "selectedLocations": "Ubicaciones Seleccionadas",
     "startTimes": "Horarios de Inicio"
   },

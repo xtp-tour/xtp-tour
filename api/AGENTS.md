@@ -95,6 +95,31 @@ Service tests are in `test/stest/` and tagged with `//go:build servicetest`.
 - Helper functions: `createProfiles()` creates test users, `deleteProfiles()` cleans up
 - Tests use relative dates via `getRelativeDate(days, hour)` to avoid time-dependent failures
 
+## Event Features
+
+### Event Visibility
+Events support two visibility modes (`visibility` field):
+- `PUBLIC`: Event appears in public events list
+- `PRIVATE`: Event is hidden from public list but accessible via direct link
+
+**API Behavior**:
+- `GET /api/events/public` - Returns only PUBLIC events with OPEN status
+- `GET /api/events/public/{eventId}` - Returns any event (PUBLIC or PRIVATE) by ID
+- Private events can be joined via `/api/events/public/{eventId}/joins` endpoint
+- Host always sees their private events in `GET /api/events/` (my events list)
+
+**Use Cases**:
+- Private events for invite-only games (share link via WhatsApp, email, etc.)
+- Public events for open matchmaking
+
+### Join Request States
+Join requests track user participation with the following states:
+- `isAccepted: null/undefined` - Pending approval
+- `isAccepted: true` - Accepted by host (included in event confirmation)
+- `isRejected: true` - Rejected by host
+
+**Important**: New join requests have `isRejected` as `null`/`undefined`, not `false`. Frontend uses `isRejected !== true` check to detect active join requests.
+
 ## Important Patterns
 
 ### Error Handling

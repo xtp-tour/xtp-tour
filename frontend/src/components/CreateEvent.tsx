@@ -14,6 +14,7 @@ import GoogleCalendarConnector from './GoogleCalendarConnector';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
+type EventVisibility = components['schemas']['ApiEventData']['visibility'];
 type SingleDoubleType = 'SINGLE' | 'DOUBLES';
 
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
@@ -28,6 +29,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('INTERMEDIATE');
   const [selectedStartTimes, setSelectedStartTimes] = useState<string[]>([]);
   const [nightGame, setNightGame] = useState<boolean>(false);
+  const [isPrivate, setIsPrivate] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
 
@@ -189,6 +191,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setSelectedLocations([]);
     setSelectedStartTimes([]);
     setNightGame(false);
+    setIsPrivate(false);
     setSessionDuration('2');
     setSkillLevel('INTERMEDIATE');
     setInvitationType('MATCH');
@@ -304,6 +307,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
     try {
       // Use selected times directly - they're already in ISO format
+      const visibility: EventVisibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
       const request: CreateEventRequest = {
         event: {
           eventType: invitationType,
@@ -311,7 +315,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
           expectedPlayers: requestType === 'SINGLE' ? 2 : 4,
           sessionDuration: parseFloat(sessionDuration) * 60, // Convert hours to minutes
           skillLevel,
-          visibility: 'PUBLIC',
+          visibility,
           locations: selectedLocations,
           timeSlots: selectedStartTimes,
         }
@@ -649,6 +653,30 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   onChange={handleDescriptionChange}
                   placeholder={invitationType === 'TRAINING' ? t('createEvent.form.trainingPlaceholder') : t('createEvent.form.generalPlaceholder')}
                 />
+              </div>
+
+              <div className="mb-4">
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="privateEventSwitch"
+                    checked={isPrivate}
+                    onChange={(e) => setIsPrivate(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="privateEventSwitch">
+                    <i className="bi bi-lock me-1"></i>
+                    {t('createEvent.form.privateEvent')}
+                  </label>
+                  <span
+                    className="ms-2"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title={t('createEvent.form.privateEventTooltip')}
+                  >
+                    <i className="bi bi-info-circle text-muted"></i>
+                  </span>
+                </div>
               </div>
 
               <button type="submit" className="btn btn-primary w-100">

@@ -466,6 +466,22 @@ func (db *Db) GetPublicEvent(ctx context.Context, eventId string) (*api.Event, e
 	return events[0], nil
 }
 
+// GetEventById retrieves any event by ID regardless of visibility.
+// This is used for accessing events via direct link (both public and private).
+func (db *Db) GetEventById(ctx context.Context, eventId string) (*api.Event, error) {
+	logCtx := slog.With("method", "GetEventById", "eventId", eventId)
+	logCtx.Debug("Getting event by ID")
+
+	events, err := db.getEventsInternal(ctx, "event_id = ?", eventId)
+	if err != nil {
+		return nil, err
+	}
+	if len(events) == 0 {
+		return nil, nil
+	}
+	return events[0], nil
+}
+
 func (db *Db) DeleteEvent(ctx context.Context, userId string, eventId string) error {
 	logCtx := slog.With("method", "DeleteEvent", "userId", userId, "eventId", eventId)
 	logCtx.Debug("Deleting event")

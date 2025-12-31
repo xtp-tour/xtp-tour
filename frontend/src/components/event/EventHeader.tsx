@@ -9,6 +9,7 @@ import i18n from '../../i18n';
 import TimeAgo from 'react-timeago';
 import { getTimeAgoFormatter } from '../../utils/timeAgoFormatters';
 import { getStatusInfo, formatLocationsList, shouldShowExpirationTime } from '../../utils/eventStatusUtils';
+import { PrivateBadge } from './EventBadges';
 
 type ApiEvent = components['schemas']['ApiEvent'];
 
@@ -67,6 +68,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
                   }}>
               {statusInfo.text}
             </span>
+            {event.visibility && <PrivateBadge visibility={event.visibility} />}
           </div>
           <div className="flex-shrink-0 ms-2">
             {shareButton}

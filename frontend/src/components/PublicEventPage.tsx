@@ -5,7 +5,7 @@ import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
-import { SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
+import { SignedOut, SignInButton, useUser, useClerk } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ const PublicEventPage: React.FC = () => {
   const navigate = useNavigate();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
+  const { openSignIn } = useClerk();
   const [event, setEvent] = useState<ApiEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +102,7 @@ const PublicEventPage: React.FC = () => {
         icon: 'bi-person-plus',
         label: t('eventActions.signInToJoin'),
         onClick: () => {
-          // This will be handled by the SignInButton in the header
+          openSignIn();
         }
       };
     }
@@ -112,17 +113,28 @@ const PublicEventPage: React.FC = () => {
     // Check if event is open for joining
     const isEventOpen = event?.status === 'OPEN';
 
-    // Check if user has already joined the event (only count explicitly accepted requests)
+    // Check if user has already joined the event (pending or accepted requests - not rejected)
     const hasAlreadyJoined = event?.joinRequests?.some(
-      req => req.userId === user?.id && req.isRejected === false
+      req => req.userId === user?.id && req.isRejected !== true
     );
 
-    // Hide button if user owns the event, event is not open, or user has already joined
-    if (isOwner || !isEventOpen || hasAlreadyJoined) {
+    // Show "Already Joined" indicator if user has joined
+    if (hasAlreadyJoined) {
+      return {
+        variant: 'outline-success',
+        icon: 'bi-check-circle-fill',
+        label: t('eventActions.alreadyJoined'),
+        onClick: () => {},
+        disabled: true
+      };
+    }
+
+    // Hide button if user owns the event or event is not open
+    if (isOwner || !isEventOpen) {
       return {
         variant: 'outline-primary',
         icon: 'bi-plus-circle',
-        label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
+        label: t('eventActions.join'),
         onClick: () => {},
         hidden: true
       };
@@ -153,14 +165,14 @@ const PublicEventPage: React.FC = () => {
                 <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>
                   Tennis Event
                 </h1>
-                <p className="text-muted mb-0">
+                <div className="text-muted mb-0">
                   <HostDisplay
                     userId={event.userId || ''}
                     fallback={t('host.unknownUser')}
                     showAsPlainText={!isSignedIn}
                     className="text-muted"
                   />
-                </p>
+                </div>
               </div>
             </div>
             <div>

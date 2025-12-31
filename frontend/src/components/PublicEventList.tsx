@@ -6,7 +6,7 @@ import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import Toast from './Toast';
 import ShareEventModal from './ShareEventModal';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import ShareButton from './ShareButton';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
   const { t } = useTranslation();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
+  const { openSignIn } = useClerk();
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
           icon: 'bi-person-plus',
           label: t('eventActions.signInToJoin'),
           onClick: () => {
-            // This will be handled by the SignInButton in the header
+            openSignIn();
           }
         };
       }
@@ -120,17 +121,28 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
       // Check if event is open for joining
       const isEventOpen = event.status === 'OPEN';
 
-      // Check if user has already joined the event (only count explicitly accepted requests)
+      // Check if user has already joined the event (pending or accepted requests - not rejected)
       const hasAlreadyJoined = event.joinRequests?.some(
-        req => req.userId === user?.id && req.isRejected === false
+        req => req.userId === user?.id && req.isRejected !== true
       );
 
-      // Hide button if user owns the event, event is not open, or user has already joined
-      if (isOwner || !isEventOpen || hasAlreadyJoined) {
+      // Show "Already Joined" indicator if user has joined
+      if (hasAlreadyJoined) {
+        return {
+          variant: 'outline-success',
+          icon: 'bi-check-circle-fill',
+          label: t('eventActions.alreadyJoined'),
+          onClick: () => {},
+          disabled: true
+        };
+      }
+
+      // Hide button if user owns the event or event is not open
+      if (isOwner || !isEventOpen) {
         return {
           variant: 'outline-primary',
           icon: 'bi-plus-circle',
-          label: hasAlreadyJoined ? t('eventActions.alreadyJoined') : t('eventActions.join'),
+          label: t('eventActions.join'),
           onClick: () => {},
           hidden: true
         };

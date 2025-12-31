@@ -404,12 +404,20 @@ func (r *Router) getMyEventHandler(c *gin.Context, req *api.GetEventRequest) (*a
 func (r *Router) getPublicEventHandler(c *gin.Context, req *api.GetEventRequest) (*api.GetEventResponse, error) {
 	logCtx := slog.With("eventId", req.EventId)
 
-	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
+	// Use GetEventById to allow accessing both public and private events via direct link
+	event, err := r.db.GetEventById(context.Background(), req.EventId)
 	if err != nil {
-		logCtx.Error("Failed to get public event", "error", err)
+		logCtx.Error("Failed to get event", "error", err)
 		return nil, HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
+		}
+	}
+
+	if event == nil {
+		return nil, HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
 		}
 	}
 
@@ -527,7 +535,8 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 
 	logCtx := slog.With("userId", userId, "eventId", req.EventId, "joinRequestId", req.JoinRequestId)
 
-	event, err := r.db.GetPublicEvent(context.Background(), req.EventId)
+	// Use GetEventById to allow canceling join requests on both public and private events
+	event, err := r.db.GetEventById(context.Background(), req.EventId)
 	if err != nil {
 		if _, ok := err.(db.DbObjectNotFoundError); ok {
 			return HttpError{
@@ -536,10 +545,17 @@ func (r *Router) cancelJoinRequest(c *gin.Context, req *api.CancelJoinRequestReq
 			}
 		}
 
-		logCtx.Error("Failed to get public event for cancel join request", "error", err)
+		logCtx.Error("Failed to get event for cancel join request", "error", err)
 		return HttpError{
 			HttpCode: http.StatusInternalServerError,
 			Message:  "Failed to get event",
+		}
+	}
+
+	if event == nil {
+		return HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
 		}
 	}
 
