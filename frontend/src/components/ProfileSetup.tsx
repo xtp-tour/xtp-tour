@@ -7,6 +7,8 @@ import { useAPI } from '../services/apiProvider';
 
 interface ProfileSetupProps {
   onComplete: () => void;
+  /** When false, skip the initial loading state (used when we already know profile is incomplete) */
+  showLoadingState?: boolean;
 }
 
 interface APIError {
@@ -16,7 +18,7 @@ interface APIError {
 
 // NTRP levels will be defined with i18n support inside the component
 
-export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
+export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, showLoadingState = true }) => {
   const { t, i18n } = useTranslation();
   const { user } = useUser();
   const api = useAPI();
@@ -29,7 +31,8 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+  // Skip initial loading if showLoadingState is false (we already know profile is incomplete)
+  const [initialLoading, setInitialLoading] = useState(showLoadingState);
   const [profileExists, setProfileExists] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 

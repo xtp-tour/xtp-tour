@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import { Dropdown } from 'react-bootstrap';
+import { clearProfileCache } from '../hooks/useProfileStatus';
 
 const UserMenu: React.FC = () => {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ const UserMenu: React.FC = () => {
   };
 
   const handleSignOut = async () => {
+    clearProfileCache();
     await signOut();
     setIsOpen(false);
   };

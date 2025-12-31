@@ -43,7 +43,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({
     ? [event.confirmation.location]
     : event.locations || [];
 
-  const { display: locationDisplay, overflow: locationOverflow } = formatLocationsList(locationsToShow, 5);
+  const { overflow: locationOverflow } = formatLocationsList(locationsToShow, 5);
 
   return (
     <div className="zone-card">

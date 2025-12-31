@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
 import logoImage from './assets/xtp-tour-logo.png';
+import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -105,11 +106,18 @@ const Layout = ({ children, showLanguageSwitcherInFooter = false }: { children: 
 };
 
 const AuthenticatedContent = () => {
-  const [profileComplete, setProfileComplete] = useState(false);
+  const { isComplete, isLoading } = useProfileStatus();
   const eventListRef = useRef<EventListRef>(null);
 
-  if (!profileComplete) {
-    return <ProfileSetup onComplete={() => setProfileComplete(true)} />;
+  // Show loading only for first-time users (no cache)
+  // Returning users skip this due to optimistic rendering
+  if (isLoading) {
+    return <ProfileSetup onComplete={() => markProfileComplete()} />;
+  }
+
+  // Show profile setup if profile is incomplete
+  if (!isComplete) {
+    return <ProfileSetup onComplete={() => markProfileComplete()} showLoadingState={false} />;
   }
 
   return (
