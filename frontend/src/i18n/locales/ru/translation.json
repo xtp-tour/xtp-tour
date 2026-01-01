@@ -157,6 +157,9 @@
     "somethingWentWrong": "Что-то пошло не так",
     "tryRefreshing": "Попробуйте обновить страницу."
   },
+  "event": {
+    "lookingFor": "Ищу"
+  },
   "eventActions": {
     "alreadyJoined": "Уже участвуете",
     "cancel": "Отменить",
@@ -218,9 +221,6 @@
     "training": "Тренировка",
     "training1on1": "Тренировка 1 на 1",
     "unorthodoxMatch": "Нестандартный матч"
-  },
-  "event": {
-    "lookingFor": "Ищу"
   },
   "host": {
     "label": "Организатор:",
