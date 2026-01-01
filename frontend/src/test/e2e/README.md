@@ -77,7 +77,7 @@ Tests are configured in `playwright.config.ts`:
 - **Test directory**: `src/test/e2e/`
 - **Parallel execution**: Enabled (disabled in CI)
 - **Retries**: 2 in CI, 0 locally
-- **Browsers**: Chromium, Firefox, WebKit
+- **Browsers**: Chromium, Firefox (WebKit disabled by default, enable in `playwright.config.ts`)
 
 ## Test Structure
 
@@ -86,19 +86,52 @@ Tests are configured in `playwright.config.ts`:
 Contains three test suites:
 
 1. **Frontend Event Flow Test**
-   - `Complete event flow with existing users` (skipped) - Full flow with user switching
+   - `Complete event flow with existing users` (skipped) - Full multi-user flow requiring working backend with profiles
    - `Basic app loads correctly` - Verifies app loads without errors
    - `Frontend UI elements are accessible` - Checks main buttons and elements
 
 2. **Private Events Feature**
    - `Public event page shows event details` - Verifies public events page structure
-   - `Direct event link page loads correctly` - Tests `/event/:eventId` route
+   - `Direct event link page loads correctly` - Tests `/event/:eventId` route handles invalid IDs
    - `Private event badge indicator renders correctly` - Checks badge support
 
 3. **Already Joined State**
    - `Join button states are properly styled` - Verifies Bootstrap button styles
    - `Sign in to join button is visible for unauthenticated users` - Auth flow check
-   - `Already Joined indicator shows after joining event` (skipped) - Full join flow
+   - `Already Joined indicator shows after joining event` - Clerk auth flow with join verification
+
+## Skipped Tests
+
+The `Complete event flow with existing users` test is skipped by default because it requires:
+- A fully functional backend API (no 500 errors)
+- Test users with existing profiles already created
+- Fresh database state (no existing join requests that could conflict)
+- Backend running with `AUTH_TYPE=clerk`
+- Properly functioning event creation form
+
+This test is complex and performs multiple user sign-in/sign-out cycles with Clerk authentication. To run it manually:
+
+1. Ensure backend is running: `AUTH_TYPE=clerk air`
+2. Ensure frontend is running: `pnpm dev`
+3. Consider clearing test data to avoid "Already Joined" state conflicts
+4. Run: `TEST_BASE_URL=http://localhost:5173 pnpm exec playwright test -g "Complete event flow"`
+
+## Enabling WebKit (Safari)
+
+WebKit is disabled by default. To enable it:
+
+1. Install WebKit browser:
+   ```bash
+   pnpm exec playwright install webkit
+   ```
+
+2. Uncomment the webkit project in `playwright.config.ts`:
+   ```typescript
+   {
+     name: 'webkit',
+     use: { ...devices['Desktop Safari'] },
+   },
+   ```
 
 ## Test Users
 
