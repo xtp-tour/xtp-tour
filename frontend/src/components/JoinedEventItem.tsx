@@ -10,13 +10,16 @@ import ShareButton from './ShareButton';
 import ShareEventModal from './ShareEventModal';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
+import { getDebugAuthToken } from '../auth/debugAuth';
 
 interface Props {
   event: ApiEvent;
   onCancelled?: () => void;
 }
 
-const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
+const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+const JoinedEventItemClerk: React.FC<Props> = ({ event, onCancelled }) => {
   const { t } = useTranslation();
   const api = useAPI();
   const { user } = useUser();
@@ -243,6 +246,224 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
       />
     </>
   );
+};
+
+const JoinedEventItemNoClerk: React.FC<Props> = ({ event, onCancelled }) => {
+  const { t } = useTranslation();
+  const api = useAPI();
+  const userId = getDebugAuthToken();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userJoinRequest, setUserJoinRequest] = useState<ApiJoinRequest | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  useEffect(() => {
+    if (event.joinRequests?.length && userId) {
+      const foundRequest = event.joinRequests.find(req =>
+        req.userId === userId
+      );
+      setUserJoinRequest(foundRequest || null);
+    }
+  }, [event, userId]);
+
+  const handleCancel = async () => {
+    if (!userJoinRequest?.id) {
+      setError(t('joinModal.failedToJoin'));
+      return;
+    }
+
+    try {
+      setCancelling(true);
+      setError(null);
+      await api.cancelJoinRequest(event.id || '', userJoinRequest.id);
+      setShowConfirmModal(false);
+      onCancelled?.();
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError(t('joinModal.failedToJoin'));
+      }
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const getColorClasses = () => {
+    if (event.status === 'CONFIRMED') {
+      return {
+        colorClass: 'text-success',
+        borderColorClass: 'border-success'
+      };
+    }
+    if (event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
+      return {
+        colorClass: 'text-secondary',
+        borderColorClass: 'border-secondary'
+      };
+    }
+    return {
+      colorClass: 'text-primary',
+      borderColorClass: 'border-primary'
+    };
+  };
+
+  const isTimeSlotAvailable = event.status === 'OPEN' || event.status === 'ACCEPTED';
+
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot => {
+    const isUserSelected = userJoinRequest?.timeSlots?.includes(slot);
+    return timeSlotFromDateAndConfirmation(
+      slot,
+      event.confirmation,
+      isTimeSlotAvailable,
+      isUserSelected
+    );
+  });
+
+  const userSelectedLocations = userJoinRequest?.locations || [];
+  const { colorClass } = getColorClasses();
+
+  const getJoinRequestStatus = () => {
+    if (!userJoinRequest) return { text: '', variant: 'text-bg-secondary' };
+
+    if (userJoinRequest.isRejected === true) {
+      return { text: t('joinRequests.rejected'), variant: 'text-bg-danger' };
+    } else if (userJoinRequest.isRejected === false) {
+      return { text: t('joinRequests.accepted'), variant: 'text-bg-success' };
+    } else {
+      return { text: t('joinRequests.waiting'), variant: 'bg-light text-secondary border' };
+    }
+  };
+
+  const joinRequestStatus = getJoinRequestStatus();
+
+  const getActionButtonStatus = () => {
+    if (event.status === 'CONFIRMED' || event.status === 'COMPLETED' || event.status === 'CANCELLED' || event.status === 'RESERVATION_FAILED' || event.status === 'EXPIRED') {
+      return null;
+    }
+    return joinRequestStatus;
+  };
+
+  const actionButtonStatus = getActionButtonStatus();
+
+  const getActionButton = () => {
+    if (event.status === 'CONFIRMED' || event.status === 'EXPIRED') {
+      return {
+        variant: 'outline-secondary',
+        icon: event.status === 'CONFIRMED' ? 'bi-check-circle-fill' : 'bi-clock-history',
+        label: event.status === 'CONFIRMED' ? t('eventActions.confirmed') : t('eventStatus.expired'),
+        onClick: () => {},
+        disabled: true,
+        hidden: true
+      };
+    }
+
+    return {
+      variant: 'outline-danger',
+      icon: 'bi-x-circle',
+      label: t('eventActions.cancel'),
+      onClick: () => setShowConfirmModal(true),
+      disabled: cancelling || event.status !== 'OPEN',
+      statusBadge: actionButtonStatus ? {
+        text: actionButtonStatus.text,
+        variant: actionButtonStatus.variant
+      } : undefined
+    };
+  };
+
+  const getShareButton = () => {
+    const handleShareEvent = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setShowShareModal(true);
+    };
+    return <ShareButton onClick={handleShareEvent} />;
+  };
+
+  return (
+    <>
+      <BaseEventItem
+        event={event}
+        headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
+        headerSubtitle={
+          <HostDisplay userId={event.userId || ''} fallback={t('host.unknown')} />
+        }
+        colorClass={colorClass}
+        timeSlots={timeSlots}
+        userSelectedLocations={userSelectedLocations}
+        actionButton={getActionButton()}
+        shareButton={getShareButton()}
+        defaultCollapsed={true}
+      />
+
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fs-5">
+            <i className="bi bi-exclamation-triangle text-danger me-2"></i>
+            Cancel Game Session
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-2">
+          <p>Are you sure you want to cancel your participation in this game session?</p>
+          <p className="text-muted mb-0">
+            <i className="bi bi-info-circle me-2"></i>
+            The host will be notified about your cancellation.
+          </p>
+          {error && (
+            <div className="alert alert-danger mt-3 mb-0" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowConfirmModal(false)}
+            disabled={cancelling}
+          >
+            Keep Participation
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={handleCancel}
+            disabled={cancelling}
+          >
+            {cancelling ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Cancelling...
+              </>
+            ) : (
+              t('eventActions.cancelParticipation')
+            )}
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      <Toast
+        message={t('share.eventLinkCopied')}
+        show={showToast}
+        onHide={() => setShowToast(false)}
+        type="success"
+      />
+
+      <ShareEventModal
+        show={showShareModal}
+        onHide={() => setShowShareModal(false)}
+        eventId={event.id || ''}
+        onShared={() => setShowToast(true)}
+      />
+    </>
+  );
+};
+
+const JoinedEventItem: React.FC<Props> = (props) => {
+  return isClerkAvailable ? <JoinedEventItemClerk {...props} /> : <JoinedEventItemNoClerk {...props} />;
 };
 
 export default JoinedEventItem;

@@ -16,6 +16,7 @@ import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
+import { getDebugAuthToken, isDebugAuthEnabled } from './auth/debugAuth';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -131,6 +132,9 @@ const AuthenticatedContent = () => {
 };
 
 const AppRoutes = () => {
+  const debugToken = getDebugAuthToken();
+  const isDebugSignedIn = isDebugAuthEnabled && !!debugToken;
+
   return (
     <Routes>
       <Route path="/" element={
@@ -147,6 +151,10 @@ const AppRoutes = () => {
               </Layout>
             </SignedOut>
           </>
+        ) : isDebugSignedIn ? (
+          <Layout>
+            <AuthenticatedContent />
+          </Layout>
         ) : (
           <Layout showLanguageSwitcherInFooter={true}>
             <LandingPage />
@@ -154,14 +162,18 @@ const AppRoutes = () => {
         )
       } />
       <Route path="/profile" element={
-        <Layout>
-          <SignedIn>
-            <UserProfile />
-          </SignedIn>
-          <SignedOut>
-            <Navigate to="/" replace />
-          </SignedOut>
-        </Layout>
+        isClerkAvailable ? (
+          <Layout>
+            <SignedIn>
+              <UserProfile />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/" replace />
+            </SignedOut>
+          </Layout>
+        ) : (
+          <Navigate to="/" replace />
+        )
       } />
       <Route path="/event/:eventId" element={<PublicEventPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

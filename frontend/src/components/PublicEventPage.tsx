@@ -9,8 +9,11 @@ import { SignedOut, SignInButton, useUser, useClerk } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
+import { getDebugAuthToken } from '../auth/debugAuth';
 
-const PublicEventPage: React.FC = () => {
+const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+const PublicEventPageClerk: React.FC = () => {
   const { t } = useTranslation();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -303,6 +306,245 @@ const PublicEventPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const PublicEventPageNoClerk: React.FC = () => {
+  const { t } = useTranslation();
+  const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
+  const api = useAPI();
+  const debugToken = getDebugAuthToken();
+  const isSignedIn = !!debugToken;
+  const userId = debugToken;
+
+  const [event, setEvent] = useState<ApiEvent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const loadEvent = useCallback(async () => {
+    if (!eventId) return;
+
+    try {
+      setLoading(true);
+      const eventData = await api.getPublicEvent(eventId);
+      setEvent(eventData);
+    } catch {
+      setError(t('publicEvent.noLongerAvailable'));
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, api, t]);
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent();
+    }
+  }, [eventId, loadEvent]);
+
+  const handleJoinEvent = () => {
+    setShowJoinModal(true);
+  };
+
+  const handleJoined = () => {
+    setShowJoinModal(false);
+    loadEvent();
+  };
+
+  const handleBackToList = () => {
+    navigate('/');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-vh-100 bg-light">
+        <div className="container py-4">
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-vh-100 bg-light">
+        <div className="container py-4">
+          <div className="text-center">
+            <i className="bi bi-exclamation-triangle fs-1 text-warning mb-3"></i>
+            <h3>Event Not Found</h3>
+            <p className="text-muted">{error || t('publicEvent.notFound')}</p>
+            <button className="btn btn-primary" onClick={handleBackToList}>
+              <i className="bi bi-arrow-left me-2"></i>
+              Back to Events
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const timeSlots: TimeSlot[] = event.timeSlots.map(slot =>
+    timeSlotFromDateAndConfirmation(slot, event.confirmation, true)
+  );
+
+  const getActionButton = () => {
+    if (!isSignedIn) {
+      return {
+        variant: 'outline-secondary',
+        icon: 'bi-person-plus',
+        label: t('eventActions.signInToJoin'),
+        onClick: () => {},
+        disabled: true
+      };
+    }
+
+    const isOwner = userId === event?.userId;
+    const isEventOpen = event?.status === 'OPEN';
+    const hasAlreadyJoined = event?.joinRequests?.some(
+      req => req.userId === userId && req.isRejected !== true
+    );
+
+    if (hasAlreadyJoined) {
+      return {
+        variant: 'outline-success',
+        icon: 'bi-check-circle-fill',
+        label: t('eventActions.alreadyJoined'),
+        onClick: () => {},
+        disabled: true
+      };
+    }
+
+    if (isOwner || !isEventOpen) {
+      return {
+        variant: 'outline-primary',
+        icon: 'bi-plus-circle',
+        label: t('eventActions.join'),
+        onClick: () => {},
+        hidden: true
+      };
+    }
+
+    return {
+      variant: 'outline-primary',
+      icon: 'bi-plus-circle',
+      label: t('eventActions.join'),
+      onClick: handleJoinEvent
+    };
+  };
+
+  return (
+    <div className="min-vh-100 bg-light">
+      <div className="container py-4">
+        <header className="pb-3 mb-4 border-bottom">
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <button
+                className="btn btn-outline-secondary me-3"
+                onClick={handleBackToList}
+                style={{ minWidth: 'auto' }}
+              >
+                <i className="bi bi-arrow-left"></i>
+              </button>
+              <div>
+                <h1 className="h2 mb-0" style={{ color: 'var(--tennis-navy)' }}>
+                  Tennis Event
+                </h1>
+                <div className="text-muted mb-0">
+                  <HostDisplay
+                    userId={event.userId || ''}
+                    fallback={t('host.unknownUser')}
+                    showAsPlainText={!isSignedIn}
+                    className="text-muted"
+                  />
+                </div>
+              </div>
+            </div>
+            {!isSignedIn && (
+              <div>
+                <button className="btn btn-primary" disabled title={t('auth.comingSoon')}>
+                  <i className="bi bi-person-plus me-2"></i>
+                  Sign in to Join
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main>
+          <div className="row justify-content-center">
+            <div className="col-lg-8">
+              <BaseEventItem
+                event={event}
+                headerTitle={getEventTitle(event.eventType, event.expectedPlayers, t)}
+                headerSubtitle={
+                  <HostDisplay
+                    userId={event.userId || ''}
+                    fallback={t('host.unknownUser')}
+                    showAsPlainText={!isSignedIn}
+                  />
+                }
+                colorClass="text-primary"
+                timeSlots={timeSlots}
+                actionButton={getActionButton()}
+                defaultCollapsed={false}
+              />
+
+              <div className="mt-4 p-3 bg-white rounded border">
+                <h5>Share this event</h5>
+                <p className="text-muted mb-3">
+                  Share this link with friends to invite them to join this tennis event!
+                </p>
+                <div className="input-group mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={window.location.href}
+                    readOnly
+                  />
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      setShowToast(true);
+                    }}
+                  >
+                    <i className="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {event.id && isSignedIn && (
+          <JoinEventModal
+            eventId={event.id}
+            userId={event.userId || ''}
+            show={showJoinModal}
+            onHide={() => setShowJoinModal(false)}
+            onJoined={handleJoined}
+          />
+        )}
+
+        <Toast
+          message={t('share.linkCopied')}
+          show={showToast}
+          onHide={() => setShowToast(false)}
+          type="success"
+        />
+      </div>
+    </div>
+  );
+};
+
+const PublicEventPage: React.FC = () => {
+  return isClerkAvailable ? <PublicEventPageClerk /> : <PublicEventPageNoClerk />;
 };
 
 export default PublicEventPage;

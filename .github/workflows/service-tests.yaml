@@ -113,6 +113,9 @@ jobs:
 
       - name: Start frontend server in background
         working-directory: ./frontend
+        env:
+          VITE_API_BASE_URL: http://localhost:58080
+          VITE_DEBUG_AUTH_ENABLED: "true"
         run: |
           pnpm dev &
           FRONTEND_PID=$!
@@ -136,8 +139,7 @@ jobs:
         working-directory: ./frontend
         env:
           TEST_BASE_URL: http://localhost:5173
-          TEST_API_BASE_URL: http://localhost:58080
-        run: pnpm exec playwright test --project=chromium
+        run: pnpm exec playwright test --project=chromium src/test/e2e/frontend-event-flow.debug-auth.spec.ts
 
       - name: Cleanup processes
         if: always()

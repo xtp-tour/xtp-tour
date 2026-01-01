@@ -32,7 +32,7 @@ const testUsers = {
 };
 
 
-test.describe('Frontend Event Flow Test', () => {
+test.describe.skip('Frontend Event Flow Test (legacy - split into Clerk vs debug-auth suites)', () => {
   let config: TestConfig;
 
   test.beforeAll(async () => {
@@ -679,7 +679,7 @@ test.describe('Frontend Event Flow Test', () => {
  * 3. Users can join private events via direct link
  * 4. Private events show "Private" badge indicator
  */
-test.describe('Private Events Feature', () => {
+test.describe.skip('Private Events Feature (legacy - split into Clerk vs debug-auth suites)', () => {
   let config: TestConfig;
 
   test.beforeAll(async () => {
@@ -761,7 +761,7 @@ test.describe('Private Events Feature', () => {
  * 2. User cannot join the same event twice
  * 3. Rejected requests allow re-joining
  */
-test.describe('Already Joined State', () => {
+test.describe.skip('Already Joined State (legacy - split into Clerk vs debug-auth suites)', () => {
   let config: TestConfig;
 
   test.beforeAll(async () => {

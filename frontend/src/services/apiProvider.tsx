@@ -4,6 +4,7 @@ import { components } from '../types/schema';
 import { MockAPIClient } from './mockApi';
 import { RealAPIClient } from './realApi';
 import { APIClient, APIConfig } from '../types/api';
+import { getDebugAuthToken, isDebugAuthEnabled } from '../auth/debugAuth';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -82,10 +83,32 @@ function APIProviderFallback({ children, baseUrl = '' }: { children: ReactNode; 
   );
 }
 
+// Provider for debug auth mode (no Clerk, real backend)
+function APIProviderDebugAuth({ children, baseUrl = '' }: { children: ReactNode; baseUrl?: string }) {
+  const client = useMemo(() => {
+    const config: APIConfig = {
+      baseUrl,
+      async getAuthToken() {
+        return getDebugAuthToken();
+      }
+    };
+    return new RealAPIClient(config);
+  }, [baseUrl]);
+
+  return (
+    <APIContext.Provider value={client}>
+      {children}
+    </APIContext.Provider>
+  );
+}
+
 // Main exported provider
 export function APIProvider({ children, useMock = true, baseUrl = '' }: APIProviderProps) {
-  // If Clerk is not available, always use mock
   if (!isClerkAvailable) {
+    // In debug-auth mode we want to use the real backend even without Clerk
+    if (isDebugAuthEnabled) {
+      return <APIProviderDebugAuth baseUrl={baseUrl}>{children}</APIProviderDebugAuth>;
+    }
     return <APIProviderFallback baseUrl={baseUrl}>{children}</APIProviderFallback>;
   }
 
