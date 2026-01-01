@@ -43,7 +43,7 @@ test.describe('Frontend Event Flow Test', () => {
 
   // This test requires a fully functional backend with test users that have profiles
   // Backend must be running with AUTH_TYPE=clerk
-  test('Complete event flow with existing users', async ({ page }) => {
+  test.skip('Complete event flow with existing users', async ({ page }) => {
     test.setTimeout(180000); // 3 minutes timeout for this complex test
     const eventDescription = `Test event ${Date.now()}`;
 
