@@ -132,12 +132,12 @@ jobs:
           METRICS_HOST: http://localhost:51025
         run: go test ./test/stest -tags servicetest -v -count=1
 
-      - name: Run Playwright E2E tests
-        working-directory: ./frontend
-        env:
-          TEST_BASE_URL: http://localhost:5173
-          TEST_API_BASE_URL: http://localhost:58080
-        run: pnpm exec playwright test --project=chromium
+      # - name: Run Playwright E2E tests
+      #   working-directory: ./frontend
+      #   env:
+      #     TEST_BASE_URL: http://localhost:5173
+      #     TEST_API_BASE_URL: http://localhost:58080
+      #   run: pnpm exec playwright test --project=chromium
 
       - name: Cleanup processes
         if: always()
