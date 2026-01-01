@@ -151,6 +151,9 @@
     "somethingWentWrong": "Something went wrong",
     "tryRefreshing": "Please try refreshing the page."
   },
+  "event": {
+    "lookingFor": "Looking for"
+  },
   "eventActions": {
     "alreadyJoined": "Already Joined",
     "cancel": "Cancel",
@@ -210,9 +213,6 @@
     "training": "Training",
     "training1on1": "Training 1 on 1",
     "unorthodoxMatch": "Unorthodox Match"
-  },
-  "event": {
-    "lookingFor": "Looking for"
   },
   "host": {
     "label": "Host:",

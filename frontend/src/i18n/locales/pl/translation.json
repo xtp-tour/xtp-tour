@@ -157,6 +157,9 @@
     "somethingWentWrong": "Coś poszło nie tak",
     "tryRefreshing": "Spróbuj odświeżyć stronę."
   },
+  "event": {
+    "lookingFor": "Szukam"
+  },
   "eventActions": {
     "alreadyJoined": "Już Dołączyłeś",
     "cancel": "Anuluj",
@@ -218,9 +221,6 @@
     "training": "Trening",
     "training1on1": "Trening 1 na 1",
     "unorthodoxMatch": "Mecz Niekonwencjonalny"
-  },
-  "event": {
-    "lookingFor": "Szukam"
   },
   "host": {
     "label": "Gospodarz:",
