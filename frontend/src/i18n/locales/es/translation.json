@@ -154,6 +154,9 @@
     "somethingWentWrong": "Algo salió mal",
     "tryRefreshing": "Por favor intenta actualizar la página."
   },
+  "event": {
+    "lookingFor": "Buscando"
+  },
   "eventActions": {
     "alreadyJoined": "Ya Unido",
     "cancel": "Cancelar",
@@ -214,9 +217,6 @@
     "training": "Entrenamiento",
     "training1on1": "Entrenamiento 1 a 1",
     "unorthodoxMatch": "Partido No Convencional"
-  },
-  "event": {
-    "lookingFor": "Buscando"
   },
   "host": {
     "label": "Anfitrión:",
