@@ -21,6 +21,8 @@ const (
 	TopicUserJoined = "user_joined"
 )
 
+// Template types are defined in types.go for universal use across all channels
+
 // Notifier have list of methods to schedule notifications on notification queue
 type Notifier struct {
 	db    NotifierDb
@@ -83,8 +85,9 @@ func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinReque
 	}
 
 	for userId, prefs := range notifPrefs {
+		isHost := prefs.IsHost == 1
 		msg := ""
-		if prefs.IsHost == 1 {
+		if isHost {
 			msg = fmt.Sprintf("Hello %s, you succefully confirmed the session on %s at %s. We notified %s about place and time of the event. Have a great time!", hostName,
 				dateTime, facilityName, strings.Join(confirmedUsers, ", "))
 
@@ -94,8 +97,18 @@ func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinReque
 		}
 
 		notificationData := db.NotificationQueueData{
-			Topic:   "You have a training session scheduled",
-			Message: msg,
+			Topic:        "You have a training session scheduled",
+			Message:      msg,
+			TemplateType: TemplateEventConfirmed,
+			TemplateData: map[string]interface{}{
+				TemplateDataKeys.RecipientName:    userNames[userId],
+				TemplateDataKeys.IsHost:           isHost,
+				TemplateDataKeys.HostName:         hostName,
+				TemplateDataKeys.DateTime:         dateTime,
+				TemplateDataKeys.Location:         facilityName,
+				TemplateDataKeys.ConfirmedPlayers: confirmedUsers,
+				TemplateDataKeys.EventId:          eventId,
+			},
 		}
 
 		err := d.queue.Enqueue(ctx, userId, notificationData)
@@ -132,6 +145,11 @@ func (d *Notifier) UserJoined(log slog.Logger, userId string, joinRequest api.Jo
 		joiningUserName = "A user"
 	}
 
+	hostName := userNames[eventOwnerId]
+	if hostName == "" {
+		hostName = "there"
+	}
+
 	// Create notification message for event owner
 	msg := fmt.Sprintf("Hello! %s has requested to join your event.", joiningUserName)
 	if joinRequest.Comment != "" {
@@ -139,8 +157,15 @@ func (d *Notifier) UserJoined(log slog.Logger, userId string, joinRequest api.Jo
 	}
 
 	notificationData := db.NotificationQueueData{
-		Topic:   "New Join Request",
-		Message: msg,
+		Topic:        "New Join Request",
+		Message:      msg,
+		TemplateType: TemplateUserJoined,
+		TemplateData: map[string]interface{}{
+			TemplateDataKeys.HostName:    hostName,
+			TemplateDataKeys.JoiningUser: joiningUserName,
+			TemplateDataKeys.Comment:     joinRequest.Comment,
+			TemplateDataKeys.EventId:     joinRequest.EventId,
+		},
 	}
 
 	// Enqueue notification for event owner
@@ -159,8 +184,13 @@ func (d *Notifier) EventExpired(userId string, eventId string) {
 	logCtx := slog.With("userId", userId, "eventId", eventId)
 
 	notificationData := db.NotificationQueueData{
-		Topic:   "Event Expired",
-		Message: "Your event has expired without any participants joining. You can create a new event whenever you're ready to play again.",
+		Topic:        "Event Expired",
+		Message:      "Your event has expired without any participants joining. You can create a new event whenever you're ready to play again.",
+		TemplateType: TemplateEventExpired,
+		TemplateData: map[string]interface{}{
+			TemplateDataKeys.RecipientName: "", // Could be populated if we fetch user name
+			TemplateDataKeys.EventId:       eventId,
+		},
 	}
 
 	err := d.queue.Enqueue(ctx, userId, notificationData)

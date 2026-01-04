@@ -1,0 +1,25 @@
+Session Confirmed!
+==================
+
+{{if .IsHost -}}
+Hello {{.RecipientName}}, you've successfully confirmed your training session. We've notified all confirmed players about the details.
+{{- else -}}
+Hello {{.RecipientName}}, great news! {{.HostName}} has confirmed your join request.
+{{- end}}
+
+EVENT DETAILS
+-------------
+📅 Date & Time: {{.DateTime}}
+📍 Location: {{.Location}}
+{{if .ConfirmedPlayers -}}
+👥 Players: {{range $i, $p := .ConfirmedPlayers}}{{if $i}}, {{end}}{{$p}}{{end}}
+{{- end}}
+
+View event details: {{.EventURL}}
+
+Have a great time! 🎾
+
+---
+XTP Tour - Find your perfect tennis partner
+{{.AppURL}}
+

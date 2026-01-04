@@ -12,9 +12,17 @@ type Sender interface {
 }
 
 // SpecificSender handles a single delivery method (email, SMS, etc.)
+// For simple channels that only need topic/message (SMS, debug, etc.)
 type SpecificSender interface {
 	Send(ctx context.Context, address, topic, message string) error
 	GetDeliveryMethod() uint8
+}
+
+// NotificationSender handles full notification data including templates
+// Used by channels that support rich formatting (email, etc.)
+type NotificationSender interface {
+	SpecificSender
+	SendNotification(ctx context.Context, address string, data db.NotificationQueueData) error
 }
 
 type LogSender struct {
@@ -45,7 +53,7 @@ type FanOutSender struct {
 	logger          *slog.Logger
 }
 
-func NewFanOutSender(senders ...SpecificSender) *FanOutSender {
+func NewFanOutSender(senders []SpecificSender) *FanOutSender {
 	return &FanOutSender{
 		specificSenders: senders,
 		logger:          slog.Default(),
@@ -82,7 +90,20 @@ func (f *FanOutSender) Send(ctx context.Context, notification *db.NotificationQu
 			continue
 		}
 
-		// Only send if channel is enabled AND address is configured
+		// Use NotificationSender if available (supports templates)
+		if notifSender, ok := sender.(NotificationSender); ok {
+			if err := notifSender.SendNotification(ctx, address, notification.Data); err != nil {
+				logCtx.Error("Failed to send notification",
+					"error", err,
+					"deliveryMethod", sender.GetDeliveryMethod(),
+					"address", address)
+				return err
+			}
+			sentCount++
+			continue
+		}
+
+		// Fallback to simple Send for basic channels
 		if err := sender.Send(ctx, address, notification.Data.Topic, notification.Data.Message); err != nil {
 			logCtx.Error("Failed to send notification via specific sender",
 				"error", err,

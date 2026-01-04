@@ -1,0 +1,16 @@
+New Join Request!
+=================
+
+Hello {{.HostName}}, {{.JoiningUser}} has requested to join your event.
+
+{{if .Comment -}}
+MESSAGE FROM {{.JoiningUser}}:
+"{{.Comment}}"
+
+{{end -}}
+Review and respond to this request: {{.EventURL}}
+
+---
+XTP Tour - Find your perfect tennis partner
+{{.AppURL}}
+

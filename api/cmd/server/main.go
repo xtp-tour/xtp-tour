@@ -12,6 +12,7 @@ import (
 	"github.com/xtp-tour/xtp-tour/api/pkg/jobs"
 	"github.com/xtp-tour/xtp-tour/api/pkg/metrics"
 	"github.com/xtp-tour/xtp-tour/api/pkg/notifications"
+	"github.com/xtp-tour/xtp-tour/api/pkg/notifications/email"
 
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg/server"
@@ -68,8 +69,8 @@ func startNotificationWorker(dbConf *pkg.DbConfig) {
 
 	queue := notifications.NewDbQueue(dbConn)
 
-	// Create specific senders
-	emailSender, err := notifications.NewRealEmailSender(serviceConfig.Notifications.Email, slog.Default())
+	// Create specific senders (email sender handles its own template rendering)
+	emailSender, err := email.NewSender(serviceConfig.Notifications.Email, slog.Default())
 	if err != nil {
 		if serviceConfig.Notifications.Email.Enabled {
 			slog.Error("Failed to create email sender (email is enabled)", "error", err)
@@ -81,11 +82,8 @@ func startNotificationWorker(dbConf *pkg.DbConfig) {
 	debugSender := notifications.NewDebugSender()
 
 	// Create fan-out sender that routes based on user preferences
-	fanOutSender := notifications.NewFanOutSender(
-		emailSender,
-		smsSender,
-		debugSender,
-	)
+	senders := []notifications.SpecificSender{emailSender, smsSender, debugSender}
+	fanOutSender := notifications.NewFanOutSender(senders)
 
 	worker := notifications.NewNotificationWorker(queue, fanOutSender, serviceConfig.Notifications)
 
