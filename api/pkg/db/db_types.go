@@ -182,8 +182,10 @@ func (u *UserPreferences) Scan(value interface{}) error {
 }
 
 type NotificationQueueData struct {
-	Topic   string `json:"topic"`
-	Message string `json:"message"`
+	Topic        string                 `json:"topic"`
+	Message      string                 `json:"message"`
+	TemplateType string                 `json:"templateType,omitempty"`
+	TemplateData map[string]interface{} `json:"templateData,omitempty"`
 }
 
 func (n *NotificationQueueData) Value() (driver.Value, error) {
