@@ -29,7 +29,7 @@ func TestNotificationWorker_FanOutSender_DebugChannel(t *testing.T) {
 	mockDebugSender.On("Send", ctx, "debug@test.com", "Test Topic", "Test Message").Return(nil).Once()
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_123",
@@ -84,7 +84,7 @@ func TestNotificationWorker_FanOutSender_EmailChannel(t *testing.T) {
 	mockDebugSender.On("GetDeliveryMethod").Return(uint8(db.NotificationChannelDebug))
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_456",
@@ -140,7 +140,7 @@ func TestNotificationWorker_FanOutSender_MultipleChannels(t *testing.T) {
 	mockDebugSender.On("Send", ctx, "debug@test.com", "Multi-channel Topic", "Multi-channel Message").Return(nil).Once()
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_789",
@@ -335,7 +335,7 @@ func TestFanOutSender_RoutingLogic(t *testing.T) {
 				mockDebugSender.On("Send", ctx, tt.debugAddress, "Test Topic", "Test Message").Return(nil).Once()
 			}
 
-			fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+			fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 			// Setup: Create notification with specified preferences
 			notification := &db.NotificationQueueRow{

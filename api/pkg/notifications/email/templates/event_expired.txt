@@ -1,0 +1,19 @@
+Event Expired
+=============
+
+{{if .RecipientName -}}
+Hello {{.RecipientName}}, your event has expired without any participants joining.
+{{- else -}}
+Your event has expired without any participants joining.
+{{- end}}
+
+Don't give up! Create a new event and try different time slots or locations to increase your chances of finding a partner.
+
+Create a new event: {{.CreateEventURL}}
+
+We're here to help you find your perfect tennis partner! 🎾
+
+---
+XTP Tour - Find your perfect tennis partner
+{{.AppURL}}
+
