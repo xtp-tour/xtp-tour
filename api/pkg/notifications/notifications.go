@@ -94,6 +94,8 @@ func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinReque
 		} else if prefs.IsAccepted == 1 {
 			msg = fmt.Sprintf("Hello %s, your event join request has been confirmed by %s. The event will take place on %s at %s. Have a great time!",
 				userNames[userId], hostName, dateTime, facilityName)
+		} else {
+			continue // Skip users who are neither host nor accepted
 		}
 
 		notificationData := db.NotificationQueueData{

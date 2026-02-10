@@ -7,20 +7,11 @@ import (
 	htmltemplate "html/template"
 	texttemplate "text/template"
 
-	"github.com/yourorg/yourrepo/api/pkg/notifications"
+	"github.com/xtp-tour/xtp-tour/api/pkg/notifications"
 )
 
 //go:embed templates/*.html templates/*.txt
 var templateFS embed.FS
-
-// TemplateType identifies the type of email template
-type TemplateType = notifications.TemplateType
-
-const (
-	TemplateEventConfirmed = notifications.TemplateEventConfirmed
-	TemplateUserJoined     = notifications.TemplateUserJoined
-	TemplateEventExpired   = notifications.TemplateEventExpired
-)
 
 // BaseTemplateData contains common data for all email templates
 type BaseTemplateData struct {
@@ -116,7 +107,7 @@ func (r *TemplateRenderer) RenderEventConfirmed(data EventConfirmedData) (*Rende
 		data.PreviewText = fmt.Sprintf("%s confirmed your join request for %s at %s", data.HostName, data.DateTime, data.Location)
 	}
 
-	return r.render(TemplateEventConfirmed, subject, data)
+	return r.render(notifications.TemplateEventConfirmed, subject, data)
 }
 
 // RenderUserJoined renders the join request notification email
@@ -136,7 +127,7 @@ func (r *TemplateRenderer) RenderUserJoined(data UserJoinedData) (*RenderedEmail
 	subject := "🎾 New join request for your event"
 	data.PreviewText = fmt.Sprintf("%s wants to join your event", data.JoiningUser)
 
-	return r.render(TemplateUserJoined, subject, data)
+	return r.render(notifications.TemplateUserJoined, subject, data)
 }
 
 // RenderEventExpired renders the event expiration email
@@ -152,13 +143,13 @@ func (r *TemplateRenderer) RenderEventExpired(data EventExpiredData) (*RenderedE
 	subject := "🎾 Your event has expired"
 	data.PreviewText = "Your event expired without any participants joining"
 
-	return r.render(TemplateEventExpired, subject, data)
+	return r.render(notifications.TemplateEventExpired, subject, data)
 }
 
 // render executes both HTML and text templates for a given template type
-func (r *TemplateRenderer) render(tmplType TemplateType, subject string, data interface{}) (*RenderedEmail, error) {
-	htmlName := string(tmplType) + ".html"
-	textName := string(tmplType) + ".txt"
+func (r *TemplateRenderer) render(tmplType string, subject string, data interface{}) (*RenderedEmail, error) {
+	htmlName := tmplType + ".html"
+	textName := tmplType + ".txt"
 
 	// Render HTML
 	var htmlBuf bytes.Buffer

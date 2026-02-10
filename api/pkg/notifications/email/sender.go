@@ -11,6 +11,7 @@ import (
 
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
+	"github.com/xtp-tour/xtp-tour/api/pkg/notifications"
 )
 
 // Sender handles email notifications via SMTP with connection pooling and template rendering
@@ -234,11 +235,11 @@ func (s *Sender) SendNotification(ctx context.Context, address string, data db.N
 // renderTemplate renders the appropriate template based on notification data
 func (s *Sender) renderTemplate(data db.NotificationQueueData) (*RenderedEmail, error) {
 	switch data.TemplateType {
-	case "event_confirmed":
+	case notifications.TemplateEventConfirmed:
 		return s.renderEventConfirmed(data.TemplateData)
-	case "user_joined":
+	case notifications.TemplateUserJoined:
 		return s.renderUserJoined(data.TemplateData)
-	case "event_expired":
+	case notifications.TemplateEventExpired:
 		return s.renderEventExpired(data.TemplateData)
 	default:
 		return nil, nil
@@ -254,7 +255,9 @@ func (s *Sender) renderEventConfirmed(data map[string]interface{}) (*RenderedEma
 		Location:      getStringFromMap(data, "Location"),
 		EventId:       getStringFromMap(data, "EventId"),
 	}
-	if players, ok := data["ConfirmedPlayers"].([]interface{}); ok {
+	if players, ok := data["ConfirmedPlayers"].([]string); ok {
+		templateData.ConfirmedPlayers = players
+	} else if players, ok := data["ConfirmedPlayers"].([]interface{}); ok {
 		for _, p := range players {
 			if str, ok := p.(string); ok {
 				templateData.ConfirmedPlayers = append(templateData.ConfirmedPlayers, str)
