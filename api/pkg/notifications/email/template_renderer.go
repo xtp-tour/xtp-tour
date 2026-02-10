@@ -6,18 +6,20 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 	texttemplate "text/template"
+
+	"github.com/yourorg/yourrepo/api/pkg/notifications"
 )
 
 //go:embed templates/*.html templates/*.txt
 var templateFS embed.FS
 
 // TemplateType identifies the type of email template
-type TemplateType string
+type TemplateType = notifications.TemplateType
 
 const (
-	TemplateEventConfirmed TemplateType = "event_confirmed"
-	TemplateUserJoined     TemplateType = "user_joined"
-	TemplateEventExpired   TemplateType = "event_expired"
+	TemplateEventConfirmed = notifications.TemplateEventConfirmed
+	TemplateUserJoined     = notifications.TemplateUserJoined
+	TemplateEventExpired   = notifications.TemplateEventExpired
 )
 
 // BaseTemplateData contains common data for all email templates
