@@ -88,7 +88,7 @@ func (d *Notifier) EventConfirmed(logCtx *slog.Logger, eventId string, joinReque
 		isHost := prefs.IsHost == 1
 		msg := ""
 		if isHost {
-			msg = fmt.Sprintf("Hello %s, you succefully confirmed the session on %s at %s. We notified %s about place and time of the event. Have a great time!", hostName,
+			msg = fmt.Sprintf("Hello %s, you successfully confirmed the session on %s at %s. We notified %s about place and time of the event. Have a great time!", hostName,
 				dateTime, facilityName, strings.Join(confirmedUsers, ", "))
 
 		} else if prefs.IsAccepted == 1 {
