@@ -40,6 +40,19 @@
     "previousWeek": "Poprzedni tydzień",
     "provider": "Dostawca"
   },
+  "chat": {
+    "cancel": "Anuluj",
+    "emptyStateHint": "Zapytaj o wydarzenie lub przywitaj się!",
+    "loadError": "Nie udało się załadować wiadomości",
+    "noMessages": "Brak wiadomości. Bądź pierwszy, który coś napisze!",
+    "reply": "Odpowiedz",
+    "replyingTo": "Odpowiedź do {{user}}",
+    "send": "Wyślij",
+    "sendError": "Nie udało się wysłać wiadomości",
+    "signInToChat": "Zaloguj się, aby dołączyć do rozmowy",
+    "title": "Czat",
+    "typeMessage": "Napisz wiadomość..."
+  },
   "common": {
     "cancel": "Anuluj",
     "close": "Zamknij",
@@ -469,18 +482,5 @@
       "profileUpdated": "Profil zaktualizowany pomyślnie"
     },
     "title": "Profil Użytkownika"
-  },
-  "chat": {
-    "title": "Czat",
-    "noMessages": "Brak wiadomości. Bądź pierwszy, który coś napisze!",
-    "typeMessage": "Napisz wiadomość...",
-    "send": "Wyślij",
-    "reply": "Odpowiedz",
-    "replyingTo": "Odpowiedź do {{user}}",
-    "cancel": "Anuluj",
-    "signInToChat": "Zaloguj się, aby dołączyć do rozmowy",
-    "loadError": "Nie udało się załadować wiadomości",
-    "sendError": "Nie udało się wysłać wiadomości",
-    "emptyStateHint": "Zapytaj o wydarzenie lub przywitaj się!"
   }
 }
