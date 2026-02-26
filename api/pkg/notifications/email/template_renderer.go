@@ -51,6 +51,14 @@ type EventExpiredData struct {
 	CreateEventURL string // Populated by renderer
 }
 
+// ChatMessageData contains data for chat message notification emails
+type ChatMessageData struct {
+	BaseTemplateData
+	SenderName string
+	EventId    string // Used to construct EventURL
+	EventURL   string // Populated by renderer
+}
+
 // TemplateRenderer handles email template rendering
 type TemplateRenderer struct {
 	htmlTemplates *htmltemplate.Template
@@ -144,6 +152,25 @@ func (r *TemplateRenderer) RenderEventExpired(data EventExpiredData) (*RenderedE
 	data.PreviewText = "Your event expired without any participants joining"
 
 	return r.render(notifications.TemplateEventExpired, subject, data)
+}
+
+// RenderChatMessage renders the chat message notification email
+func (r *TemplateRenderer) RenderChatMessage(data ChatMessageData) (*RenderedEmail, error) {
+	data.LogoURL = r.domainName + "/logo.png"
+	data.AppURL = r.domainName
+
+	if data.EventURL == "" {
+		if data.EventId != "" {
+			data.EventURL = r.domainName + "/events/" + data.EventId
+		} else {
+			data.EventURL = r.domainName
+		}
+	}
+
+	subject := "💬 New message in your event chat"
+	data.PreviewText = fmt.Sprintf("%s posted a message in your event chat", data.SenderName)
+
+	return r.render(notifications.TemplateChatMessage, subject, data)
 }
 
 // render executes both HTML and text templates for a given template type

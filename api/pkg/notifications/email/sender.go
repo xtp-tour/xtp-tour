@@ -200,6 +200,8 @@ func (s *Sender) renderTemplate(data db.NotificationQueueData) (*RenderedEmail, 
 		return s.renderUserJoined(data.TemplateData)
 	case notifications.TemplateEventExpired:
 		return s.renderEventExpired(data.TemplateData)
+	case notifications.TemplateChatMessage:
+		return s.renderChatMessage(data.TemplateData)
 	default:
 		return nil, nil
 	}
@@ -242,6 +244,14 @@ func (s *Sender) renderEventExpired(data map[string]interface{}) (*RenderedEmail
 		EventId:       getStringFromMap(data, "EventId"),
 	}
 	return s.templateRenderer.RenderEventExpired(templateData)
+}
+
+func (s *Sender) renderChatMessage(data map[string]interface{}) (*RenderedEmail, error) {
+	templateData := ChatMessageData{
+		SenderName: getStringFromMap(data, "SenderName"),
+		EventId:    getStringFromMap(data, "EventId"),
+	}
+	return s.templateRenderer.RenderChatMessage(templateData)
 }
 
 func getStringFromMap(m map[string]interface{}, key string) string {

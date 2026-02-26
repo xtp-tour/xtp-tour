@@ -210,8 +210,13 @@ func (d *Notifier) ChatMessagePosted(senderUserId string, eventId string) {
 	}
 
 	notificationData := db.NotificationQueueData{
-		Topic:   "New Chat Message",
-		Message: fmt.Sprintf("%s posted a message in your event chat.", senderName),
+		Topic:        "New Chat Message",
+		Message:      fmt.Sprintf("%s posted a message in your event chat.", senderName),
+		TemplateType: TemplateChatMessage,
+		TemplateData: map[string]interface{}{
+			TemplateDataKeys.SenderName: senderName,
+			TemplateDataKeys.EventId:    eventId,
+		},
 	}
 
 	err = d.queue.Enqueue(ctx, eventOwnerId, notificationData)

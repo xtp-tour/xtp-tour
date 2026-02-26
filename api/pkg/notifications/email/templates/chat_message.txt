@@ -1,0 +1,10 @@
+New Message in Your Event Chat
+================================
+
+{{.SenderName}} posted a message in your event chat.
+
+View the event chat: {{.EventURL}}
+
+---
+XTP Tour - Find your perfect tennis partner
+{{.AppURL}}

@@ -11,6 +11,9 @@ const (
 
 	// TemplateEventExpired is sent when an event expires without participants
 	TemplateEventExpired = "event_expired"
+
+	// TemplateChatMessage is sent to the event owner when someone posts in the event chat
+	TemplateChatMessage = "chat_message"
 )
 
 // Template data field conventions for NotificationQueueData.TemplateData
@@ -39,6 +42,10 @@ const (
 // EventExpired template fields:
 //   - RecipientName (string): Name of the event owner
 //   - EventId (string): Expired event identifier
+//
+// ChatMessage template fields:
+//   - SenderName (string): Name of the user who posted the message
+//   - EventId (string): Event identifier for deep linking
 
 // TemplateDataKeys provides constants for template data field names
 // to avoid magic strings and ensure consistency across channels
@@ -58,6 +65,9 @@ var TemplateDataKeys = struct {
 	JoiningUser string
 	Comment     string
 
+	// Chat message fields
+	SenderName string
+
 	// Event confirmed fields
 	ConfirmedPlayers string
 }{
@@ -70,6 +80,7 @@ var TemplateDataKeys = struct {
 	IsHost:           "IsHost",
 	JoiningUser:      "JoiningUser",
 	Comment:          "Comment",
+	SenderName:       "SenderName",
 	ConfirmedPlayers: "ConfirmedPlayers",
 }
 
