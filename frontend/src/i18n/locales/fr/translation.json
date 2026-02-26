@@ -465,5 +465,18 @@
       "profileUpdated": "Profil mis à jour avec succès"
     },
     "title": "Profil Utilisateur"
+  },
+  "chat": {
+    "title": "Chat",
+    "noMessages": "Pas encore de messages. Soyez le premier à dire quelque chose !",
+    "typeMessage": "Tapez un message...",
+    "send": "Envoyer",
+    "reply": "Répondre",
+    "replyingTo": "En réponse à {{user}}",
+    "cancel": "Annuler",
+    "signInToChat": "Connectez-vous pour rejoindre la conversation",
+    "loadError": "Échec du chargement des messages",
+    "sendError": "Échec de l'envoi du message",
+    "emptyStateHint": "Posez une question ou dites bonjour !"
   }
 }

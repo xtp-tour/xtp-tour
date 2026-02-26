@@ -200,3 +200,180 @@ a:hover {
   }
 }
 
+/* ========================================
+   Chat Component Styles
+   ======================================== */
+
+/* Toggle bar for collapsible chat in list views */
+.chat-toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: var(--tennis-navy);
+  border-top: 1px solid var(--tennis-border);
+  background: transparent;
+  transition: background-color 0.15s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  width: 100%;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+.chat-toggle-bar:hover {
+  background-color: var(--tennis-light);
+}
+
+/* Message bubbles */
+.chat-bubble {
+  background: var(--tennis-light);
+  border-radius: 0 12px 12px 12px;
+  display: inline-block;
+  max-width: 85%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.chat-message--own .chat-bubble {
+  background: var(--navy-tint);
+  border-radius: 12px 0 12px 12px;
+}
+
+/* Reply messages */
+.chat-message--reply {
+  margin-left: 1rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--tennis-navy);
+}
+
+.chat-message--reply .chat-avatar-circle {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 0.65rem !important;
+}
+
+/* Avatar circle */
+.chat-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--navy-tint);
+  color: var(--tennis-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Message metadata */
+.chat-message-author {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tennis-navy);
+}
+
+.chat-message-time {
+  font-size: 0.7rem;
+  color: var(--tennis-gray);
+}
+
+/* Reply button */
+.chat-reply-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--tennis-gray);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chat-reply-btn:hover {
+  color: var(--tennis-navy);
+}
+
+/* Composer area */
+.chat-composer {
+  border-top: 1px solid var(--tennis-border);
+  padding: 0.75rem 1rem;
+}
+
+.chat-input {
+  border-radius: 20px !important;
+  font-size: 0.875rem !important;
+  padding: 0.5rem 1rem !important;
+  border: 1px solid var(--tennis-border) !important;
+}
+
+.chat-input:focus {
+  border-color: var(--tennis-navy) !important;
+  box-shadow: 0 0 0 0.2rem rgba(27, 54, 93, 0.15) !important;
+}
+
+/* Circular send button */
+.chat-send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Reply indicator bar */
+.chat-reply-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background: var(--tennis-light);
+  border-left: 3px solid var(--tennis-navy);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.8rem;
+}
+
+/* Empty state */
+.chat-empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.chat-empty-state i {
+  color: var(--navy-tint);
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Sign-in prompt */
+.chat-signin-prompt {
+  background: var(--tennis-light);
+  text-align: center;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--tennis-gray);
+}
+
+/* Message scroll containers */
+.chat-messages {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.chat-messages--compact {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+

@@ -22,6 +22,7 @@ interface BaseEventItemProps extends StyleProps {
   isMyEvent?: boolean;
   children?: React.ReactNode;
   shareButton?: React.ReactNode;
+  footerSection?: React.ReactNode;
 }
 
 const BaseEventItem: React.FC<BaseEventItemProps> = ({
@@ -38,6 +39,7 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
   isMyEvent = false,
   children,
   shareButton,
+  footerSection,
 }) => {
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -92,6 +94,8 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           )}
         </div>
       )}
+
+      {footerSection}
 
       {/* Modern Expand/Collapse Button */}
       <div className="card-footer bg-white border-0 p-0">

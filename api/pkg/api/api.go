@@ -258,3 +258,34 @@ type UserProfileData struct {
 
 type DeleteUserProfileRequest struct {
 }
+
+// Chat message types
+
+type EventMessage struct {
+	Id              string  `json:"id"`
+	EventId         string  `json:"eventId"`
+	UserId          string  `json:"userId"`
+	ParentMessageId *string `json:"parentMessageId,omitempty"`
+	MessageText     string  `json:"messageText"`
+	CreatedAt       string  `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
+}
+
+type CreateMessageRequest struct {
+	EventId         string  `path:"eventId" validate:"required"`
+	MessageText     string  `json:"messageText" validate:"required"`
+	ParentMessageId *string `json:"parentMessageId,omitempty"`
+}
+
+type CreateMessageResponse struct {
+	Message *EventMessage `json:"message"`
+}
+
+type GetMessagesRequest struct {
+	EventId string `path:"eventId" validate:"required"`
+	Limit   int    `query:"limit" default:"50" description:"Maximum number of messages to return"`
+	After   string `query:"after" description:"Message ID cursor - return messages after this ID"`
+}
+
+type GetMessagesResponse struct {
+	Messages []*EventMessage `json:"messages"`
+}

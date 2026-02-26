@@ -1355,3 +1355,63 @@ func (db *Db) MarkExpiredEvents(ctx context.Context, limit int) ([]ExpiredEventI
 	logCtx.Debug("Marked events as expired", "count", len(expiredEvents))
 	return expiredEvents, nil
 }
+
+// Chat message methods
+
+// CreateEventMessage inserts a new chat message and returns its ID
+func (db *Db) CreateEventMessage(ctx context.Context, eventId, userId, messageText string, parentMessageId *string) (string, error) {
+	logCtx := slog.With("method", "CreateEventMessage", "eventId", eventId, "userId", userId)
+	logCtx.Debug("Creating event message")
+
+	id := uuid.New().String()
+
+	query := `INSERT INTO event_messages (id, event_id, user_id, parent_message_id, message_text) VALUES (?, ?, ?, ?, ?)`
+	_, err := db.conn.ExecContext(ctx, query, id, eventId, userId, parentMessageId, messageText)
+	if err != nil {
+		logCtx.Error("Failed to create event message", "error", err)
+		return "", errors.Wrap(err, "failed to create event message")
+	}
+
+	return id, nil
+}
+
+// GetEventMessages retrieves messages for an event with cursor-based pagination.
+// If afterMessageId is provided, only messages created after that message are returned.
+func (db *Db) GetEventMessages(ctx context.Context, eventId string, limit int, afterMessageId string) ([]*EventMessageRow, error) {
+	logCtx := slog.With("method", "GetEventMessages", "eventId", eventId, "limit", limit)
+	logCtx.Debug("Getting event messages")
+
+	var messages []*EventMessageRow
+	var err error
+
+	if afterMessageId != "" {
+		query := `
+			SELECT id, event_id, user_id, parent_message_id, message_text, created_at
+			FROM event_messages
+			WHERE event_id = ? AND created_at > (SELECT created_at FROM event_messages WHERE id = ?)
+			ORDER BY created_at ASC
+			LIMIT ?
+		`
+		err = db.conn.SelectContext(ctx, &messages, query, eventId, afterMessageId, limit)
+	} else {
+		query := `
+			SELECT id, event_id, user_id, parent_message_id, message_text, created_at
+			FROM event_messages
+			WHERE event_id = ?
+			ORDER BY created_at ASC
+			LIMIT ?
+		`
+		err = db.conn.SelectContext(ctx, &messages, query, eventId, limit)
+	}
+
+	if err != nil {
+		logCtx.Error("Failed to get event messages", "error", err)
+		return nil, errors.Wrap(err, "failed to get event messages")
+	}
+
+	if messages == nil {
+		messages = []*EventMessageRow{}
+	}
+
+	return messages, nil
+}

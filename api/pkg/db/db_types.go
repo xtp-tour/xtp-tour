@@ -258,3 +258,13 @@ type ExpiredEventInfo struct {
 	EventId string `db:"id"`
 	UserId  string `db:"user_id"`
 }
+
+// EventMessageRow represents a chat message in an event
+type EventMessageRow struct {
+	Id              string    `db:"id"`
+	EventId         string    `db:"event_id"`
+	UserId          string    `db:"user_id"`
+	ParentMessageId *string   `db:"parent_message_id"`
+	MessageText     string    `db:"message_text"`
+	CreatedAt       time.Time `db:"created_at"`
+}

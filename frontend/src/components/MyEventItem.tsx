@@ -8,6 +8,7 @@ import CancelEventModal from './event/CancelEventModal';
 import Toast from './Toast';
 import ShareButton from './ShareButton';
 import ShareEventModal from './ShareEventModal';
+import EventChat from './chat/EventChat';
 import { useTranslation } from 'react-i18next';
 
 type ApiEvent = components['schemas']['ApiEvent'];
@@ -134,6 +135,7 @@ const MyEventItem: React.FC<Props> = ({ event, onDelete, onEventUpdated }) => {
         shareButton={getShareButton()}
         defaultCollapsed={true}
         isMyEvent={true}
+        footerSection={event.id ? <EventChat eventId={event.id} collapsible embedded /> : undefined}
       />
 
       {/* Cancel Event Modal */}

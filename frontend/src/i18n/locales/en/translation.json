@@ -461,5 +461,18 @@
       "profileUpdated": "Profile updated successfully"
     },
     "title": "User Profile"
+  },
+  "chat": {
+    "title": "Chat",
+    "noMessages": "No messages yet. Be the first to say something!",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "reply": "Reply",
+    "replyingTo": "Replying to {{user}}",
+    "cancel": "Cancel",
+    "signInToChat": "Sign in to join the conversation",
+    "loadError": "Failed to load messages",
+    "sendError": "Failed to send message",
+    "emptyStateHint": "Ask about the event or say hello!"
   }
 }
