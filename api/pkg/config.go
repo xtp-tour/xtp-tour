@@ -26,12 +26,13 @@ type NotificationConfig struct {
 }
 
 type EmailConfig struct {
-	SmtpHost string `default:"smtp.zeptomail.eu" envvar:"EMAIL_HOST"`
-	Port     int    `default:"587" envvar:"EMAIL_PORT"`
-	Username string `envvar:"EMAIL_USERNAME"`
-	Password string `envvar:"EMAIL_PASSWORD"`
-	From     string `envvar:"EMAIL_FROM"`
-	Enabled  bool   `default:"false" envvar:"EMAIL_ENABLED"`
+	SmtpHost   string `default:"smtp.zeptomail.eu" envvar:"EMAIL_HOST"`
+	Port       int    `default:"587" envvar:"EMAIL_PORT"`
+	Username   string `envvar:"EMAIL_USERNAME"`
+	Password   string `envvar:"EMAIL_PASSWORD"`
+	From       string `envvar:"EMAIL_FROM"`
+	Enabled    bool   `default:"false" envvar:"EMAIL_ENABLED"`
+	DomainName string `envvar:"DOMAIN_NAME"` // e.g., "https://xtp-tour.com"
 }
 
 type JobsConfig struct {

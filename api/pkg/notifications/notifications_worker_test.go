@@ -6,11 +6,32 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
 	"github.com/xtp-tour/xtp-tour/api/pkg/notifications/mocks"
 )
+
+// mockNotificationSender implements NotificationSender (SpecificSender + SendNotification)
+type mockNotificationSender struct {
+	mock.Mock
+}
+
+func (m *mockNotificationSender) Send(ctx context.Context, address, topic, message string) error {
+	args := m.Called(ctx, address, topic, message)
+	return args.Error(0)
+}
+
+func (m *mockNotificationSender) GetDeliveryMethod() uint8 {
+	args := m.Called()
+	return args.Get(0).(uint8)
+}
+
+func (m *mockNotificationSender) SendNotification(ctx context.Context, address string, data db.NotificationQueueData) error {
+	args := m.Called(ctx, address, data)
+	return args.Error(0)
+}
 
 // Test that FanOutSender correctly routes to DebugSender when debug channel is enabled
 func TestNotificationWorker_FanOutSender_DebugChannel(t *testing.T) {
@@ -29,7 +50,7 @@ func TestNotificationWorker_FanOutSender_DebugChannel(t *testing.T) {
 	mockDebugSender.On("Send", ctx, "debug@test.com", "Test Topic", "Test Message").Return(nil).Once()
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_123",
@@ -84,7 +105,7 @@ func TestNotificationWorker_FanOutSender_EmailChannel(t *testing.T) {
 	mockDebugSender.On("GetDeliveryMethod").Return(uint8(db.NotificationChannelDebug))
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_456",
@@ -140,7 +161,7 @@ func TestNotificationWorker_FanOutSender_MultipleChannels(t *testing.T) {
 	mockDebugSender.On("Send", ctx, "debug@test.com", "Multi-channel Topic", "Multi-channel Message").Return(nil).Once()
 
 	// Create FanOutSender with both senders
-	fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+	fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 	notification := &db.NotificationQueueRow{
 		Id:     "notif_789",
@@ -335,7 +356,7 @@ func TestFanOutSender_RoutingLogic(t *testing.T) {
 				mockDebugSender.On("Send", ctx, tt.debugAddress, "Test Topic", "Test Message").Return(nil).Once()
 			}
 
-			fanOutSender := NewFanOutSender(mockEmailSender, mockDebugSender)
+			fanOutSender := NewFanOutSender([]SpecificSender{mockEmailSender, mockDebugSender})
 
 			// Setup: Create notification with specified preferences
 			notification := &db.NotificationQueueRow{
@@ -398,4 +419,82 @@ func TestNotificationWorker_StartStop(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Test passes if we get here without hanging
+}
+
+// Test that FanOutSender uses SendNotification when sender implements NotificationSender
+func TestFanOutSender_NotificationSenderInterface(t *testing.T) {
+	ctx := context.Background()
+
+	notifSender := new(mockNotificationSender)
+	notifSender.On("GetDeliveryMethod").Return(uint8(db.NotificationChannelEmail))
+
+	notifData := db.NotificationQueueData{
+		Topic:        "Template Topic",
+		Message:      "Fallback message",
+		TemplateType: "event_confirmed",
+		TemplateData: map[string]interface{}{
+			"RecipientName": "Alice",
+			"IsHost":        true,
+		},
+	}
+
+	// Expect SendNotification to be called (NOT Send)
+	notifSender.On("SendNotification", ctx, "user@example.com", notifData).Return(nil).Once()
+
+	fanOutSender := NewFanOutSender([]SpecificSender{notifSender})
+
+	notification := &db.NotificationQueueRow{
+		Id:     "notif_tmpl_1",
+		UserId: "user_tmpl_1",
+		Data:   notifData,
+		Status: db.NotificationStatusPending,
+		UserPreferences: db.UserPreferences{
+			Notifications: db.NotificationSettings{
+				Email:    "user@example.com",
+				Channels: db.NotificationChannelEmail,
+			},
+		},
+	}
+
+	err := fanOutSender.Send(ctx, notification)
+	assert.NoError(t, err)
+
+	// Verify SendNotification was called (not Send)
+	notifSender.AssertCalled(t, "SendNotification", ctx, "user@example.com", notifData)
+	notifSender.AssertNotCalled(t, "Send", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+// Test that FanOutSender propagates errors from SendNotification
+func TestFanOutSender_NotificationSenderError(t *testing.T) {
+	ctx := context.Background()
+
+	notifSender := new(mockNotificationSender)
+	notifSender.On("GetDeliveryMethod").Return(uint8(db.NotificationChannelEmail))
+
+	notifData := db.NotificationQueueData{
+		Topic:        "Error Topic",
+		Message:      "Error message",
+		TemplateType: "event_confirmed",
+	}
+
+	notifSender.On("SendNotification", ctx, "user@example.com", notifData).Return(errors.New("template rendering failed")).Once()
+
+	fanOutSender := NewFanOutSender([]SpecificSender{notifSender})
+
+	notification := &db.NotificationQueueRow{
+		Id:     "notif_err_1",
+		UserId: "user_err_1",
+		Data:   notifData,
+		Status: db.NotificationStatusPending,
+		UserPreferences: db.UserPreferences{
+			Notifications: db.NotificationSettings{
+				Email:    "user@example.com",
+				Channels: db.NotificationChannelEmail,
+			},
+		},
+	}
+
+	err := fanOutSender.Send(ctx, notification)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "template rendering failed")
 }
