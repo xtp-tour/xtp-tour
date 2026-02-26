@@ -146,58 +146,17 @@ func (s *Sender) Send(ctx context.Context, address, topic, message string) error
 		return nil
 	}
 
-	logCtx := s.logger.With(
-		"deliveryMethod", "email",
-		"address", address,
-		"topic", topic,
-	)
-
-	// Create email message
 	m := mail.NewMsg()
 	if err := m.From(s.config.From); err != nil {
-		logCtx.Error("Failed to set From address", "error", err)
 		return fmt.Errorf("failed to set from address: %w", err)
 	}
 	if err := m.To(address); err != nil {
-		logCtx.Error("Failed to set To address", "error", err)
 		return fmt.Errorf("failed to set to address: %w", err)
 	}
 	m.Subject(topic)
 	m.SetBodyString(mail.TypeTextHTML, message)
 
-	// Send with retry logic using persistent connection
-	var lastErr error
-	for attempt := 0; attempt <= s.maxRetries; attempt++ {
-		if attempt > 0 {
-			logCtx.Debug("Retrying email send", "attempt", attempt)
-		}
-
-		// Get or create connection
-		conn, err := s.getOrCreateConnection(ctx)
-		if err != nil {
-			lastErr = err
-			continue
-		}
-
-		// Send using the persistent connection
-		if err := s.client.SendWithSMTPClient(conn, m); err != nil {
-			lastErr = fmt.Errorf("failed to send email: %w", err)
-			// Mark connection as invalid on send error
-			s.connMutex.Lock()
-			if s.smtpConn != nil {
-				_ = s.smtpConn.Close()
-				s.smtpConn = nil
-			}
-			s.connMutex.Unlock()
-			continue
-		}
-
-		logCtx.Info("📧 Email sent successfully via SMTP")
-		return nil
-	}
-
-	logCtx.Error("Failed to send email after retries", "error", lastErr, "attempts", s.maxRetries+1)
-	return fmt.Errorf("failed to send email to %s after %d attempts: %w", address, s.maxRetries+1, lastErr)
+	return s.sendMsg(ctx, address, m)
 }
 
 func (s *Sender) GetDeliveryMethod() uint8 {
@@ -315,47 +274,41 @@ func (s *Sender) sendRendered(ctx context.Context, address string, rendered *Ren
 		return nil
 	}
 
-	logCtx := s.logger.With(
-		"deliveryMethod", "email",
-		"address", address,
-		"subject", rendered.Subject,
-	)
-
-	// Create email message with multipart body
 	m := mail.NewMsg()
 	if err := m.From(s.config.From); err != nil {
-		logCtx.Error("Failed to set From address", "error", err)
 		return fmt.Errorf("failed to set from address: %w", err)
 	}
 	if err := m.To(address); err != nil {
-		logCtx.Error("Failed to set To address", "error", err)
 		return fmt.Errorf("failed to set to address: %w", err)
 	}
 	m.Subject(rendered.Subject)
-
-	// Set plain text body first (as fallback)
 	m.SetBodyString(mail.TypeTextPlain, rendered.PlainBody)
-	// Add HTML as alternative part
 	m.AddAlternativeString(mail.TypeTextHTML, rendered.HTMLBody)
 
-	// Send with retry logic using persistent connection
+	return s.sendMsg(ctx, address, m)
+}
+
+// sendMsg sends a prepared mail.Msg with retry logic and connection management
+func (s *Sender) sendMsg(ctx context.Context, address string, m *mail.Msg) error {
+	logCtx := s.logger.With(
+		"deliveryMethod", "email",
+		"address", address,
+	)
+
 	var lastErr error
 	for attempt := 0; attempt <= s.maxRetries; attempt++ {
 		if attempt > 0 {
 			logCtx.Debug("Retrying email send", "attempt", attempt)
 		}
 
-		// Get or create connection
 		conn, err := s.getOrCreateConnection(ctx)
 		if err != nil {
 			lastErr = err
 			continue
 		}
 
-		// Send using the persistent connection
 		if err := s.client.SendWithSMTPClient(conn, m); err != nil {
 			lastErr = fmt.Errorf("failed to send email: %w", err)
-			// Mark connection as invalid on send error
 			s.connMutex.Lock()
 			if s.smtpConn != nil {
 				_ = s.smtpConn.Close()
@@ -365,7 +318,7 @@ func (s *Sender) sendRendered(ctx context.Context, address string, rendered *Ren
 			continue
 		}
 
-		logCtx.Info("📧 Email sent successfully via SMTP")
+		logCtx.Info("Email sent successfully via SMTP")
 		return nil
 	}
 
