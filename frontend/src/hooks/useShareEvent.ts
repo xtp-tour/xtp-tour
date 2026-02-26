@@ -14,7 +14,7 @@ export const useShareEvent = ({ eventId, onSuccess }: UseShareEventProps) => {
 
     try {
       setIsSharing(true);
-      const eventUrl = `${window.location.origin}/event/${eventId}`;
+      const eventUrl = `${window.location.origin}/events/${eventId}`;
       await navigator.clipboard.writeText(eventUrl);
       onSuccess?.();
     } catch (error) {

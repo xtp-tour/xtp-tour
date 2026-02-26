@@ -163,7 +163,7 @@ const AppRoutes = () => {
           </SignedOut>
         </Layout>
       } />
-      <Route path="/event/:eventId" element={<PublicEventPage />} />
+      <Route path="/events/:eventId" element={<PublicEventPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

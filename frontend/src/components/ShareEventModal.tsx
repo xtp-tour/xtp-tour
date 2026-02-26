@@ -9,7 +9,7 @@ interface ShareEventModalProps {
 
 const ShareEventModal: React.FC<ShareEventModalProps> = ({ show, onHide, eventId, onShared }) => {
   const handleShare = (platform: string) => {
-    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    const eventUrl = `${window.location.origin}/events/${eventId}`;
     
     switch (platform) {
       case 'copy':

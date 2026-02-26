@@ -709,9 +709,9 @@ test.describe('Private Events Feature', () => {
   });
 
   test('Direct event link page loads correctly', async ({ page }) => {
-    // Test that the event/:eventId route structure works
+    // Test that the events/:eventId route structure works
     // Even with invalid ID, page should handle gracefully
-    await page.goto(`${config.baseUrl}/event/test-invalid-event-id`);
+    await page.goto(`${config.baseUrl}/events/test-invalid-event-id`);
 
     // Wait for loading state to complete
     await page.waitForSelector('h3, .card, [data-testid="event-details"]', { timeout: 10000 });

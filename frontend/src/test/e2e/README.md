@@ -92,7 +92,7 @@ Contains three test suites:
 
 2. **Private Events Feature**
    - `Public event page shows event details` - Verifies public events page structure
-   - `Direct event link page loads correctly` - Tests `/event/:eventId` route handles invalid IDs
+   - `Direct event link page loads correctly` - Tests `/events/:eventId` route handles invalid IDs
    - `Private event badge indicator renders correctly` - Checks badge support
 
 3. **Already Joined State**
