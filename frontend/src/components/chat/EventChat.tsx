@@ -226,16 +226,45 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
 
   // Collapsible mode: toggle bar + expandable body
   if (collapsible) {
+    const toggleButton = (
+      <button
+        type="button"
+        className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted hover-bg-light"
+        style={{
+          borderTop: '1px solid #f0f0f0',
+          padding: '12px 20px',
+          cursor: 'pointer',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          transition: 'all 0.2s ease-in-out'
+        }}
+        aria-label={t('chat.title')}
+        aria-expanded={isOpen}
+        onClick={(e) => {
+          setIsOpen(!isOpen);
+          e.currentTarget.blur();
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f8f9fa';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+        }}
+      >
+        <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'} me-2`}
+           aria-hidden="true"
+           style={{ fontSize: '0.875rem', color: 'var(--tennis-navy)' }}></i>
+        <span style={{ color: 'var(--tennis-navy)' }}>
+          {t('chat.title')}
+          {messages.length > 0 && ` (${messages.length})`}
+        </span>
+      </button>
+    );
+
     if (embedded) {
       return (
         <>
-          <button
-            className="chat-toggle-bar"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {header}
-            <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'} ms-auto`}></i>
-          </button>
+          {toggleButton}
           {isOpen && chatBody}
         </>
       );
@@ -243,14 +272,7 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
 
     return (
       <div className="card shadow-sm border-0 mt-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-        <button
-          className="chat-toggle-bar"
-          style={{ borderTop: 'none' }}
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {header}
-          <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'} ms-auto`}></i>
-        </button>
+        {toggleButton}
         {isOpen && chatBody}
       </div>
     );

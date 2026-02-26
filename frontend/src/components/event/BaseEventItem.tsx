@@ -69,36 +69,8 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
         />
       </div>
 
-      {/* Expandable Content */}
-      {!isCollapsed && (
-        <div className="border-top" style={{ borderColor: '#f0f0f0 !important' }}>
-          {isConfirmed ? (
-            <ConfirmedEventBody
-              event={event}
-              colorClass={colorClass}
-              timeSlots={timeSlots}
-            >
-              {children}
-            </ConfirmedEventBody>
-          ) : (
-            <DefaultEventBody
-              event={event}
-              timeSlots={timeSlots}
-              userSelectedLocations={userSelectedLocations}
-              onLocationClick={onLocationClick}
-              onTimeSlotClick={onTimeSlotClick}
-              isMyEvent={isMyEvent}
-            >
-              {children}
-            </DefaultEventBody>
-          )}
-        </div>
-      )}
-
-      {footerSection}
-
-      {/* Modern Expand/Collapse Button */}
-      <div className="card-footer bg-white border-0 p-0">
+      {/* Show Details Toggle */}
+      <div className="bg-white border-0 p-0">
         <button
           type="button"
           className="w-100 d-flex justify-content-center align-items-center border-0 bg-transparent text-muted hover-bg-light"
@@ -131,6 +103,34 @@ const BaseEventItem: React.FC<BaseEventItemProps> = ({
           </span>
         </button>
       </div>
+
+      {/* Expandable Content */}
+      {!isCollapsed && (
+        <div className="border-top" style={{ borderColor: '#f0f0f0 !important' }}>
+          {isConfirmed ? (
+            <ConfirmedEventBody
+              event={event}
+              colorClass={colorClass}
+              timeSlots={timeSlots}
+            >
+              {children}
+            </ConfirmedEventBody>
+          ) : (
+            <DefaultEventBody
+              event={event}
+              timeSlots={timeSlots}
+              userSelectedLocations={userSelectedLocations}
+              onLocationClick={onLocationClick}
+              onTimeSlotClick={onTimeSlotClick}
+              isMyEvent={isMyEvent}
+            >
+              {children}
+            </DefaultEventBody>
+          )}
+        </div>
+      )}
+
+      {footerSection}
     </div>
   );
 };

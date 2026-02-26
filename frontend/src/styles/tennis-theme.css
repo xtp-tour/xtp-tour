@@ -204,28 +204,6 @@ a:hover {
    Chat Component Styles
    ======================================== */
 
-/* Toggle bar for collapsible chat in list views */
-.chat-toggle-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  color: var(--tennis-navy);
-  border-top: 1px solid var(--tennis-border);
-  background: transparent;
-  transition: background-color 0.15s ease;
-  font-size: 0.875rem;
-  font-weight: 500;
-  width: 100%;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-}
-
-.chat-toggle-bar:hover {
-  background-color: var(--tennis-light);
-}
 
 /* Message bubbles */
 .chat-bubble {

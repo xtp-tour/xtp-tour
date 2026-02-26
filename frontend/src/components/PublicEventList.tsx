@@ -10,6 +10,7 @@ import { useUser, useClerk } from '@clerk/clerk-react';
 import ShareButton from './ShareButton';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
+import EventChat from './chat/EventChat';
 
 interface Props {
   onEventJoined?: () => void;
@@ -172,6 +173,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
         actionButton={getActionButton()}
         shareButton={getShareButton()}
         defaultCollapsed={true}
+        footerSection={event.id ? <EventChat eventId={event.id} collapsible embedded /> : undefined}
       />
     );
   };
