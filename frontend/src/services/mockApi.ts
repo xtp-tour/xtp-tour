@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar } from '../types/api';
+import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -310,6 +310,10 @@ export interface APIClient {
   getCalendars(): Promise<ApiUserCalendar[]>;
   getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
   updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
+
+  // Chat methods
+  getEventMessages(eventId: string, limit?: number, after?: string): Promise<EventMessage[]>;
+  sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage>;
 }
 
 export class MockAPIClient implements APIClient {
@@ -824,5 +828,35 @@ export class MockAPIClient implements APIClient {
       ...request,
       updatedAt: new Date().toISOString()
     };
+  }
+
+  // Chat mock methods
+  private mockMessages: EventMessage[] = [];
+
+  async getEventMessages(eventId: string, _limit?: number, after?: string): Promise<EventMessage[]> {
+    await this.delay(200);
+    let messages = this.mockMessages.filter(m => m.eventId === eventId);
+    if (after) {
+      const afterIdx = messages.findIndex(m => m.id === after);
+      if (afterIdx >= 0) {
+        messages = messages.slice(afterIdx + 1);
+      }
+    }
+    return messages;
+  }
+
+  async sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage> {
+    await this.checkAuth();
+    await this.delay(300);
+    const message: EventMessage = {
+      id: Math.random().toString(36).substr(2, 9),
+      eventId,
+      userId: 'current_user',
+      parentMessageId: parentMessageId || null,
+      messageText,
+      createdAt: new Date().toISOString(),
+    };
+    this.mockMessages.push(message);
+    return message;
   }
 }

@@ -40,6 +40,19 @@
     "previousWeek": "Semaine précédente",
     "provider": "Fournisseur"
   },
+  "chat": {
+    "cancel": "Annuler",
+    "emptyStateHint": "Posez une question ou dites bonjour !",
+    "loadError": "Échec du chargement des messages",
+    "noMessages": "Pas encore de messages. Soyez le premier à dire quelque chose !",
+    "reply": "Répondre",
+    "replyingTo": "En réponse à {{user}}",
+    "send": "Envoyer",
+    "sendError": "Échec de l'envoi du message",
+    "signInToChat": "Connectez-vous pour rejoindre la conversation",
+    "title": "Chat",
+    "typeMessage": "Tapez un message..."
+  },
   "common": {
     "cancel": "Annuler",
     "close": "Fermer",

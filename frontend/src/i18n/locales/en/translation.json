@@ -40,6 +40,19 @@
     "previousWeek": "Previous week",
     "provider": "Provider"
   },
+  "chat": {
+    "cancel": "Cancel",
+    "emptyStateHint": "Ask about the event or say hello!",
+    "loadError": "Failed to load messages",
+    "noMessages": "No messages yet. Be the first to say something!",
+    "reply": "Reply",
+    "replyingTo": "Replying to {{user}}",
+    "send": "Send",
+    "sendError": "Failed to send message",
+    "signInToChat": "Sign in to join the conversation",
+    "title": "Chat",
+    "typeMessage": "Type a message..."
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",

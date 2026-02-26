@@ -93,6 +93,10 @@ export interface APIClient {
 	getCalendars(): Promise<ApiUserCalendar[]>;
 	getCalendarPreferences(): Promise<CalendarPreferencesResponse>;
 	updateCalendarPreferences(request: CalendarPreferencesRequest): Promise<CalendarPreferencesResponse>;
+
+  // Chat methods
+  getEventMessages(eventId: string, limit?: number, after?: string): Promise<EventMessage[]>;
+  sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage>;
 }
 
 // Calendar integration types using schema types
@@ -105,4 +109,14 @@ export type CalendarPreferencesRequest = components['schemas']['UpdateCalendarPr
 export interface CalendarCallbackRequest {
   code: string;
   state: string;
+}
+
+// Chat message types
+export interface EventMessage {
+  id: string;
+  eventId: string;
+  userId: string;
+  parentMessageId?: string | null;
+  messageText: string;
+  createdAt: string;
 }

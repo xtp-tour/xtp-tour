@@ -9,6 +9,7 @@ import Toast from './Toast';
 import ShareButton from './ShareButton';
 import ShareEventModal from './ShareEventModal';
 import HostDisplay from './HostDisplay';
+import EventChat from './chat/EventChat';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -178,6 +179,7 @@ const JoinedEventItem: React.FC<Props> = ({ event, onCancelled }) => {
         actionButton={getActionButton()}
         shareButton={getShareButton()}
         defaultCollapsed={true}
+        footerSection={event.id ? <EventChat eventId={event.id} collapsible embedded /> : undefined}
       />
 
       <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>

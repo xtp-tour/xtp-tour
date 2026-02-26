@@ -28,6 +28,8 @@ import (
 type Notifier interface {
 	EventConfirmed(logCtx *slog.Logger, eventId string, confirmedJoinReqIds []string, dateTime string, locationId string, hostUserId string)
 	UserJoined(logCtx slog.Logger, userId string, joinRequest api.JoinRequestData)
+	EventExpired(userId string, eventId string)
+	ChatMessagePosted(senderUserId string, eventId string)
 }
 
 type Router struct {
@@ -127,6 +129,10 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	public := events.Group("/public", "Public events", "Public events and their operations")
 	public.POST("/:eventId/joins", []fizz.OperationOption{fizz.Summary("Join an event")}, tonic.Handler(r.joinEventHandler, http.StatusOK))
 	public.DELETE("/:eventId/joins/:joinRequestId", []fizz.OperationOption{fizz.Summary("Cancel join request")}, tonic.Handler(r.cancelJoinRequest, http.StatusOK))
+
+	// Chat endpoints - POST requires auth (part of events group), GET is public
+	events.POST("/:eventId/chat/messages", []fizz.OperationOption{fizz.Summary("Post a chat message")}, tonic.Handler(r.createMessageHandler, http.StatusOK))
+	api.GET("/events/public/:eventId/chat/messages", []fizz.OperationOption{fizz.Summary("Get chat messages for an event")}, tonic.Handler(r.getMessagesHandler, http.StatusOK))
 
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
@@ -805,6 +811,102 @@ func (r *Router) deleteUserProfileHandler(c *gin.Context, req *api.DeleteUserPro
 	}
 	return nil
 
+}
+
+// Chat handlers
+
+func (r *Router) createMessageHandler(c *gin.Context, req *api.CreateMessageRequest) (*api.CreateMessageResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	logCtx := slog.With("userId", userId, "eventId", req.EventId)
+
+	// Validate message text is not empty
+	if strings.TrimSpace(req.MessageText) == "" {
+		return nil, HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Message text cannot be empty",
+		}
+	}
+
+	// Verify event exists
+	event, err := r.db.GetEventById(context.Background(), req.EventId)
+	if err != nil {
+		logCtx.Error("Failed to get event for chat message", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get event",
+		}
+	}
+
+	if event == nil {
+		return nil, HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Event not found",
+		}
+	}
+
+	messageId, err := r.db.CreateEventMessage(context.Background(), req.EventId, userId.(string), req.MessageText, req.ParentMessageId)
+	if err != nil {
+		logCtx.Error("Failed to create chat message", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to create message",
+		}
+	}
+
+	// Notify event owner asynchronously
+	go r.notifier.ChatMessagePosted(userId.(string), req.EventId)
+
+	return &api.CreateMessageResponse{
+		Message: &api.EventMessage{
+			Id:              messageId,
+			EventId:         req.EventId,
+			UserId:          userId.(string),
+			ParentMessageId: req.ParentMessageId,
+			MessageText:     req.MessageText,
+			CreatedAt:       api.DtToIso(time.Now()),
+		},
+	}, nil
+}
+
+func (r *Router) getMessagesHandler(c *gin.Context, req *api.GetMessagesRequest) (*api.GetMessagesResponse, error) {
+	logCtx := slog.With("eventId", req.EventId)
+
+	limit := req.Limit
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+
+	messages, err := r.db.GetEventMessages(context.Background(), req.EventId, limit, req.After)
+	if err != nil {
+		logCtx.Error("Failed to get chat messages", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get messages",
+		}
+	}
+
+	apiMessages := make([]*api.EventMessage, len(messages))
+	for i, msg := range messages {
+		apiMessages[i] = &api.EventMessage{
+			Id:              msg.Id,
+			EventId:         msg.EventId,
+			UserId:          msg.UserId,
+			ParentMessageId: msg.ParentMessageId,
+			MessageText:     msg.MessageText,
+			CreatedAt:       api.DtToIso(msg.CreatedAt),
+		}
+	}
+
+	return &api.GetMessagesResponse{
+		Messages: apiMessages,
+	}, nil
 }
 
 // Calendar handlers

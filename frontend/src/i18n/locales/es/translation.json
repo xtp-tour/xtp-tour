@@ -40,6 +40,19 @@
     "previousWeek": "Semana anterior",
     "provider": "Proveedor"
   },
+  "chat": {
+    "cancel": "Cancelar",
+    "emptyStateHint": "Pregunta sobre el evento o saluda!",
+    "loadError": "Error al cargar mensajes",
+    "noMessages": "Aún no hay mensajes. ¡Sé el primero en decir algo!",
+    "reply": "Responder",
+    "replyingTo": "Respondiendo a {{user}}",
+    "send": "Enviar",
+    "sendError": "Error al enviar mensaje",
+    "signInToChat": "Inicia sesión para unirte a la conversación",
+    "title": "Chat",
+    "typeMessage": "Escribe un mensaje..."
+  },
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",

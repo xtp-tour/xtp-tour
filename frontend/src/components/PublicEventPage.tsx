@@ -8,6 +8,7 @@ import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './even
 import { SignedOut, SignInButton, useUser, useClerk } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
+import EventChat from './chat/EventChat';
 import { useTranslation } from 'react-i18next';
 
 const PublicEventPage: React.FC = () => {
@@ -206,6 +207,10 @@ const PublicEventPage: React.FC = () => {
                 actionButton={getActionButton()}
                 defaultCollapsed={false}
               />
+
+              {event.id && (
+                <EventChat eventId={event.id} />
+              )}
 
               <div className="mt-4 p-3 bg-white rounded border">
                 <h5>Share this event</h5>

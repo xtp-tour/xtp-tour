@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage } from '../types/api';
 import { components } from '../types/schema';
 
 // Debug information interface
@@ -365,5 +365,25 @@ export class RealAPIClient {
       method: 'PUT',
       body: JSON.stringify(request),
     });
+  }
+
+  // Chat methods
+  async getEventMessages(eventId: string, limit?: number, after?: string): Promise<EventMessage[]> {
+    const params = new URLSearchParams();
+    if (limit) params.set('limit', String(limit));
+    if (after) params.set('after', after);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const response = await this.fetch<{ messages: EventMessage[] }>(`/api/events/public/${eventId}/chat/messages${query}`);
+    return response.messages || [];
+  }
+
+  async sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage> {
+    const body: Record<string, string> = { messageText };
+    if (parentMessageId) body.parentMessageId = parentMessageId;
+    const response = await this.fetch<{ message: EventMessage }>(`/api/events/${eventId}/chat/messages`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return response.message!;
   }
 }
