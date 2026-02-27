@@ -874,7 +874,8 @@ func scanJoinRequest(rows *sql.Rows) (*api.JoinRequest, error) {
 	}
 
 	if isAccepted.Valid {
-		joinRequest.IsAccepted = &isAccepted.Bool
+		isRejected := !isAccepted.Bool
+		joinRequest.IsRejected = &isRejected
 	}
 
 	// Parse locations
