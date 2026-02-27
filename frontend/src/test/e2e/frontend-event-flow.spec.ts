@@ -735,6 +735,29 @@ test.describe('Private Events Feature', () => {
     console.log('Direct event link route verified');
   });
 
+  test('Single event view shows event details for valid event', async ({ page }) => {
+    await page.goto(config.baseUrl);
+    await page.waitForLoadState('networkidle');
+
+    const eventId = await page.evaluate(async () => {
+      const r = await fetch('/api/events/public');
+      const d = await r.json();
+      return d.events?.[0]?.id ?? null;
+    });
+
+    if (!eventId) {
+      test.skip(true, 'No public events available');
+      return;
+    }
+
+    await page.goto(`${config.baseUrl}/events/${eventId}`);
+    await page.waitForSelector('h1:has-text("Tennis Event"), h3:has-text("Event Not Found")', { timeout: 10000 });
+
+    await expect(page.locator('h1:has-text("Tennis Event")')).toBeVisible();
+    await expect(page.locator('h5:has-text("Share this event")')).toBeVisible();
+    await expect(page.locator('h3:has-text("Event Not Found")')).not.toBeVisible();
+  });
+
   test('Private event badge indicator renders correctly', async ({ page }) => {
     // Navigate to app
     await page.goto(config.baseUrl);

@@ -64,3 +64,4 @@ frontend/coverage
 calendar-service-account.json
 frontend/playwright-report
 frontend/dist
+frontend/test-results
