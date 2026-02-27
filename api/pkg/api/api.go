@@ -88,7 +88,7 @@ type JoinRequest struct {
 	JoinRequestData
 	UserId     string `json:"userId"`
 	CreatedAt  string `json:"createdAt" format:"date" description:"Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)"`
-	IsAccepted *bool  `json:"isRejected,omitempty"`
+	IsRejected *bool  `json:"isRejected,omitempty"`
 }
 
 type JoinRequestRequest struct {
