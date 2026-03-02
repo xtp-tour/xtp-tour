@@ -134,6 +134,9 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	events.POST("/:eventId/chat/messages", []fizz.OperationOption{fizz.Summary("Post a chat message")}, tonic.Handler(r.createMessageHandler, http.StatusOK))
 	api.GET("/events/public/:eventId/chat/messages", []fizz.OperationOption{fizz.Summary("Get chat messages for an event")}, tonic.Handler(r.getMessagesHandler, http.StatusOK))
 
+	// ICS calendar download - public, no auth required
+	r.fizz.Engine().GET("/api/events/public/:eventId/calendar.ics", r.getEventCalendarHandler)
+
 	locations := api.Group("/locations", "Locations", "Locations operations", authMiddleware)
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
 		"Bearer": []string{},
