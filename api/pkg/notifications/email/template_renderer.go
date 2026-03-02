@@ -29,8 +29,9 @@ type EventConfirmedData struct {
 	DateTime         string
 	Location         string
 	ConfirmedPlayers []string
-	EventId          string // Used to construct EventURL
+	EventId          string // Used to construct EventURL and CalendarURL
 	EventURL         string // Populated by renderer
+	CalendarURL      string // Populated by renderer — ICS download link
 }
 
 // UserJoinedData contains data for join request notification emails
@@ -106,6 +107,11 @@ func (r *TemplateRenderer) RenderEventConfirmed(data EventConfirmedData) (*Rende
 		} else {
 			data.EventURL = r.domainName
 		}
+	}
+
+	// Construct CalendarURL (ICS download link)
+	if data.CalendarURL == "" && data.EventId != "" {
+		data.CalendarURL = r.domainName + "/api/events/public/" + data.EventId + "/calendar.ics"
 	}
 
 	subject := "🎾 Your training session is confirmed!"

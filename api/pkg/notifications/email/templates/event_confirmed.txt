@@ -16,6 +16,7 @@ EVENT DETAILS
 {{- end}}
 
 View event details: {{.EventURL}}
+{{if .CalendarURL}}Add to Calendar (download .ics): {{.CalendarURL}}{{end}}
 
 Have a great time! 🎾
 
