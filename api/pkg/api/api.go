@@ -7,6 +7,14 @@ type HealthResponse struct {
 	Service string `json:"service"`
 }
 
+type ConfigResponse struct {
+	Features FeatureTogglesResponse `json:"features"`
+}
+
+type FeatureTogglesResponse struct {
+	AddPlace bool `json:"addPlace"`
+}
+
 type ErrorMessage struct {
 	Message string `json:"message"`
 	Details string `json:"details,omitempty"`
@@ -254,6 +262,7 @@ type UserProfileData struct {
 	Country       string               `json:"country" default:"Poland"`
 	City          string               `json:"city" default:"Wroclaw"`
 	Notifications NotificationSettings `json:"notification_settings"`
+	Role          string               `json:"role,omitempty"`
 }
 
 type DeleteUserProfileRequest struct {
@@ -288,4 +297,52 @@ type GetMessagesRequest struct {
 
 type GetMessagesResponse struct {
 	Messages []*EventMessage `json:"messages"`
+}
+
+// Place search types
+
+type SearchPlacesRequest struct {
+	Query     string  `query:"q" validate:"required,min=2"`
+	Latitude  float64 `query:"lat"`
+	Longitude float64 `query:"lng"`
+}
+
+type SearchPlacesResponse struct {
+	Places []PlaceSearchResult `json:"places"`
+}
+
+type PlaceSearchResult struct {
+	PlaceID        string      `json:"placeId"`
+	Name           string      `json:"name"`
+	Address        string      `json:"address"`
+	Coordinates    Coordinates `json:"coordinates"`
+	GoogleMapsLink string      `json:"googleMapsLink,omitempty"`
+}
+
+type AddPlaceRequest struct {
+	PlaceID string `json:"placeId" validate:"required"`
+}
+
+type AddPlaceResponse struct {
+	Location Location `json:"location"`
+}
+
+// Admin types
+
+type AdminFacility struct {
+	Location
+	Status        string `json:"status"`
+	Source        string `json:"source"`
+	AddedBy       string `json:"addedBy,omitempty"`
+	GooglePlaceID string `json:"googlePlaceId,omitempty"`
+	CreatedAt     string `json:"createdAt,omitempty"`
+}
+
+type AdminListFacilitiesResponse struct {
+	Facilities []AdminFacility `json:"facilities"`
+}
+
+type AdminUpdateFacilityRequest struct {
+	FacilityID string `path:"facilityId" validate:"required"`
+	Status     string `json:"status" validate:"required"`
 }

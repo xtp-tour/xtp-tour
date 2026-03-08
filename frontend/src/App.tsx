@@ -11,9 +11,11 @@ import UserMenu from './components/UserMenu';
 import LandingPage from './components/LandingPage';
 import LanguageSwitcherSimple from './components/LanguageSwitcherSimple';
 import { APIProvider } from './services/apiProvider';
+import { FeatureTogglesProvider } from './config/featureToggles';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
+import AdminPage from './components/AdminPage';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
 
@@ -164,6 +166,16 @@ const AppRoutes = () => {
         </Layout>
       } />
       <Route path="/events/:eventId" element={<PublicEventPage />} />
+      <Route path="/admin" element={
+        <Layout>
+          <SignedIn>
+            <AdminPage />
+          </SignedIn>
+          <SignedOut>
+            <Navigate to="/" replace />
+          </SignedOut>
+        </Layout>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -208,18 +220,20 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
     const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
     const appContent = (
-      <APIProvider useMock={!isClerkAvailable} baseUrl={import.meta.env.VITE_API_BASE_URL || ''}>
-        <ErrorBoundary>
-          <Routes>
-            {/* Public routes that don't need the main layout */}
-            <Route path="/health-details" element={<SimpleErrorBoundary><Health /></SimpleErrorBoundary>} />
-            <Route path="/calendar/auth/callback" element={<CalendarCallback />} />
+      <FeatureTogglesProvider>
+        <APIProvider useMock={!isClerkAvailable} baseUrl={import.meta.env.VITE_API_BASE_URL || ''}>
+          <ErrorBoundary>
+            <Routes>
+              {/* Public routes that don't need the main layout */}
+              <Route path="/health-details" element={<SimpleErrorBoundary><Health /></SimpleErrorBoundary>} />
+              <Route path="/calendar/auth/callback" element={<CalendarCallback />} />
 
-            {/* All other routes */}
-            <Route path="*" element={<AppRoutes />} />
-          </Routes>
-        </ErrorBoundary>
-      </APIProvider>
+              {/* All other routes */}
+              <Route path="*" element={<AppRoutes />} />
+            </Routes>
+          </ErrorBoundary>
+        </APIProvider>
+      </FeatureTogglesProvider>
     );
 
     return (

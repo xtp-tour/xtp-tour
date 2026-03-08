@@ -55,7 +55,7 @@ func main() {
 	startExpirationWorker(&serviceConfig.Db, notifier)
 
 	metrics.StartMetricsServer(&serviceConfig.Metrics)
-	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifier)
+	r := server.NewRouter(&serviceConfig.Service, dbConn, serviceConfig.IsDebugMode, notifier, serviceConfig.Features)
 	r.Run()
 }
 

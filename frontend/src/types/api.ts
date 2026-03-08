@@ -97,6 +97,14 @@ export interface APIClient {
   // Chat methods
   getEventMessages(eventId: string, limit?: number, after?: string): Promise<EventMessage[]>;
   sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage>;
+
+  // Places methods
+  searchPlaces(query: string, lat?: number, lng?: number): Promise<PlaceSearchResult[]>;
+  addPlace(placeId: string): Promise<ApiLocation>;
+
+  // Admin methods
+  adminListFacilities(): Promise<AdminFacility[]>;
+  adminUpdateFacility(facilityId: string, status: string): Promise<void>;
 }
 
 // Calendar integration types using schema types
@@ -111,12 +119,16 @@ export interface CalendarCallbackRequest {
   state: string;
 }
 
+// Place search types
+export type PlaceSearchResult = components['schemas']['ApiPlaceSearchResult'];
+export type SearchPlacesResponse = components['schemas']['ApiSearchPlacesResponse'];
+export type AddPlaceResponse = components['schemas']['ApiAddPlaceResponse'];
+
+// Admin types
+export type AdminFacility = components['schemas']['ApiAdminFacility'];
+export type AdminListFacilitiesResponse = components['schemas']['ApiAdminListFacilitiesResponse'];
+
 // Chat message types
-export interface EventMessage {
-  id: string;
-  eventId: string;
-  userId: string;
-  parentMessageId?: string | null;
-  messageText: string;
-  createdAt: string;
-}
+export type EventMessage = components['schemas']['ApiEventMessage'];
+export type GetMessagesResponse = components['schemas']['ApiGetMessagesResponse'];
+export type CreateMessageResponse = components['schemas']['ApiCreateMessageResponse'];

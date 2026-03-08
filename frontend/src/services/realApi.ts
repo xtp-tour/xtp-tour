@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage, PlaceSearchResult, SearchPlacesResponse, AddPlaceResponse, AdminFacility, AdminListFacilitiesResponse, GetMessagesResponse, CreateMessageResponse } from '../types/api';
 import { components } from '../types/schema';
 
 // Debug information interface
@@ -373,17 +373,47 @@ export class RealAPIClient {
     if (limit) params.set('limit', String(limit));
     if (after) params.set('after', after);
     const query = params.toString() ? `?${params.toString()}` : '';
-    const response = await this.fetch<{ messages: EventMessage[] }>(`/api/events/public/${eventId}/chat/messages${query}`);
+    const response = await this.fetch<GetMessagesResponse>(`/api/events/public/${eventId}/chat/messages${query}`);
     return response.messages || [];
   }
 
   async sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage> {
     const body: Record<string, string> = { messageText };
     if (parentMessageId) body.parentMessageId = parentMessageId;
-    const response = await this.fetch<{ message: EventMessage }>(`/api/events/${eventId}/chat/messages`, {
+    const response = await this.fetch<CreateMessageResponse>(`/api/events/${eventId}/chat/messages`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
     return response.message!;
+  }
+
+  // Places methods
+  async searchPlaces(query: string, lat?: number, lng?: number): Promise<PlaceSearchResult[]> {
+    const params = new URLSearchParams({ q: query });
+    if (lat !== undefined) params.set('lat', String(lat));
+    if (lng !== undefined) params.set('lng', String(lng));
+    const response = await this.fetch<SearchPlacesResponse>(`/api/places/search?${params.toString()}`);
+    return response.places || [];
+  }
+
+  async addPlace(placeId: string): Promise<ApiLocation> {
+    const response = await this.fetch<AddPlaceResponse>('/api/places/', {
+      method: 'POST',
+      body: JSON.stringify({ placeId }),
+    });
+    return response.location!;
+  }
+
+  // Admin methods
+  async adminListFacilities(): Promise<AdminFacility[]> {
+    const response = await this.fetch<AdminListFacilitiesResponse>('/api/admin/facilities');
+    return response.facilities || [];
+  }
+
+  async adminUpdateFacility(facilityId: string, status: string): Promise<void> {
+    await this.fetch(`/api/admin/facilities/${facilityId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
   }
 }

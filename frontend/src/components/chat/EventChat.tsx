@@ -40,7 +40,7 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
       }
 
       if (fetched.length > 0) {
-        lastMessageIdRef.current = fetched[fetched.length - 1].id;
+        lastMessageIdRef.current = fetched[fetched.length - 1].id ?? null;
       }
 
       setError(null);
@@ -79,7 +79,7 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
       const parentId = replyingTo?.id;
       const sentMessage = await api.sendEventMessage(eventId, text, parentId);
       setMessages(prev => [...prev, sentMessage]);
-      lastMessageIdRef.current = sentMessage.id;
+      lastMessageIdRef.current = sentMessage.id ?? null;
       setNewMessage('');
       setReplyingTo(null);
     } catch {
@@ -99,9 +99,10 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
   // Group messages: top-level messages and their replies
   const topLevelMessages = messages.filter(m => !m.parentMessageId);
   const repliesByParent = messages.reduce<Record<string, EventMessage[]>>((acc, m) => {
-    if (m.parentMessageId) {
-      if (!acc[m.parentMessageId]) acc[m.parentMessageId] = [];
-      acc[m.parentMessageId].push(m);
+    const parentId = m.parentMessageId;
+    if (parentId) {
+      if (!acc[parentId]) acc[parentId] = [];
+      acc[parentId].push(m);
     }
     return acc;
   }, {});
@@ -150,15 +151,15 @@ const EventChat: React.FC<EventChatProps> = ({ eventId, collapsible = false, emb
       )}
 
       {!loading && topLevelMessages.map(message => (
-        <div key={message.id}>
+        <div key={message.id ?? ''}>
           <ChatMessage
             message={message}
             onReply={isSignedIn ? (msg) => setReplyingTo(msg) : undefined}
             isOwnMessage={message.userId === user?.id}
           />
-          {repliesByParent[message.id]?.map(reply => (
+          {message.id && repliesByParent[message.id]?.map(reply => (
             <ChatMessage
-              key={reply.id}
+              key={reply.id ?? ''}
               message={reply}
               isReply
               isOwnMessage={reply.userId === user?.id}

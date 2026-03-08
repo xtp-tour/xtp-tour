@@ -27,6 +27,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onReply, isReply = f
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!message.userId) return;
       try {
         const response = await api.getUserProfileByUserId(message.userId);
         setProfile(response.profile || null);
@@ -38,8 +39,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onReply, isReply = f
   }, [message.userId, api]);
 
   const displayName = profile
-    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || message.userId
-    : message.userId;
+    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || message.userId || ''
+    : message.userId || '';
 
   const initials = getInitials(profile);
 
@@ -67,10 +68,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onReply, isReply = f
       <div className="flex-grow-1 min-width-0">
         <div className="d-flex align-items-baseline gap-2 mb-1">
           <span className="chat-message-author">{displayName}</span>
-          <span className="chat-message-time">{formatTime(message.createdAt)}</span>
+          <span className="chat-message-time">{message.createdAt ? formatTime(message.createdAt) : ''}</span>
         </div>
         <div className="chat-bubble">
-          {message.messageText}
+          {message.messageText ?? ''}
         </div>
         {!isReply && onReply && (
           <div className="mt-1">

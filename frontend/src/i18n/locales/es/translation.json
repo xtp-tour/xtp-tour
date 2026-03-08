@@ -1,4 +1,20 @@
 {
+  "admin": {
+    "accessDenied": "Página no encontrada",
+    "activate": "Activar",
+    "columns": {
+      "actions": "Acciones",
+      "addedBy": "Agregado Por",
+      "address": "Dirección",
+      "createdAt": "Creado",
+      "name": "Nombre",
+      "source": "Fuente",
+      "status": "Estado"
+    },
+    "hide": "Ocultar",
+    "title": "Administrar Instalaciones",
+    "updateError": "Error al actualizar el estado de la instalación."
+  },
   "app": {
     "title": "XTP Tour",
     "version": "XTP Tour v{{version}}"
@@ -92,6 +108,7 @@
       "somePastTimes": "Algunos horarios seleccionados están en el pasado"
     },
     "form": {
+      "addNewPlace": "Agregar nuevo lugar",
       "availability": "Tu Disponibilidad (próximos 7 días)",
       "calendarIntegration": "Integración con Calendario",
       "calendarIntegrationDesc": "Conecta tu Google Calendar para evitar automáticamente conflictos de horario",
@@ -351,6 +368,13 @@
     "russian": "Русский",
     "spanish": "Español"
   },
+  "placeSearch": {
+    "addError": "Error al agregar lugar. Por favor intenta de nuevo.",
+    "noResults": "No se encontraron lugares. Intenta una búsqueda diferente.",
+    "placeholder": "Buscar un club de tenis o centro deportivo...",
+    "searchError": "Error al buscar lugares. Por favor intenta de nuevo.",
+    "title": "Agregar Nuevo Lugar"
+  },
   "profileSetup": {
     "buttons": {
       "createProfile": "Crear Perfil",
@@ -420,6 +444,7 @@
     "wholeDay": "todo el día"
   },
   "userMenu": {
+    "admin": "Admin",
     "profile": "Perfil",
     "signOut": "Cerrar Sesión"
   },

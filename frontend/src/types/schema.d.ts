@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/admin/facilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all facilities for admin */
+        get: operations["adminListFacilitiesHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/facilities/{facilityId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update facility status */
+        put: operations["adminUpdateFacilityHandler-fm"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calendar/auth/callback": {
         parameters: {
             query?: never;
@@ -124,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get application configuration and feature toggles */
+        get: operations["configHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/error": {
         parameters: {
             query?: never;
@@ -209,6 +260,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/public/{eventId}/chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get chat messages for an event */
+        get: operations["getMessagesHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/public/{eventId}/joins": {
         parameters: {
             query?: never;
@@ -261,6 +329,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post a chat message */
+        post: operations["createMessageHandler-fm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{eventId}/confirmation": {
         parameters: {
             query?: never;
@@ -303,6 +388,40 @@ export interface paths {
             cookie?: never;
         };
         get: operations["healthHandler-fm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/places/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a place from Google Places */
+        post: operations["addPlaceHandler-fm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/places/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search for places via Google Places */
+        get: operations["searchPlacesHandler-fm"];
         put?: never;
         post?: never;
         delete?: never;
@@ -368,6 +487,29 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        "AddPlaceHandler-FmInput": {
+            placeId: string;
+        };
+        "AdminUpdateFacilityHandler-FmInput": {
+            status: string;
+        };
+        ApiAddPlaceResponse: {
+            location?: components["schemas"]["ApiLocation"];
+        };
+        ApiAdminFacility: {
+            addedBy?: string;
+            address?: string;
+            coordinates?: components["schemas"]["ApiCoordinates"];
+            createdAt?: string;
+            googlePlaceId?: string;
+            id?: string;
+            name?: string;
+            source?: string;
+            status?: string;
+        };
+        ApiAdminListFacilitiesResponse: {
+            facilities?: components["schemas"]["ApiAdminFacility"][];
+        };
         ApiCalendarAuthURLResponse: {
             authUrl?: string;
         };
@@ -401,6 +543,9 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        ApiConfigResponse: {
+            features?: components["schemas"]["ApiFeatureTogglesResponse"];
+        };
         ApiConfirmation: {
             /**
              * Format: date
@@ -429,6 +574,9 @@ export interface components {
         };
         ApiCreateEventResponse: {
             event?: components["schemas"]["ApiEvent"];
+        };
+        ApiCreateMessageResponse: {
+            message?: components["schemas"]["ApiEventMessage"];
         };
         ApiCreateUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
@@ -492,8 +640,26 @@ export interface components {
             /** @enum {string} */
             visibility: "PUBLIC" | "PRIVATE";
         };
+        ApiEventMessage: {
+            /**
+             * Format: date
+             * @description Creation timestamp in UTC in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
+             */
+            createdAt?: string;
+            eventId?: string;
+            id?: string;
+            messageText?: string;
+            parentMessageId?: string | null;
+            userId?: string;
+        };
+        ApiFeatureTogglesResponse: {
+            addPlace?: boolean;
+        };
         ApiGetEventResponse: {
             event?: components["schemas"]["ApiEvent"];
+        };
+        ApiGetMessagesResponse: {
+            messages?: components["schemas"]["ApiEventMessage"][];
         };
         ApiGetUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
@@ -555,6 +721,16 @@ export interface components {
             email?: string;
             phone_number?: string;
         };
+        ApiPlaceSearchResult: {
+            address?: string;
+            coordinates?: components["schemas"]["ApiCoordinates"];
+            googleMapsLink?: string;
+            name?: string;
+            placeId?: string;
+        };
+        ApiSearchPlacesResponse: {
+            places?: components["schemas"]["ApiPlaceSearchResult"][];
+        };
         ApiUpdateUserProfileResponse: {
             profile?: components["schemas"]["ApiUserProfileData"];
             userId?: string;
@@ -579,6 +755,7 @@ export interface components {
             notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
+            role?: string;
         };
         "ConfirmEvent-FmInput": {
             /**
@@ -592,6 +769,10 @@ export interface components {
         "CreateEventHandler-FmInput": {
             event: components["schemas"]["ApiEventData"];
         };
+        "CreateMessageHandler-FmInput": {
+            messageText: string;
+            parentMessageId?: string | null;
+        };
         "CreateUserProfileHandler-FmInput": {
             /** @default Wroclaw */
             city: string;
@@ -604,6 +785,7 @@ export interface components {
             notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
+            role?: string;
         };
         "JoinEventHandler-FmInput": {
             joinRequest: components["schemas"]["ApiJoinRequestData"];
@@ -626,6 +808,7 @@ export interface components {
             notification_settings?: components["schemas"]["ApiNotificationSettings"];
             /** Format: double */
             ntrpLevel?: number;
+            role?: string;
         };
     };
     responses: never;
@@ -636,6 +819,50 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "adminListFacilitiesHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiAdminListFacilitiesResponse"];
+                };
+            };
+        };
+    };
+    "adminUpdateFacilityHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                facilityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AdminUpdateFacilityHandler-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "calendarCallbackHandler-fm": {
         parameters: {
             query?: {
@@ -803,6 +1030,26 @@ export interface operations {
             };
         };
     };
+    "configHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiConfigResponse"];
+                };
+            };
+        };
+    };
     "errorHandler-fm": {
         parameters: {
             query?: never;
@@ -927,6 +1174,33 @@ export interface operations {
             };
         };
     };
+    "getMessagesHandler-fm": {
+        parameters: {
+            query?: {
+                /** @description Message ID cursor - return messages after this ID */
+                after?: string;
+                /** @description Maximum number of messages to return */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiGetMessagesResponse"];
+                };
+            };
+        };
+    };
     "joinEventHandler-fm": {
         parameters: {
             query?: never;
@@ -1016,6 +1290,32 @@ export interface operations {
             };
         };
     };
+    "createMessageHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateMessageHandler-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiCreateMessageResponse"];
+                };
+            };
+        };
+    };
     "confirmEvent-fm": {
         parameters: {
             query?: never;
@@ -1078,6 +1378,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiHealthResponse"];
+                };
+            };
+        };
+    };
+    "addPlaceHandler-fm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AddPlaceHandler-FmInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiAddPlaceResponse"];
+                };
+            };
+        };
+    };
+    "searchPlacesHandler-fm": {
+        parameters: {
+            query: {
+                lat?: number;
+                lng?: number;
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiSearchPlacesResponse"];
                 };
             };
         };
