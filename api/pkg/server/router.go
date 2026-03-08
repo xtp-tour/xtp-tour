@@ -41,6 +41,7 @@ type Router struct {
 	notifier        Notifier
 	calendarService *calendar.Service
 	placesService   *places.Service
+	features        pkg.FeatureToggles
 }
 
 func (r *Router) Run() {
@@ -51,7 +52,7 @@ func (r *Router) Run() {
 	}
 }
 
-func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier Notifier) *Router {
+func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier Notifier, features pkg.FeatureToggles) *Router {
 	slog.Info("Cors Config", "cors", config.Cors)
 	slog.Info("Auth config type", "type", config.AuthConfig.Type)
 
@@ -75,6 +76,7 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier N
 		notifier:        notifier,
 		calendarService: calendarService,
 		placesService:   placesService,
+		features:        features,
 	}
 	r.init(config.AuthConfig)
 
@@ -83,6 +85,7 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier N
 
 func (r *Router) init(authConf pkg.AuthConfig) {
 	r.fizz.GET("/api/ping", nil, tonic.Handler(r.healthHandler, http.StatusOK))
+	r.fizz.GET("/api/config", []fizz.OperationOption{fizz.Summary("Get application configuration and feature toggles")}, tonic.Handler(r.configHandler, http.StatusOK))
 	r.fizz.POST("/api/error", nil, tonic.Handler(r.errorHandler, http.StatusOK))
 
 	api := r.fizz.Group("/api", "API", "API operations")
@@ -184,6 +187,14 @@ func (r *Router) healthHandler(c *gin.Context) (*api.HealthResponse, error) {
 	}
 
 	return resp, nil
+}
+
+func (r *Router) configHandler(c *gin.Context) (*api.ConfigResponse, error) {
+	return &api.ConfigResponse{
+		Features: api.FeatureTogglesResponse{
+			AddPlace: r.features.AddPlace,
+		},
+	}, nil
 }
 
 func (r *Router) errorHandler(c *gin.Context) error {

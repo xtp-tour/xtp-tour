@@ -12,6 +12,7 @@ import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
 import GoogleCalendarConnector from './GoogleCalendarConnector';
 import PlaceSearchModal from './PlaceSearchModal';
+import { useFeatureToggles } from '../config/featureToggles';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -21,6 +22,7 @@ type SingleDoubleType = 'SINGLE' | 'DOUBLES';
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
   const { t } = useTranslation();
   const api = useAPI();
+  const featureToggles = useFeatureToggles();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -445,30 +447,33 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   </div>
                 )}
                 {renderLocationSelect()}
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm mt-2"
-                  onClick={() => setShowPlaceSearch(true)}
-                >
-                  <i className="bi bi-plus-circle me-1"></i>
-                  {t('createEvent.form.addNewPlace')}
-                </button>
-                <PlaceSearchModal
-                  show={showPlaceSearch}
-                  onHide={() => setShowPlaceSearch(false)}
-                  onPlaceAdded={(location) => {
-                    setLocations(prev => [...prev, location]);
-                    if (location.id) {
-                      setSelectedLocations(prev => [...prev, location.id!]);
-                    }
-                    // Re-initialize the bootstrap-select after state update
-                    setTimeout(() => {
-                      if (selectRef.current) {
-                        UseBootstrapSelect.getOrCreateInstance(selectRef.current)?.update();
-                      }
-                    }, 100);
-                  }}
-                />
+                {featureToggles.addPlace && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm mt-2"
+                      onClick={() => setShowPlaceSearch(true)}
+                    >
+                      <i className="bi bi-plus-circle me-1"></i>
+                      {t('createEvent.form.addNewPlace')}
+                    </button>
+                    <PlaceSearchModal
+                      show={showPlaceSearch}
+                      onHide={() => setShowPlaceSearch(false)}
+                      onPlaceAdded={(location) => {
+                        setLocations(prev => [...prev, location]);
+                        if (location.id) {
+                          setSelectedLocations(prev => [...prev, location.id!]);
+                        }
+                        setTimeout(() => {
+                          if (selectRef.current) {
+                            UseBootstrapSelect.getOrCreateInstance(selectRef.current)?.update();
+                          }
+                        }, 100);
+                      }}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="mb-3">

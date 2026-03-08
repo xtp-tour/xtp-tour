@@ -7,6 +7,14 @@ type HealthResponse struct {
 	Service string `json:"service"`
 }
 
+type ConfigResponse struct {
+	Features FeatureTogglesResponse `json:"features"`
+}
+
+type FeatureTogglesResponse struct {
+	AddPlace bool `json:"addPlace"`
+}
+
 type ErrorMessage struct {
 	Message string `json:"message"`
 	Details string `json:"details,omitempty"`

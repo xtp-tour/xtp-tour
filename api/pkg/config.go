@@ -16,6 +16,11 @@ type Config struct {
 	Db            DbConfig
 	Notifications NotificationConfig
 	Expiration    JobsConfig
+	Features      FeatureToggles
+}
+
+type FeatureToggles struct {
+	AddPlace bool `default:"false" envvar:"FEATURE_ADD_PLACE"`
 }
 
 type NotificationConfig struct {

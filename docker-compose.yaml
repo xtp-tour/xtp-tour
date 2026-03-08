@@ -48,6 +48,7 @@ services:
       - DB_NAME=xtp_tour
       - SERVICE_PORT=8080
       - METRICS_PORT=8081
+      - FEATURE_ADD_PLACE=${FEATURE_ADD_PLACE:-false}
     depends_on:
       mysql:
         condition: service_healthy
