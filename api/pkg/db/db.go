@@ -1045,6 +1045,13 @@ func (db *Db) UpdateUserProfile(ctx context.Context, userId string, profile *api
 		return nil, errors.WithMessage(err, "Failed to commit transaction")
 	}
 
+	role, err := db.GetUserRole(ctx, userId)
+	if err != nil {
+		logCtx.Error("Failed to get user role after update", "error", err)
+	} else {
+		profile.Role = role
+	}
+
 	return profile, nil
 }
 
