@@ -120,45 +120,15 @@ export interface CalendarCallbackRequest {
 }
 
 // Place search types
-export interface PlaceSearchResult {
-  placeId: string;
-  name: string;
-  address: string;
-  coordinates: { latitude: number; longitude: number };
-  googleMapsLink?: string;
-}
-
-export interface SearchPlacesResponse {
-  places: PlaceSearchResult[];
-}
-
-export interface AddPlaceResponse {
-  location: ApiLocation;
-}
+export type PlaceSearchResult = components['schemas']['ApiPlaceSearchResult'];
+export type SearchPlacesResponse = components['schemas']['ApiSearchPlacesResponse'];
+export type AddPlaceResponse = components['schemas']['ApiAddPlaceResponse'];
 
 // Admin types
-export interface AdminFacility {
-  id: string;
-  name: string;
-  address?: string;
-  coordinates?: { latitude: number; longitude: number };
-  status: string;
-  source: string;
-  addedBy?: string;
-  googlePlaceId?: string;
-  createdAt?: string;
-}
-
-export interface AdminListFacilitiesResponse {
-  facilities: AdminFacility[];
-}
+export type AdminFacility = components['schemas']['ApiAdminFacility'];
+export type AdminListFacilitiesResponse = components['schemas']['ApiAdminListFacilitiesResponse'];
 
 // Chat message types
-export interface EventMessage {
-  id: string;
-  eventId: string;
-  userId: string;
-  parentMessageId?: string | null;
-  messageText: string;
-  createdAt: string;
-}
+export type EventMessage = components['schemas']['ApiEventMessage'];
+export type GetMessagesResponse = components['schemas']['ApiGetMessagesResponse'];
+export type CreateMessageResponse = components['schemas']['ApiCreateMessageResponse'];

@@ -48,6 +48,7 @@ const PlaceSearchModal: React.FC<Props> = ({ show, onHide, onPlaceAdded }) => {
   }, [api, t]);
 
   const handleSelectPlace = async (place: PlaceSearchResult) => {
+    if (!place.placeId) return;
     setIsAdding(place.placeId);
     setError(null);
     try {
@@ -115,14 +116,14 @@ const PlaceSearchModal: React.FC<Props> = ({ show, onHide, onPlaceAdded }) => {
               <div className="list-group">
                 {results.map((place) => (
                   <button
-                    key={place.placeId}
+                    key={place.placeId ?? ''}
                     className="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
                     onClick={() => handleSelectPlace(place)}
                     disabled={isAdding !== null}
                   >
                     <div className="me-2">
-                      <div className="fw-semibold">{place.name}</div>
-                      <small className="text-muted">{place.address}</small>
+                      <div className="fw-semibold">{place.name ?? ''}</div>
+                      <small className="text-muted">{place.address ?? ''}</small>
                     </div>
                     {isAdding === place.placeId && (
                       <div className="spinner-border spinner-border-sm text-primary" role="status">

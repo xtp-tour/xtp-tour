@@ -26,6 +26,7 @@ const AdminPage: React.FC = () => {
   }, [api, t]);
 
   const toggleStatus = async (facility: AdminFacility) => {
+    if (!facility.id) return;
     const newStatus = facility.status === 'active' ? 'hidden' : 'active';
     setUpdatingId(facility.id);
     try {

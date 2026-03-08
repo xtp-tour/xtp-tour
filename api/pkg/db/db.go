@@ -1420,15 +1420,20 @@ func (db *Db) GetEventMessages(ctx context.Context, eventId string, limit int, a
 	return messages, nil
 }
 
+type FacilityLookupResult struct {
+	api.Location
+	Status string `db:"status"`
+}
+
 // GetFacilityByGooglePlaceID checks if a facility with the given Google Place ID already exists
-func (db *Db) GetFacilityByGooglePlaceID(ctx context.Context, googlePlaceID string) (*api.Location, error) {
+func (db *Db) GetFacilityByGooglePlaceID(ctx context.Context, googlePlaceID string) (*FacilityLookupResult, error) {
 	logCtx := slog.With("method", "GetFacilityByGooglePlaceID", "googlePlaceID", googlePlaceID)
 
-	query := `SELECT id, name, address, ST_Y(location) as 'coordinates.latitude', ST_X(location) as 'coordinates.longitude'
+	query := `SELECT id, name, address, ST_Y(location) as 'coordinates.latitude', ST_X(location) as 'coordinates.longitude', status
 		FROM facilities WHERE google_place_id = ?`
 
-	var location api.Location
-	err := db.conn.GetContext(ctx, &location, query, googlePlaceID)
+	var result FacilityLookupResult
+	err := db.conn.GetContext(ctx, &result, query, googlePlaceID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -1436,18 +1441,24 @@ func (db *Db) GetFacilityByGooglePlaceID(ctx context.Context, googlePlaceID stri
 		logCtx.Error("Failed to get facility by Google Place ID", "error", err)
 		return nil, err
 	}
-	return &location, nil
+	return &result, nil
+}
+
+// ReactivateFacility sets a hidden facility back to active status
+func (db *Db) ReactivateFacility(ctx context.Context, facilityID string) error {
+	_, err := db.conn.ExecContext(ctx, `UPDATE facilities SET status = 'active' WHERE id = ?`, facilityID)
+	return err
 }
 
 // CreateFacilityFromPlace inserts a new facility from a Google Places result
-func (db *Db) CreateFacilityFromPlace(ctx context.Context, id, name, address string, lat, lng float64, googlePlaceID, addedBy string) error {
+func (db *Db) CreateFacilityFromPlace(ctx context.Context, id, name, address, country string, lat, lng float64, googlePlaceID, addedBy string) error {
 	logCtx := slog.With("method", "CreateFacilityFromPlace", "name", name, "googlePlaceID", googlePlaceID)
 
 	query := `INSERT INTO facilities (id, name, address, location, country, google_place_id, added_by, source, status)
-		VALUES (?, ?, ?, ST_GeomFromText(?), 'PL', ?, ?, 'user', 'active')`
+		VALUES (?, ?, ?, ST_GeomFromText(?), ?, ?, ?, 'user', 'active')`
 
 	point := fmt.Sprintf("POINT(%f %f)", lng, lat)
-	_, err := db.conn.ExecContext(ctx, query, id, name, address, point, googlePlaceID, addedBy)
+	_, err := db.conn.ExecContext(ctx, query, id, name, address, point, country, googlePlaceID, addedBy)
 	if err != nil {
 		logCtx.Error("Failed to create facility from place", "error", err)
 		return err

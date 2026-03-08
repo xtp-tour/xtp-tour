@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage, PlaceSearchResult, SearchPlacesResponse, AddPlaceResponse, AdminFacility, AdminListFacilitiesResponse } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage, PlaceSearchResult, SearchPlacesResponse, AddPlaceResponse, AdminFacility, AdminListFacilitiesResponse, GetMessagesResponse, CreateMessageResponse } from '../types/api';
 import { components } from '../types/schema';
 
 // Debug information interface
@@ -373,14 +373,14 @@ export class RealAPIClient {
     if (limit) params.set('limit', String(limit));
     if (after) params.set('after', after);
     const query = params.toString() ? `?${params.toString()}` : '';
-    const response = await this.fetch<{ messages: EventMessage[] }>(`/api/events/public/${eventId}/chat/messages${query}`);
+    const response = await this.fetch<GetMessagesResponse>(`/api/events/public/${eventId}/chat/messages${query}`);
     return response.messages || [];
   }
 
   async sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage> {
     const body: Record<string, string> = { messageText };
     if (parentMessageId) body.parentMessageId = parentMessageId;
-    const response = await this.fetch<{ message: EventMessage }>(`/api/events/${eventId}/chat/messages`, {
+    const response = await this.fetch<CreateMessageResponse>(`/api/events/${eventId}/chat/messages`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
@@ -401,7 +401,7 @@ export class RealAPIClient {
       method: 'POST',
       body: JSON.stringify({ placeId }),
     });
-    return response.location;
+    return response.location!;
   }
 
   // Admin methods

@@ -21,9 +21,7 @@ const UserMenu: React.FC = () => {
     const checkRole = async () => {
       try {
         const response = await api.getUserProfile();
-        // role is added by migration but not yet in generated schema types
-        const profile = response.profile as Record<string, unknown> | undefined;
-        if (profile?.role === 'admin') {
+        if (response.profile?.role === 'admin') {
           setIsAdmin(true);
         }
       } catch {

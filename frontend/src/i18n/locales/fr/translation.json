@@ -1,4 +1,20 @@
 {
+  "admin": {
+    "accessDenied": "Page introuvable",
+    "activate": "Activer",
+    "columns": {
+      "actions": "Actions",
+      "addedBy": "Ajouté Par",
+      "address": "Adresse",
+      "createdAt": "Créé",
+      "name": "Nom",
+      "source": "Source",
+      "status": "Statut"
+    },
+    "hide": "Masquer",
+    "title": "Gérer les Installations",
+    "updateError": "Échec de la mise à jour du statut de l'installation."
+  },
   "app": {
     "title": "XTP Tour",
     "version": "XTP Tour v{{version}}"
@@ -92,6 +108,7 @@
       "somePastTimes": "Certains horaires sélectionnés sont dans le passé"
     },
     "form": {
+      "addNewPlace": "Ajouter un nouveau lieu",
       "availability": "Votre Disponibilité (7 prochains jours)",
       "calendarIntegration": "Intégration Calendrier",
       "calendarIntegrationDesc": "Connectez votre Google Calendar pour éviter automatiquement les conflits d'horaire",
@@ -117,7 +134,6 @@
       "timeSlotSelected_one": "{{count}} créneau sélectionné",
       "timeSlotSelected_many": "{{count}} créneaux sélectionnés",
       "timeSlotSelected_other": "{{count}} créneaux sélectionnés",
-      "addNewPlace": "Ajouter un nouveau lieu",
       "training": "Entraînement",
       "trainingPlaceholder": "Décrivez votre plan d'entraînement et vos objectifs...",
       "trainingTip": "Considérez ajouter un plan d'entraînement ou des objectifs à la description",
@@ -352,6 +368,13 @@
     "russian": "Русский",
     "spanish": "Español"
   },
+  "placeSearch": {
+    "addError": "Échec de l'ajout du lieu. Veuillez réessayer.",
+    "noResults": "Aucun lieu trouvé. Essayez une recherche différente.",
+    "placeholder": "Rechercher un club de tennis ou un centre sportif...",
+    "searchError": "Échec de la recherche de lieux. Veuillez réessayer.",
+    "title": "Ajouter un Nouveau Lieu"
+  },
   "profileSetup": {
     "buttons": {
       "createProfile": "Créer le Profil",
@@ -424,29 +447,6 @@
     "admin": "Admin",
     "profile": "Profil",
     "signOut": "Se Déconnecter"
-  },
-  "placeSearch": {
-    "addError": "Échec de l'ajout du lieu. Veuillez réessayer.",
-    "noResults": "Aucun lieu trouvé. Essayez une recherche différente.",
-    "placeholder": "Rechercher un club de tennis ou un centre sportif...",
-    "searchError": "Échec de la recherche de lieux. Veuillez réessayer.",
-    "title": "Ajouter un Nouveau Lieu"
-  },
-  "admin": {
-    "accessDenied": "Page introuvable",
-    "activate": "Activer",
-    "columns": {
-      "actions": "Actions",
-      "addedBy": "Ajouté Par",
-      "address": "Adresse",
-      "createdAt": "Créé",
-      "name": "Nom",
-      "source": "Source",
-      "status": "Statut"
-    },
-    "hide": "Masquer",
-    "title": "Gérer les Installations",
-    "updateError": "Échec de la mise à jour du statut de l'installation."
   },
   "userProfile": {
     "buttons": {

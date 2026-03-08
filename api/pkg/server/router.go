@@ -985,6 +985,13 @@ func (r *Router) addPlaceHandler(c *gin.Context, req *api.AddPlaceRequest) (*api
 
 	logCtx := slog.With("userId", userId, "placeId", req.PlaceID)
 
+	if err := places.ValidatePlaceID(req.PlaceID); err != nil {
+		return nil, HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Invalid place ID",
+		}
+	}
+
 	// Check if place already exists
 	existing, err := r.db.GetFacilityByGooglePlaceID(context.Background(), req.PlaceID)
 	if err != nil {
@@ -996,7 +1003,16 @@ func (r *Router) addPlaceHandler(c *gin.Context, req *api.AddPlaceRequest) (*api
 	}
 
 	if existing != nil {
-		return &api.AddPlaceResponse{Location: *existing}, nil
+		if existing.Status == "hidden" {
+			if err := r.db.ReactivateFacility(context.Background(), existing.ID); err != nil {
+				logCtx.Error("Failed to reactivate facility", "error", err)
+				return nil, HttpError{
+					HttpCode: http.StatusInternalServerError,
+					Message:  "Failed to add place",
+				}
+			}
+		}
+		return &api.AddPlaceResponse{Location: existing.Location}, nil
 	}
 
 	// Get details from Google
@@ -1019,7 +1035,7 @@ func (r *Router) addPlaceHandler(c *gin.Context, req *api.AddPlaceRequest) (*api
 	facilityID := uuid.New().String()
 	err = r.db.CreateFacilityFromPlace(
 		context.Background(),
-		facilityID, details.Name, details.Address,
+		facilityID, details.Name, details.Address, details.Country,
 		details.Latitude, details.Longitude,
 		req.PlaceID, userId.(string),
 	)

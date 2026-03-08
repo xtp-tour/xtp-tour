@@ -860,11 +860,13 @@ export class MockAPIClient implements APIClient {
     return message;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async searchPlaces(_query: string, _lat?: number, _lng?: number): Promise<PlaceSearchResult[]> {
     await this.delay(500);
     return [];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async addPlace(_placeId: string): Promise<Location> {
     await this.delay(300);
     return { id: 'mock-id', name: 'Mock Place', address: 'Mock Address' };
@@ -875,6 +877,7 @@ export class MockAPIClient implements APIClient {
     return [];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async adminUpdateFacility(_facilityId: string, _status: string): Promise<void> {
     await this.delay(300);
   }

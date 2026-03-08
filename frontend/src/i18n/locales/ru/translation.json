@@ -1,4 +1,20 @@
 {
+  "admin": {
+    "accessDenied": "Страница не найдена",
+    "activate": "Активировать",
+    "columns": {
+      "actions": "Действия",
+      "addedBy": "Добавил",
+      "address": "Адрес",
+      "createdAt": "Создано",
+      "name": "Название",
+      "source": "Источник",
+      "status": "Статус"
+    },
+    "hide": "Скрыть",
+    "title": "Управление Объектами",
+    "updateError": "Не удалось обновить статус объекта."
+  },
   "app": {
     "title": "XTP Tour",
     "version": "XTP Tour v{{version}}"
@@ -92,6 +108,7 @@
       "somePastTimes": "Некоторые выбранные слоты в прошлом"
     },
     "form": {
+      "addNewPlace": "Добавить новое место",
       "availability": "Ваша доступность (следующие 7 дней)",
       "calendarIntegration": "Интеграция с календарём",
       "calendarIntegrationDesc": "Подключите Google Календарь для автоматического избежания конфликтов",
@@ -118,7 +135,6 @@
       "timeSlotSelected_few": "{{count}} слота выбрано",
       "timeSlotSelected_many": "{{count}} слотов выбрано",
       "timeSlotSelected_other": "{{count}} слотов выбрано",
-      "addNewPlace": "Добавить новое место",
       "training": "Тренировка",
       "trainingPlaceholder": "Опишите план тренировки и цели...",
       "trainingTip": "Добавьте план тренировки или цели в описание",
@@ -356,6 +372,13 @@
     "russian": "Русский",
     "spanish": "Español"
   },
+  "placeSearch": {
+    "addError": "Не удалось добавить место. Попробуйте снова.",
+    "noResults": "Места не найдены. Попробуйте другой запрос.",
+    "placeholder": "Поиск теннисного клуба или спортивного центра...",
+    "searchError": "Не удалось выполнить поиск. Попробуйте снова.",
+    "title": "Добавить Новое Место"
+  },
   "profileSetup": {
     "buttons": {
       "createProfile": "Создать профиль",
@@ -428,29 +451,6 @@
     "admin": "Админ",
     "profile": "Профиль",
     "signOut": "Выйти"
-  },
-  "placeSearch": {
-    "addError": "Не удалось добавить место. Попробуйте снова.",
-    "noResults": "Места не найдены. Попробуйте другой запрос.",
-    "placeholder": "Поиск теннисного клуба или спортивного центра...",
-    "searchError": "Не удалось выполнить поиск. Попробуйте снова.",
-    "title": "Добавить Новое Место"
-  },
-  "admin": {
-    "accessDenied": "Страница не найдена",
-    "activate": "Активировать",
-    "columns": {
-      "actions": "Действия",
-      "addedBy": "Добавил",
-      "address": "Адрес",
-      "createdAt": "Создано",
-      "name": "Название",
-      "source": "Источник",
-      "status": "Статус"
-    },
-    "hide": "Скрыть",
-    "title": "Управление Объектами",
-    "updateError": "Не удалось обновить статус объекта."
   },
   "userProfile": {
     "buttons": {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"regexp"
 )
 
 const (
@@ -15,10 +16,20 @@ const (
 	maxResults = 10
 )
 
+var validPlaceID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
+func ValidatePlaceID(placeID string) error {
+	if !validPlaceID.MatchString(placeID) {
+		return fmt.Errorf("invalid place ID format")
+	}
+	return nil
+}
+
 type PlaceResult struct {
 	PlaceID        string
 	Name           string
 	Address        string
+	Country        string
 	Latitude       float64
 	Longitude      float64
 	GoogleMapsLink string
@@ -67,16 +78,23 @@ type searchTextResponse struct {
 }
 
 type placeResponse struct {
-	ID               string       `json:"id"`
-	DisplayName      *displayName `json:"displayName"`
-	FormattedAddress string       `json:"formattedAddress"`
-	Location         *latLng      `json:"location"`
-	GoogleMapsURI    string       `json:"googleMapsUri"`
-	WebsiteURI       string       `json:"websiteUri"`
+	ID                string             `json:"id"`
+	DisplayName       *displayName       `json:"displayName"`
+	FormattedAddress  string             `json:"formattedAddress"`
+	Location          *latLng            `json:"location"`
+	GoogleMapsURI     string             `json:"googleMapsUri"`
+	WebsiteURI        string             `json:"websiteUri"`
+	AddressComponents []addressComponent `json:"addressComponents"`
 }
 
 type displayName struct {
 	Text string `json:"text"`
+}
+
+type addressComponent struct {
+	LongText  string   `json:"longText"`
+	ShortText string   `json:"shortText"`
+	Types     []string `json:"types"`
 }
 
 // SearchPlaces searches for sports facilities near the given coordinates
@@ -114,7 +132,7 @@ func (s *Service) SearchPlaces(ctx context.Context, query string, lat, lng float
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Goog-Api-Key", s.apiKey)
-	req.Header.Set("X-Goog-FieldMask", "places.id,places.displayName,places.formattedAddress,places.location,places.googleMapsUri,places.websiteUri")
+	req.Header.Set("X-Goog-FieldMask", "places.id,places.displayName,places.formattedAddress,places.location,places.googleMapsUri,places.websiteUri,places.addressComponents")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -147,6 +165,10 @@ func (s *Service) SearchPlaces(ctx context.Context, query string, lat, lng float
 func (s *Service) GetPlaceDetails(ctx context.Context, placeID string) (*PlaceResult, error) {
 	logCtx := slog.With("method", "GetPlaceDetails", "placeID", placeID)
 
+	if err := ValidatePlaceID(placeID); err != nil {
+		return nil, err
+	}
+
 	if !s.IsConfigured() {
 		return nil, fmt.Errorf("Google Places API key not configured")
 	}
@@ -158,7 +180,7 @@ func (s *Service) GetPlaceDetails(ctx context.Context, placeID string) (*PlaceRe
 	}
 
 	req.Header.Set("X-Goog-Api-Key", s.apiKey)
-	req.Header.Set("X-Goog-FieldMask", "id,displayName,formattedAddress,location,googleMapsUri,websiteUri")
+	req.Header.Set("X-Goog-FieldMask", "id,displayName,formattedAddress,location,googleMapsUri,websiteUri,addressComponents")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -195,6 +217,14 @@ func toPlaceResult(p placeResponse) PlaceResult {
 	if p.Location != nil {
 		result.Latitude = p.Location.Latitude
 		result.Longitude = p.Location.Longitude
+	}
+	for _, c := range p.AddressComponents {
+		for _, t := range c.Types {
+			if t == "country" {
+				result.Country = c.ShortText
+				break
+			}
+		}
 	}
 	return result
 }
