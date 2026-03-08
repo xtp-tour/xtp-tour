@@ -14,6 +14,7 @@ import { APIProvider } from './services/apiProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
+import AdminPage from './components/AdminPage';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
 
@@ -164,6 +165,16 @@ const AppRoutes = () => {
         </Layout>
       } />
       <Route path="/events/:eventId" element={<PublicEventPage />} />
+      <Route path="/admin" element={
+        <Layout>
+          <SignedIn>
+            <AdminPage />
+          </SignedIn>
+          <SignedOut>
+            <Navigate to="/" replace />
+          </SignedOut>
+        </Layout>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

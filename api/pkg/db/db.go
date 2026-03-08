@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"maps"
 	"slices"
@@ -81,7 +82,8 @@ func (db *Db) GetAllFacilities(ctx context.Context) ([]api.Location, error) {
 		address,
 		ST_Y(location) as 'coordinates.latitude',
 		ST_X(location) as 'coordinates.longitude'
-	FROM xtp_tour.facilities`
+	FROM xtp_tour.facilities
+	WHERE status = 'active'`
 
 	logCtx.Debug("Executing SQL query", "query", query)
 	var locations []api.Location
@@ -903,7 +905,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 	logCtx := slog.With("method", "GetUserProfile", "userId", userId)
 	logCtx.Debug("Getting user profile")
 
-	query := `SELECT  first_name, last_name, ntrp_level, language, country, city, COALESCE(notifications, '{}') as notifications FROM users u
+	query := `SELECT  first_name, last_name, ntrp_level, language, country, city, COALESCE(notifications, '{}') as notifications, role FROM users u
 	LEFT JOIN user_pref up ON u.uid = up.uid
 	WHERE u.uid = ? AND u.is_deleted = false`
 	logCtx.Debug("Executing SQL query", "query", query, "params", userId)
@@ -920,6 +922,7 @@ func (db *Db) GetUserProfile(ctx context.Context, userId string) (*api.UserProfi
 		&profile.Country,
 		&profile.City,
 		&dbNotificationSettings,
+		&profile.Role,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -1415,4 +1418,126 @@ func (db *Db) GetEventMessages(ctx context.Context, eventId string, limit int, a
 	}
 
 	return messages, nil
+}
+
+// GetFacilityByGooglePlaceID checks if a facility with the given Google Place ID already exists
+func (db *Db) GetFacilityByGooglePlaceID(ctx context.Context, googlePlaceID string) (*api.Location, error) {
+	logCtx := slog.With("method", "GetFacilityByGooglePlaceID", "googlePlaceID", googlePlaceID)
+
+	query := `SELECT id, name, address, ST_Y(location) as 'coordinates.latitude', ST_X(location) as 'coordinates.longitude'
+		FROM facilities WHERE google_place_id = ?`
+
+	var location api.Location
+	err := db.conn.GetContext(ctx, &location, query, googlePlaceID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		logCtx.Error("Failed to get facility by Google Place ID", "error", err)
+		return nil, err
+	}
+	return &location, nil
+}
+
+// CreateFacilityFromPlace inserts a new facility from a Google Places result
+func (db *Db) CreateFacilityFromPlace(ctx context.Context, id, name, address string, lat, lng float64, googlePlaceID, addedBy string) error {
+	logCtx := slog.With("method", "CreateFacilityFromPlace", "name", name, "googlePlaceID", googlePlaceID)
+
+	query := `INSERT INTO facilities (id, name, address, location, country, google_place_id, added_by, source, status)
+		VALUES (?, ?, ?, ST_GeomFromText(?), 'PL', ?, ?, 'user', 'active')`
+
+	point := fmt.Sprintf("POINT(%f %f)", lng, lat)
+	_, err := db.conn.ExecContext(ctx, query, id, name, address, point, googlePlaceID, addedBy)
+	if err != nil {
+		logCtx.Error("Failed to create facility from place", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetAllFacilitiesAdmin retrieves all facilities with metadata for admin view
+func (db *Db) GetAllFacilitiesAdmin(ctx context.Context) ([]api.AdminFacility, error) {
+	logCtx := slog.With("method", "GetAllFacilitiesAdmin")
+
+	query := `SELECT
+		id,
+		name,
+		address,
+		ST_Y(location) as 'coordinates.latitude',
+		ST_X(location) as 'coordinates.longitude',
+		status,
+		source,
+		COALESCE(added_by, '') as added_by,
+		COALESCE(google_place_id, '') as google_place_id,
+		created_at
+	FROM facilities
+	ORDER BY created_at DESC`
+
+	rows, err := db.conn.QueryContext(ctx, query)
+	if err != nil {
+		logCtx.Error("Failed to get all facilities for admin", "error", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var facilities []api.AdminFacility
+	for rows.Next() {
+		var f api.AdminFacility
+		var createdAt time.Time
+		err := rows.Scan(
+			&f.ID, &f.Name, &f.Address,
+			&f.Coordinates.Latitude, &f.Coordinates.Longitude,
+			&f.Status, &f.Source, &f.AddedBy, &f.GooglePlaceID,
+			&createdAt,
+		)
+		if err != nil {
+			logCtx.Error("Failed to scan facility row", "error", err)
+			return nil, err
+		}
+		f.CreatedAt = api.DtToIso(createdAt)
+		facilities = append(facilities, f)
+	}
+
+	if facilities == nil {
+		facilities = []api.AdminFacility{}
+	}
+
+	return facilities, nil
+}
+
+// UpdateFacilityStatus changes a facility's status (active/hidden)
+func (db *Db) UpdateFacilityStatus(ctx context.Context, facilityID, status string) error {
+	logCtx := slog.With("method", "UpdateFacilityStatus", "facilityID", facilityID, "status", status)
+
+	query := `UPDATE facilities SET status = ? WHERE id = ?`
+	result, err := db.conn.ExecContext(ctx, query, status, facilityID)
+	if err != nil {
+		logCtx.Error("Failed to update facility status", "error", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return DbObjectNotFoundError{Message: "Facility not found"}
+	}
+
+	return nil
+}
+
+// GetUserRole returns the role for a user
+func (db *Db) GetUserRole(ctx context.Context, userId string) (string, error) {
+	var role string
+	err := db.conn.GetContext(ctx, &role, `SELECT role FROM users WHERE uid = ?`, userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "user", nil
+		}
+		return "", err
+	}
+	return role, nil
 }

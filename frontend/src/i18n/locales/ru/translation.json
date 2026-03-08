@@ -118,6 +118,7 @@
       "timeSlotSelected_few": "{{count}} слота выбрано",
       "timeSlotSelected_many": "{{count}} слотов выбрано",
       "timeSlotSelected_other": "{{count}} слотов выбрано",
+      "addNewPlace": "Добавить новое место",
       "training": "Тренировка",
       "trainingPlaceholder": "Опишите план тренировки и цели...",
       "trainingTip": "Добавьте план тренировки или цели в описание",
@@ -424,8 +425,32 @@
     "wholeDay": "весь день"
   },
   "userMenu": {
+    "admin": "Админ",
     "profile": "Профиль",
     "signOut": "Выйти"
+  },
+  "placeSearch": {
+    "addError": "Не удалось добавить место. Попробуйте снова.",
+    "noResults": "Места не найдены. Попробуйте другой запрос.",
+    "placeholder": "Поиск теннисного клуба или спортивного центра...",
+    "searchError": "Не удалось выполнить поиск. Попробуйте снова.",
+    "title": "Добавить Новое Место"
+  },
+  "admin": {
+    "accessDenied": "Страница не найдена",
+    "activate": "Активировать",
+    "columns": {
+      "actions": "Действия",
+      "addedBy": "Добавил",
+      "address": "Адрес",
+      "createdAt": "Создано",
+      "name": "Название",
+      "source": "Источник",
+      "status": "Статус"
+    },
+    "hide": "Скрыть",
+    "title": "Управление Объектами",
+    "updateError": "Не удалось обновить статус объекта."
   },
   "userProfile": {
     "buttons": {

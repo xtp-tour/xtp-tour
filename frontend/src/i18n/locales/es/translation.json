@@ -117,6 +117,7 @@
       "timeSlotSelected_one": "{{count}} horario seleccionado",
       "timeSlotSelected_many": "{{count}} horarios seleccionados",
       "timeSlotSelected_other": "{{count}} horarios seleccionados",
+      "addNewPlace": "Agregar nuevo lugar",
       "training": "Entrenamiento",
       "trainingPlaceholder": "Describe tu plan de entrenamiento y objetivos...",
       "trainingTip": "Considera agregar plan de entrenamiento u objetivos a la descripción",
@@ -420,8 +421,32 @@
     "wholeDay": "todo el día"
   },
   "userMenu": {
+    "admin": "Admin",
     "profile": "Perfil",
     "signOut": "Cerrar Sesión"
+  },
+  "placeSearch": {
+    "addError": "Error al agregar lugar. Por favor intenta de nuevo.",
+    "noResults": "No se encontraron lugares. Intenta una búsqueda diferente.",
+    "placeholder": "Buscar un club de tenis o centro deportivo...",
+    "searchError": "Error al buscar lugares. Por favor intenta de nuevo.",
+    "title": "Agregar Nuevo Lugar"
+  },
+  "admin": {
+    "accessDenied": "Página no encontrada",
+    "activate": "Activar",
+    "columns": {
+      "actions": "Acciones",
+      "addedBy": "Agregado Por",
+      "address": "Dirección",
+      "createdAt": "Creado",
+      "name": "Nombre",
+      "source": "Fuente",
+      "status": "Estado"
+    },
+    "hide": "Ocultar",
+    "title": "Administrar Instalaciones",
+    "updateError": "Error al actualizar el estado de la instalación."
   },
   "userProfile": {
     "buttons": {

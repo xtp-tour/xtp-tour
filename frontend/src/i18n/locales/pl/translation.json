@@ -118,6 +118,7 @@
       "timeSlotSelected_few": "{{count}} terminy wybrane",
       "timeSlotSelected_many": "{{count}} terminów wybranych",
       "timeSlotSelected_other": "{{count}} terminów wybranych",
+      "addNewPlace": "Dodaj nowe miejsce",
       "training": "Trening",
       "trainingPlaceholder": "Opisz swój plan treningowy i cele...",
       "trainingTip": "Rozważ dodanie planu treningowego lub celów do opisu",
@@ -424,8 +425,32 @@
     "wholeDay": "cały dzień"
   },
   "userMenu": {
+    "admin": "Admin",
     "profile": "Profil",
     "signOut": "Wyloguj się"
+  },
+  "placeSearch": {
+    "addError": "Nie udało się dodać miejsca. Spróbuj ponownie.",
+    "noResults": "Nie znaleziono miejsc. Spróbuj innego wyszukiwania.",
+    "placeholder": "Szukaj klubu tenisowego lub centrum sportowego...",
+    "searchError": "Nie udało się wyszukać miejsc. Spróbuj ponownie.",
+    "title": "Dodaj Nowe Miejsce"
+  },
+  "admin": {
+    "accessDenied": "Strona nie znaleziona",
+    "activate": "Aktywuj",
+    "columns": {
+      "actions": "Akcje",
+      "addedBy": "Dodane Przez",
+      "address": "Adres",
+      "createdAt": "Utworzono",
+      "name": "Nazwa",
+      "source": "Źródło",
+      "status": "Status"
+    },
+    "hide": "Ukryj",
+    "title": "Zarządzaj Obiektami",
+    "updateError": "Nie udało się zaktualizować statusu obiektu."
   },
   "userProfile": {
     "buttons": {

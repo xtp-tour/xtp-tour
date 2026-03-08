@@ -116,6 +116,7 @@
       "timeSlotSelected": "{{count}} time slot selected",
       "timeSlotSelected_one": "{{count}} time slot selected",
       "timeSlotSelected_other": "{{count}} time slots selected",
+      "addNewPlace": "Add new place",
       "training": "Training",
       "trainingPlaceholder": "Describe your training plan and goals...",
       "trainingTip": "Consider adding training plan or goals to description",
@@ -416,8 +417,32 @@
     "wholeDay": "whole day"
   },
   "userMenu": {
+    "admin": "Admin",
     "profile": "Profile",
     "signOut": "Sign Out"
+  },
+  "placeSearch": {
+    "addError": "Failed to add place. Please try again.",
+    "noResults": "No places found. Try a different search.",
+    "placeholder": "Search for a tennis club or sports center...",
+    "searchError": "Failed to search places. Please try again.",
+    "title": "Add New Place"
+  },
+  "admin": {
+    "accessDenied": "Page not found",
+    "activate": "Activate",
+    "columns": {
+      "actions": "Actions",
+      "addedBy": "Added By",
+      "address": "Address",
+      "createdAt": "Created",
+      "name": "Name",
+      "source": "Source",
+      "status": "Status"
+    },
+    "hide": "Hide",
+    "title": "Manage Facilities",
+    "updateError": "Failed to update facility status."
   },
   "userProfile": {
     "buttons": {

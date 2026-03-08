@@ -44,6 +44,11 @@ type HttpConfig struct {
 	Cors           *cors.Config `default:"{\"AllowOrigins\":[\"http://localhost\"],\"AllowMethods\":[\"GET\",\"POST\",\"PUT\",\"DELETE\",\"OPTIONS\"],\"AllowHeaders\":[\"Origin\",\"Content-Length\",\"Content-Type\",\"Authorization\"],\"ExposeHeaders\":[\"Content-Length\"],\"AllowCredentials\":true,\"MaxAge\":43200000000000}"`
 	AuthConfig     AuthConfig
 	GoogleCalendar GoogleCalendarConfig
+	GooglePlaces   GooglePlacesConfig
+}
+
+type GooglePlacesConfig struct {
+	APIKey string `envvar:"GOOGLE_PLACES_API_KEY"`
 }
 
 type AuthConfig struct {

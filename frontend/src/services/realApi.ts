@@ -1,4 +1,4 @@
-import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage } from '../types/api';
+import { APIConfig, APIError, ApiEvent, ApiConfirmation, ApiJoinRequest, ApiLocation, ListEventsResponse, CreateEventResponse, GetEventResponse, ConfirmEventResponse, JoinRequestResponse, ListLocationsResponse, CreateEventRequest, ConfirmEventRequest, JoinEventRequest, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage, PlaceSearchResult, SearchPlacesResponse, AddPlaceResponse, AdminFacility, AdminListFacilitiesResponse } from '../types/api';
 import { components } from '../types/schema';
 
 // Debug information interface
@@ -385,5 +385,35 @@ export class RealAPIClient {
       body: JSON.stringify(body),
     });
     return response.message!;
+  }
+
+  // Places methods
+  async searchPlaces(query: string, lat?: number, lng?: number): Promise<PlaceSearchResult[]> {
+    const params = new URLSearchParams({ q: query });
+    if (lat !== undefined) params.set('lat', String(lat));
+    if (lng !== undefined) params.set('lng', String(lng));
+    const response = await this.fetch<SearchPlacesResponse>(`/api/places/search?${params.toString()}`);
+    return response.places || [];
+  }
+
+  async addPlace(placeId: string): Promise<ApiLocation> {
+    const response = await this.fetch<AddPlaceResponse>('/api/places/', {
+      method: 'POST',
+      body: JSON.stringify({ placeId }),
+    });
+    return response.location;
+  }
+
+  // Admin methods
+  async adminListFacilities(): Promise<AdminFacility[]> {
+    const response = await this.fetch<AdminListFacilitiesResponse>('/api/admin/facilities');
+    return response.facilities || [];
+  }
+
+  async adminUpdateFacility(facilityId: string, status: string): Promise<void> {
+    await this.fetch(`/api/admin/facilities/${facilityId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
   }
 }

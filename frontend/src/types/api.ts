@@ -97,6 +97,14 @@ export interface APIClient {
   // Chat methods
   getEventMessages(eventId: string, limit?: number, after?: string): Promise<EventMessage[]>;
   sendEventMessage(eventId: string, messageText: string, parentMessageId?: string): Promise<EventMessage>;
+
+  // Places methods
+  searchPlaces(query: string, lat?: number, lng?: number): Promise<PlaceSearchResult[]>;
+  addPlace(placeId: string): Promise<ApiLocation>;
+
+  // Admin methods
+  adminListFacilities(): Promise<AdminFacility[]>;
+  adminUpdateFacility(facilityId: string, status: string): Promise<void>;
 }
 
 // Calendar integration types using schema types
@@ -109,6 +117,40 @@ export type CalendarPreferencesRequest = components['schemas']['UpdateCalendarPr
 export interface CalendarCallbackRequest {
   code: string;
   state: string;
+}
+
+// Place search types
+export interface PlaceSearchResult {
+  placeId: string;
+  name: string;
+  address: string;
+  coordinates: { latitude: number; longitude: number };
+  googleMapsLink?: string;
+}
+
+export interface SearchPlacesResponse {
+  places: PlaceSearchResult[];
+}
+
+export interface AddPlaceResponse {
+  location: ApiLocation;
+}
+
+// Admin types
+export interface AdminFacility {
+  id: string;
+  name: string;
+  address?: string;
+  coordinates?: { latitude: number; longitude: number };
+  status: string;
+  source: string;
+  addedBy?: string;
+  googlePlaceId?: string;
+  createdAt?: string;
+}
+
+export interface AdminListFacilitiesResponse {
+  facilities: AdminFacility[];
 }
 
 // Chat message types

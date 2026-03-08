@@ -1,4 +1,4 @@
-import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage } from '../types/api';
+import { APIConfig, ListEventsResponse, GetUserProfileResponse, CreateUserProfileRequest, CreateUserProfileResponse, UpdateUserProfileRequest, UpdateUserProfileResponse, CalendarAuthURLResponse, CalendarCallbackRequest, CalendarConnectionStatusResponse, CalendarPreferencesRequest, CalendarPreferencesResponse, ApiUserCalendar, EventMessage, PlaceSearchResult, AdminFacility } from '../types/api';
 import { components } from '../types/schema';
 import moment from 'moment';
 import { formatLocalToUtc } from '../utils/dateUtils';
@@ -858,5 +858,24 @@ export class MockAPIClient implements APIClient {
     };
     this.mockMessages.push(message);
     return message;
+  }
+
+  async searchPlaces(_query: string, _lat?: number, _lng?: number): Promise<PlaceSearchResult[]> {
+    await this.delay(500);
+    return [];
+  }
+
+  async addPlace(_placeId: string): Promise<Location> {
+    await this.delay(300);
+    return { id: 'mock-id', name: 'Mock Place', address: 'Mock Address' };
+  }
+
+  async adminListFacilities(): Promise<AdminFacility[]> {
+    await this.delay(300);
+    return [];
+  }
+
+  async adminUpdateFacility(_facilityId: string, _status: string): Promise<void> {
+    await this.delay(300);
   }
 }

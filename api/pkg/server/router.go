@@ -16,9 +16,11 @@ import (
 	"github.com/loopfz/gadgeto/tonic"
 	"github.com/xtp-tour/xtp-tour/api/cmd/version"
 	"github.com/xtp-tour/xtp-tour/api/pkg"
+	"github.com/google/uuid"
 	"github.com/xtp-tour/xtp-tour/api/pkg/api"
 	"github.com/xtp-tour/xtp-tour/api/pkg/calendar"
 	"github.com/xtp-tour/xtp-tour/api/pkg/db"
+	"github.com/xtp-tour/xtp-tour/api/pkg/places"
 	"github.com/xtp-tour/xtp-tour/api/pkg/server/auth"
 
 	"github.com/wI2L/fizz"
@@ -38,6 +40,7 @@ type Router struct {
 	db              *db.Db
 	notifier        Notifier
 	calendarService *calendar.Service
+	placesService   *places.Service
 }
 
 func (r *Router) Run() {
@@ -63,12 +66,15 @@ func NewRouter(config *pkg.HttpConfig, dbConn *db.Db, debugMode bool, notifier N
 	}
 	calendarService := calendar.NewService(calendarConfig, dbConn)
 
+	placesService := places.NewService(config.GooglePlaces.APIKey)
+
 	r := &Router{
 		fizz:            f,
 		port:            config.Port,
 		db:              dbConn,
 		notifier:        notifier,
 		calendarService: calendarService,
+		placesService:   placesService,
 	}
 	r.init(config.AuthConfig)
 
@@ -138,6 +144,16 @@ func (r *Router) init(authConf pkg.AuthConfig) {
 	locations.GET("/", []fizz.OperationOption{fizz.Summary("Get list of locations"), fizz.Security(&openapi.SecurityRequirement{
 		"Bearer": []string{},
 	})}, tonic.Handler(r.listLocationsHandler, http.StatusOK))
+
+	// Places endpoints
+	placesGroup := api.Group("/places", "Places", "Place search and management", authMiddleware)
+	placesGroup.GET("/search", []fizz.OperationOption{fizz.Summary("Search for places via Google Places")}, tonic.Handler(r.searchPlacesHandler, http.StatusOK))
+	placesGroup.POST("/", []fizz.OperationOption{fizz.Summary("Add a place from Google Places")}, tonic.Handler(r.addPlaceHandler, http.StatusOK))
+
+	// Admin endpoints
+	admin := api.Group("/admin", "Admin", "Admin operations", authMiddleware)
+	admin.GET("/facilities", []fizz.OperationOption{fizz.Summary("List all facilities for admin")}, tonic.Handler(r.adminListFacilitiesHandler, http.StatusOK))
+	admin.PUT("/facilities/:facilityId", []fizz.OperationOption{fizz.Summary("Update facility status")}, tonic.Handler(r.adminUpdateFacilityHandler, http.StatusOK))
 
 	// Calendar integration endpoints
 	calendar := api.Group("/calendar", "Calendar", "Google Calendar integration operations", authMiddleware)
@@ -907,6 +923,187 @@ func (r *Router) getMessagesHandler(c *gin.Context, req *api.GetMessagesRequest)
 	return &api.GetMessagesResponse{
 		Messages: apiMessages,
 	}, nil
+}
+
+// Places handlers
+
+func (r *Router) searchPlacesHandler(c *gin.Context, req *api.SearchPlacesRequest) (*api.SearchPlacesResponse, error) {
+	logCtx := slog.With("query", req.Query)
+
+	if !r.placesService.IsConfigured() {
+		return nil, HttpError{
+			HttpCode: http.StatusServiceUnavailable,
+			Message:  "Place search is not available",
+		}
+	}
+
+	results, err := r.placesService.SearchPlaces(context.Background(), req.Query, req.Latitude, req.Longitude)
+	if err != nil {
+		logCtx.Error("Failed to search places", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to search places",
+		}
+	}
+
+	places := make([]api.PlaceSearchResult, len(results))
+	for i, p := range results {
+		places[i] = api.PlaceSearchResult{
+			PlaceID: p.PlaceID,
+			Name:    p.Name,
+			Address: p.Address,
+			Coordinates: api.Coordinates{
+				Latitude:  p.Latitude,
+				Longitude: p.Longitude,
+			},
+			GoogleMapsLink: p.GoogleMapsLink,
+		}
+	}
+
+	return &api.SearchPlacesResponse{Places: places}, nil
+}
+
+func (r *Router) addPlaceHandler(c *gin.Context, req *api.AddPlaceRequest) (*api.AddPlaceResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, HttpError{
+			HttpCode: http.StatusUnauthorized,
+			Message:  "User ID not found",
+		}
+	}
+
+	logCtx := slog.With("userId", userId, "placeId", req.PlaceID)
+
+	// Check if place already exists
+	existing, err := r.db.GetFacilityByGooglePlaceID(context.Background(), req.PlaceID)
+	if err != nil {
+		logCtx.Error("Failed to check existing facility", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to add place",
+		}
+	}
+
+	if existing != nil {
+		return &api.AddPlaceResponse{Location: *existing}, nil
+	}
+
+	// Get details from Google
+	if !r.placesService.IsConfigured() {
+		return nil, HttpError{
+			HttpCode: http.StatusServiceUnavailable,
+			Message:  "Place search is not available",
+		}
+	}
+
+	details, err := r.placesService.GetPlaceDetails(context.Background(), req.PlaceID)
+	if err != nil {
+		logCtx.Error("Failed to get place details", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get place details",
+		}
+	}
+
+	facilityID := uuid.New().String()
+	err = r.db.CreateFacilityFromPlace(
+		context.Background(),
+		facilityID, details.Name, details.Address,
+		details.Latitude, details.Longitude,
+		req.PlaceID, userId.(string),
+	)
+	if err != nil {
+		logCtx.Error("Failed to create facility", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to add place",
+		}
+	}
+
+	return &api.AddPlaceResponse{
+		Location: api.Location{
+			ID:      facilityID,
+			Name:    details.Name,
+			Address: details.Address,
+			Coordinates: api.Coordinates{
+				Latitude:  details.Latitude,
+				Longitude: details.Longitude,
+			},
+		},
+	}, nil
+}
+
+// Admin handlers
+
+func (r *Router) adminListFacilitiesHandler(c *gin.Context) (*api.AdminListFacilitiesResponse, error) {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return nil, HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Not found",
+		}
+	}
+
+	role, err := r.db.GetUserRole(context.Background(), userId.(string))
+	if err != nil || role != "admin" {
+		return nil, HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Not found",
+		}
+	}
+
+	facilities, err := r.db.GetAllFacilitiesAdmin(context.Background())
+	if err != nil {
+		slog.Error("Failed to get facilities for admin", "error", err)
+		return nil, HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to get facilities",
+		}
+	}
+
+	return &api.AdminListFacilitiesResponse{Facilities: facilities}, nil
+}
+
+func (r *Router) adminUpdateFacilityHandler(c *gin.Context, req *api.AdminUpdateFacilityRequest) error {
+	userId, ok := c.Get(auth.USER_ID_CONTEXT_KEY)
+	if !ok {
+		return HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Not found",
+		}
+	}
+
+	role, err := r.db.GetUserRole(context.Background(), userId.(string))
+	if err != nil || role != "admin" {
+		return HttpError{
+			HttpCode: http.StatusNotFound,
+			Message:  "Not found",
+		}
+	}
+
+	if req.Status != "active" && req.Status != "hidden" {
+		return HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Status must be 'active' or 'hidden'",
+		}
+	}
+
+	err = r.db.UpdateFacilityStatus(context.Background(), req.FacilityID, req.Status)
+	if err != nil {
+		if _, ok := err.(db.DbObjectNotFoundError); ok {
+			return HttpError{
+				HttpCode: http.StatusNotFound,
+				Message:  "Facility not found",
+			}
+		}
+		slog.Error("Failed to update facility status", "error", err)
+		return HttpError{
+			HttpCode: http.StatusInternalServerError,
+			Message:  "Failed to update facility",
+		}
+	}
+
+	return nil
 }
 
 // Calendar handlers

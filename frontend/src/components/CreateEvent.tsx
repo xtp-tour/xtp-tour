@@ -11,6 +11,7 @@ import { useAPI, CreateEventRequest, Location } from '../services/apiProvider';
 import { formatDurationI18n } from '../utils/i18nDateUtils';
 import AvailabilityCalendar from './event/AvailabilityCalendar';
 import GoogleCalendarConnector from './GoogleCalendarConnector';
+import PlaceSearchModal from './PlaceSearchModal';
 
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
@@ -32,6 +33,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
+  const [showPlaceSearch, setShowPlaceSearch] = useState(false);
 
   // Zod schema for form validation
   const createEventSchema = z.object({
@@ -443,6 +445,30 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                   </div>
                 )}
                 {renderLocationSelect()}
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm mt-2"
+                  onClick={() => setShowPlaceSearch(true)}
+                >
+                  <i className="bi bi-plus-circle me-1"></i>
+                  {t('createEvent.form.addNewPlace')}
+                </button>
+                <PlaceSearchModal
+                  show={showPlaceSearch}
+                  onHide={() => setShowPlaceSearch(false)}
+                  onPlaceAdded={(location) => {
+                    setLocations(prev => [...prev, location]);
+                    if (location.id) {
+                      setSelectedLocations(prev => [...prev, location.id!]);
+                    }
+                    // Re-initialize the bootstrap-select after state update
+                    setTimeout(() => {
+                      if (selectRef.current) {
+                        UseBootstrapSelect.getOrCreateInstance(selectRef.current)?.update();
+                      }
+                    }, 100);
+                  }}
+                />
               </div>
 
               <div className="mb-3">
