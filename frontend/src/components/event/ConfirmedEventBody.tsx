@@ -18,6 +18,25 @@ const formatConfirmedDateTime = (datetime: string): string => {
   return moment(datetime).format('LLLL');
 };
 
+const formatGoogleCalendarDate = (datetime: string): string => {
+  return moment(datetime).utc().format('YYYYMMDDTHHmmss') + 'Z';
+};
+
+const buildGoogleCalendarURL = (event: ApiEvent, locationName: string): string => {
+  const start = formatGoogleCalendarDate(event.confirmation!.datetime || '');
+  const end = formatGoogleCalendarDate(
+    moment(event.confirmation!.datetime).add(event.sessionDuration, 'minutes').toISOString()
+  );
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `Tennis at ${locationName}`,
+    dates: `${start}/${end}`,
+    details: event.description || '',
+    location: locationName,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
+
 const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
   event,
   colorClass = 'text-primary',
@@ -26,6 +45,10 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
   if (!event.confirmation) {
     return null;
   }
+
+  const locationName = (event.confirmation.location || '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (l: string) => l.toUpperCase());
 
   return (
     <div className="card-body pt-2">
@@ -62,6 +85,27 @@ const ConfirmedEventBody: React.FC<ConfirmedEventBodyProps> = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Add to Calendar buttons */}
+        <div className="d-flex gap-2 mt-3">
+          <a
+            href={buildGoogleCalendarURL(event, locationName)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-sm btn-outline-primary"
+          >
+            <i className="bi bi-google me-1"></i>
+            Add to Google Calendar
+          </a>
+          <a
+            href={`/api/events/public/${event.id}/calendar.ics`}
+            download
+            className="btn btn-sm btn-outline-secondary"
+          >
+            <i className="bi bi-calendar-plus me-1"></i>
+            Download .ics
+          </a>
         </div>
       </div>
 
