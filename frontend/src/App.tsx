@@ -16,6 +16,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Health from './components/Health';
 import CalendarCallback from './components/CalendarCallback';
 import AdminPage from './components/AdminPage';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
 
@@ -97,6 +99,10 @@ const Layout = ({ children, showLanguageSwitcherInFooter = false }: { children: 
                 <LanguageSwitcherSimple />
               </div>
             )}
+            <div className="mb-2">
+              <Link to="/privacy" className="text-muted small me-3">{t('footer.privacy')}</Link>
+              <Link to="/terms" className="text-muted small">{t('footer.terms')}</Link>
+            </div>
             <small className="text-muted">
               {t('app.version', { version: __APP_VERSION__ })}
             </small>
@@ -174,6 +180,16 @@ const AppRoutes = () => {
           <SignedOut>
             <Navigate to="/" replace />
           </SignedOut>
+        </Layout>
+      } />
+      <Route path="/privacy" element={
+        <Layout>
+          <PrivacyPolicy />
+        </Layout>
+      } />
+      <Route path="/terms" element={
+        <Layout>
+          <TermsOfService />
         </Layout>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

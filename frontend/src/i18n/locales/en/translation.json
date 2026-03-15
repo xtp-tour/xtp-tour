@@ -244,6 +244,10 @@
     "training1on1": "Training 1 on 1",
     "unorthodoxMatch": "Unorthodox Match"
   },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
   "host": {
     "label": "Host:",
     "unknown": "Unknown Host",
