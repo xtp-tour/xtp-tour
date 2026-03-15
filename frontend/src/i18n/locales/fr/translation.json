@@ -248,6 +248,10 @@
     "training1on1": "Entraînement 1 contre 1",
     "unorthodoxMatch": "Match Non Conventionnel"
   },
+  "footer": {
+    "privacy": "Politique de Confidentialité",
+    "terms": "Conditions d'Utilisation"
+  },
   "host": {
     "label": "Hôte :",
     "unknown": "Hôte Inconnu",

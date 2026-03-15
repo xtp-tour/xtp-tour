@@ -248,6 +248,10 @@
     "training1on1": "Entrenamiento 1 a 1",
     "unorthodoxMatch": "Partido No Convencional"
   },
+  "footer": {
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio"
+  },
   "host": {
     "label": "Anfitrión:",
     "unknown": "Anfitrión Desconocido",
