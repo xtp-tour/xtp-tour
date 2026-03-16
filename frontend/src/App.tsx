@@ -20,6 +20,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
+import { usePageTracking } from './hooks/usePageTracking';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -139,6 +140,8 @@ const AuthenticatedContent = () => {
 };
 
 const AppRoutes = () => {
+  usePageTracking();
+
   return (
     <Routes>
       <Route path="/" element={
