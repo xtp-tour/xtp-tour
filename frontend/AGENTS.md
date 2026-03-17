@@ -112,10 +112,24 @@ src/
 - Mock API available for component testing
 
 ### Environment Variables
-- `VITE_CLERK_PUBLISHABLE_KEY` - Clerk auth key (optional)
-- `VITE_API_BASE_URL` - API base URL (defaults to proxy)
-- `VITE_APP_VERSION` - App version for display
-- Development uses Vite proxy to avoid CORS (configured in vite.config.ts)
+
+Vite loads env by mode: `pnpm dev` uses `development`, `pnpm build` uses `production`. Mode-specific files override generic ones; `process.env` (e.g. CI) always wins.
+
+**Files (in load order):**
+- `.env` – loaded in all cases
+- `.env.local` – all cases, gitignored (use for local overrides or secrets)
+- `.env.development` / `.env.production` – only in that mode; committed with safe defaults
+- `.env.development.local` / `.env.production.local` – only in that mode, gitignored
+
+**Variable reference:** See `.env.example` for all `VITE_*` variable names and comments.
+
+**Variables:**
+- `VITE_CLERK_PUBLISHABLE_KEY` – Clerk auth key (optional; empty = demo/mock mode)
+- `VITE_API_BASE_URL` – API base URL (empty in dev = use Vite proxy to `/api`)
+- `VITE_APP_VERSION` – App version for display
+- `VITE_GA_MEASUREMENT_ID` – Google Analytics measurement ID (optional)
+
+**Populating from secrets:** Never commit secret values. CI/Docker pass secrets as `env` or build-args (see `.github/workflows/frontend.yaml`); no `.env` file is written. For local dev, any script that injects secrets should write only to gitignored files (`.env.local` or `.env.development.local` / `.env.production.local`). Use `.env.example` as the variable list for such scripts. Docker builds use ARGs, not `.env` files.
 
 ### Development Users (for testing)
 - Email: "user2@example.com" Password: "biAShy=8&Q,%g~T"
