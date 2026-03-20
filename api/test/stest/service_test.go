@@ -1055,3 +1055,364 @@ func Test_CancelJoinRequest(t *testing.T) {
 		}
 	})
 }
+
+func createNProfiles(n int) ([]string, error) {
+	ts := time.Now().Format("150405.000")
+	users := make([]string, n)
+	for i := 0; i < n; i++ {
+		users[i] = fmt.Sprintf("mp-user-%d-%s", i, ts)
+		profileData := api.CreateUserProfileRequest{
+			UserProfileData: api.UserProfileData{
+				FirstName: users[i],
+				LastName:  "Doe",
+				NTRPLevel: 3.5,
+				City:      "TestCity",
+				Notifications: api.NotificationSettings{
+					DebugAddress: users[i] + "@xtp-tour-debug.com",
+					Channels:     db.NotificationChannelDebug,
+				},
+			},
+		}
+
+		var response api.CreateUserProfileResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", users[i]).
+			SetBody(profileData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/profiles/")
+		if err != nil {
+			return nil, err
+		}
+		if r.StatusCode() != http.StatusOK {
+			return nil, fmt.Errorf("failed to create profile for %s: %s", users[i], string(r.Body()))
+		}
+	}
+	return users, nil
+}
+
+func Test_DoublesEventAPI(t *testing.T) {
+	users, err := createNProfiles(5)
+	if err != nil {
+		t.Fatalf("Failed to create profiles: %v", err)
+	}
+	defer deleteProfiles(users...)
+
+	host := users[0]
+	timeSlots := getRelativeTimeSlots()
+	confirmedDate := timeSlots[3]
+	confirmedLocation := "matchpoint"
+	var eventId string
+	var joinRequestIds []string
+
+	t.Run("CreateDoublesEvent", func(tt *testing.T) {
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
+				Locations:       []string{confirmedLocation, "spartan-pultuska"},
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
+				ExpectedPlayers: 4,
+				SessionDuration: 60,
+				TimeSlots:       timeSlots,
+				Description:     "Doubles match test",
+				Visibility:      api.EventVisibilityPublic,
+			},
+		}
+
+		var response api.CreateEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(eventData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Response: %s", string(r.Body()))
+			if assert.NotNil(tt, response.Event) {
+				eventId = response.Event.Id
+				assert.Equal(tt, 4, response.Event.ExpectedPlayers)
+			}
+		}
+	})
+
+	for i := 1; i <= 4; i++ {
+		joiner := users[i]
+		t.Run(fmt.Sprintf("JoinEvent_User%d", i), func(tt *testing.T) {
+			joinRequestData := api.JoinRequestRequest{
+				JoinRequest: api.JoinRequestData{
+					Locations: []string{confirmedLocation},
+					TimeSlots: []string{confirmedDate},
+					Comment:   fmt.Sprintf("Player %d joining", i),
+				},
+			}
+
+			r, err := restClient.R().
+				SetHeader("Authentication", joiner).
+				SetBody(joinRequestData).
+				Post(tConfig.ServiceHost + "/api/events/public/" + eventId + "/joins")
+
+			if assert.NoError(tt, err) {
+				assert.Equal(tt, http.StatusOK, r.StatusCode(), "Response: %s", string(r.Body()))
+			}
+		})
+	}
+
+	t.Run("GetEventAndCollectJoinRequests", func(tt *testing.T) {
+		var response api.GetEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/" + eventId)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+			assert.Len(tt, response.Event.JoinRequests, 4)
+			for _, jr := range response.Event.JoinRequests {
+				joinRequestIds = append(joinRequestIds, jr.Id)
+			}
+		}
+	})
+
+	t.Run("ConfirmWithTooFewJoinRequests", func(tt *testing.T) {
+		confirmation := api.EventConfirmationRequest{
+			EventId:         eventId,
+			LocationId:      confirmedLocation,
+			DateTime:        confirmedDate,
+			JoinRequestsIds: joinRequestIds[:2],
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Response: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("ConfirmWithTooManyJoinRequests", func(tt *testing.T) {
+		confirmation := api.EventConfirmationRequest{
+			EventId:         eventId,
+			LocationId:      confirmedLocation,
+			DateTime:        confirmedDate,
+			JoinRequestsIds: joinRequestIds[:4],
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Response: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("ConfirmDoublesEvent", func(tt *testing.T) {
+		confirmation := api.EventConfirmationRequest{
+			EventId:         eventId,
+			LocationId:      confirmedLocation,
+			DateTime:        confirmedDate,
+			JoinRequestsIds: joinRequestIds[:3],
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + eventId + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode(), "Response: %s", string(r.Body()))
+		}
+	})
+
+	t.Run("VerifyConfirmedDoublesEvent", func(tt *testing.T) {
+		var response api.GetEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetResult(&response).
+			Get(tConfig.ServiceHost + "/api/events/" + eventId)
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+			assert.Equal(tt, api.EventStatusConfirmed, response.Event.Status)
+
+			acceptedCount := 0
+			rejectedCount := 0
+			for _, jr := range response.Event.JoinRequests {
+				if jr.IsRejected != nil {
+					if *jr.IsRejected {
+						rejectedCount++
+					} else {
+						acceptedCount++
+					}
+				}
+			}
+			assert.Equal(tt, 3, acceptedCount, "Should have 3 accepted players")
+			assert.Equal(tt, 1, rejectedCount, "Should have 1 rejected player")
+		}
+	})
+}
+
+func Test_InvalidExpectedPlayers(t *testing.T) {
+	user := "invalid-players-user"
+	timeSlots := getRelativeTimeSlots()
+
+	invalidCounts := []int{0, 1, 1001}
+	for _, count := range invalidCounts {
+		t.Run(fmt.Sprintf("ExpectedPlayers_%d", count), func(tt *testing.T) {
+			eventData := api.CreateEventRequest{
+				Event: api.EventData{
+					Locations:       []string{"matchpoint"},
+					SkillLevel:      api.SkillLevelIntermediate,
+					EventType:       api.ActivityTypeMatch,
+					ExpectedPlayers: count,
+					SessionDuration: 60,
+					TimeSlots:       timeSlots,
+					Visibility:      api.EventVisibilityPublic,
+				},
+			}
+
+			r, err := restClient.R().
+				SetHeader("Authentication", user).
+				SetBody(eventData).
+				Post(tConfig.ServiceHost + "/api/events/")
+
+			if assert.NoError(tt, err) {
+				assert.Equal(tt, http.StatusBadRequest, r.StatusCode(), "Response: %s", string(r.Body()))
+			}
+		})
+	}
+}
+
+func Test_ConfirmWithWrongEventJoinRequests(t *testing.T) {
+	users, err := createNProfiles(3)
+	if err != nil {
+		t.Fatalf("Failed to create profiles: %v", err)
+	}
+	defer deleteProfiles(users...)
+
+	host := users[0]
+	joiner1 := users[1]
+	joiner2 := users[2]
+	timeSlots := getRelativeTimeSlots()
+	confirmedDate := timeSlots[0]
+
+	var event1Id, event2Id string
+	var event2JoinRequestId string
+
+	t.Run("CreateEvent1", func(tt *testing.T) {
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
+				Locations:       []string{"matchpoint"},
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
+				ExpectedPlayers: 2,
+				SessionDuration: 60,
+				TimeSlots:       timeSlots,
+				Visibility:      api.EventVisibilityPublic,
+			},
+		}
+
+		var response api.CreateEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(eventData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+			event1Id = response.Event.Id
+		}
+	})
+
+	t.Run("CreateEvent2", func(tt *testing.T) {
+		eventData := api.CreateEventRequest{
+			Event: api.EventData{
+				Locations:       []string{"matchpoint"},
+				SkillLevel:      api.SkillLevelIntermediate,
+				EventType:       api.ActivityTypeMatch,
+				ExpectedPlayers: 2,
+				SessionDuration: 60,
+				TimeSlots:       timeSlots,
+				Visibility:      api.EventVisibilityPublic,
+			},
+		}
+
+		var response api.CreateEventResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(eventData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+			event2Id = response.Event.Id
+		}
+	})
+
+	t.Run("JoinEvent1", func(tt *testing.T) {
+		joinRequestData := api.JoinRequestRequest{
+			JoinRequest: api.JoinRequestData{
+				Locations: []string{"matchpoint"},
+				TimeSlots: []string{confirmedDate},
+			},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", joiner1).
+			SetBody(joinRequestData).
+			Post(tConfig.ServiceHost + "/api/events/public/" + event1Id + "/joins")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+		}
+	})
+
+	t.Run("JoinEvent2", func(tt *testing.T) {
+		joinRequestData := api.JoinRequestRequest{
+			JoinRequest: api.JoinRequestData{
+				Locations: []string{"matchpoint"},
+				TimeSlots: []string{confirmedDate},
+			},
+		}
+
+		var response api.JoinRequestResponse
+		r, err := restClient.R().
+			SetHeader("Authentication", joiner2).
+			SetBody(joinRequestData).
+			SetResult(&response).
+			Post(tConfig.ServiceHost + "/api/events/public/" + event2Id + "/joins")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusOK, r.StatusCode())
+			event2JoinRequestId = response.JoinRequest.Id
+		}
+	})
+
+	t.Run("ConfirmEvent1WithEvent2JoinRequest", func(tt *testing.T) {
+		if event2JoinRequestId == "" {
+			assert.Fail(tt, "Event2 join request ID not available")
+			return
+		}
+
+		confirmation := api.EventConfirmationRequest{
+			EventId:         event1Id,
+			LocationId:      "matchpoint",
+			DateTime:        confirmedDate,
+			JoinRequestsIds: []string{event2JoinRequestId},
+		}
+
+		r, err := restClient.R().
+			SetHeader("Authentication", host).
+			SetBody(confirmation).
+			Post(tConfig.ServiceHost + "/api/events/" + event1Id + "/confirmation")
+
+		if assert.NoError(tt, err) {
+			assert.Equal(tt, http.StatusBadRequest, r.StatusCode(),
+				"Should reject confirmation with join requests from different event. Response: %s", string(r.Body()))
+		}
+	})
+}

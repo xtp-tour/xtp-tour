@@ -100,6 +100,7 @@
   "createEvent": {
     "close": "Закрыть",
     "errors": {
+      "customPlayerCountInvalid": "Количество игроков должно быть от 2 до 1000",
       "descriptionTooLong": "Описание должно быть короче 1000 символов",
       "failedToLoadLocations": "Не удалось загрузить площадки. Попробуйте позже.",
       "noLocationsAvailable": "Нет доступных площадок",
@@ -112,8 +113,10 @@
       "availability": "Ваша доступность (следующие 7 дней)",
       "calendarIntegration": "Интеграция с календарём",
       "calendarIntegrationDesc": "Подключите Google Календарь для автоматического избежания конфликтов",
-      "comingSoon": "Скоро",
       "createInvitation": "Создать приглашение",
+      "custom": "Произвольное",
+      "customPlayerCount": "Количество игроков",
+      "customPlayerCountHelper": "Введите общее количество игроков (2–1000)",
       "description": "Описание (необязательно)",
       "doubles": "Парная",
       "gameOnPoints": "Игра на очки",

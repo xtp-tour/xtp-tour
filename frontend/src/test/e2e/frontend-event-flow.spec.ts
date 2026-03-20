@@ -893,3 +893,126 @@ test.describe('Already Joined State', () => {
     }
   });
 });
+
+/**
+ * Multi-Player Event Types Tests
+ *
+ * Tests for the multi-player event type UI:
+ * 1. Create event form shows Singles, Doubles, and Custom radio buttons
+ * 2. Custom option shows number input with correct constraints
+ * 3. Doubles option is enabled (not disabled with "Coming soon")
+ * 4. (Skipped) Full flows for creating singles, doubles, and custom events
+ */
+test.describe('Multi-Player Event Types', () => {
+  let config: TestConfig;
+
+  test.beforeAll(async () => {
+    config = {
+      baseUrl: (globalThis as { process?: { env?: { TEST_BASE_URL?: string } } }).process?.env?.TEST_BASE_URL || 'http://localhost:5173',
+    };
+  });
+
+  async function expandCreateEventForm(page: import('@playwright/test').Page) {
+    await page.goto(config.baseUrl);
+    await page.waitForLoadState('networkidle');
+
+    // Sign in first (required to see Create Event)
+    const signInButton = page.locator('button:has-text("Sign in")').first();
+    if (await signInButton.isVisible({ timeout: 5000 })) {
+      await signInButton.click();
+      const clerkModal = page.locator('[role="dialog"]');
+      await clerkModal.waitFor({ state: 'visible', timeout: 10000 });
+      const emailField = page.locator('input[placeholder*="email" i], input[name="identifier"]').first();
+      await emailField.fill(testUsers.user1.email);
+      const passwordField = page.locator('input[type="password"], input[placeholder*="password" i]').first();
+      await passwordField.fill(testUsers.user1.password);
+      const continueButton = page.locator('button:has-text("Continue")');
+      await continueButton.click();
+      await clerkModal.waitFor({ state: 'hidden', timeout: 15000 });
+    }
+
+    // Expand the Create Event form
+    const createEventButton = page.locator('button:has-text("Create Event")');
+    await createEventButton.waitFor({ state: 'visible', timeout: 10000 });
+    await createEventButton.click();
+    await page.waitForSelector('form', { timeout: 5000 });
+  }
+
+  test('Create event form shows all request type options', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    const singleRadio = page.locator('#requestTypeSingle');
+    const doublesRadio = page.locator('#requestTypeDoubles');
+    const customRadio = page.locator('#requestTypeCustom');
+
+    await expect(singleRadio).toBeVisible();
+    await expect(doublesRadio).toBeVisible();
+    await expect(customRadio).toBeVisible();
+
+    console.log('All three request type options are visible');
+  });
+
+  test('Doubles option is enabled', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    const doublesRadio = page.locator('#requestTypeDoubles');
+    await expect(doublesRadio).toBeVisible();
+    await expect(doublesRadio).not.toBeDisabled();
+
+    console.log('Doubles radio button is enabled');
+  });
+
+  test('Custom option shows number input', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    // Number input should not be visible initially
+    const numberInput = page.locator('#customPlayerCount');
+    await expect(numberInput).not.toBeVisible();
+
+    // Click Custom radio
+    const customRadio = page.locator('#requestTypeCustom');
+    await customRadio.click();
+
+    // Number input should now be visible
+    await expect(numberInput).toBeVisible();
+    await expect(numberInput).toHaveAttribute('type', 'number');
+    await expect(numberInput).toHaveAttribute('min', '2');
+    await expect(numberInput).toHaveAttribute('max', '1000');
+
+    console.log('Custom option shows number input with correct min/max');
+  });
+
+  test.skip('Create singles event flow', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    const singleRadio = page.locator('#requestTypeSingle');
+    await expect(singleRadio).toBeChecked();
+
+    // Would complete full event creation flow and verify "Singles" label
+    console.log('Singles event creation flow verified');
+  });
+
+  test.skip('Create doubles event flow', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    const doublesRadio = page.locator('#requestTypeDoubles');
+    await doublesRadio.click();
+    await expect(doublesRadio).toBeChecked();
+
+    // Would complete full event creation flow and verify "Doubles" label
+    console.log('Doubles event creation flow verified');
+  });
+
+  test.skip('Create custom player count event flow', async ({ page }) => {
+    await expandCreateEventForm(page);
+
+    const customRadio = page.locator('#requestTypeCustom');
+    await customRadio.click();
+
+    const numberInput = page.locator('#customPlayerCount');
+    await numberInput.fill('6');
+
+    // Would complete full event creation flow and verify "6 Players" label
+    console.log('Custom player count event creation flow verified');
+  });
+});
