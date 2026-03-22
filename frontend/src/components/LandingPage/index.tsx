@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignInButton, SignUpButton } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
 
@@ -82,12 +82,10 @@ const LandingPage: React.FC = () => {
 
   const renderPrimaryButton = (labelKey: string, icon: string) =>
     isClerkAvailable ? (
-      <SignUpButton mode="modal">
-        <button className="lp-btn lp-btn-primary">
-          <i className={`bi ${icon} me-2`} />
-          {t(labelKey)}
-        </button>
-      </SignUpButton>
+      <Link to="/sign-up" className="lp-btn lp-btn-primary">
+        <i className={`bi ${icon} me-2`} />
+        {t(labelKey)}
+      </Link>
     ) : (
       <button className="lp-btn lp-btn-primary" disabled title={disabledTitle}>
         <i className={`bi ${icon} me-2`} />
@@ -97,12 +95,10 @@ const LandingPage: React.FC = () => {
 
   const renderSecondaryButton = (labelKey: string, icon: string) =>
     isClerkAvailable ? (
-      <SignUpButton mode="modal">
-        <button className="lp-btn lp-btn-secondary">
-          <i className={`bi ${icon} me-2`} />
-          {t(labelKey)}
-        </button>
-      </SignUpButton>
+      <Link to="/sign-up" className="lp-btn lp-btn-secondary">
+        <i className={`bi ${icon} me-2`} />
+        {t(labelKey)}
+      </Link>
     ) : (
       <button className="lp-btn lp-btn-secondary" disabled title={disabledTitle}>
         <i className={`bi ${icon} me-2`} />
@@ -122,11 +118,9 @@ const LandingPage: React.FC = () => {
         <p className="lp-microcopy">{t('landing.hero.microcopy')}</p>
         <div className="lp-signin">
           {isClerkAvailable ? (
-            <SignInButton mode="modal">
-              <button className="lp-link">
-                {t('landing.hero.alreadyUsing')} <span>{t('landing.hero.signIn')}</span>
-              </button>
-            </SignInButton>
+            <Link to="/sign-in" className="lp-link">
+              {t('landing.hero.alreadyUsing')} <span>{t('landing.hero.signIn')}</span>
+            </Link>
           ) : (
             <button className="lp-link" disabled title={disabledTitle}>
               {t('landing.hero.alreadyUsing')} <span>{t('landing.hero.signIn')}</span>

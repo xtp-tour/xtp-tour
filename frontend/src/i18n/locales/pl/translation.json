@@ -22,7 +22,49 @@
   "auth": {
     "comingSoon": "Wkrótce dostępne",
     "signIn": "Zaloguj się",
-    "signUp": "Zarejestruj się"
+    "signInPage": {
+      "errors": {
+        "codeRequired": "Wpisz kod weryfikacyjny",
+        "emailInvalid": "Podaj prawidłowy adres e-mail",
+        "emailRequired": "E-mail jest wymagany",
+        "incomplete": "Nie udało się zalogować. Spróbuj ponownie.",
+        "passwordRequired": "Hasło jest wymagane"
+      },
+      "fields": {
+        "code": "Kod weryfikacyjny",
+        "email": "E-mail",
+        "password": "Hasło"
+      },
+      "noAccount": "Nie masz konta?",
+      "secondFactorHint": "Wpisz kod wysłany na Twój e-mail.",
+      "signingIn": "Logowanie...",
+      "startOver": "Użyj innego konta",
+      "title": "Logowanie",
+      "verify": "Potwierdź"
+    },
+    "signUp": "Zarejestruj się",
+    "signUpPage": {
+      "back": "Edytuj dane",
+      "continue": "Dalej",
+      "errors": {
+        "codeRequired": "Wpisz kod weryfikacyjny",
+        "emailInvalid": "Podaj prawidłowy adres e-mail",
+        "emailRequired": "E-mail jest wymagany",
+        "passwordMin": "Hasło musi mieć co najmniej 8 znaków",
+        "verificationIncomplete": "Nie udało się dokończyć weryfikacji. Spróbuj ponownie."
+      },
+      "fields": {
+        "code": "Kod weryfikacyjny",
+        "email": "E-mail",
+        "password": "Hasło"
+      },
+      "haveAccount": "Masz już konto?",
+      "resendCode": "Wyślij kod ponownie",
+      "sending": "Wysyłanie...",
+      "title": "Utwórz konto",
+      "verify": "Potwierdź e-mail",
+      "verifyHint": "Wysłaliśmy kod weryfikacyjny na adres {{email}}."
+    }
   },
   "calendar": {
     "busySlot": "Zajęty (Kalendarz)",

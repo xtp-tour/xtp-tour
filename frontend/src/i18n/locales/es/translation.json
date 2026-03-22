@@ -22,7 +22,49 @@
   "auth": {
     "comingSoon": "Próximamente en las siguientes semanas",
     "signIn": "Iniciar sesión",
-    "signUp": "Registrarse"
+    "signInPage": {
+      "errors": {
+        "codeRequired": "Introduce el código de verificación",
+        "emailInvalid": "Introduce un correo válido",
+        "emailRequired": "El correo es obligatorio",
+        "incomplete": "No se pudo completar el inicio de sesión. Inténtalo de nuevo.",
+        "passwordRequired": "La contraseña es obligatoria"
+      },
+      "fields": {
+        "code": "Código de verificación",
+        "email": "Correo electrónico",
+        "password": "Contraseña"
+      },
+      "noAccount": "¿Necesitas una cuenta?",
+      "secondFactorHint": "Introduce el código que enviamos a tu correo.",
+      "signingIn": "Iniciando sesión...",
+      "startOver": "Usar otra cuenta",
+      "title": "Iniciar sesión",
+      "verify": "Verificar"
+    },
+    "signUp": "Registrarse",
+    "signUpPage": {
+      "back": "Editar datos",
+      "continue": "Continuar",
+      "errors": {
+        "codeRequired": "Introduce el código de verificación",
+        "emailInvalid": "Introduce un correo válido",
+        "emailRequired": "El correo es obligatorio",
+        "passwordMin": "La contraseña debe tener al menos 8 caracteres",
+        "verificationIncomplete": "No se pudo completar la verificación. Inténtalo de nuevo."
+      },
+      "fields": {
+        "code": "Código de verificación",
+        "email": "Correo electrónico",
+        "password": "Contraseña"
+      },
+      "haveAccount": "¿Ya tienes cuenta?",
+      "resendCode": "Reenviar código",
+      "sending": "Enviando...",
+      "title": "Crear cuenta",
+      "verify": "Verificar correo",
+      "verifyHint": "Enviamos un código de verificación a {{email}}."
+    }
   },
   "calendar": {
     "busySlot": "Ocupado (Calendario)",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAPI } from '../services/apiProvider';
 import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
@@ -6,7 +7,7 @@ import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
 import Toast from './Toast';
 import ShareEventModal from './ShareEventModal';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import ShareButton from './ShareButton';
 import HostDisplay from './HostDisplay';
 import { useTranslation } from 'react-i18next';
@@ -19,9 +20,10 @@ interface Props {
 
 const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
-  const { openSignIn } = useClerk();
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +113,7 @@ const PublicEventList: React.FC<Props> = ({ onEventJoined, layout = 'list' }) =>
           icon: 'bi-person-plus',
           label: t('eventActions.signInToJoin'),
           onClick: () => {
-            openSignIn();
+            navigate('/sign-in', { state: { from: location } });
           }
         };
       }
