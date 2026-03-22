@@ -1302,8 +1302,9 @@ func Test_DoublesEventAPI(t *testing.T) {
 				}
 			}
 			if assert.NotNil(tt, self, "join request for this user should be present") {
-				assert.NotNil(tt, self.IsRejected, "accepted player should see explicit acceptance state")
-				assert.False(tt, *self.IsRejected)
+				// API uses omitempty on isRejected; false is omitted from JSON, so *IsRejected may be nil for accepted requests.
+				rejected := self.IsRejected != nil && *self.IsRejected
+				assert.False(tt, rejected, "accepted player should see their request as accepted")
 			}
 
 			var public api.GetEventResponse
