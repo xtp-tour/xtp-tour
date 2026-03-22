@@ -1,0 +1,10 @@
+# Mockery output lives under per-package `mocks/` dirs (see .mockery.yml).
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  exclusions:
+    paths:
+      - mocks

@@ -255,6 +255,13 @@ func (r *Router) createEventHandler(c *gin.Context, req *api.CreateEventRequest)
 
 	logCtx := slog.With("userId", userId)
 
+	if req.Event.ExpectedPlayers < 2 || req.Event.ExpectedPlayers > 1000 {
+		return nil, HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  "Expected players must be between 2 and 1000",
+		}
+	}
+
 	req.Event.UserId = userId.(string)
 	err := r.db.CreateEvent(context.Background(), &req.Event)
 	if err != nil {
@@ -362,14 +369,18 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 
 	for _, event := range events {
 		var myReq *api.JoinRequest
-		// multiple players can join. we want to show only current user's join request
 		for _, r := range event.JoinRequests {
 			if r.UserId == userId {
 				myReq = r
 			}
 		}
 
-		event.JoinRequests = make([]*api.JoinRequest, len(event.JoinRequests))
+		if myReq == nil {
+			logCtx.Error("User join request not found in event", "eventId", event.Id)
+			continue
+		}
+
+		totalJoinRequests := len(event.JoinRequests)
 		myReq, err = r.db.GetJoinRequest(context.Background(), myReq.Id)
 		if err != nil {
 			logCtx.Error("Failed to get join request", "error", err, "joinRequestId", myReq.Id)
@@ -378,9 +389,11 @@ func (r *Router) getJoinedEvents(userId string) (*api.ListEventsResponse, error)
 				Message:  "Failed to get join request",
 			}
 		}
+
+		event.JoinRequests = make([]*api.JoinRequest, totalJoinRequests)
 		event.JoinRequests[0] = myReq
 
-		for i := 1; i < len(event.JoinRequests); i++ {
+		for i := 1; i < totalJoinRequests; i++ {
 			event.JoinRequests[i] = &api.JoinRequest{
 				UserId: fmt.Sprintf("masked-user-id-%d", i),
 			}
@@ -645,6 +658,14 @@ func (r *Router) confirmEvent(c *gin.Context, req *api.EventConfirmationRequest)
 		return nil, HttpError{
 			HttpCode: http.StatusNotFound,
 			Message:  "Event not found",
+		}
+	}
+
+	requiredJoinRequests := event.ExpectedPlayers - 1
+	if len(req.JoinRequestsIds) != requiredJoinRequests {
+		return nil, HttpError{
+			HttpCode: http.StatusBadRequest,
+			Message:  fmt.Sprintf("Expected %d join requests, got %d", requiredJoinRequests, len(req.JoinRequestsIds)),
 		}
 	}
 

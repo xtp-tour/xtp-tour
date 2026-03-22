@@ -1,5 +1,8 @@
 .PHONY:  test build lint deps
 
+# Keep in sync with .github/workflows/backend.yaml (golangci-lint-action version).
+GOLANGCI_LINT_VERSION ?= v2.0.0
+
 build: servicetest.build
 	@echo Building version: \"$(BIN_VER)\"
 	$(MAKE) build-binary
@@ -25,9 +28,9 @@ dbreset:
 test:
 	go test -v ./...
 
-# Go lint
+# Go lint (pinned version so local results match CI; `golangci-lint` in PATH is not used)
 lint:
-	golangci-lint run
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run
 
 deps:
 	go install github.com/xo/xo@latest
@@ -57,28 +60,6 @@ servicetest.build:
 run-deploy:
 	docker compose -f docker-compose.yaml -f docker-compose.deploy.yml up
 
-# runs service tests against local database
+# runs service tests against local database (see scripts/run-service-tests.sh)
 str:
-	@bash -c '\
-	set -e; \
-	cleanup() { \
-		echo "Cleaning up..."; \
-		kill $$SERVER_PID 2>/dev/null || true; \
-		docker stop xtp-tour-stest-db 2>/dev/null || true; \
-		docker rm xtp-tour-stest-db 2>/dev/null || true; \
-	}; \
-	trap cleanup EXIT; \
-	echo "Starting database container..."; \
-	docker run -d --name xtp-tour-stest-db -p 53306:3306 -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=xtp_tour mysql:9.3.0; \
-	echo "Waiting for database to start..."; \
-	sleep 5; \
-	echo "Running migrations..."; \
-	DB_PORT=53306 LOG_LEVEL=debug DB_HOST=localhost  go run cmd/server/main.go migrate; \
-	echo "Starting server in background..."; \
-	AUTH_TYPE=debug LOG_LEVEL=debug DB_PORT=53306 SERVICE_PORT=58080 METRICS_PORT=51025 go run cmd/server/main.go & \
-	SERVER_PID=$$!; \
-	echo "Waiting for server to start..."; \
-	sleep 2; \
-	echo "Running service tests..."; \
-	SERVICE_HOST=http://localhost:58080 METRICS_HOST=http://localhost:51025 go test ./test/stest -tags servicetest -v -count=1; \
-	'
+	@bash scripts/run-service-tests.sh

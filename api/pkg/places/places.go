@@ -102,7 +102,7 @@ func (s *Service) SearchPlaces(ctx context.Context, query string, lat, lng float
 	logCtx := slog.With("method", "SearchPlaces", "query", query, "lat", lat, "lng", lng)
 
 	if !s.IsConfigured() {
-		return nil, fmt.Errorf("Google Places API key not configured")
+		return nil, fmt.Errorf("places API key not configured")
 	}
 
 	reqBody := searchTextRequest{
@@ -139,12 +139,12 @@ func (s *Service) SearchPlaces(ctx context.Context, query string, lat, lng float
 		logCtx.Error("Failed to call Google Places API", "error", err)
 		return nil, fmt.Errorf("failed to call Google Places API: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		logCtx.Error("Google Places API error", "status", resp.StatusCode, "body", string(body))
-		return nil, fmt.Errorf("Google Places API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("places API returned status %d", resp.StatusCode)
 	}
 
 	var searchResp searchTextResponse
@@ -170,7 +170,7 @@ func (s *Service) GetPlaceDetails(ctx context.Context, placeID string) (*PlaceRe
 	}
 
 	if !s.IsConfigured() {
-		return nil, fmt.Errorf("Google Places API key not configured")
+		return nil, fmt.Errorf("places API key not configured")
 	}
 
 	url := fmt.Sprintf("https://places.googleapis.com/v1/places/%s", placeID)
@@ -187,12 +187,12 @@ func (s *Service) GetPlaceDetails(ctx context.Context, placeID string) (*PlaceRe
 		logCtx.Error("Failed to call Google Places API", "error", err)
 		return nil, fmt.Errorf("failed to call Google Places API: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		logCtx.Error("Google Places API error", "status", resp.StatusCode, "body", string(body))
-		return nil, fmt.Errorf("Google Places API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("places API returned status %d", resp.StatusCode)
 	}
 
 	var p placeResponse

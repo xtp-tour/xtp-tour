@@ -17,7 +17,7 @@ import { useFeatureToggles } from '../config/featureToggles';
 type SkillLevel = components['schemas']['ApiEventData']['skillLevel'];
 type EventType = components['schemas']['ApiEventData']['eventType'];
 type EventVisibility = components['schemas']['ApiEventData']['visibility'];
-type SingleDoubleType = 'SINGLE' | 'DOUBLES';
+type SingleDoubleType = 'SINGLE' | 'DOUBLES' | 'CUSTOM';
 
 const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated }) => {
   const { t } = useTranslation();
@@ -96,6 +96,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const [description, setDescription] = useState('');
   const toastRef = useRef<HTMLDivElement>(null);
   const [requestType, setRequestType] = useState<SingleDoubleType>('SINGLE');
+  const [customPlayerCount, setCustomPlayerCount] = useState<number>(6);
 
   // Fetch locations
   useEffect(() => {
@@ -200,6 +201,7 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     setSkillLevel('INTERMEDIATE');
     setInvitationType('MATCH');
     setRequestType('SINGLE');
+    setCustomPlayerCount(6);
     setDescription('');
     setValidationErrors({});
   }, []);
@@ -296,11 +298,17 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate custom player count
+    if (requestType === 'CUSTOM' && (customPlayerCount < 2 || customPlayerCount > 1000)) {
+      setValidationErrors({ customPlayerCount: t('createEvent.errors.customPlayerCountInvalid') });
+      showToast(t('createEvent.errors.customPlayerCountInvalid'));
+      return;
+    }
+
     // Validate form before submission
     const validation = validateForm();
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
-      // Combine all error messages for the toast
       const errorMessage = Object.values(validation.errors).join('. ');
       showToast(errorMessage);
       return;
@@ -309,14 +317,21 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
     // Clear any previous validation errors
     setValidationErrors({});
 
+    const getExpectedPlayers = (): number => {
+      switch (requestType) {
+        case 'SINGLE': return 2;
+        case 'DOUBLES': return 4;
+        case 'CUSTOM': return customPlayerCount;
+      }
+    };
+
     try {
-      // Use selected times directly - they're already in ISO format
       const visibility: EventVisibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
       const request: CreateEventRequest = {
         event: {
           eventType: invitationType,
           description: description.trim() || undefined,
-          expectedPlayers: requestType === 'SINGLE' ? 2 : 4,
+          expectedPlayers: getExpectedPlayers(),
           sessionDuration: parseFloat(sessionDuration) * 60, // Convert hours to minutes
           skillLevel,
           visibility,
@@ -478,12 +493,13 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
 
               <div className="mb-3">
                 <label className="form-label">{t('createEvent.form.requestType')}</label>
-                <div className="d-flex gap-4">
+                <div className="d-flex gap-4 flex-wrap">
                   <div className="form-check d-flex align-items-center">
                     <input
                       type="radio"
                       id="requestTypeSingle"
                       name="requestType"
+                      value="SINGLE"
                       className="form-check-input"
                       checked={requestType === 'SINGLE'}
                       onChange={handleRequestTypeChange}
@@ -493,21 +509,66 @@ const CreateEvent: React.FC<{ onEventCreated?: () => void }> = ({ onEventCreated
                       {t('createEvent.form.single')}
                     </label>
                   </div>
-                  <div className="form-check d-flex align-items-center opacity-50">
+                  <div className="form-check d-flex align-items-center">
                     <input
                       type="radio"
                       id="requestTypeDoubles"
                       name="requestType"
+                      value="DOUBLES"
                       className="form-check-input"
                       checked={requestType === 'DOUBLES'}
-                      disabled
+                      onChange={handleRequestTypeChange}
                     />
                     <label className="form-check-label ms-2" htmlFor="requestTypeDoubles">
                       {t('createEvent.form.doubles')}
-                      <span className="badge bg-secondary ms-2">{t('createEvent.form.comingSoon')}</span>
+                    </label>
+                  </div>
+                  <div className="form-check d-flex align-items-center">
+                    <input
+                      type="radio"
+                      id="requestTypeCustom"
+                      name="requestType"
+                      value="CUSTOM"
+                      className="form-check-input"
+                      checked={requestType === 'CUSTOM'}
+                      onChange={handleRequestTypeChange}
+                    />
+                    <label className="form-check-label ms-2" htmlFor="requestTypeCustom">
+                      {t('createEvent.form.custom')}
                     </label>
                   </div>
                 </div>
+                {requestType === 'CUSTOM' && (
+                  <div className="mt-2" style={{ maxWidth: '200px' }}>
+                    <label htmlFor="customPlayerCount" className="form-label small">
+                      {t('createEvent.form.customPlayerCount')}
+                    </label>
+                    <input
+                      type="number"
+                      id="customPlayerCount"
+                      className={`form-control form-control-sm ${validationErrors.customPlayerCount ? 'is-invalid' : ''}`}
+                      min={2}
+                      max={1000}
+                      value={customPlayerCount}
+                      onChange={(e) => {
+                        setCustomPlayerCount(parseInt(e.target.value, 10) || 2);
+                        if (validationErrors.customPlayerCount) {
+                          setValidationErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.customPlayerCount;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                    />
+                    {validationErrors.customPlayerCount && (
+                      <div className="invalid-feedback">{validationErrors.customPlayerCount}</div>
+                    )}
+                    <small className="form-text text-muted">
+                      {t('createEvent.form.customPlayerCountHelper')}
+                    </small>
+                  </div>
+                )}
               </div>
 
               <div className="mb-3">

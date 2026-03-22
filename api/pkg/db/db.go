@@ -56,10 +56,6 @@ func GetDB(config *pkg.DbConfig) (*Db, error) {
 
 	logCtx.Info("Database connection established")
 	db = &Db{conn: dbConn}
-
-	if db == nil {
-		return nil, errors.New("database connection not initialized")
-	}
 	return db, nil
 }
 
@@ -601,19 +597,29 @@ func (db *Db) ConfirmEvent(ctx context.Context, userId string, eventId string, r
 		return nil, errors.WithMessage(err, "Failed to create confirmation")
 	}
 
-	// Update join requests with confirmation ID
-	query = `UPDATE join_requests SET is_accepted = true WHERE id in (?)`
-	query, args, err := sqlx.In(query, req.JoinRequestsIds)
+	// Update join requests - also filter by event_id for safety
+	query = `UPDATE join_requests SET is_accepted = true WHERE id in (?) AND event_id = ?`
+	query, args, err := sqlx.In(query, req.JoinRequestsIds, eventId)
 	if err != nil {
 		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to prepare query with IN clause")
 	}
 	query = db.conn.Rebind(query)
 	logCtx.Debug("Executing SQL query", "query", query, "params", args)
-	_, err = tx.ExecContext(ctx, query, args...)
+	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		db.rollback(logCtx, tx)
 		return nil, errors.WithMessage(err, "Failed to update join requests")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		db.rollback(logCtx, tx)
+		return nil, errors.WithMessage(err, "Failed to get rows affected")
+	}
+	if int(rowsAffected) != len(req.JoinRequestsIds) {
+		db.rollback(logCtx, tx)
+		return nil, &ValidationError{Message: "Some join requests were not found for this event"}
 	}
 
 	// Update event status
@@ -1497,7 +1503,7 @@ func (db *Db) GetAllFacilitiesAdmin(ctx context.Context) ([]api.AdminFacility, e
 		logCtx.Error("Failed to get all facilities for admin", "error", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var facilities []api.AdminFacility
 	for rows.Next() {

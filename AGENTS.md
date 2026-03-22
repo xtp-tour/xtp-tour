@@ -50,6 +50,45 @@ The frontend (`frontend/`) is a TypeScript/React application using Vite:
 - Service tests for backend are in `api/test/` directory and are tagged with `servicetest`. They can be run with `make servicetest.run` command. For those tests API should run with DEBUG authentication middleware
 - When you update REST interface by changing `api/pkg/api/api.go` or `api/pkg/server/router.go` you need to regenerate the types in `frontend/src/types/schema.d.ts` by running `make generate-types` in frontend directory command and update the frontend code accordingly. API should be running to generate the types.
 
+## Local Verification with Docker Compose
+
+The root `docker-compose.yaml` starts the full stack for local testing:
+
+```bash
+# From project root - build and start everything
+docker compose up --build -d
+```
+
+**Services started:**
+- MySQL (port 33306), Adminer (port 38080)
+- Backend API (port 8080) with `AUTH_TYPE=debug`
+- Frontend (port 3000) via nginx
+- `integration-tests` container: automatically runs backend service tests
+
+**Verify service tests:**
+```bash
+docker compose logs integration-tests
+# Container should exit with code 0
+docker compose ps -a  # Check exit code
+```
+
+**Run E2E tests against Docker Compose:**
+```bash
+cd frontend
+pnpm run playwright:install  # first time only
+TEST_BASE_URL=http://localhost:3000 TEST_API_BASE_URL=http://localhost:8080 pnpm run test:e2e
+```
+
+**Teardown:**
+```bash
+docker compose down
+```
+
+**Important notes:**
+- The Docker Compose backend uses `AUTH_TYPE=debug` (reads `Authentication` header), while the Clerk-enabled frontend sends `Authorization: Bearer` tokens. This means E2E tests requiring authenticated API calls (event creation, profile setup) will be skipped when running against Docker Compose. Public-only E2E tests will work.
+- Service tests run inside Docker via the `integration-tests` container and are not affected by this auth header mismatch.
+- For running service tests outside Docker, use `make str` in `api/` (full setup/teardown) or `make servicetest.run` (requires API already running with `AUTH_TYPE=debug`).
+
 ## Code Style Guidelines
 - Backend: Follow Go standard formatting (gofmt)
 - Frontend: Follow TypeScript/React best practices and use ESLint for linting

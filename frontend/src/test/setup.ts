@@ -47,14 +47,19 @@ jest.mock('@clerk/clerk-react', () => ({
 }));
 
 // Mock bootstrap components that require DOM manipulation
+const MockTooltip = jest.fn().mockImplementation(() => ({
+	dispose: jest.fn(),
+}));
+(MockTooltip as unknown as Record<string, unknown>).getInstance = jest.fn().mockReturnValue(null);
+
+const MockToast = jest.fn().mockImplementation(() => ({
+	show: jest.fn(),
+	hide: jest.fn(),
+}));
+
 jest.mock('bootstrap', () => ({
-	Tooltip: jest.fn().mockImplementation(() => ({
-		dispose: jest.fn(),
-	})),
-	Toast: jest.fn().mockImplementation(() => ({
-		show: jest.fn(),
-		hide: jest.fn(),
-	})),
+	Tooltip: MockTooltip,
+	Toast: MockToast,
 }));
 
 // Mock bootstrap-select

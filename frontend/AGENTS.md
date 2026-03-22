@@ -111,6 +111,14 @@ src/
 - Test setup in `src/test/setup.ts`
 - Mock API available for component testing
 
+**Running E2E tests against Docker Compose** (from project root, after `docker compose up --build -d`):
+```bash
+cd frontend
+pnpm run playwright:install  # first time only
+TEST_BASE_URL=http://localhost:3000 TEST_API_BASE_URL=http://localhost:8080 pnpm run test:e2e
+```
+Note: `TEST_BASE_URL` must point to the Docker frontend (port 3000), not the Vite dev server (port 5173). E2E tests requiring Clerk-authenticated API calls will be gracefully skipped when running against Docker Compose with `AUTH_TYPE=debug` backend (see `../AGENTS.md` for details).
+
 ### Environment Variables
 
 Vite loads env by mode: `pnpm dev` uses `development`, `pnpm build` uses `production`. Mode-specific files override generic ones; `process.env` (e.g. CI) always wins.

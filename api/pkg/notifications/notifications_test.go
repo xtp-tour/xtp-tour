@@ -283,9 +283,167 @@ func Test_UserJoined_WithEventId(t *testing.T) {
 	}
 }
 
+func Test_EventConfirmed_MultipleAcceptedPlayers(t *testing.T) {
+	mockDb := new(MockNotifierDb)
+	mockQueue := new(MockQueue)
+	notifier := NewNotifier(mockDb, mockQueue)
+
+	eventId := "event_multi"
+	hostId := "host_1"
+	player1 := "player_1"
+	player2 := "player_2"
+	player3 := "player_3"
+	rejectedPlayer := "rejected_1"
+
+	mockDb.GetUsersNotificationSettingsFunc = func(eid string) (map[string]db.EventNotifSettingsResult, error) {
+		return map[string]db.EventNotifSettingsResult{
+			hostId:         {UserId: hostId, IsHost: 1, IsAccepted: -1},
+			player1:        {UserId: player1, IsHost: 0, IsAccepted: 1},
+			player2:        {UserId: player2, IsHost: 0, IsAccepted: 1},
+			player3:        {UserId: player3, IsHost: 0, IsAccepted: 1},
+			rejectedPlayer: {UserId: rejectedPlayer, IsHost: 0, IsAccepted: 0},
+		}, nil
+	}
+	mockDb.GetUserNamesFunc = func(ctx context.Context, userIds []string) (map[string]string, error) {
+		return map[string]string{
+			hostId:         "Host Name",
+			player1:        "Player One",
+			player2:        "Player Two",
+			player3:        "Player Three",
+			rejectedPlayer: "Rejected Player",
+		}, nil
+	}
+	mockDb.GetFacilityNameFunc = func(ctx context.Context, facilityId string) (string, error) {
+		return "Test Court", nil
+	}
+
+	var enqueuedUserIds []string
+	var enqueuedData []db.NotificationQueueData
+	mockQueue.EnqueueFunc = func(ctx context.Context, userId string, data db.NotificationQueueData) error {
+		enqueuedUserIds = append(enqueuedUserIds, userId)
+		enqueuedData = append(enqueuedData, data)
+		return nil
+	}
+
+	logCtx := slog.With("test", true)
+	notifier.EventConfirmed(logCtx, eventId, []string{"jr1", "jr2", "jr3"}, "2024-06-01T10:00:00Z", "loc1", hostId)
+
+	// Should have 4 notifications: host + 3 accepted players (not the rejected one)
+	if len(enqueuedUserIds) != 4 {
+		t.Fatalf("Expected 4 notifications, got %d: %v", len(enqueuedUserIds), enqueuedUserIds)
+	}
+
+	// Rejected player should not be in the list
+	for _, uid := range enqueuedUserIds {
+		if uid == rejectedPlayer {
+			t.Error("Rejected player should not receive a notification")
+		}
+	}
+
+	// Verify host notification has ConfirmedPlayers list
+	for i, uid := range enqueuedUserIds {
+		if uid == hostId {
+			isHost, ok := enqueuedData[i].TemplateData[TemplateDataKeys.IsHost]
+			if !ok || isHost != true {
+				t.Error("Host notification should have IsHost=true")
+			}
+			players, ok := enqueuedData[i].TemplateData[TemplateDataKeys.ConfirmedPlayers]
+			if !ok {
+				t.Fatal("Host notification should have ConfirmedPlayers")
+			}
+			playerList := players.([]string)
+			if len(playerList) != 3 {
+				t.Errorf("Expected 3 confirmed players, got %d", len(playerList))
+			}
+		}
+	}
+}
+
+func Test_EventConfirmed_SinglePlayer(t *testing.T) {
+	mockDb := new(MockNotifierDb)
+	mockQueue := new(MockQueue)
+	notifier := NewNotifier(mockDb, mockQueue)
+
+	hostId := "host_1"
+	playerId := "player_1"
+
+	mockDb.GetUsersNotificationSettingsFunc = func(eid string) (map[string]db.EventNotifSettingsResult, error) {
+		return map[string]db.EventNotifSettingsResult{
+			hostId:   {UserId: hostId, IsHost: 1, IsAccepted: -1},
+			playerId: {UserId: playerId, IsHost: 0, IsAccepted: 1},
+		}, nil
+	}
+	mockDb.GetUserNamesFunc = func(ctx context.Context, userIds []string) (map[string]string, error) {
+		return map[string]string{
+			hostId:   "Host",
+			playerId: "Player",
+		}, nil
+	}
+	mockDb.GetFacilityNameFunc = func(ctx context.Context, facilityId string) (string, error) {
+		return "Court", nil
+	}
+
+	var enqueuedUserIds []string
+	mockQueue.EnqueueFunc = func(ctx context.Context, userId string, data db.NotificationQueueData) error {
+		enqueuedUserIds = append(enqueuedUserIds, userId)
+		return nil
+	}
+
+	logCtx := slog.With("test", true)
+	notifier.EventConfirmed(logCtx, "event1", []string{"jr1"}, "2024-06-01T10:00:00Z", "loc1", hostId)
+
+	if len(enqueuedUserIds) != 2 {
+		t.Fatalf("Expected 2 notifications (host + 1 player), got %d", len(enqueuedUserIds))
+	}
+}
+
+func Test_ChatMessagePosted_NotifiesAllParticipants(t *testing.T) {
+	mockDb := new(MockNotifierDb)
+	mockQueue := new(MockQueue)
+	notifier := NewNotifier(mockDb, mockQueue)
+
+	senderId := "sender_1"
+	hostId := "host_1"
+	player2 := "player_2"
+	player3 := "player_3"
+	nonAccepted := "non_accepted"
+
+	mockDb.GetUsersNotificationSettingsFunc = func(eid string) (map[string]db.EventNotifSettingsResult, error) {
+		return map[string]db.EventNotifSettingsResult{
+			hostId:      {UserId: hostId, IsHost: 1, IsAccepted: -1},
+			senderId:    {UserId: senderId, IsHost: 0, IsAccepted: 1},
+			player2:     {UserId: player2, IsHost: 0, IsAccepted: 1},
+			player3:     {UserId: player3, IsHost: 0, IsAccepted: 1},
+			nonAccepted: {UserId: nonAccepted, IsHost: 0, IsAccepted: 0},
+		}, nil
+	}
+	mockDb.GetUserNamesFunc = func(ctx context.Context, userIds []string) (map[string]string, error) {
+		return map[string]string{senderId: "Sender Name"}, nil
+	}
+
+	var enqueuedUserIds []string
+	mockQueue.EnqueueFunc = func(ctx context.Context, userId string, data db.NotificationQueueData) error {
+		enqueuedUserIds = append(enqueuedUserIds, userId)
+		return nil
+	}
+
+	notifier.ChatMessagePosted(senderId, "event1")
+
+	// Should notify host + player2 + player3 = 3 (not sender, not non-accepted)
+	if len(enqueuedUserIds) != 3 {
+		t.Fatalf("Expected 3 notifications, got %d: %v", len(enqueuedUserIds), enqueuedUserIds)
+	}
+	for _, uid := range enqueuedUserIds {
+		if uid == senderId {
+			t.Error("Sender should not receive notification")
+		}
+		if uid == nonAccepted {
+			t.Error("Non-accepted player should not receive notification")
+		}
+	}
+}
+
 // Helper function to create a test logger
 func testLogger(t *testing.T) slog.Logger {
-	// This is a simple implementation for testing
-	// In a real scenario, you might want to use a more sophisticated logger setup
 	return *slog.Default()
 }

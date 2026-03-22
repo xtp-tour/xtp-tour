@@ -10,6 +10,7 @@ export default {
         module: 'ES2022',
         target: 'ES2020',
         lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+        jsx: 'react-jsx',
         skipLibCheck: true,
       },
     }],

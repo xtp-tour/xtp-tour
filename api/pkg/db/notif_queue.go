@@ -156,7 +156,7 @@ func (db *Db) GetNotificationBatch(batchSize int) ([]*NotificationQueueRow, erro
 			if err != nil {
 				logCtx.Warn("Failed to fetch user preferences", "error", err)
 			} else {
-				defer rows.Close()
+				defer func() { _ = rows.Close() }()
 				for rows.Next() {
 					var uid string
 					var settings NotificationSettings

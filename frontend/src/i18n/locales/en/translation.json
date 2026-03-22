@@ -100,6 +100,7 @@
   "createEvent": {
     "close": "Close",
     "errors": {
+      "customPlayerCountInvalid": "Number of players must be between 2 and 1000",
       "descriptionTooLong": "Description must be less than 1000 characters",
       "failedToLoadLocations": "Failed to load locations. Please try again later.",
       "noLocationsAvailable": "No locations available",
@@ -112,8 +113,10 @@
       "availability": "Your Availability (next 7 days)",
       "calendarIntegration": "Calendar Integration",
       "calendarIntegrationDesc": "Connect your Google Calendar to automatically avoid scheduling conflicts",
-      "comingSoon": "Coming soon",
       "createInvitation": "Create Invitation",
+      "custom": "Custom",
+      "customPlayerCount": "Number of players",
+      "customPlayerCountHelper": "Enter the total number of players (2–1000)",
       "description": "Description (optional)",
       "doubles": "Doubles",
       "gameOnPoints": "Game on points",

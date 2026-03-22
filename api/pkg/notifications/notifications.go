@@ -180,24 +180,17 @@ func (d *Notifier) UserJoined(log slog.Logger, userId string, joinRequest api.Jo
 	logCtx.Info("UserJoined notification enqueued")
 }
 
-// ChatMessagePosted notifies the event owner that someone posted a message in their event chat
+// ChatMessagePosted notifies all event participants (host + accepted joiners) except the sender
 func (d *Notifier) ChatMessagePosted(senderUserId string, eventId string) {
 	ctx := context.Background()
 	logCtx := slog.With("senderUserId", senderUserId, "eventId", eventId)
 
-	// Get event owner
-	eventOwnerId, err := d.db.GetEventOwner(ctx, eventId)
+	notifPrefs, err := d.db.GetUsersNotificationSettings(eventId)
 	if err != nil {
-		logCtx.Error("Error getting event owner for chat notification", "error", err)
+		logCtx.Error("Error getting notification settings for chat", "error", err)
 		return
 	}
 
-	// Don't notify if sender is the owner
-	if senderUserId == eventOwnerId {
-		return
-	}
-
-	// Get sender's name
 	userNames, err := d.db.GetUserNames(ctx, []string{senderUserId})
 	if err != nil {
 		logCtx.Error("Error getting user names for chat notification", "error", err)
@@ -209,23 +202,31 @@ func (d *Notifier) ChatMessagePosted(senderUserId string, eventId string) {
 		senderName = "Someone"
 	}
 
-	notificationData := db.NotificationQueueData{
-		Topic:        "New Chat Message",
-		Message:      fmt.Sprintf("%s posted a message in your event chat.", senderName),
-		TemplateType: TemplateChatMessage,
-		TemplateData: map[string]interface{}{
-			TemplateDataKeys.SenderName: senderName,
-			TemplateDataKeys.EventId:    eventId,
-		},
+	for userId, prefs := range notifPrefs {
+		if userId == senderUserId {
+			continue
+		}
+		if prefs.IsHost != 1 && prefs.IsAccepted != 1 {
+			continue
+		}
+
+		notificationData := db.NotificationQueueData{
+			Topic:        "New Chat Message",
+			Message:      fmt.Sprintf("%s posted a message in your event chat.", senderName),
+			TemplateType: TemplateChatMessage,
+			TemplateData: map[string]interface{}{
+				TemplateDataKeys.SenderName: senderName,
+				TemplateDataKeys.EventId:    eventId,
+			},
+		}
+
+		err = d.queue.Enqueue(ctx, userId, notificationData)
+		if err != nil {
+			logCtx.Error("Failed to enqueue chat message notification", "error", err, "userId", userId)
+		}
 	}
 
-	err = d.queue.Enqueue(ctx, eventOwnerId, notificationData)
-	if err != nil {
-		logCtx.Error("Failed to enqueue chat message notification", "error", err)
-		return
-	}
-
-	logCtx.Debug("ChatMessagePosted notification enqueued")
+	logCtx.Debug("ChatMessagePosted notifications enqueued")
 }
 
 // EventExpired notifies the event owner that their event has expired without any participants
