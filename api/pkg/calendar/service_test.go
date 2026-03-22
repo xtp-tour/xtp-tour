@@ -12,7 +12,7 @@ import (
 
 func setupTestService(t *testing.T) *Service {
 	// Set up test encryption key
-	os.Setenv("TOKEN_ENCRYPTION_KEY", "dGVzdGtleTEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU=") // base64 encoded 32-byte key
+	t.Setenv("TOKEN_ENCRYPTION_KEY", "dGVzdGtleTEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU=") // base64 encoded 32-byte key
 
 	// Create a simplified service for testing without OAuth2 dependencies
 	service := &Service{
@@ -151,7 +151,7 @@ func TestTokenEncryption_InvalidCiphertext(t *testing.T) {
 // Database-dependent cache tests removed for now
 
 func tearDown() {
-	os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	_ = os.Unsetenv("TOKEN_ENCRYPTION_KEY")
 }
 
 func TestMain(m *testing.M) {

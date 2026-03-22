@@ -14,8 +14,7 @@ func TestNewTokenEncryption_ValidKey(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	te, err := NewTokenEncryption()
 	assert.NoError(t, err)
@@ -23,7 +22,7 @@ func TestNewTokenEncryption_ValidKey(t *testing.T) {
 }
 
 func TestNewTokenEncryption_MissingKey(t *testing.T) {
-	os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	require.NoError(t, os.Unsetenv("TOKEN_ENCRYPTION_KEY"))
 
 	te, err := NewTokenEncryption()
 	assert.Error(t, err)
@@ -32,8 +31,7 @@ func TestNewTokenEncryption_MissingKey(t *testing.T) {
 }
 
 func TestNewTokenEncryption_InvalidBase64(t *testing.T) {
-	os.Setenv("TOKEN_ENCRYPTION_KEY", "invalid-base64!")
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", "invalid-base64!")
 
 	te, err := NewTokenEncryption()
 	assert.Error(t, err)
@@ -44,8 +42,7 @@ func TestNewTokenEncryption_InvalidBase64(t *testing.T) {
 func TestNewTokenEncryption_InvalidKeyLength(t *testing.T) {
 	// 8-byte key (too short)
 	shortKey := "dGVzdGtleQ==" // base64 encoded "testkey"
-	os.Setenv("TOKEN_ENCRYPTION_KEY", shortKey)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", shortKey)
 
 	te, err := NewTokenEncryption()
 	assert.Error(t, err)
@@ -58,8 +55,7 @@ func TestEncryptDecryptToken(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	te, err := NewTokenEncryption()
 	require.NoError(t, err)
@@ -95,8 +91,7 @@ func TestEncryptDecryptToken_EmptyString(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	te, err := NewTokenEncryption()
 	require.NoError(t, err)
@@ -115,8 +110,7 @@ func TestDecryptToken_InvalidCiphertext(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	te, err := NewTokenEncryption()
 	require.NoError(t, err)
@@ -142,8 +136,7 @@ func TestEncryptionConsistency(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	te, err := NewTokenEncryption()
 	require.NoError(t, err)
@@ -185,8 +178,7 @@ func TestGenerateEncryptionKey(t *testing.T) {
 	// Both keys should be valid for creating TokenEncryption
 	for i, key := range []string{key1, key2} {
 		t.Run(fmt.Sprintf("key_%d", i), func(t *testing.T) {
-			os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-			defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+			t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 			te, err := NewTokenEncryption()
 			assert.NoError(t, err)
@@ -199,8 +191,7 @@ func TestMustInitTokenEncryption_Success(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	require.NoError(t, err)
 
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key)
-	defer os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key)
 
 	// Should not panic
 	te := MustInitTokenEncryption()
@@ -208,7 +199,7 @@ func TestMustInitTokenEncryption_Success(t *testing.T) {
 }
 
 func TestMustInitTokenEncryption_Panic(t *testing.T) {
-	os.Unsetenv("TOKEN_ENCRYPTION_KEY")
+	require.NoError(t, os.Unsetenv("TOKEN_ENCRYPTION_KEY"))
 
 	// Should panic due to missing key
 	assert.Panics(t, func() {
@@ -227,7 +218,7 @@ func TestDifferentKeysCannotDecrypt(t *testing.T) {
 	plaintext := "test-token-123"
 
 	// Encrypt with first key
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key1)
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key1)
 	te1, err := NewTokenEncryption()
 	require.NoError(t, err)
 
@@ -235,13 +226,11 @@ func TestDifferentKeysCannotDecrypt(t *testing.T) {
 	require.NoError(t, err)
 
 	// Try to decrypt with second key
-	os.Setenv("TOKEN_ENCRYPTION_KEY", key2)
+	t.Setenv("TOKEN_ENCRYPTION_KEY", key2)
 	te2, err := NewTokenEncryption()
 	require.NoError(t, err)
 
 	_, err = te2.DecryptToken(encrypted)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to decrypt token")
-
-	os.Unsetenv("TOKEN_ENCRYPTION_KEY")
 }

@@ -56,10 +56,6 @@ func GetDB(config *pkg.DbConfig) (*Db, error) {
 
 	logCtx.Info("Database connection established")
 	db = &Db{conn: dbConn}
-
-	if db == nil {
-		return nil, errors.New("database connection not initialized")
-	}
 	return db, nil
 }
 
@@ -1507,7 +1503,7 @@ func (db *Db) GetAllFacilitiesAdmin(ctx context.Context) ([]api.AdminFacility, e
 		logCtx.Error("Failed to get all facilities for admin", "error", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var facilities []api.AdminFacility
 	for rows.Next() {

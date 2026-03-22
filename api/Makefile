@@ -1,5 +1,8 @@
 .PHONY:  test build lint deps
 
+# Keep in sync with .github/workflows/backend.yaml (golangci-lint-action version).
+GOLANGCI_LINT_VERSION ?= v2.0.0
+
 build: servicetest.build
 	@echo Building version: \"$(BIN_VER)\"
 	$(MAKE) build-binary
@@ -25,9 +28,9 @@ dbreset:
 test:
 	go test -v ./...
 
-# Go lint
+# Go lint (pinned version so local results match CI; `golangci-lint` in PATH is not used)
 lint:
-	golangci-lint run
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run
 
 deps:
 	go install github.com/xo/xo@latest

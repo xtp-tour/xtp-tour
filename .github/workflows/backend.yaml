@@ -38,6 +38,12 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.0.0
+          working-directory: api
+
       - name: Build
         run: make build-arm
 
