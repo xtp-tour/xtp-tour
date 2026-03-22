@@ -71,7 +71,7 @@ str:
 	echo "Starting database container..."; \
 	docker run -d --name xtp-tour-stest-db -p 53306:3306 -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=xtp_tour mysql:9.3.0; \
 	echo "Waiting for database to start..."; \
-	sleep 5; \
+	sleep 20; \
 	echo "Running migrations..."; \
 	DB_PORT=53306 LOG_LEVEL=debug DB_HOST=localhost  go run cmd/server/main.go migrate; \
 	echo "Starting server in background..."; \
@@ -80,5 +80,9 @@ str:
 	echo "Waiting for server to start..."; \
 	sleep 2; \
 	echo "Running service tests..."; \
+	set +e; \
 	SERVICE_HOST=http://localhost:58080 METRICS_HOST=http://localhost:51025 go test ./test/stest -tags servicetest -v -count=1; \
+	TEST_EXIT=$$?; \
+	set -e; \
+	exit $$TEST_EXIT; \
 	'

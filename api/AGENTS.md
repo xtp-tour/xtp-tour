@@ -90,6 +90,11 @@ Service tests are in `test/stest/` and tagged with `//go:build servicetest`.
 - Tests use `Authentication` header with user ID as the token value
 - Configuration via environment variables: `SERVICE_HOST`, `METRICS_HOST`
 
+**Running service tests:**
+- `make servicetest.run` - requires API already running with `AUTH_TYPE=debug`
+- `make str` - full automated flow: starts MySQL container, runs migrations, starts server, runs tests, cleans up
+- Via Docker Compose (from project root): `docker compose up --build -d` runs service tests automatically in the `integration-tests` container. Check results with `docker compose logs integration-tests`.
+
 **Test patterns**:
 - Tests create temporary user profiles with timestamps for uniqueness
 - Helper functions: `createProfiles()` creates test users, `deleteProfiles()` cleans up
