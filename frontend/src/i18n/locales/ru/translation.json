@@ -116,7 +116,7 @@
       "createInvitation": "Создать приглашение",
       "custom": "Произвольное",
       "customPlayerCount": "Количество игроков",
-      "customPlayerCountHelper": "Введите общее количество игроков (2–1000)",
+      "customPlayerCountHelper": "Введите общее количество игроков",
       "description": "Описание (необязательно)",
       "doubles": "Парная",
       "gameOnPoints": "Игра на очки",
