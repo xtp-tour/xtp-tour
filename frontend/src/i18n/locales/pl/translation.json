@@ -25,6 +25,12 @@
     "signUp": "Zarejestruj się"
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Wybierz dostępne godziny ({{mode}}). Strzałki — nawigacja, spacja — wybór.",
+      "modeDay": "godziny dzienne",
+      "modeNight": "tylko godziny nocne",
+      "selected": "wybrane"
+    },
     "busySlot": "Zajęty (Kalendarz)",
     "clearAll": "Wyczyść wybór",
     "conflictWarning": "Ten termin koliduje z Twoim kalendarzem",

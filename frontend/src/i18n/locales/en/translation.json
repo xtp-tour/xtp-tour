@@ -25,6 +25,12 @@
     "signUp": "Sign up"
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Select available time slots ({{mode}}). Use arrow keys to navigate, space to select.",
+      "modeDay": "daytime hours",
+      "modeNight": "night hours only",
+      "selected": "selected"
+    },
     "busySlot": "Busy (Calendar)",
     "clearAll": "Clear selection",
     "conflictWarning": "This time conflicts with your calendar",

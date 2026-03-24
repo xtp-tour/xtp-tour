@@ -25,6 +25,12 @@
     "signUp": "S'inscrire"
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Sélectionnez les créneaux disponibles ({{mode}}). Flèches pour naviguer, espace pour sélectionner.",
+      "modeDay": "heures de jour",
+      "modeNight": "heures de nuit uniquement",
+      "selected": "sélectionné"
+    },
     "busySlot": "Occupé (Calendrier)",
     "clearAll": "Effacer la sélection",
     "conflictWarning": "Ce créneau est en conflit avec votre calendrier",

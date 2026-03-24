@@ -5,10 +5,29 @@ import i18n from '../i18n';
 type TFunction = (key: string, options?: Record<string, unknown>) => string;
 
 /**
- * Get the current locale for date formatting
+ * Get the current locale for date formatting (matches active i18n language, not the browser default).
  */
-const getCurrentLocale = (): string => {
+export const getCurrentLocale = (): string => {
   return i18n.language || 'en';
+};
+
+/** Weekday abbreviation for calendar column headers (uses active app locale). */
+export const formatWeekdayShortForLocale = (date: Date): string => {
+  return new Intl.DateTimeFormat(getCurrentLocale(), { weekday: 'short' }).format(date);
+};
+
+/** Month + day line under weekday in availability grid (uses active app locale). */
+export const formatMonthDayShortForLocale = (date: Date): string => {
+  return new Intl.DateTimeFormat(getCurrentLocale(), { month: 'short', day: 'numeric' }).format(date);
+};
+
+/** Long date for accessibility labels (uses active app locale). */
+export const formatLongDateForLocale = (date: Date): string => {
+  return new Intl.DateTimeFormat(getCurrentLocale(), {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
 };
 
 /**
@@ -141,6 +160,16 @@ export const formatTimeOnlyLocalized = (utcTimeSlot: string | moment.Moment | Da
   });
   
   return formatter.format(date);
+};
+
+/**
+ * Format a local wall-clock time from minutes since midnight (availability grid rows).
+ * Uses the same 24-hour display as {@link formatTimeOnlyLocalized}.
+ */
+export const formatMinutesSinceMidnightLocalized = (minutesFromMidnight: number): string => {
+  const date = new Date();
+  date.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
+  return formatTimeOnlyLocalized(date);
 };
 
 /**

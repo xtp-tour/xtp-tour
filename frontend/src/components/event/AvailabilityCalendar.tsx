@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useAPI } from '../../services/apiProvider';
 import moment from 'moment';
 import { components } from '../../types/schema';
+import {
+  formatLongDateForLocale,
+  formatMinutesSinceMidnightLocalized,
+  formatMonthDayShortForLocale,
+  formatWeekdayShortForLocale,
+} from '../../utils/i18nDateUtils';
 
 // Calendar display constants with explanations
 const CALENDAR_CONSTANTS = {
@@ -78,19 +84,6 @@ function clampDate(date: Date, min: Date, max: Date): Date {
   if (date.getTime() < min.getTime()) return new Date(min);
   if (date.getTime() > max.getTime()) return new Date(max);
   return date;
-}
-
-/** Format time for display in user's locale */
-function formatTimeDisplay(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  const date = new Date();
-  date.setHours(hours, mins, 0, 0);
-  return date.toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
 }
 
 function makeLocalDateTime(dateOnly: Date, minutesFromMidnight: number): Date {
@@ -321,9 +314,11 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   // Generate ARIA label for the calendar
   const calendarAriaLabel = useMemo(() => {
-    const modeText = nightOnly ? 'night hours only' : 'daytime hours';
-    return `Select available time slots (${modeText}). Use arrow keys to navigate, space to select.`;
-  }, [nightOnly]);
+    const modeText = nightOnly
+      ? t('calendar.availabilityGrid.modeNight')
+      : t('calendar.availabilityGrid.modeDay');
+    return t('calendar.availabilityGrid.aria', { mode: modeText });
+  }, [nightOnly, t]);
 
   return (
     <div className={className} role="grid" aria-label={calendarAriaLabel}>
@@ -411,12 +406,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                     role="columnheader"
                   >
                     <div className="d-flex flex-column align-items-center lh-1">
-                      <span className="text-uppercase small">
-                        {d.toLocaleDateString(undefined, { weekday: 'short' })}
-                      </span>
-                      <span className="small text-muted">
-                        {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </span>
+                      <span className="small">{formatWeekdayShortForLocale(d)}</span>
+                      <span className="small text-muted">{formatMonthDayShortForLocale(d)}</span>
                     </div>
                     {/* All-day events */}
                     {dayEvents.length > 0 && (
@@ -475,12 +466,12 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         onClick={() => toggleCell(d, m)}
                         disabled={isDisabled}
                         aria-pressed={selectedNow}
-                        aria-label={`${formatTimeDisplay(m)} on ${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${selectedNow ? ' (selected)' : ''}${hasEvent ? ` (${calendarEvent.title})` : ''}`}
+                        aria-label={`${formatMinutesSinceMidnightLocalized(m)} — ${formatLongDateForLocale(d)}${selectedNow ? ` (${t('calendar.availabilityGrid.selected')})` : ''}${hasEvent ? ` (${calendarEvent.title})` : ''}`}
                         tabIndex={0}
                         title={hasEvent ? calendarEvent.title : undefined}
                       >
                         <span className="d-block" style={{ fontSize: '0.85rem' }}>
-                          {formatTimeDisplay(m)}
+                          {formatMinutesSinceMidnightLocalized(m)}
                         </span>
                         {hasEvent && showTitle && (
                           <span 
