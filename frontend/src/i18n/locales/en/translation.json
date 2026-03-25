@@ -102,7 +102,9 @@
       "title": "Calendar Settings"
     },
     "previousWeek": "Previous week",
-    "provider": "Provider"
+    "provider": "Provider",
+    "slotsSelected": "{{count}} slot(s) selected",
+    "slotsAcrossDays": "across {{count}} day(s)"
   },
   "chat": {
     "cancel": "Cancel",

@@ -102,7 +102,9 @@
       "title": "Ustawienia Kalendarza"
     },
     "previousWeek": "Poprzedni tydzień",
-    "provider": "Dostawca"
+    "provider": "Dostawca",
+    "slotsSelected": "Wybrano terminów: {{count}}",
+    "slotsAcrossDays": "w {{count}} dniach"
   },
   "chat": {
     "cancel": "Anuluj",
