@@ -470,7 +470,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                         tabIndex={0}
                         title={hasEvent ? calendarEvent.title : undefined}
                       >
-                        <span className="d-block" style={{ fontSize: '0.85rem' }}>
+                        <span className="d-block text-nowrap" style={{ fontSize: '0.8rem' }}>
                           {formatMinutesSinceMidnightLocalized(m)}
                         </span>
                         {hasEvent && showTitle && (
