@@ -64,6 +64,13 @@
       "title": "Создать аккаунт",
       "verify": "Подтвердить email",
       "verifyHint": "Мы отправили код подтверждения на {{email}}."
+    },
+    "social": {
+      "continueWithApple": "Продолжить с Apple",
+      "continueWithFacebook": "Продолжить с Facebook",
+      "continueWithGoogle": "Продолжить с Google",
+      "orContinueWithEmail": "или продолжить по email",
+      "redirecting": "Перенаправление..."
     }
   },
   "calendar": {

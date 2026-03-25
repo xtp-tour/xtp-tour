@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useClerk, useSignUp } from '@clerk/clerk-react';
 import { Button, Col, Form, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useAPI } from '../../services/apiProvider';
 import { markProfileComplete } from '../../hooks/useProfileStatus';
 import { getNtrpLevelOptions } from '../../utils/profileFormUtils';
+import SocialLoginButtons from './SocialLoginButtons';
 
 type Step = 'details' | 'verify';
 
@@ -29,6 +30,8 @@ const SignUpPage: React.FC = () => {
   const api = useAPI();
   const clerk = useClerk();
   const { isLoaded, signUp, setActive } = useSignUp();
+
+  const oauthSignUpCompleteUrl = useMemo(() => `${window.location.origin}/sign-up`, []);
 
   const [step, setStep] = useState<Step>('details');
   const [verificationCode, setVerificationCode] = useState('');
@@ -198,6 +201,10 @@ const SignUpPage: React.FC = () => {
             <div className="card-body p-4">
               <h2 className="text-center mb-4">{t('auth.signUpPage.title')}</h2>
               {error && <div className="alert alert-danger">{error}</div>}
+
+              {step === 'details' && (
+                <SocialLoginButtons mode="sign-up" redirectUrlComplete={oauthSignUpCompleteUrl} />
+              )}
 
               {step === 'details' && (
                 <Form onSubmit={handleDetailsSubmit} noValidate>

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSignIn } from '@clerk/clerk-react';
 import { Button, Col, Form, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import SocialLoginButtons from './SocialLoginButtons';
 
 function clerkErrorMessage(err: unknown): string {
   if (err && typeof err === 'object' && 'errors' in err) {
@@ -23,6 +24,11 @@ const SignInPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/';
+
+  const oauthCompleteUrl = useMemo(
+    () => `${window.location.origin}${from.startsWith('/') ? from : `/${from}`}`,
+    [from],
+  );
 
   const { isLoaded, signIn, setActive } = useSignIn();
 
@@ -152,6 +158,10 @@ const SignInPage: React.FC = () => {
             <div className="card-body p-4">
               <h2 className="text-center mb-4">{t('auth.signInPage.title')}</h2>
               {error && <div className="alert alert-danger">{error}</div>}
+
+              {!showSecondFactor && (
+                <SocialLoginButtons mode="sign-in" redirectUrlComplete={oauthCompleteUrl} />
+              )}
 
               {!showSecondFactor && (
                 <Form onSubmit={handleCredentialsSubmit} noValidate>
