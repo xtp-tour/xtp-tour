@@ -22,7 +22,49 @@
   "auth": {
     "comingSoon": "Disponible dans les prochaines semaines",
     "signIn": "Se connecter",
-    "signUp": "S'inscrire"
+    "signInPage": {
+      "errors": {
+        "codeRequired": "Saisissez le code de vérification",
+        "emailInvalid": "Saisissez une adresse e-mail valide",
+        "emailRequired": "L'e-mail est obligatoire",
+        "incomplete": "La connexion n'a pas pu être terminée. Réessayez.",
+        "passwordRequired": "Le mot de passe est obligatoire"
+      },
+      "fields": {
+        "code": "Code de vérification",
+        "email": "E-mail",
+        "password": "Mot de passe"
+      },
+      "noAccount": "Pas encore de compte ?",
+      "secondFactorHint": "Saisissez le code envoyé à votre e-mail.",
+      "signingIn": "Connexion...",
+      "startOver": "Utiliser un autre compte",
+      "title": "Connexion",
+      "verify": "Vérifier"
+    },
+    "signUp": "S'inscrire",
+    "signUpPage": {
+      "back": "Modifier les informations",
+      "continue": "Continuer",
+      "errors": {
+        "codeRequired": "Saisissez le code de vérification",
+        "emailInvalid": "Saisissez une adresse e-mail valide",
+        "emailRequired": "L'e-mail est obligatoire",
+        "passwordMin": "Le mot de passe doit contenir au moins 8 caractères",
+        "verificationIncomplete": "La vérification n'a pas pu être terminée. Réessayez."
+      },
+      "fields": {
+        "code": "Code de vérification",
+        "email": "E-mail",
+        "password": "Mot de passe"
+      },
+      "haveAccount": "Vous avez déjà un compte ?",
+      "resendCode": "Renvoyer le code",
+      "sending": "Envoi...",
+      "title": "Créer un compte",
+      "verify": "Vérifier l'e-mail",
+      "verifyHint": "Nous avons envoyé un code de vérification à {{email}}."
+    }
   },
   "calendar": {
     "availabilityGrid": {
@@ -122,7 +164,7 @@
       "createInvitation": "Créer une Invitation",
       "custom": "Personnalisé",
       "customPlayerCount": "Nombre de joueurs",
-      "customPlayerCountHelper": "Entrez le nombre total de joueurs (2–1000)",
+      "customPlayerCountHelper": "Entrez le nombre total de joueurs",
       "description": "Description (optionnelle)",
       "doubles": "Double",
       "gameOnPoints": "Jeu aux points",

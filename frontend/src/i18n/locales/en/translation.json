@@ -22,7 +22,49 @@
   "auth": {
     "comingSoon": "Coming in next couple of weeks",
     "signIn": "Sign in",
-    "signUp": "Sign up"
+    "signInPage": {
+      "errors": {
+        "codeRequired": "Enter the verification code",
+        "emailInvalid": "Enter a valid email address",
+        "emailRequired": "Email is required",
+        "incomplete": "Sign-in could not be completed. Try again.",
+        "passwordRequired": "Password is required"
+      },
+      "fields": {
+        "code": "Verification code",
+        "email": "Email",
+        "password": "Password"
+      },
+      "noAccount": "Need an account?",
+      "secondFactorHint": "Enter the verification code we sent to your email.",
+      "signingIn": "Signing in...",
+      "startOver": "Use a different account",
+      "title": "Sign in",
+      "verify": "Verify"
+    },
+    "signUp": "Sign up",
+    "signUpPage": {
+      "back": "Edit details",
+      "continue": "Continue",
+      "errors": {
+        "codeRequired": "Enter the verification code",
+        "emailInvalid": "Enter a valid email address",
+        "emailRequired": "Email is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "verificationIncomplete": "Verification could not be completed. Try again."
+      },
+      "fields": {
+        "code": "Verification code",
+        "email": "Email",
+        "password": "Password"
+      },
+      "haveAccount": "Already have an account?",
+      "resendCode": "Resend code",
+      "sending": "Sending...",
+      "title": "Create account",
+      "verify": "Verify email",
+      "verifyHint": "We sent a verification code to {{email}}."
+    }
   },
   "calendar": {
     "availabilityGrid": {
@@ -122,7 +164,7 @@
       "createInvitation": "Create Invitation",
       "custom": "Custom",
       "customPlayerCount": "Number of players",
-      "customPlayerCountHelper": "Enter the total number of players (2–1000)",
+      "customPlayerCountHelper": "Enter the total number of players",
       "description": "Description (optional)",
       "doubles": "Doubles",
       "gameOnPoints": "Game on points",

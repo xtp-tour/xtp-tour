@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAPI } from '../services/apiProvider';
 import { ApiEvent } from '../types/api';
 import { JoinEventModal } from './JoinEventModal';
 import BaseEventItem from './event/BaseEventItem';
 import { TimeSlot, timeSlotFromDateAndConfirmation, getEventTitle } from './event/types';
-import { SignedOut, SignInButton, useUser, useClerk } from '@clerk/clerk-react';
+import { SignedOut, useUser } from '@clerk/clerk-react';
 import Toast from './Toast';
 import HostDisplay from './HostDisplay';
 import EventChat from './chat/EventChat';
@@ -15,9 +15,9 @@ const PublicEventPage: React.FC = () => {
   const { t } = useTranslation();
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const api = useAPI();
   const { isSignedIn, user } = useUser();
-  const { openSignIn } = useClerk();
   const [event, setEvent] = useState<ApiEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +103,7 @@ const PublicEventPage: React.FC = () => {
         icon: 'bi-person-plus',
         label: t('eventActions.signInToJoin'),
         onClick: () => {
-          openSignIn();
+          navigate('/sign-in', { state: { from: location } });
         }
       };
     }
@@ -178,12 +178,10 @@ const PublicEventPage: React.FC = () => {
             </div>
             <div>
               <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="btn btn-primary">
-                    <i className="bi bi-person-plus me-2"></i>
-                    Sign in to Join
-                  </button>
-                </SignInButton>
+                <Link to="/sign-in" state={{ from: location }} className="btn btn-primary">
+                  <i className="bi bi-person-plus me-2"></i>
+                  {t('eventActions.signInToJoin')}
+                </Link>
               </SignedOut>
             </div>
           </div>

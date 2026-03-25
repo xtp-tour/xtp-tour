@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import type { ReactNode } from 'react';
 
 // Mock import.meta.env for Vite environment variables
 Object.defineProperty(globalThis, 'import', {
@@ -31,11 +32,15 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock Clerk authentication
 jest.mock('@clerk/clerk-react', () => ({
+	ClerkProvider: ({ children }: { children: ReactNode }) => children,
+	SignedIn: ({ children }: { children: ReactNode }) => children,
+	SignedOut: () => null,
 	useUser: () => ({
 		user: {
 			id: 'test-user-id',
 			firstName: 'Test',
 			lastName: 'User',
+			emailAddresses: [{ emailAddress: 'test@example.com' }],
 		},
 		isLoaded: true,
 	}),
@@ -43,6 +48,30 @@ jest.mock('@clerk/clerk-react', () => ({
 		getToken: jest.fn().mockResolvedValue('mock-token'),
 		isLoaded: true,
 		isSignedIn: true,
+	}),
+	useClerk: () => ({
+		signOut: jest.fn().mockResolvedValue(undefined),
+		user: {
+			update: jest.fn().mockResolvedValue(undefined),
+		},
+	}),
+	useSignUp: () => ({
+		isLoaded: true,
+		signUp: {
+			create: jest.fn(),
+			prepareEmailAddressVerification: jest.fn(),
+			attemptEmailAddressVerification: jest.fn(),
+		},
+		setActive: jest.fn().mockResolvedValue(undefined),
+	}),
+	useSignIn: () => ({
+		isLoaded: true,
+		signIn: {
+			create: jest.fn(),
+			prepareSecondFactor: jest.fn(),
+			attemptSecondFactor: jest.fn(),
+		},
+		setActive: jest.fn().mockResolvedValue(undefined),
 	}),
 }));
 

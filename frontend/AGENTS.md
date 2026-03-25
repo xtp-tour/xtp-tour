@@ -89,6 +89,7 @@ src/
 - Clerk integration is optional via `VITE_CLERK_PUBLISHABLE_KEY` env var
 - When Clerk is not configured, app runs in demo mode with mock API
 - Backend supports DEBUG authentication mode for testing (see `../AGENTS.md`)
+- **Custom auth UI**: Registration and sign-in use in-app routes `/sign-up` and `/sign-in` (not Clerk modal or prebuilt `<SignUp />` / `<SignIn />`). Sign-up uses Clerk’s [`useSignUp`](https://clerk.com/docs/react/hooks/use-sign-up) with email/password and email verification code, then creates the backend profile via `createUserProfile`. Sign-in uses [`useSignIn`](https://clerk.com/docs/react/hooks/use-sign-in) with optional email second factor when Clerk requires it. See [Clerk custom email/password flow](https://clerk.com/docs/custom-flows/email-password) and the legacy variant in Clerk docs if your SDK still exposes `create` / `setActive` on the resource.
 
 ### Date/Time Handling
 - **Critical**: API uses UTC timestamps, UI displays in local time

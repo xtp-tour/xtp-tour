@@ -22,7 +22,49 @@
   "auth": {
     "comingSoon": "Скоро будет доступно",
     "signIn": "Войти",
-    "signUp": "Зарегистрироваться"
+    "signInPage": {
+      "errors": {
+        "codeRequired": "Введите код подтверждения",
+        "emailInvalid": "Введите корректный email",
+        "emailRequired": "Укажите email",
+        "incomplete": "Не удалось войти. Попробуйте снова.",
+        "passwordRequired": "Укажите пароль"
+      },
+      "fields": {
+        "code": "Код подтверждения",
+        "email": "Email",
+        "password": "Пароль"
+      },
+      "noAccount": "Нет аккаунта?",
+      "secondFactorHint": "Введите код, отправленный на ваш email.",
+      "signingIn": "Вход...",
+      "startOver": "Другой аккаунт",
+      "title": "Вход",
+      "verify": "Подтвердить"
+    },
+    "signUp": "Зарегистрироваться",
+    "signUpPage": {
+      "back": "Изменить данные",
+      "continue": "Продолжить",
+      "errors": {
+        "codeRequired": "Введите код подтверждения",
+        "emailInvalid": "Введите корректный email",
+        "emailRequired": "Укажите email",
+        "passwordMin": "Пароль должен быть не короче 8 символов",
+        "verificationIncomplete": "Не удалось завершить проверку. Попробуйте снова."
+      },
+      "fields": {
+        "code": "Код подтверждения",
+        "email": "Email",
+        "password": "Пароль"
+      },
+      "haveAccount": "Уже есть аккаунт?",
+      "resendCode": "Отправить код снова",
+      "sending": "Отправка...",
+      "title": "Создать аккаунт",
+      "verify": "Подтвердить email",
+      "verifyHint": "Мы отправили код подтверждения на {{email}}."
+    }
   },
   "calendar": {
     "availabilityGrid": {
@@ -122,7 +164,7 @@
       "createInvitation": "Создать приглашение",
       "custom": "Произвольное",
       "customPlayerCount": "Количество игроков",
-      "customPlayerCountHelper": "Введите общее количество игроков (2–1000)",
+      "customPlayerCountHelper": "Введите общее количество игроков",
       "description": "Описание (необязательно)",
       "doubles": "Парная",
       "gameOnPoints": "Игра на очки",

@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
         'createEvent.form.doubles': 'Doubles',
         'createEvent.form.custom': 'Custom',
         'createEvent.form.customPlayerCount': 'Number of players',
-        'createEvent.form.customPlayerCountHelper': 'Enter the total number of players (2–1000)',
+        'createEvent.form.customPlayerCountHelper': 'Enter the total number of players',
         'createEvent.errors.customPlayerCountInvalid': 'Number of players must be between 2 and 1000',
         'createEvent.title': 'Create Event',
         'common.close': 'Close',

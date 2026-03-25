@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import EventList, { EventListRef } from "./components/EventList";
@@ -21,6 +21,8 @@ import TermsOfService from './components/TermsOfService';
 import logoImage from './assets/xtp-tour-logo.png';
 import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus';
 import { usePageTracking } from './hooks/usePageTracking';
+import SignUpPage from './components/auth/SignUpPage';
+import SignInPage from './components/auth/SignInPage';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -55,12 +57,12 @@ const Layout = ({ children, showLanguageSwitcherInFooter = false }: { children: 
               <>
                 <SignedOut>
                   <div className="d-flex gap-1 gap-md-2">
-                    <SignInButton mode="modal">
-                      <button className="btn btn-outline-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>{t('auth.signIn')}</button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <button className="btn btn-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>{t('auth.signUp')}</button>
-                    </SignUpButton>
+                    <Link to="/sign-in" className="btn btn-outline-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>
+                      {t('auth.signIn')}
+                    </Link>
+                    <Link to="/sign-up" className="btn btn-primary btn-sm" style={{ minWidth: '70px', fontSize: '0.875rem' }}>
+                      {t('auth.signUp')}
+                    </Link>
                   </div>
                 </SignedOut>
                 <SignedIn>
@@ -194,6 +196,34 @@ const AppRoutes = () => {
         <Layout>
           <TermsOfService />
         </Layout>
+      } />
+      <Route path="/sign-up" element={
+        isClerkAvailable ? (
+          <Layout showLanguageSwitcherInFooter={true}>
+            <SignedIn>
+              <Navigate to="/" replace />
+            </SignedIn>
+            <SignedOut>
+              <SignUpPage />
+            </SignedOut>
+          </Layout>
+        ) : (
+          <Navigate to="/" replace />
+        )
+      } />
+      <Route path="/sign-in" element={
+        isClerkAvailable ? (
+          <Layout showLanguageSwitcherInFooter={true}>
+            <SignedIn>
+              <Navigate to="/" replace />
+            </SignedIn>
+            <SignedOut>
+              <SignInPage />
+            </SignedOut>
+          </Layout>
+        ) : (
+          <Navigate to="/" replace />
+        )
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
