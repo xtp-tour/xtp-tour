@@ -64,6 +64,13 @@
       "title": "Utwórz konto",
       "verify": "Potwierdź e-mail",
       "verifyHint": "Wysłaliśmy kod weryfikacyjny na adres {{email}}."
+    },
+    "social": {
+      "continueWithApple": "Kontynuuj z Apple",
+      "continueWithFacebook": "Kontynuuj z Facebook",
+      "continueWithGoogle": "Kontynuuj z Google",
+      "orContinueWithEmail": "lub kontynuuj przez e-mail",
+      "redirecting": "Przekierowywanie..."
     }
   },
   "calendar": {

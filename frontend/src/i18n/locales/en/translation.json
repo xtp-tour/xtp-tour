@@ -64,6 +64,13 @@
       "title": "Create account",
       "verify": "Verify email",
       "verifyHint": "We sent a verification code to {{email}}."
+    },
+    "social": {
+      "continueWithApple": "Continue with Apple",
+      "continueWithFacebook": "Continue with Facebook",
+      "continueWithGoogle": "Continue with Google",
+      "orContinueWithEmail": "or continue with email",
+      "redirecting": "Redirecting..."
     }
   },
   "calendar": {

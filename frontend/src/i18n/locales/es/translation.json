@@ -64,6 +64,13 @@
       "title": "Crear cuenta",
       "verify": "Verificar correo",
       "verifyHint": "Enviamos un código de verificación a {{email}}."
+    },
+    "social": {
+      "continueWithApple": "Continuar con Apple",
+      "continueWithFacebook": "Continuar con Facebook",
+      "continueWithGoogle": "Continuar con Google",
+      "orContinueWithEmail": "o continúa con el correo",
+      "redirecting": "Redirigiendo..."
     }
   },
   "calendar": {

@@ -23,6 +23,7 @@ import { useProfileStatus, markProfileComplete } from './hooks/useProfileStatus'
 import { usePageTracking } from './hooks/usePageTracking';
 import SignUpPage from './components/auth/SignUpPage';
 import SignInPage from './components/auth/SignInPage';
+import SsoCallbackRoute from './components/auth/SsoCallbackRoute';
 
 // Check if Clerk is available
 const isClerkAvailable = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -276,6 +277,9 @@ class SimpleErrorBoundary extends React.Component<{children: React.ReactNode}, {
               {/* Public routes that don't need the main layout */}
               <Route path="/health-details" element={<SimpleErrorBoundary><Health /></SimpleErrorBoundary>} />
               <Route path="/calendar/auth/callback" element={<CalendarCallback />} />
+              {isClerkAvailable && (
+                <Route path="/sso-callback" element={<SsoCallbackRoute />} />
+              )}
 
               {/* All other routes */}
               <Route path="*" element={<AppRoutes />} />
