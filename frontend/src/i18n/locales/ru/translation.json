@@ -67,6 +67,12 @@
     }
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Выберите доступные слоты ({{mode}}). Стрелки — навигация, пробел — выбор.",
+      "modeDay": "дневные часы",
+      "modeNight": "только ночные часы",
+      "selected": "выбрано"
+    },
     "busySlot": "Занято (Календарь)",
     "clearAll": "Очистить выбор",
     "conflictWarning": "Это время конфликтует с вашим календарём",
@@ -96,7 +102,9 @@
       "title": "Настройки календаря"
     },
     "previousWeek": "Предыдущая неделя",
-    "provider": "Провайдер"
+    "provider": "Провайдер",
+    "slotsSelected": "Выбрано слотов: {{count}}",
+    "slotsAcrossDays": "за {{count}} дн."
   },
   "chat": {
     "cancel": "Отмена",

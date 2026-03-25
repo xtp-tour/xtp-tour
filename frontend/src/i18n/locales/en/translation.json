@@ -67,6 +67,12 @@
     }
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Select available time slots ({{mode}}). Use arrow keys to navigate, space to select.",
+      "modeDay": "daytime hours",
+      "modeNight": "night hours only",
+      "selected": "selected"
+    },
     "busySlot": "Busy (Calendar)",
     "clearAll": "Clear selection",
     "conflictWarning": "This time conflicts with your calendar",
@@ -96,7 +102,9 @@
       "title": "Calendar Settings"
     },
     "previousWeek": "Previous week",
-    "provider": "Provider"
+    "provider": "Provider",
+    "slotsSelected": "{{count}} slot(s) selected",
+    "slotsAcrossDays": "across {{count}} day(s)"
   },
   "chat": {
     "cancel": "Cancel",

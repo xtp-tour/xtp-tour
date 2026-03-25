@@ -67,6 +67,12 @@
     }
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Sélectionnez les créneaux disponibles ({{mode}}). Flèches pour naviguer, espace pour sélectionner.",
+      "modeDay": "heures de jour",
+      "modeNight": "heures de nuit uniquement",
+      "selected": "sélectionné"
+    },
     "busySlot": "Occupé (Calendrier)",
     "clearAll": "Effacer la sélection",
     "conflictWarning": "Ce créneau est en conflit avec votre calendrier",
@@ -96,7 +102,9 @@
       "title": "Paramètres du Calendrier"
     },
     "previousWeek": "Semaine précédente",
-    "provider": "Fournisseur"
+    "provider": "Fournisseur",
+    "slotsSelected": "{{count}} créneau(x) sélectionné(s)",
+    "slotsAcrossDays": "sur {{count}} jour(s)"
   },
   "chat": {
     "cancel": "Annuler",

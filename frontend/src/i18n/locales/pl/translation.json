@@ -67,6 +67,12 @@
     }
   },
   "calendar": {
+    "availabilityGrid": {
+      "aria": "Wybierz dostępne godziny ({{mode}}). Strzałki — nawigacja, spacja — wybór.",
+      "modeDay": "godziny dzienne",
+      "modeNight": "tylko godziny nocne",
+      "selected": "wybrane"
+    },
     "busySlot": "Zajęty (Kalendarz)",
     "clearAll": "Wyczyść wybór",
     "conflictWarning": "Ten termin koliduje z Twoim kalendarzem",
@@ -96,7 +102,9 @@
       "title": "Ustawienia Kalendarza"
     },
     "previousWeek": "Poprzedni tydzień",
-    "provider": "Dostawca"
+    "provider": "Dostawca",
+    "slotsSelected": "Wybrano terminów: {{count}}",
+    "slotsAcrossDays": "w {{count}} dniach"
   },
   "chat": {
     "cancel": "Anuluj",

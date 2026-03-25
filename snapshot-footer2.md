@@ -1,0 +1,745 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - img "XTP Tour Logo" [ref=e7]
+      - link "XTP Tour" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - heading "XTP Tour" [level=1] [ref=e9]
+    - generic [ref=e11]:
+      - button "Sign in" [disabled]
+      - button "Sign up" [disabled]
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - button " Close" [expanded] [active] [ref=e40] [cursor=pointer]:
+        - generic [ref=e15]: 
+        - text: Close
+      - generic [ref=e41]:
+        - generic [ref=e42]: 
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - heading "New Invitation" [level=3] [ref=e46]
+            - button "Close" [ref=e47] [cursor=pointer]:
+              - generic [ref=e48]: 
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]: Preferred Locations
+              - paragraph [ref=e53]: Failed to load locations. Please try again later.
+            - generic [ref=e54]:
+              - generic [ref=e55]: Request Type
+              - generic [ref=e56]:
+                - generic [ref=e57]:
+                  - radio "Single" [checked] [ref=e58]
+                  - generic [ref=e59]: Single
+                - generic [ref=e60]:
+                  - radio "Doubles" [ref=e61]
+                  - generic [ref=e62]: Doubles
+                - generic [ref=e63]:
+                  - radio "Custom" [ref=e64]
+                  - generic [ref=e65]: Custom
+            - generic [ref=e66]:
+              - generic [ref=e67]: Opponent Skill Level
+              - generic [ref=e68]:
+                - text: Choose the NTRP skill level range for your tennis match.
+                - link "What's my NTRP level? →" [ref=e69] [cursor=pointer]:
+                  - /url: https://www.usta.com/en/home/coach-organize/tennis-tool-center/run-usta-programs/national/understanding-ntrp-ratings.html
+              - combobox "Opponent Skill Level" [ref=e70]:
+                - option "Intermediate (NTRP 3.5–5.0)" [selected]
+                - option "Beginner (NTRP < 3.5)"
+                - option "Advanced (NTRP > 5.0)"
+                - option "Any Level"
+            - generic [ref=e71]:
+              - generic [ref=e72]: Session Duration
+              - combobox "Session Duration" [ref=e73]:
+                - option "1 hour"
+                - option "1.5 hours"
+                - option "2 hours" [selected]
+                - option "2.5 hours"
+                - option "3 hours"
+                - option "3.5 hours"
+                - option "4 hours"
+            - generic [ref=e74]:
+              - generic [ref=e75]: Invitation Type
+              - radiogroup "Invitation Type" [ref=e76]:
+                - generic [ref=e77]:
+                  - radio "Game on points" [checked] [ref=e78]
+                  - generic [ref=e79]: Game on points
+                  - generic "Ищу партнёра для обычного теннисного матча" [ref=e80]:
+                    - generic [ref=e81]: 
+                - generic [ref=e82]:
+                  - radio "Training" [ref=e83]
+                  - generic [ref=e84]: Training
+                  - generic "Главная цель — улучшить навыки игры через розыгрыши" [ref=e85]:
+                    - generic [ref=e86]: 
+            - generic [ref=e87]:
+              - generic [ref=e88]: Your Availability (next 7 days)
+              - generic [ref=e89]:
+                - checkbox "Night game (show only night hours)" [ref=e90]
+                - generic [ref=e91]: Night game (show only night hours)
+              - generic [ref=e92]:
+                - heading " Calendar Integration" [level=6] [ref=e93]:
+                  - generic [ref=e94]: 
+                  - text: Calendar Integration
+                - paragraph [ref=e95]: Connect your Google Calendar to automatically avoid scheduling conflicts
+                - generic [ref=e97]:
+                  - generic [ref=e98]:
+                    - generic [ref=e99]: 
+                    - generic [ref=e100]: Calendar not connected
+                  - button " Connect Google Calendar" [ref=e101] [cursor=pointer]:
+                    - generic [ref=e102]: 
+                    - text: Connect Google Calendar
+              - grid "Select available time slots (daytime hours). Use arrow keys to navigate, space to select." [ref=e103]:
+                - generic [ref=e105]:
+                  - group "Calendar navigation" [ref=e106]:
+                    - button "Previous week" [disabled]:
+                      - generic: 
+                    - button "Next week" [ref=e107] [cursor=pointer]:
+                      - generic [ref=e108]: 
+                  - button "Clear selection" [disabled]
+                - grid [ref=e110]:
+                  - rowgroup [ref=e111]:
+                    - row "Thu Mar 26 Fri Mar 27 Sat Mar 28 Sun Mar 29 Mon Mar 30 Tue Mar 31 Wed Apr 1" [ref=e112]:
+                      - columnheader "Thu Mar 26" [ref=e113]:
+                        - generic [ref=e114]:
+                          - generic [ref=e115]: Thu
+                          - generic [ref=e116]: Mar 26
+                      - columnheader "Fri Mar 27" [ref=e117]:
+                        - generic [ref=e118]:
+                          - generic [ref=e119]: Fri
+                          - generic [ref=e120]: Mar 27
+                      - columnheader "Sat Mar 28" [ref=e121]:
+                        - generic [ref=e122]:
+                          - generic [ref=e123]: Sat
+                          - generic [ref=e124]: Mar 28
+                      - columnheader "Sun Mar 29" [ref=e125]:
+                        - generic [ref=e126]:
+                          - generic [ref=e127]: Sun
+                          - generic [ref=e128]: Mar 29
+                      - columnheader "Mon Mar 30" [ref=e129]:
+                        - generic [ref=e130]:
+                          - generic [ref=e131]: Mon
+                          - generic [ref=e132]: Mar 30
+                      - columnheader "Tue Mar 31" [ref=e133]:
+                        - generic [ref=e134]:
+                          - generic [ref=e135]: Tue
+                          - generic [ref=e136]: Mar 31
+                      - columnheader "Wed Apr 1" [ref=e137]:
+                        - generic [ref=e138]:
+                          - generic [ref=e139]: Wed
+                          - generic [ref=e140]: Apr 1
+                  - rowgroup [ref=e141]:
+                    - row "08:00 — Thursday, March 26 08:00 — Friday, March 27 08:00 — Saturday, March 28 08:00 — Sunday, March 29 08:00 — Monday, March 30 08:00 — Tuesday, March 31 08:00 — Wednesday, April 1" [ref=e142]:
+                      - gridcell "08:00 — Thursday, March 26" [ref=e143]:
+                        - button "08:00 — Thursday, March 26" [ref=e144] [cursor=pointer]:
+                          - generic [ref=e145]: 08:00
+                      - gridcell "08:00 — Friday, March 27" [ref=e146]:
+                        - button "08:00 — Friday, March 27" [ref=e147] [cursor=pointer]:
+                          - generic [ref=e148]: 08:00
+                      - gridcell "08:00 — Saturday, March 28" [ref=e149]:
+                        - button "08:00 — Saturday, March 28" [ref=e150] [cursor=pointer]:
+                          - generic [ref=e151]: 08:00
+                      - gridcell "08:00 — Sunday, March 29" [ref=e152]:
+                        - button "08:00 — Sunday, March 29" [ref=e153] [cursor=pointer]:
+                          - generic [ref=e154]: 08:00
+                      - gridcell "08:00 — Monday, March 30" [ref=e155]:
+                        - button "08:00 — Monday, March 30" [ref=e156] [cursor=pointer]:
+                          - generic [ref=e157]: 08:00
+                      - gridcell "08:00 — Tuesday, March 31" [ref=e158]:
+                        - button "08:00 — Tuesday, March 31" [ref=e159] [cursor=pointer]:
+                          - generic [ref=e160]: 08:00
+                      - gridcell "08:00 — Wednesday, April 1" [ref=e161]:
+                        - button "08:00 — Wednesday, April 1" [ref=e162] [cursor=pointer]:
+                          - generic [ref=e163]: 08:00
+                    - row "08:30 — Thursday, March 26 08:30 — Friday, March 27 08:30 — Saturday, March 28 08:30 — Sunday, March 29 08:30 — Monday, March 30 08:30 — Tuesday, March 31 08:30 — Wednesday, April 1" [ref=e164]:
+                      - gridcell "08:30 — Thursday, March 26" [ref=e165]:
+                        - button "08:30 — Thursday, March 26" [ref=e166] [cursor=pointer]:
+                          - generic [ref=e167]: 08:30
+                      - gridcell "08:30 — Friday, March 27" [ref=e168]:
+                        - button "08:30 — Friday, March 27" [ref=e169] [cursor=pointer]:
+                          - generic [ref=e170]: 08:30
+                      - gridcell "08:30 — Saturday, March 28" [ref=e171]:
+                        - button "08:30 — Saturday, March 28" [ref=e172] [cursor=pointer]:
+                          - generic [ref=e173]: 08:30
+                      - gridcell "08:30 — Sunday, March 29" [ref=e174]:
+                        - button "08:30 — Sunday, March 29" [ref=e175] [cursor=pointer]:
+                          - generic [ref=e176]: 08:30
+                      - gridcell "08:30 — Monday, March 30" [ref=e177]:
+                        - button "08:30 — Monday, March 30" [ref=e178] [cursor=pointer]:
+                          - generic [ref=e179]: 08:30
+                      - gridcell "08:30 — Tuesday, March 31" [ref=e180]:
+                        - button "08:30 — Tuesday, March 31" [ref=e181] [cursor=pointer]:
+                          - generic [ref=e182]: 08:30
+                      - gridcell "08:30 — Wednesday, April 1" [ref=e183]:
+                        - button "08:30 — Wednesday, April 1" [ref=e184] [cursor=pointer]:
+                          - generic [ref=e185]: 08:30
+                    - row "09:00 — Thursday, March 26 09:00 — Friday, March 27 09:00 — Saturday, March 28 09:00 — Sunday, March 29 09:00 — Monday, March 30 09:00 — Tuesday, March 31 09:00 — Wednesday, April 1" [ref=e186]:
+                      - gridcell "09:00 — Thursday, March 26" [ref=e187]:
+                        - button "09:00 — Thursday, March 26" [ref=e188] [cursor=pointer]:
+                          - generic [ref=e189]: 09:00
+                      - gridcell "09:00 — Friday, March 27" [ref=e190]:
+                        - button "09:00 — Friday, March 27" [ref=e191] [cursor=pointer]:
+                          - generic [ref=e192]: 09:00
+                      - gridcell "09:00 — Saturday, March 28" [ref=e193]:
+                        - button "09:00 — Saturday, March 28" [ref=e194] [cursor=pointer]:
+                          - generic [ref=e195]: 09:00
+                      - gridcell "09:00 — Sunday, March 29" [ref=e196]:
+                        - button "09:00 — Sunday, March 29" [ref=e197] [cursor=pointer]:
+                          - generic [ref=e198]: 09:00
+                      - gridcell "09:00 — Monday, March 30" [ref=e199]:
+                        - button "09:00 — Monday, March 30" [ref=e200] [cursor=pointer]:
+                          - generic [ref=e201]: 09:00
+                      - gridcell "09:00 — Tuesday, March 31" [ref=e202]:
+                        - button "09:00 — Tuesday, March 31" [ref=e203] [cursor=pointer]:
+                          - generic [ref=e204]: 09:00
+                      - gridcell "09:00 — Wednesday, April 1" [ref=e205]:
+                        - button "09:00 — Wednesday, April 1" [ref=e206] [cursor=pointer]:
+                          - generic [ref=e207]: 09:00
+                    - row "09:30 — Thursday, March 26 09:30 — Friday, March 27 09:30 — Saturday, March 28 09:30 — Sunday, March 29 09:30 — Monday, March 30 09:30 — Tuesday, March 31 09:30 — Wednesday, April 1" [ref=e208]:
+                      - gridcell "09:30 — Thursday, March 26" [ref=e209]:
+                        - button "09:30 — Thursday, March 26" [ref=e210] [cursor=pointer]:
+                          - generic [ref=e211]: 09:30
+                      - gridcell "09:30 — Friday, March 27" [ref=e212]:
+                        - button "09:30 — Friday, March 27" [ref=e213] [cursor=pointer]:
+                          - generic [ref=e214]: 09:30
+                      - gridcell "09:30 — Saturday, March 28" [ref=e215]:
+                        - button "09:30 — Saturday, March 28" [ref=e216] [cursor=pointer]:
+                          - generic [ref=e217]: 09:30
+                      - gridcell "09:30 — Sunday, March 29" [ref=e218]:
+                        - button "09:30 — Sunday, March 29" [ref=e219] [cursor=pointer]:
+                          - generic [ref=e220]: 09:30
+                      - gridcell "09:30 — Monday, March 30" [ref=e221]:
+                        - button "09:30 — Monday, March 30" [ref=e222] [cursor=pointer]:
+                          - generic [ref=e223]: 09:30
+                      - gridcell "09:30 — Tuesday, March 31" [ref=e224]:
+                        - button "09:30 — Tuesday, March 31" [ref=e225] [cursor=pointer]:
+                          - generic [ref=e226]: 09:30
+                      - gridcell "09:30 — Wednesday, April 1" [ref=e227]:
+                        - button "09:30 — Wednesday, April 1" [ref=e228] [cursor=pointer]:
+                          - generic [ref=e229]: 09:30
+                    - row "10:00 — Thursday, March 26 10:00 — Friday, March 27 10:00 — Saturday, March 28 10:00 — Sunday, March 29 10:00 — Monday, March 30 10:00 — Tuesday, March 31 10:00 — Wednesday, April 1" [ref=e230]:
+                      - gridcell "10:00 — Thursday, March 26" [ref=e231]:
+                        - button "10:00 — Thursday, March 26" [ref=e232] [cursor=pointer]:
+                          - generic [ref=e233]: 10:00
+                      - gridcell "10:00 — Friday, March 27" [ref=e234]:
+                        - button "10:00 — Friday, March 27" [ref=e235] [cursor=pointer]:
+                          - generic [ref=e236]: 10:00
+                      - gridcell "10:00 — Saturday, March 28" [ref=e237]:
+                        - button "10:00 — Saturday, March 28" [ref=e238] [cursor=pointer]:
+                          - generic [ref=e239]: 10:00
+                      - gridcell "10:00 — Sunday, March 29" [ref=e240]:
+                        - button "10:00 — Sunday, March 29" [ref=e241] [cursor=pointer]:
+                          - generic [ref=e242]: 10:00
+                      - gridcell "10:00 — Monday, March 30" [ref=e243]:
+                        - button "10:00 — Monday, March 30" [ref=e244] [cursor=pointer]:
+                          - generic [ref=e245]: 10:00
+                      - gridcell "10:00 — Tuesday, March 31" [ref=e246]:
+                        - button "10:00 — Tuesday, March 31" [ref=e247] [cursor=pointer]:
+                          - generic [ref=e248]: 10:00
+                      - gridcell "10:00 — Wednesday, April 1" [ref=e249]:
+                        - button "10:00 — Wednesday, April 1" [ref=e250] [cursor=pointer]:
+                          - generic [ref=e251]: 10:00
+                    - row "10:30 — Thursday, March 26 10:30 — Friday, March 27 10:30 — Saturday, March 28 10:30 — Sunday, March 29 10:30 — Monday, March 30 10:30 — Tuesday, March 31 10:30 — Wednesday, April 1" [ref=e252]:
+                      - gridcell "10:30 — Thursday, March 26" [ref=e253]:
+                        - button "10:30 — Thursday, March 26" [ref=e254] [cursor=pointer]:
+                          - generic [ref=e255]: 10:30
+                      - gridcell "10:30 — Friday, March 27" [ref=e256]:
+                        - button "10:30 — Friday, March 27" [ref=e257] [cursor=pointer]:
+                          - generic [ref=e258]: 10:30
+                      - gridcell "10:30 — Saturday, March 28" [ref=e259]:
+                        - button "10:30 — Saturday, March 28" [ref=e260] [cursor=pointer]:
+                          - generic [ref=e261]: 10:30
+                      - gridcell "10:30 — Sunday, March 29" [ref=e262]:
+                        - button "10:30 — Sunday, March 29" [ref=e263] [cursor=pointer]:
+                          - generic [ref=e264]: 10:30
+                      - gridcell "10:30 — Monday, March 30" [ref=e265]:
+                        - button "10:30 — Monday, March 30" [ref=e266] [cursor=pointer]:
+                          - generic [ref=e267]: 10:30
+                      - gridcell "10:30 — Tuesday, March 31" [ref=e268]:
+                        - button "10:30 — Tuesday, March 31" [ref=e269] [cursor=pointer]:
+                          - generic [ref=e270]: 10:30
+                      - gridcell "10:30 — Wednesday, April 1" [ref=e271]:
+                        - button "10:30 — Wednesday, April 1" [ref=e272] [cursor=pointer]:
+                          - generic [ref=e273]: 10:30
+                    - row "11:00 — Thursday, March 26 11:00 — Friday, March 27 11:00 — Saturday, March 28 11:00 — Sunday, March 29 11:00 — Monday, March 30 11:00 — Tuesday, March 31 11:00 — Wednesday, April 1" [ref=e274]:
+                      - gridcell "11:00 — Thursday, March 26" [ref=e275]:
+                        - button "11:00 — Thursday, March 26" [ref=e276] [cursor=pointer]:
+                          - generic [ref=e277]: 11:00
+                      - gridcell "11:00 — Friday, March 27" [ref=e278]:
+                        - button "11:00 — Friday, March 27" [ref=e279] [cursor=pointer]:
+                          - generic [ref=e280]: 11:00
+                      - gridcell "11:00 — Saturday, March 28" [ref=e281]:
+                        - button "11:00 — Saturday, March 28" [ref=e282] [cursor=pointer]:
+                          - generic [ref=e283]: 11:00
+                      - gridcell "11:00 — Sunday, March 29" [ref=e284]:
+                        - button "11:00 — Sunday, March 29" [ref=e285] [cursor=pointer]:
+                          - generic [ref=e286]: 11:00
+                      - gridcell "11:00 — Monday, March 30" [ref=e287]:
+                        - button "11:00 — Monday, March 30" [ref=e288] [cursor=pointer]:
+                          - generic [ref=e289]: 11:00
+                      - gridcell "11:00 — Tuesday, March 31" [ref=e290]:
+                        - button "11:00 — Tuesday, March 31" [ref=e291] [cursor=pointer]:
+                          - generic [ref=e292]: 11:00
+                      - gridcell "11:00 — Wednesday, April 1" [ref=e293]:
+                        - button "11:00 — Wednesday, April 1" [ref=e294] [cursor=pointer]:
+                          - generic [ref=e295]: 11:00
+                    - row "11:30 — Thursday, March 26 11:30 — Friday, March 27 11:30 — Saturday, March 28 11:30 — Sunday, March 29 11:30 — Monday, March 30 11:30 — Tuesday, March 31 11:30 — Wednesday, April 1" [ref=e296]:
+                      - gridcell "11:30 — Thursday, March 26" [ref=e297]:
+                        - button "11:30 — Thursday, March 26" [ref=e298] [cursor=pointer]:
+                          - generic [ref=e299]: 11:30
+                      - gridcell "11:30 — Friday, March 27" [ref=e300]:
+                        - button "11:30 — Friday, March 27" [ref=e301] [cursor=pointer]:
+                          - generic [ref=e302]: 11:30
+                      - gridcell "11:30 — Saturday, March 28" [ref=e303]:
+                        - button "11:30 — Saturday, March 28" [ref=e304] [cursor=pointer]:
+                          - generic [ref=e305]: 11:30
+                      - gridcell "11:30 — Sunday, March 29" [ref=e306]:
+                        - button "11:30 — Sunday, March 29" [ref=e307] [cursor=pointer]:
+                          - generic [ref=e308]: 11:30
+                      - gridcell "11:30 — Monday, March 30" [ref=e309]:
+                        - button "11:30 — Monday, March 30" [ref=e310] [cursor=pointer]:
+                          - generic [ref=e311]: 11:30
+                      - gridcell "11:30 — Tuesday, March 31" [ref=e312]:
+                        - button "11:30 — Tuesday, March 31" [ref=e313] [cursor=pointer]:
+                          - generic [ref=e314]: 11:30
+                      - gridcell "11:30 — Wednesday, April 1" [ref=e315]:
+                        - button "11:30 — Wednesday, April 1" [ref=e316] [cursor=pointer]:
+                          - generic [ref=e317]: 11:30
+                    - row "12:00 — Thursday, March 26 12:00 — Friday, March 27 12:00 — Saturday, March 28 12:00 — Sunday, March 29 12:00 — Monday, March 30 12:00 — Tuesday, March 31 12:00 — Wednesday, April 1" [ref=e318]:
+                      - gridcell "12:00 — Thursday, March 26" [ref=e319]:
+                        - button "12:00 — Thursday, March 26" [ref=e320] [cursor=pointer]:
+                          - generic [ref=e321]: 12:00
+                      - gridcell "12:00 — Friday, March 27" [ref=e322]:
+                        - button "12:00 — Friday, March 27" [ref=e323] [cursor=pointer]:
+                          - generic [ref=e324]: 12:00
+                      - gridcell "12:00 — Saturday, March 28" [ref=e325]:
+                        - button "12:00 — Saturday, March 28" [ref=e326] [cursor=pointer]:
+                          - generic [ref=e327]: 12:00
+                      - gridcell "12:00 — Sunday, March 29" [ref=e328]:
+                        - button "12:00 — Sunday, March 29" [ref=e329] [cursor=pointer]:
+                          - generic [ref=e330]: 12:00
+                      - gridcell "12:00 — Monday, March 30" [ref=e331]:
+                        - button "12:00 — Monday, March 30" [ref=e332] [cursor=pointer]:
+                          - generic [ref=e333]: 12:00
+                      - gridcell "12:00 — Tuesday, March 31" [ref=e334]:
+                        - button "12:00 — Tuesday, March 31" [ref=e335] [cursor=pointer]:
+                          - generic [ref=e336]: 12:00
+                      - gridcell "12:00 — Wednesday, April 1" [ref=e337]:
+                        - button "12:00 — Wednesday, April 1" [ref=e338] [cursor=pointer]:
+                          - generic [ref=e339]: 12:00
+                    - row "12:30 — Thursday, March 26 12:30 — Friday, March 27 12:30 — Saturday, March 28 12:30 — Sunday, March 29 12:30 — Monday, March 30 12:30 — Tuesday, March 31 12:30 — Wednesday, April 1" [ref=e340]:
+                      - gridcell "12:30 — Thursday, March 26" [ref=e341]:
+                        - button "12:30 — Thursday, March 26" [ref=e342] [cursor=pointer]:
+                          - generic [ref=e343]: 12:30
+                      - gridcell "12:30 — Friday, March 27" [ref=e344]:
+                        - button "12:30 — Friday, March 27" [ref=e345] [cursor=pointer]:
+                          - generic [ref=e346]: 12:30
+                      - gridcell "12:30 — Saturday, March 28" [ref=e347]:
+                        - button "12:30 — Saturday, March 28" [ref=e348] [cursor=pointer]:
+                          - generic [ref=e349]: 12:30
+                      - gridcell "12:30 — Sunday, March 29" [ref=e350]:
+                        - button "12:30 — Sunday, March 29" [ref=e351] [cursor=pointer]:
+                          - generic [ref=e352]: 12:30
+                      - gridcell "12:30 — Monday, March 30" [ref=e353]:
+                        - button "12:30 — Monday, March 30" [ref=e354] [cursor=pointer]:
+                          - generic [ref=e355]: 12:30
+                      - gridcell "12:30 — Tuesday, March 31" [ref=e356]:
+                        - button "12:30 — Tuesday, March 31" [ref=e357] [cursor=pointer]:
+                          - generic [ref=e358]: 12:30
+                      - gridcell "12:30 — Wednesday, April 1" [ref=e359]:
+                        - button "12:30 — Wednesday, April 1" [ref=e360] [cursor=pointer]:
+                          - generic [ref=e361]: 12:30
+                    - row "13:00 — Thursday, March 26 13:00 — Friday, March 27 13:00 — Saturday, March 28 13:00 — Sunday, March 29 13:00 — Monday, March 30 13:00 — Tuesday, March 31 13:00 — Wednesday, April 1" [ref=e362]:
+                      - gridcell "13:00 — Thursday, March 26" [ref=e363]:
+                        - button "13:00 — Thursday, March 26" [ref=e364] [cursor=pointer]:
+                          - generic [ref=e365]: 13:00
+                      - gridcell "13:00 — Friday, March 27" [ref=e366]:
+                        - button "13:00 — Friday, March 27" [ref=e367] [cursor=pointer]:
+                          - generic [ref=e368]: 13:00
+                      - gridcell "13:00 — Saturday, March 28" [ref=e369]:
+                        - button "13:00 — Saturday, March 28" [ref=e370] [cursor=pointer]:
+                          - generic [ref=e371]: 13:00
+                      - gridcell "13:00 — Sunday, March 29" [ref=e372]:
+                        - button "13:00 — Sunday, March 29" [ref=e373] [cursor=pointer]:
+                          - generic [ref=e374]: 13:00
+                      - gridcell "13:00 — Monday, March 30" [ref=e375]:
+                        - button "13:00 — Monday, March 30" [ref=e376] [cursor=pointer]:
+                          - generic [ref=e377]: 13:00
+                      - gridcell "13:00 — Tuesday, March 31" [ref=e378]:
+                        - button "13:00 — Tuesday, March 31" [ref=e379] [cursor=pointer]:
+                          - generic [ref=e380]: 13:00
+                      - gridcell "13:00 — Wednesday, April 1" [ref=e381]:
+                        - button "13:00 — Wednesday, April 1" [ref=e382] [cursor=pointer]:
+                          - generic [ref=e383]: 13:00
+                    - row "13:30 — Thursday, March 26 13:30 — Friday, March 27 13:30 — Saturday, March 28 13:30 — Sunday, March 29 13:30 — Monday, March 30 13:30 — Tuesday, March 31 13:30 — Wednesday, April 1" [ref=e384]:
+                      - gridcell "13:30 — Thursday, March 26" [ref=e385]:
+                        - button "13:30 — Thursday, March 26" [ref=e386] [cursor=pointer]:
+                          - generic [ref=e387]: 13:30
+                      - gridcell "13:30 — Friday, March 27" [ref=e388]:
+                        - button "13:30 — Friday, March 27" [ref=e389] [cursor=pointer]:
+                          - generic [ref=e390]: 13:30
+                      - gridcell "13:30 — Saturday, March 28" [ref=e391]:
+                        - button "13:30 — Saturday, March 28" [ref=e392] [cursor=pointer]:
+                          - generic [ref=e393]: 13:30
+                      - gridcell "13:30 — Sunday, March 29" [ref=e394]:
+                        - button "13:30 — Sunday, March 29" [ref=e395] [cursor=pointer]:
+                          - generic [ref=e396]: 13:30
+                      - gridcell "13:30 — Monday, March 30" [ref=e397]:
+                        - button "13:30 — Monday, March 30" [ref=e398] [cursor=pointer]:
+                          - generic [ref=e399]: 13:30
+                      - gridcell "13:30 — Tuesday, March 31" [ref=e400]:
+                        - button "13:30 — Tuesday, March 31" [ref=e401] [cursor=pointer]:
+                          - generic [ref=e402]: 13:30
+                      - gridcell "13:30 — Wednesday, April 1" [ref=e403]:
+                        - button "13:30 — Wednesday, April 1" [ref=e404] [cursor=pointer]:
+                          - generic [ref=e405]: 13:30
+                    - row "14:00 — Thursday, March 26 14:00 — Friday, March 27 14:00 — Saturday, March 28 14:00 — Sunday, March 29 14:00 — Monday, March 30 14:00 — Tuesday, March 31 14:00 — Wednesday, April 1" [ref=e406]:
+                      - gridcell "14:00 — Thursday, March 26" [ref=e407]:
+                        - button "14:00 — Thursday, March 26" [ref=e408] [cursor=pointer]:
+                          - generic [ref=e409]: 14:00
+                      - gridcell "14:00 — Friday, March 27" [ref=e410]:
+                        - button "14:00 — Friday, March 27" [ref=e411] [cursor=pointer]:
+                          - generic [ref=e412]: 14:00
+                      - gridcell "14:00 — Saturday, March 28" [ref=e413]:
+                        - button "14:00 — Saturday, March 28" [ref=e414] [cursor=pointer]:
+                          - generic [ref=e415]: 14:00
+                      - gridcell "14:00 — Sunday, March 29" [ref=e416]:
+                        - button "14:00 — Sunday, March 29" [ref=e417] [cursor=pointer]:
+                          - generic [ref=e418]: 14:00
+                      - gridcell "14:00 — Monday, March 30" [ref=e419]:
+                        - button "14:00 — Monday, March 30" [ref=e420] [cursor=pointer]:
+                          - generic [ref=e421]: 14:00
+                      - gridcell "14:00 — Tuesday, March 31" [ref=e422]:
+                        - button "14:00 — Tuesday, March 31" [ref=e423] [cursor=pointer]:
+                          - generic [ref=e424]: 14:00
+                      - gridcell "14:00 — Wednesday, April 1" [ref=e425]:
+                        - button "14:00 — Wednesday, April 1" [ref=e426] [cursor=pointer]:
+                          - generic [ref=e427]: 14:00
+                    - row "14:30 — Thursday, March 26 14:30 — Friday, March 27 14:30 — Saturday, March 28 14:30 — Sunday, March 29 14:30 — Monday, March 30 14:30 — Tuesday, March 31 14:30 — Wednesday, April 1" [ref=e428]:
+                      - gridcell "14:30 — Thursday, March 26" [ref=e429]:
+                        - button "14:30 — Thursday, March 26" [ref=e430] [cursor=pointer]:
+                          - generic [ref=e431]: 14:30
+                      - gridcell "14:30 — Friday, March 27" [ref=e432]:
+                        - button "14:30 — Friday, March 27" [ref=e433] [cursor=pointer]:
+                          - generic [ref=e434]: 14:30
+                      - gridcell "14:30 — Saturday, March 28" [ref=e435]:
+                        - button "14:30 — Saturday, March 28" [ref=e436] [cursor=pointer]:
+                          - generic [ref=e437]: 14:30
+                      - gridcell "14:30 — Sunday, March 29" [ref=e438]:
+                        - button "14:30 — Sunday, March 29" [ref=e439] [cursor=pointer]:
+                          - generic [ref=e440]: 14:30
+                      - gridcell "14:30 — Monday, March 30" [ref=e441]:
+                        - button "14:30 — Monday, March 30" [ref=e442] [cursor=pointer]:
+                          - generic [ref=e443]: 14:30
+                      - gridcell "14:30 — Tuesday, March 31" [ref=e444]:
+                        - button "14:30 — Tuesday, March 31" [ref=e445] [cursor=pointer]:
+                          - generic [ref=e446]: 14:30
+                      - gridcell "14:30 — Wednesday, April 1" [ref=e447]:
+                        - button "14:30 — Wednesday, April 1" [ref=e448] [cursor=pointer]:
+                          - generic [ref=e449]: 14:30
+                    - row "15:00 — Thursday, March 26 15:00 — Friday, March 27 15:00 — Saturday, March 28 15:00 — Sunday, March 29 15:00 — Monday, March 30 15:00 — Tuesday, March 31 15:00 — Wednesday, April 1" [ref=e450]:
+                      - gridcell "15:00 — Thursday, March 26" [ref=e451]:
+                        - button "15:00 — Thursday, March 26" [ref=e452] [cursor=pointer]:
+                          - generic [ref=e453]: 15:00
+                      - gridcell "15:00 — Friday, March 27" [ref=e454]:
+                        - button "15:00 — Friday, March 27" [ref=e455] [cursor=pointer]:
+                          - generic [ref=e456]: 15:00
+                      - gridcell "15:00 — Saturday, March 28" [ref=e457]:
+                        - button "15:00 — Saturday, March 28" [ref=e458] [cursor=pointer]:
+                          - generic [ref=e459]: 15:00
+                      - gridcell "15:00 — Sunday, March 29" [ref=e460]:
+                        - button "15:00 — Sunday, March 29" [ref=e461] [cursor=pointer]:
+                          - generic [ref=e462]: 15:00
+                      - gridcell "15:00 — Monday, March 30" [ref=e463]:
+                        - button "15:00 — Monday, March 30" [ref=e464] [cursor=pointer]:
+                          - generic [ref=e465]: 15:00
+                      - gridcell "15:00 — Tuesday, March 31" [ref=e466]:
+                        - button "15:00 — Tuesday, March 31" [ref=e467] [cursor=pointer]:
+                          - generic [ref=e468]: 15:00
+                      - gridcell "15:00 — Wednesday, April 1" [ref=e469]:
+                        - button "15:00 — Wednesday, April 1" [ref=e470] [cursor=pointer]:
+                          - generic [ref=e471]: 15:00
+                    - row "15:30 — Thursday, March 26 15:30 — Friday, March 27 15:30 — Saturday, March 28 15:30 — Sunday, March 29 15:30 — Monday, March 30 15:30 — Tuesday, March 31 15:30 — Wednesday, April 1" [ref=e472]:
+                      - gridcell "15:30 — Thursday, March 26" [ref=e473]:
+                        - button "15:30 — Thursday, March 26" [ref=e474] [cursor=pointer]:
+                          - generic [ref=e475]: 15:30
+                      - gridcell "15:30 — Friday, March 27" [ref=e476]:
+                        - button "15:30 — Friday, March 27" [ref=e477] [cursor=pointer]:
+                          - generic [ref=e478]: 15:30
+                      - gridcell "15:30 — Saturday, March 28" [ref=e479]:
+                        - button "15:30 — Saturday, March 28" [ref=e480] [cursor=pointer]:
+                          - generic [ref=e481]: 15:30
+                      - gridcell "15:30 — Sunday, March 29" [ref=e482]:
+                        - button "15:30 — Sunday, March 29" [ref=e483] [cursor=pointer]:
+                          - generic [ref=e484]: 15:30
+                      - gridcell "15:30 — Monday, March 30" [ref=e485]:
+                        - button "15:30 — Monday, March 30" [ref=e486] [cursor=pointer]:
+                          - generic [ref=e487]: 15:30
+                      - gridcell "15:30 — Tuesday, March 31" [ref=e488]:
+                        - button "15:30 — Tuesday, March 31" [ref=e489] [cursor=pointer]:
+                          - generic [ref=e490]: 15:30
+                      - gridcell "15:30 — Wednesday, April 1" [ref=e491]:
+                        - button "15:30 — Wednesday, April 1" [ref=e492] [cursor=pointer]:
+                          - generic [ref=e493]: 15:30
+                    - row "16:00 — Thursday, March 26 16:00 — Friday, March 27 16:00 — Saturday, March 28 16:00 — Sunday, March 29 16:00 — Monday, March 30 16:00 — Tuesday, March 31 16:00 — Wednesday, April 1" [ref=e494]:
+                      - gridcell "16:00 — Thursday, March 26" [ref=e495]:
+                        - button "16:00 — Thursday, March 26" [ref=e496] [cursor=pointer]:
+                          - generic [ref=e497]: 16:00
+                      - gridcell "16:00 — Friday, March 27" [ref=e498]:
+                        - button "16:00 — Friday, March 27" [ref=e499] [cursor=pointer]:
+                          - generic [ref=e500]: 16:00
+                      - gridcell "16:00 — Saturday, March 28" [ref=e501]:
+                        - button "16:00 — Saturday, March 28" [ref=e502] [cursor=pointer]:
+                          - generic [ref=e503]: 16:00
+                      - gridcell "16:00 — Sunday, March 29" [ref=e504]:
+                        - button "16:00 — Sunday, March 29" [ref=e505] [cursor=pointer]:
+                          - generic [ref=e506]: 16:00
+                      - gridcell "16:00 — Monday, March 30" [ref=e507]:
+                        - button "16:00 — Monday, March 30" [ref=e508] [cursor=pointer]:
+                          - generic [ref=e509]: 16:00
+                      - gridcell "16:00 — Tuesday, March 31" [ref=e510]:
+                        - button "16:00 — Tuesday, March 31" [ref=e511] [cursor=pointer]:
+                          - generic [ref=e512]: 16:00
+                      - gridcell "16:00 — Wednesday, April 1" [ref=e513]:
+                        - button "16:00 — Wednesday, April 1" [ref=e514] [cursor=pointer]:
+                          - generic [ref=e515]: 16:00
+                    - row "16:30 — Thursday, March 26 16:30 — Friday, March 27 16:30 — Saturday, March 28 16:30 — Sunday, March 29 16:30 — Monday, March 30 16:30 — Tuesday, March 31 16:30 — Wednesday, April 1" [ref=e516]:
+                      - gridcell "16:30 — Thursday, March 26" [ref=e517]:
+                        - button "16:30 — Thursday, March 26" [ref=e518] [cursor=pointer]:
+                          - generic [ref=e519]: 16:30
+                      - gridcell "16:30 — Friday, March 27" [ref=e520]:
+                        - button "16:30 — Friday, March 27" [ref=e521] [cursor=pointer]:
+                          - generic [ref=e522]: 16:30
+                      - gridcell "16:30 — Saturday, March 28" [ref=e523]:
+                        - button "16:30 — Saturday, March 28" [ref=e524] [cursor=pointer]:
+                          - generic [ref=e525]: 16:30
+                      - gridcell "16:30 — Sunday, March 29" [ref=e526]:
+                        - button "16:30 — Sunday, March 29" [ref=e527] [cursor=pointer]:
+                          - generic [ref=e528]: 16:30
+                      - gridcell "16:30 — Monday, March 30" [ref=e529]:
+                        - button "16:30 — Monday, March 30" [ref=e530] [cursor=pointer]:
+                          - generic [ref=e531]: 16:30
+                      - gridcell "16:30 — Tuesday, March 31" [ref=e532]:
+                        - button "16:30 — Tuesday, March 31" [ref=e533] [cursor=pointer]:
+                          - generic [ref=e534]: 16:30
+                      - gridcell "16:30 — Wednesday, April 1" [ref=e535]:
+                        - button "16:30 — Wednesday, April 1" [ref=e536] [cursor=pointer]:
+                          - generic [ref=e537]: 16:30
+                    - row "17:00 — Thursday, March 26 17:00 — Friday, March 27 17:00 — Saturday, March 28 17:00 — Sunday, March 29 17:00 — Monday, March 30 17:00 — Tuesday, March 31 17:00 — Wednesday, April 1" [ref=e538]:
+                      - gridcell "17:00 — Thursday, March 26" [ref=e539]:
+                        - button "17:00 — Thursday, March 26" [ref=e540] [cursor=pointer]:
+                          - generic [ref=e541]: 17:00
+                      - gridcell "17:00 — Friday, March 27" [ref=e542]:
+                        - button "17:00 — Friday, March 27" [ref=e543] [cursor=pointer]:
+                          - generic [ref=e544]: 17:00
+                      - gridcell "17:00 — Saturday, March 28" [ref=e545]:
+                        - button "17:00 — Saturday, March 28" [ref=e546] [cursor=pointer]:
+                          - generic [ref=e547]: 17:00
+                      - gridcell "17:00 — Sunday, March 29" [ref=e548]:
+                        - button "17:00 — Sunday, March 29" [ref=e549] [cursor=pointer]:
+                          - generic [ref=e550]: 17:00
+                      - gridcell "17:00 — Monday, March 30" [ref=e551]:
+                        - button "17:00 — Monday, March 30" [ref=e552] [cursor=pointer]:
+                          - generic [ref=e553]: 17:00
+                      - gridcell "17:00 — Tuesday, March 31" [ref=e554]:
+                        - button "17:00 — Tuesday, March 31" [ref=e555] [cursor=pointer]:
+                          - generic [ref=e556]: 17:00
+                      - gridcell "17:00 — Wednesday, April 1" [ref=e557]:
+                        - button "17:00 — Wednesday, April 1" [ref=e558] [cursor=pointer]:
+                          - generic [ref=e559]: 17:00
+                    - row "17:30 — Thursday, March 26 17:30 — Friday, March 27 17:30 — Saturday, March 28 17:30 — Sunday, March 29 17:30 — Monday, March 30 17:30 — Tuesday, March 31 17:30 — Wednesday, April 1" [ref=e560]:
+                      - gridcell "17:30 — Thursday, March 26" [ref=e561]:
+                        - button "17:30 — Thursday, March 26" [ref=e562] [cursor=pointer]:
+                          - generic [ref=e563]: 17:30
+                      - gridcell "17:30 — Friday, March 27" [ref=e564]:
+                        - button "17:30 — Friday, March 27" [ref=e565] [cursor=pointer]:
+                          - generic [ref=e566]: 17:30
+                      - gridcell "17:30 — Saturday, March 28" [ref=e567]:
+                        - button "17:30 — Saturday, March 28" [ref=e568] [cursor=pointer]:
+                          - generic [ref=e569]: 17:30
+                      - gridcell "17:30 — Sunday, March 29" [ref=e570]:
+                        - button "17:30 — Sunday, March 29" [ref=e571] [cursor=pointer]:
+                          - generic [ref=e572]: 17:30
+                      - gridcell "17:30 — Monday, March 30" [ref=e573]:
+                        - button "17:30 — Monday, March 30" [ref=e574] [cursor=pointer]:
+                          - generic [ref=e575]: 17:30
+                      - gridcell "17:30 — Tuesday, March 31" [ref=e576]:
+                        - button "17:30 — Tuesday, March 31" [ref=e577] [cursor=pointer]:
+                          - generic [ref=e578]: 17:30
+                      - gridcell "17:30 — Wednesday, April 1" [ref=e579]:
+                        - button "17:30 — Wednesday, April 1" [ref=e580] [cursor=pointer]:
+                          - generic [ref=e581]: 17:30
+                    - row "18:00 — Thursday, March 26 18:00 — Friday, March 27 18:00 — Saturday, March 28 18:00 — Sunday, March 29 18:00 — Monday, March 30 18:00 — Tuesday, March 31 18:00 — Wednesday, April 1" [ref=e582]:
+                      - gridcell "18:00 — Thursday, March 26" [ref=e583]:
+                        - button "18:00 — Thursday, March 26" [ref=e584] [cursor=pointer]:
+                          - generic [ref=e585]: 18:00
+                      - gridcell "18:00 — Friday, March 27" [ref=e586]:
+                        - button "18:00 — Friday, March 27" [ref=e587] [cursor=pointer]:
+                          - generic [ref=e588]: 18:00
+                      - gridcell "18:00 — Saturday, March 28" [ref=e589]:
+                        - button "18:00 — Saturday, March 28" [ref=e590] [cursor=pointer]:
+                          - generic [ref=e591]: 18:00
+                      - gridcell "18:00 — Sunday, March 29" [ref=e592]:
+                        - button "18:00 — Sunday, March 29" [ref=e593] [cursor=pointer]:
+                          - generic [ref=e594]: 18:00
+                      - gridcell "18:00 — Monday, March 30" [ref=e595]:
+                        - button "18:00 — Monday, March 30" [ref=e596] [cursor=pointer]:
+                          - generic [ref=e597]: 18:00
+                      - gridcell "18:00 — Tuesday, March 31" [ref=e598]:
+                        - button "18:00 — Tuesday, March 31" [ref=e599] [cursor=pointer]:
+                          - generic [ref=e600]: 18:00
+                      - gridcell "18:00 — Wednesday, April 1" [ref=e601]:
+                        - button "18:00 — Wednesday, April 1" [ref=e602] [cursor=pointer]:
+                          - generic [ref=e603]: 18:00
+                    - row "18:30 — Thursday, March 26 18:30 — Friday, March 27 18:30 — Saturday, March 28 18:30 — Sunday, March 29 18:30 — Monday, March 30 18:30 — Tuesday, March 31 18:30 — Wednesday, April 1" [ref=e604]:
+                      - gridcell "18:30 — Thursday, March 26" [ref=e605]:
+                        - button "18:30 — Thursday, March 26" [ref=e606] [cursor=pointer]:
+                          - generic [ref=e607]: 18:30
+                      - gridcell "18:30 — Friday, March 27" [ref=e608]:
+                        - button "18:30 — Friday, March 27" [ref=e609] [cursor=pointer]:
+                          - generic [ref=e610]: 18:30
+                      - gridcell "18:30 — Saturday, March 28" [ref=e611]:
+                        - button "18:30 — Saturday, March 28" [ref=e612] [cursor=pointer]:
+                          - generic [ref=e613]: 18:30
+                      - gridcell "18:30 — Sunday, March 29" [ref=e614]:
+                        - button "18:30 — Sunday, March 29" [ref=e615] [cursor=pointer]:
+                          - generic [ref=e616]: 18:30
+                      - gridcell "18:30 — Monday, March 30" [ref=e617]:
+                        - button "18:30 — Monday, March 30" [ref=e618] [cursor=pointer]:
+                          - generic [ref=e619]: 18:30
+                      - gridcell "18:30 — Tuesday, March 31" [ref=e620]:
+                        - button "18:30 — Tuesday, March 31" [ref=e621] [cursor=pointer]:
+                          - generic [ref=e622]: 18:30
+                      - gridcell "18:30 — Wednesday, April 1" [ref=e623]:
+                        - button "18:30 — Wednesday, April 1" [ref=e624] [cursor=pointer]:
+                          - generic [ref=e625]: 18:30
+                    - row "19:00 — Thursday, March 26 19:00 — Friday, March 27 19:00 — Saturday, March 28 19:00 — Sunday, March 29 19:00 — Monday, March 30 19:00 — Tuesday, March 31 19:00 — Wednesday, April 1" [ref=e626]:
+                      - gridcell "19:00 — Thursday, March 26" [ref=e627]:
+                        - button "19:00 — Thursday, March 26" [ref=e628] [cursor=pointer]:
+                          - generic [ref=e629]: 19:00
+                      - gridcell "19:00 — Friday, March 27" [ref=e630]:
+                        - button "19:00 — Friday, March 27" [ref=e631] [cursor=pointer]:
+                          - generic [ref=e632]: 19:00
+                      - gridcell "19:00 — Saturday, March 28" [ref=e633]:
+                        - button "19:00 — Saturday, March 28" [ref=e634] [cursor=pointer]:
+                          - generic [ref=e635]: 19:00
+                      - gridcell "19:00 — Sunday, March 29" [ref=e636]:
+                        - button "19:00 — Sunday, March 29" [ref=e637] [cursor=pointer]:
+                          - generic [ref=e638]: 19:00
+                      - gridcell "19:00 — Monday, March 30" [ref=e639]:
+                        - button "19:00 — Monday, March 30" [ref=e640] [cursor=pointer]:
+                          - generic [ref=e641]: 19:00
+                      - gridcell "19:00 — Tuesday, March 31" [ref=e642]:
+                        - button "19:00 — Tuesday, March 31" [ref=e643] [cursor=pointer]:
+                          - generic [ref=e644]: 19:00
+                      - gridcell "19:00 — Wednesday, April 1" [ref=e645]:
+                        - button "19:00 — Wednesday, April 1" [ref=e646] [cursor=pointer]:
+                          - generic [ref=e647]: 19:00
+                    - row "19:30 — Thursday, March 26 19:30 — Friday, March 27 19:30 — Saturday, March 28 19:30 — Sunday, March 29 19:30 — Monday, March 30 19:30 — Tuesday, March 31 19:30 — Wednesday, April 1" [ref=e648]:
+                      - gridcell "19:30 — Thursday, March 26" [ref=e649]:
+                        - button "19:30 — Thursday, March 26" [ref=e650] [cursor=pointer]:
+                          - generic [ref=e651]: 19:30
+                      - gridcell "19:30 — Friday, March 27" [ref=e652]:
+                        - button "19:30 — Friday, March 27" [ref=e653] [cursor=pointer]:
+                          - generic [ref=e654]: 19:30
+                      - gridcell "19:30 — Saturday, March 28" [ref=e655]:
+                        - button "19:30 — Saturday, March 28" [ref=e656] [cursor=pointer]:
+                          - generic [ref=e657]: 19:30
+                      - gridcell "19:30 — Sunday, March 29" [ref=e658]:
+                        - button "19:30 — Sunday, March 29" [ref=e659] [cursor=pointer]:
+                          - generic [ref=e660]: 19:30
+                      - gridcell "19:30 — Monday, March 30" [ref=e661]:
+                        - button "19:30 — Monday, March 30" [ref=e662] [cursor=pointer]:
+                          - generic [ref=e663]: 19:30
+                      - gridcell "19:30 — Tuesday, March 31" [ref=e664]:
+                        - button "19:30 — Tuesday, March 31" [ref=e665] [cursor=pointer]:
+                          - generic [ref=e666]: 19:30
+                      - gridcell "19:30 — Wednesday, April 1" [ref=e667]:
+                        - button "19:30 — Wednesday, April 1" [ref=e668] [cursor=pointer]:
+                          - generic [ref=e669]: 19:30
+                    - row "20:00 — Thursday, March 26 20:00 — Friday, March 27 20:00 — Saturday, March 28 20:00 — Sunday, March 29 20:00 — Monday, March 30 20:00 — Tuesday, March 31 20:00 — Wednesday, April 1" [ref=e670]:
+                      - gridcell "20:00 — Thursday, March 26" [ref=e671]:
+                        - button "20:00 — Thursday, March 26" [ref=e672] [cursor=pointer]:
+                          - generic [ref=e673]: 20:00
+                      - gridcell "20:00 — Friday, March 27" [ref=e674]:
+                        - button "20:00 — Friday, March 27" [ref=e675] [cursor=pointer]:
+                          - generic [ref=e676]: 20:00
+                      - gridcell "20:00 — Saturday, March 28" [ref=e677]:
+                        - button "20:00 — Saturday, March 28" [ref=e678] [cursor=pointer]:
+                          - generic [ref=e679]: 20:00
+                      - gridcell "20:00 — Sunday, March 29" [ref=e680]:
+                        - button "20:00 — Sunday, March 29" [ref=e681] [cursor=pointer]:
+                          - generic [ref=e682]: 20:00
+                      - gridcell "20:00 — Monday, March 30" [ref=e683]:
+                        - button "20:00 — Monday, March 30" [ref=e684] [cursor=pointer]:
+                          - generic [ref=e685]: 20:00
+                      - gridcell "20:00 — Tuesday, March 31" [ref=e686]:
+                        - button "20:00 — Tuesday, March 31" [ref=e687] [cursor=pointer]:
+                          - generic [ref=e688]: 20:00
+                      - gridcell "20:00 — Wednesday, April 1" [ref=e689]:
+                        - button "20:00 — Wednesday, April 1" [ref=e690] [cursor=pointer]:
+                          - generic [ref=e691]: 20:00
+                    - row "20:30 — Thursday, March 26 20:30 — Friday, March 27 20:30 — Saturday, March 28 20:30 — Sunday, March 29 20:30 — Monday, March 30 20:30 — Tuesday, March 31 20:30 — Wednesday, April 1" [ref=e692]:
+                      - gridcell "20:30 — Thursday, March 26" [ref=e693]:
+                        - button "20:30 — Thursday, March 26" [ref=e694] [cursor=pointer]:
+                          - generic [ref=e695]: 20:30
+                      - gridcell "20:30 — Friday, March 27" [ref=e696]:
+                        - button "20:30 — Friday, March 27" [ref=e697] [cursor=pointer]:
+                          - generic [ref=e698]: 20:30
+                      - gridcell "20:30 — Saturday, March 28" [ref=e699]:
+                        - button "20:30 — Saturday, March 28" [ref=e700] [cursor=pointer]:
+                          - generic [ref=e701]: 20:30
+                      - gridcell "20:30 — Sunday, March 29" [ref=e702]:
+                        - button "20:30 — Sunday, March 29" [ref=e703] [cursor=pointer]:
+                          - generic [ref=e704]: 20:30
+                      - gridcell "20:30 — Monday, March 30" [ref=e705]:
+                        - button "20:30 — Monday, March 30" [ref=e706] [cursor=pointer]:
+                          - generic [ref=e707]: 20:30
+                      - gridcell "20:30 — Tuesday, March 31" [ref=e708]:
+                        - button "20:30 — Tuesday, March 31" [ref=e709] [cursor=pointer]:
+                          - generic [ref=e710]: 20:30
+                      - gridcell "20:30 — Wednesday, April 1" [ref=e711]:
+                        - button "20:30 — Wednesday, April 1" [ref=e712] [cursor=pointer]:
+                          - generic [ref=e713]: 20:30
+                    - row "21:00 — Thursday, March 26 21:00 — Friday, March 27 21:00 — Saturday, March 28 21:00 — Sunday, March 29 21:00 — Monday, March 30 21:00 — Tuesday, March 31 21:00 — Wednesday, April 1" [ref=e714]:
+                      - gridcell "21:00 — Thursday, March 26" [ref=e715]:
+                        - button "21:00 — Thursday, March 26" [ref=e716] [cursor=pointer]:
+                          - generic [ref=e717]: 21:00
+                      - gridcell "21:00 — Friday, March 27" [ref=e718]:
+                        - button "21:00 — Friday, March 27" [ref=e719] [cursor=pointer]:
+                          - generic [ref=e720]: 21:00
+                      - gridcell "21:00 — Saturday, March 28" [ref=e721]:
+                        - button "21:00 — Saturday, March 28" [ref=e722] [cursor=pointer]:
+                          - generic [ref=e723]: 21:00
+                      - gridcell "21:00 — Sunday, March 29" [ref=e724]:
+                        - button "21:00 — Sunday, March 29" [ref=e725] [cursor=pointer]:
+                          - generic [ref=e726]: 21:00
+                      - gridcell "21:00 — Monday, March 30" [ref=e727]:
+                        - button "21:00 — Monday, March 30" [ref=e728] [cursor=pointer]:
+                          - generic [ref=e729]: 21:00
+                      - gridcell "21:00 — Tuesday, March 31" [ref=e730]:
+                        - button "21:00 — Tuesday, March 31" [ref=e731] [cursor=pointer]:
+                          - generic [ref=e732]: 21:00
+                      - gridcell "21:00 — Wednesday, April 1" [ref=e733]:
+                        - button "21:00 — Wednesday, April 1" [ref=e734] [cursor=pointer]:
+                          - generic [ref=e735]: 21:00
+            - generic [ref=e736]:
+              - generic [ref=e737]: Description (optional)
+              - textbox "Description (optional)" [ref=e738]:
+                - /placeholder: Add any additional information...
+            - generic [ref=e740]:
+              - checkbox " Private event (invite only)" [ref=e741]
+              - generic [ref=e742]:
+                - generic [ref=e743]: 
+                - text: Private event (invite only)
+              - generic "Приватные события доступны только по прямой ссылке и не отображаются в публичных списках" [ref=e744]:
+                - generic [ref=e745]: 
+            - button "Create Invitation" [ref=e746] [cursor=pointer]
+  - contentinfo [ref=e16]:
+    - generic [ref=e17]:
+      - button "🇺🇸" [ref=e37] [cursor=pointer]:
+        - generic [ref=e21]: 🇺🇸
+      - generic [ref=e22]:
+        - link "Privacy Policy" [ref=e38] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms of Service" [ref=e39] [cursor=pointer]:
+          - /url: /terms
+      - text: XTP Tour vdev
