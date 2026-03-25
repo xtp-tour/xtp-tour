@@ -4,6 +4,7 @@ import { Form, Button, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { useAPI } from '../services/apiProvider';
+import { getNtrpLevelOptions } from '../utils/profileFormUtils';
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -35,22 +36,6 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, showLoad
   const [initialLoading, setInitialLoading] = useState(showLoadingState);
   const [profileExists, setProfileExists] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-
-  // Get NTRP levels with translations
-  const getNtrpLevels = () => {
-    const levels = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0];
-    return levels.map(value => {
-      // Ensure consistent string formatting for translation keys
-      const formattedValue = value.toFixed(1);
-      const translationKey = `profileSetup.ntrp.levels.${formattedValue}`;
-      const translation = t(translationKey);
-
-      return {
-        value,
-        label: translation
-      };
-    });
-  };
 
   // Zod schema for form validation
   const profileSetupSchema = z.object({
@@ -290,7 +275,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, showLoad
                     required
                   >
                     <option value="">{t('profileSetup.ntrp.selectLevel')}</option>
-                    {getNtrpLevels().map(level => (
+                    {getNtrpLevelOptions(t).map(level => (
                       <option key={level.value} value={level.value}>
                         {level.label}
                       </option>
