@@ -1,5 +1,5 @@
 export default {
-  locales: ['en', 'es', 'fr', 'pl', 'ru'],
+  locales: ['en', 'es', 'fr', 'pl', 'ru', 'de'],
 
   // Where translation files are located
   output: 'src/i18n/locales/$LOCALE/translation.json',

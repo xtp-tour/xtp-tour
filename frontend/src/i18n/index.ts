@@ -7,6 +7,7 @@ import moment from 'moment';
 import '../utils/localeLoader';
 
 // Import translation files
+import de from './locales/de/translation.json';
 import en from './locales/en/translation.json';
 import es from './locales/es/translation.json';
 import fr from './locales/fr/translation.json';
@@ -14,6 +15,9 @@ import pl from './locales/pl/translation.json';
 import ru from './locales/ru/translation.json';
 
 const resources = {
+  de: {
+    translation: de,
+  },
   en: {
     translation: en,
   },
@@ -59,7 +63,7 @@ i18n
 // Set moment.js locale when language changes
 const setMomentLocale = (lng: string) => {
   // Map i18n language codes to moment locale codes
-  const localeMap: Record<string, string> = { en: 'en', es: 'es', fr: 'fr', pl: 'pl', ru: 'ru' };
+  const localeMap: Record<string, string> = { de: 'de', en: 'en', es: 'es', fr: 'fr', pl: 'pl', ru: 'ru' };
   const momentLocale = localeMap[lng] || 'en';
   
   // Try to set the moment locale, falling back to English if not available

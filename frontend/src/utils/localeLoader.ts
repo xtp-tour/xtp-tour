@@ -2,7 +2,7 @@ import moment from 'moment';
 
 // Dynamically load moment locales without TypeScript type checking
 const loadMomentLocales = async () => {
-  const locales = ['es', 'fr', 'pl', 'ru'];
+  const locales = ['de', 'es', 'fr', 'pl', 'ru'];
 
   for (const locale of locales) {
     try {
