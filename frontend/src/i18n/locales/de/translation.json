@@ -186,7 +186,7 @@
       "timeSlotSelected_one": "{{count}} Zeitfenster ausgewählt",
       "timeSlotSelected_other": "{{count}} Zeitfenster ausgewählt",
       "training": "Training",
-      "trainingPlaceholder": "Beschreiben Sie Ihr Trainingsplan und Ihre Ziele…",
+      "trainingPlaceholder": "Beschreiben Sie Ihren Trainingsplan und Ihre Ziele…",
       "trainingTip": "Erwägen Sie, Trainingsplan oder Ziele in die Beschreibung aufzunehmen",
       "trainingTooltip": "Hauptziel ist die Verbesserung des Spiels durch Ballwechsel"
     },
