@@ -34,9 +34,11 @@ const COUNTRIES = [
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
+  { code: 'de', name: 'Deutsch' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
   { code: 'pl', name: 'Polski' },
+  { code: 'ru', name: 'Русский' },
 ];
 
 const UserProfile: React.FC = () => {
